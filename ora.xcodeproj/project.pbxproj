@@ -1,0 +1,548 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		BAC9B0332E06B56C008C04EF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BAC9B0172E06B569008C04EF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BAC9B01E2E06B569008C04EF;
+			remoteInfo = ora;
+		};
+		BAC9B03D2E06B56C008C04EF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BAC9B0172E06B569008C04EF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BAC9B01E2E06B569008C04EF;
+			remoteInfo = ora;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		BAC9B01F2E06B569008C04EF /* ora.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ora.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BAC9B0322E06B56C008C04EF /* oraTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = oraTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BAC9B03C2E06B56C008C04EF /* oraUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = oraUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		BAC9B0212E06B569008C04EF /* ora */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ora;
+			sourceTree = "<group>";
+		};
+		BAC9B0352E06B56C008C04EF /* oraTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = oraTests;
+			sourceTree = "<group>";
+		};
+		BAC9B03F2E06B56C008C04EF /* oraUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = oraUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		BAC9B01C2E06B569008C04EF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BAC9B02F2E06B56C008C04EF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BAC9B0392E06B56C008C04EF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		BAC9B0162E06B569008C04EF = {
+			isa = PBXGroup;
+			children = (
+				BAC9B0212E06B569008C04EF /* ora */,
+				BAC9B0352E06B56C008C04EF /* oraTests */,
+				BAC9B03F2E06B56C008C04EF /* oraUITests */,
+				BAC9B0202E06B569008C04EF /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		BAC9B0202E06B569008C04EF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BAC9B01F2E06B569008C04EF /* ora.app */,
+				BAC9B0322E06B56C008C04EF /* oraTests.xctest */,
+				BAC9B03C2E06B56C008C04EF /* oraUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		BAC9B01E2E06B569008C04EF /* ora */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BAC9B0462E06B56C008C04EF /* Build configuration list for PBXNativeTarget "ora" */;
+			buildPhases = (
+				BAC9B01B2E06B569008C04EF /* Sources */,
+				BAC9B01C2E06B569008C04EF /* Frameworks */,
+				BAC9B01D2E06B569008C04EF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				BAC9B0212E06B569008C04EF /* ora */,
+			);
+			name = ora;
+			packageProductDependencies = (
+			);
+			productName = ora;
+			productReference = BAC9B01F2E06B569008C04EF /* ora.app */;
+			productType = "com.apple.product-type.application";
+		};
+		BAC9B0312E06B56C008C04EF /* oraTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BAC9B0492E06B56C008C04EF /* Build configuration list for PBXNativeTarget "oraTests" */;
+			buildPhases = (
+				BAC9B02E2E06B56C008C04EF /* Sources */,
+				BAC9B02F2E06B56C008C04EF /* Frameworks */,
+				BAC9B0302E06B56C008C04EF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BAC9B0342E06B56C008C04EF /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				BAC9B0352E06B56C008C04EF /* oraTests */,
+			);
+			name = oraTests;
+			packageProductDependencies = (
+			);
+			productName = oraTests;
+			productReference = BAC9B0322E06B56C008C04EF /* oraTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		BAC9B03B2E06B56C008C04EF /* oraUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BAC9B04C2E06B56C008C04EF /* Build configuration list for PBXNativeTarget "oraUITests" */;
+			buildPhases = (
+				BAC9B0382E06B56C008C04EF /* Sources */,
+				BAC9B0392E06B56C008C04EF /* Frameworks */,
+				BAC9B03A2E06B56C008C04EF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BAC9B03E2E06B56C008C04EF /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				BAC9B03F2E06B56C008C04EF /* oraUITests */,
+			);
+			name = oraUITests;
+			packageProductDependencies = (
+			);
+			productName = oraUITests;
+			productReference = BAC9B03C2E06B56C008C04EF /* oraUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		BAC9B0172E06B569008C04EF /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					BAC9B01E2E06B569008C04EF = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					BAC9B0312E06B56C008C04EF = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = BAC9B01E2E06B569008C04EF;
+					};
+					BAC9B03B2E06B56C008C04EF = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = BAC9B01E2E06B569008C04EF;
+					};
+				};
+			};
+			buildConfigurationList = BAC9B01A2E06B569008C04EF /* Build configuration list for PBXProject "ora" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = BAC9B0162E06B569008C04EF;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = BAC9B0202E06B569008C04EF /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				BAC9B01E2E06B569008C04EF /* ora */,
+				BAC9B0312E06B56C008C04EF /* oraTests */,
+				BAC9B03B2E06B56C008C04EF /* oraUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		BAC9B01D2E06B569008C04EF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BAC9B0302E06B56C008C04EF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BAC9B03A2E06B56C008C04EF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		BAC9B01B2E06B569008C04EF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BAC9B02E2E06B56C008C04EF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BAC9B0382E06B56C008C04EF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		BAC9B0342E06B56C008C04EF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BAC9B01E2E06B569008C04EF /* ora */;
+			targetProxy = BAC9B0332E06B56C008C04EF /* PBXContainerItemProxy */;
+		};
+		BAC9B03E2E06B56C008C04EF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BAC9B01E2E06B569008C04EF /* ora */;
+			targetProxy = BAC9B03D2E06B56C008C04EF /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		BAC9B0442E06B56C008C04EF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		BAC9B0452E06B56C008C04EF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		BAC9B0472E06B56C008C04EF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = ora/ora.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"ora/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.631b1fc179e4ed51.ora;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		BAC9B0482E06B56C008C04EF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = ora/ora.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"ora/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.631b1fc179e4ed51.ora;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		BAC9B04A2E06B56C008C04EF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.631b1fc179e4ed51.oraTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ora.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ora";
+			};
+			name = Debug;
+		};
+		BAC9B04B2E06B56C008C04EF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.631b1fc179e4ed51.oraTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ora.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ora";
+			};
+			name = Release;
+		};
+		BAC9B04D2E06B56C008C04EF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.631b1fc179e4ed51.oraUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = ora;
+			};
+			name = Debug;
+		};
+		BAC9B04E2E06B56C008C04EF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.631b1fc179e4ed51.oraUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = ora;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		BAC9B01A2E06B569008C04EF /* Build configuration list for PBXProject "ora" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BAC9B0442E06B56C008C04EF /* Debug */,
+				BAC9B0452E06B56C008C04EF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BAC9B0462E06B56C008C04EF /* Build configuration list for PBXNativeTarget "ora" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BAC9B0472E06B56C008C04EF /* Debug */,
+				BAC9B0482E06B56C008C04EF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BAC9B0492E06B56C008C04EF /* Build configuration list for PBXNativeTarget "oraTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BAC9B04A2E06B56C008C04EF /* Debug */,
+				BAC9B04B2E06B56C008C04EF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BAC9B04C2E06B56C008C04EF /* Build configuration list for PBXNativeTarget "oraUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BAC9B04D2E06B56C008C04EF /* Debug */,
+				BAC9B04E2E06B56C008C04EF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = BAC9B0172E06B569008C04EF /* Project object */;
+}
