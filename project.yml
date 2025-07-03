@@ -12,3 +12,6 @@ targets:
       base:
         SWIFT_VERSION: 5.0
         CODE_SIGN_STYLE: Automatic
+        CFBundleName: Ora
+        MARKETING_VERSION: 0.0.1
+        CURRENT_PROJECT_VERSION: 1
