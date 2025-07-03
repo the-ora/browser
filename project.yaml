@@ -1,0 +1,14 @@
+name: ora
+options:
+  bundleIdPrefix: com.orabrowser
+targets:
+  ora:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: ora
+    settings:
+      base:
+        SWIFT_VERSION: 5.0
+        CODE_SIGN_STYLE: Automatic
