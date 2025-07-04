@@ -24,9 +24,12 @@ struct oraApp: App {
     }()
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup("Ora Browser") {
             ContentView()
         }
         .modelContainer(sharedModelContainer)
+        .windowResizability(.contentSize)
+        .windowStyle(.hiddenTitleBar)
+        .defaultSize(width: 1440, height: 900)
     }
 }
