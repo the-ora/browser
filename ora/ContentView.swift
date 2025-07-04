@@ -90,7 +90,7 @@ class TabManager: ObservableObject {
     init() {
         // Configure WebView for performance
         let configuration = WKWebViewConfiguration()
-        configuration.applicationNameForUserAgent = "ArcBrowser/1.0"
+        configuration.applicationNameForUserAgent = "OraBrowser/1.0"
         
         // Performance optimizations
         configuration.allowsAirPlayForMediaPlayback = true
@@ -108,9 +108,9 @@ class TabManager: ObservableObject {
         configuration.websiteDataStore = websiteDataStore
         
         // GPU acceleration settings
-        let preferences = WKPreferences()
-        preferences.javaScriptEnabled = true
-        configuration.preferences = preferences
+        let preferences = WKWebpagePreferences()
+        preferences.allowsContentJavaScript = true
+        configuration.defaultWebpagePreferences = preferences
         
         self.webViewConfiguration = configuration
         
@@ -142,8 +142,8 @@ class TabManager: ObservableObject {
     }
 }
 
-// MARK: - Arc-style Sidebar Tab Item
-struct ArcTabItem: View {
+// MARK: - Sidebar Tab Item
+struct TabItem: View {
     @ObservedObject var tab: BrowserTab
     var isSelected: Bool
     var onSelect: () -> Void
@@ -266,8 +266,8 @@ struct ArcTabItem: View {
     }
 }
 
-// MARK: - Arc-style Sidebar
-struct ArcSidebar: View {
+// MARK: - Sidebar
+struct Sidebar: View {
     @ObservedObject var tabManager: TabManager
     @Binding var isSidebarVisible: Bool
     @Environment(\.colorScheme) var colorScheme
@@ -348,7 +348,7 @@ struct ArcSidebar: View {
                 ScrollView(showsIndicators: false) {
                     LazyVStack(spacing: 4) {
                         ForEach(tabManager.tabs) { tab in
-                            ArcTabItem(
+                            TabItem(
                                 tab: tab,
                                 isSelected: tab.id == tabManager.selectedTabId,
                                 onSelect: {
@@ -418,8 +418,8 @@ struct ArcSidebar: View {
     }
 }
 
-// MARK: - Arc-style URL Bar
-struct ArcURLBar: View {
+// MARK: URL Bar
+struct URLBar: View {
     @ObservedObject var tab: BrowserTab
     @State private var editingURLString: String = ""
     @State private var isEditing: Bool = false
@@ -630,17 +630,15 @@ struct ContentView: View {
     
     var body: some View {
         HStack(spacing: 0) {
-            // Arc-style sidebar
             if isSidebarVisible {
-                ArcSidebar(tabManager: tabManager, isSidebarVisible: $isSidebarVisible)
+                Sidebar(tabManager: tabManager, isSidebarVisible: $isSidebarVisible)
                     .transition(.move(edge: .leading).combined(with: .opacity))
             }
             
             // Main browser content
             VStack(spacing: 0) {
-                // Arc-style URL bar
                 if let selectedTab = tabManager.selectedTab {
-                    ArcURLBar(tab: selectedTab)
+                    URLBar(tab: selectedTab)
                         .background(
                             Rectangle()
                                 .fill(.ultraThinMaterial)
@@ -669,7 +667,7 @@ struct ContentView: View {
                             )
                         
                         VStack(spacing: 8) {
-                            Text("Welcome to Arc")
+                            Text("Welcome to Ora")
                                 .font(.system(size: 24, weight: .semibold))
                             
                             Text("Create a new tab to get started")
