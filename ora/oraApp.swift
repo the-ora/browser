@@ -1,10 +1,3 @@
-//
-//  oraApp.swift
-//  ora
-//
-//  Created by keni on 6/21/25.
-//
-
 import SwiftUI
 import SwiftData
 
@@ -24,12 +17,12 @@ struct oraApp: App {
     }()
 
     var body: some Scene {
-        WindowGroup("Ora Browser") {
-            ContentView()
+        WindowGroup {
+            BrowserViewController()
+                .background(VisualEffectView())
         }
-        .modelContainer(sharedModelContainer)
+        .defaultSize(width: 1440, height: 900)
         .windowResizability(.contentSize)
         .windowStyle(.hiddenTitleBar)
-        .defaultSize(width: 1440, height: 900)
     }
 }

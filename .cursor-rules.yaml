@@ -1,0 +1,38 @@
+# .cursor-rules.yaml
+
+# This Cursor rules file enforces the macOS project structure.
+# It helps keep the project organized by modules, shared components, services, and common resources.
+
+folders:
+  - path: Modules
+    required: true
+    description: >
+      Contains feature modules. Each module (screen/feature) should have its own folder.
+      Place all files related to a module (e.g., views, view models, subviews) inside its respective folder.
+
+  - path: UI
+    required: false
+    description: >
+      Shared, reusable UI components.
+      For components with multiple variants (e.g., Buttons), create a subfolder (e.g., Buttons) and place each variant (e.g., Button, IconButton) as a separate file within that folder.
+      For components that typically have a single variant (e.g., TextField), place the file directly under UI without a subfolder.
+
+  - path: Services
+    required: false
+    description: >
+      Application-wide services and managers.
+      Each service can have its own folder if it consists of multiple related files.
+
+  - path: Common
+    required: false
+    description: >
+      Shared resources, extensions, and miscellaneous files.
+      Organize resources (e.g., colors, fonts, strings), extensions, and data files in subfolders as needed.
+
+files:
+  - pattern: oraApp.swift
+    required: true
+    description: "App file."
+  - pattern: ContentView.swift
+    required: false
+    description: "Main view file."
