@@ -3,13 +3,17 @@ import AppKit
 import SwiftUI
 
 class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
-    var onTitleChange: ((String?) -> Void)?
+var onTitleChange: ((String?) -> Void)?
     var onURLChange: ((URL?) -> Void)?
     var onLoadingChange: ((Bool) -> Void)?
-    weak var tab: BrowserTab? // Weak reference to BrowserTab
+    weak var tab: BrowserTab?
     private var retryCount = 0
-    private let maxRetries = 3
-    private let retryDelay: TimeInterval = 0.5 // 500ms delay between retries
+    private let maxRetries = 5
+    private let retryDelay: TimeInterval = 1.0
+    
+    override init() {
+        super.init()
+    }
     
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
         onLoadingChange?(true)
@@ -20,8 +24,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
         onLoadingChange?(false)
         onTitleChange?(webView.title)
         onURLChange?(webView.url)
-        
-        // Inject performance optimization script
+
         let script = """
         // Force GPU rendering for smooth scrolling
         document.body.style.transform = 'translateZ(0)';
@@ -49,8 +52,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
     }
     
     private func takeSnapshotAfterLoad(_ webView: WKWebView) {
-        if retryCount < maxRetries && webView.isLoading {
-            // If still loading, retry after delay
+        if retryCount < maxRetries && (webView.isLoading || webView.bounds.width == 0) {
             DispatchQueue.main.asyncAfter(deadline: .now() + retryDelay) { [weak self] in
                 self?.takeSnapshotAfterLoad(webView)
             }
@@ -58,21 +60,31 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
             return
         }
         
-        // If loading is complete or max retries reached
+        guard !webView.isLoading, webView.bounds.width > 0 else {
+            retryCount = 0
+            return
+        }
+        
         let configuration = WKSnapshotConfiguration()
-        configuration.rect = CGRect(x: 0, y: 0, width: webView.bounds.width, height: 1) // Capture top row
+        configuration.rect = CGRect(x: 0, y: 0, width: webView.bounds.width, height: 24)
         webView.takeSnapshot(with: configuration) { [weak self] image, error in
             guard let self = self else { return }
-            if let image = image, let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) {
-                let color = self.extractDominantColor(from: cgImage)
-                DispatchQueue.main.async {
-                    if let tab = self.tab, let color = color {
-                        tab.backgroundColor = Color(nsColor: color)
-                        print("Extracted color: \(color)") // Debug log
-                        print("Tab background color: \(Color(nsColor: color))") // Debug log
-                    } else {
-                        print("Failed to extract color from snapshot")
+            if let image = image {
+                if let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) {
+                    let color = self.extractDominantColor(from: cgImage)
+                    DispatchQueue.main.async {
+                        if let tab = self.tab {
+                            if let color = color {
+                                tab.backgroundColor = Color(nsColor: color)
+                            } else {
+                                tab.backgroundColor = Color(nsColor: NSColor.black)
+                            }
+                        } else {
+                            print("Tab reference is nil during color set")
+                        }
                     }
+                } else {
+                    print("Failed to get cgImage from snapshot")
                 }
             } else {
                 print("Snapshot failed with error: \(String(describing: error))")
@@ -84,55 +96,73 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
     private func extractDominantColor(from cgImage: CGImage) -> NSColor? {
         let width = cgImage.width
         let height = cgImage.height
-        if width == 0 || height == 0 { 
+        if width == 0 || height == 0 {
             print("Invalid image dimensions: \(width)x\(height)")
-            return nil 
+            return nil
         }
         
         let colorSpace = CGColorSpaceCreateDeviceRGB()
-        let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
+        let bitmapInfo = CGImageAlphaInfo.premultipliedLast.rawValue
         guard let context = CGContext(data: nil,
                                       width: width,
-                                      height: 1, // Only process the top row
+                                      height: height,
                                       bitsPerComponent: 8,
-                                      bytesPerRow: 4 * width,
+                                      bytesPerRow: 0,
                                       space: colorSpace,
-                                      bitmapInfo: bitmapInfo.rawValue) else { 
+                                      bitmapInfo: bitmapInfo) else {
             print("Failed to create context")
-            return nil 
+            return nil
         }
         
-        context.draw(cgImage, in: CGRect(x: 0, y: 0, width: CGFloat(width), height: 1))
-        
-        guard let data = context.data else { 
+        context.draw(cgImage, in: CGRect(x: 0, y: 0, width: CGFloat(width), height: CGFloat(height)))
+        guard let data = context.data else {
             print("Failed to get pixel data")
-            return nil 
+            return nil
         }
-        let pixelData = data.bindMemory(to: UInt32.self, capacity: width)
+        let pixels = data.assumingMemoryBound(to: UInt8.self)
         
-        var redTotal: CGFloat = 0
-        var greenTotal: CGFloat = 0
-        var blueTotal: CGFloat = 0
-        var count = 0
+        let samplePoints = [
+            (0, 0),
+            (Int(width) - 1, 0),
+            (0, Int(height) - 1),
+            (Int(width) - 1, Int(height) - 1)
+        ]
         
-        for x in 0..<width {
-            let pixel = pixelData[x]
-            let red = CGFloat((pixel >> 16) & 0xFF) / 255.0
-            let green = CGFloat((pixel >> 8) & 0xFF) / 255.0
-            let blue = CGFloat(pixel & 0xFF) / 255.0
-            redTotal += red
-            greenTotal += green
-            blueTotal += blue
-            count += 1
+        var colors: [NSColor] = []
+        
+        for (x, y) in samplePoints {
+            let offset = 4 * (y * Int(width) + x)
+            let red = CGFloat(pixels[offset]) / 255.0
+            let green = CGFloat(pixels[offset + 1]) / 255.0
+            let blue = CGFloat(pixels[offset + 2]) / 255.0
+            let alpha = CGFloat(pixels[offset + 3]) / 255.0
+            let color = NSColor(deviceRed: red, green: green, blue: blue, alpha: alpha)
+            colors.append(color)
         }
         
-        if count > 0 {
-            let avgRed = redTotal / CGFloat(count)
-            let avgGreen = greenTotal / CGFloat(count)
-            let avgBlue = blueTotal / CGFloat(count)
-            return NSColor(red: avgRed, green: avgGreen, blue: avgBlue, alpha: 1.0)
+        return findMostCommonColor(colors)
+    }
+    
+    private func findMostCommonColor(_ colors: [NSColor]) -> NSColor? {
+        var colorCounts: [String: (NSColor, Int)] = [:]
+        
+        for color in colors {
+            var red: CGFloat = 0
+            var green: CGFloat = 0
+            var blue: CGFloat = 0
+            var alpha: CGFloat = 0
+            
+            color.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+            let key = "\(Int(red * 255))-\(Int(green * 255))-\(Int(blue * 255))"
+            
+            if let (_, count) = colorCounts[key] {
+                colorCounts[key] = (color, count + 1)
+            } else {
+                colorCounts[key] = (color, 1)
+            }
         }
-        print("No valid pixels found")
-        return nil
+        
+        let mostCommon = colorCounts.max(by: { $0.value.1 < $1.value.1 })
+        return mostCommon?.value.0 ?? NSColor.white
     }
 }
