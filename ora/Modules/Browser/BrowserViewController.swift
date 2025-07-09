@@ -15,11 +15,7 @@ struct BrowserViewController: View {
         } detail: {
             VStack(alignment: .leading, spacing: 0) {
                 if let selectedTab = tabManager.selectedTab {
-                    URLBar(tab: selectedTab, columnVisibility: $columnVisibility) // Pass columnVisibility binding
-                        .background(
-                            Rectangle()
-                                .fill(Color(selectedTab.themeColor ?? .black))
-                        )
+                    URLBar(tab: selectedTab, columnVisibility: $columnVisibility)
                     
                     WebView(webView: selectedTab.webView)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -55,13 +51,17 @@ struct VisualEffectView: NSViewRepresentable {
 
 struct WindowAccessor: NSViewRepresentable {
     let isSidebarVisible: Bool
-    let offset = CGPoint(x: 12, y: -8)
     
     func makeNSView(context: Context) -> NSView {
         let view = NSView()
         
         DispatchQueue.main.async {
             if let window = view.window {
+                window.titlebarAppearsTransparent = true
+                window.titleVisibility = .hidden
+                window.titlebarSeparatorStyle = .none
+                window.isOpaque = false
+
                 // Hide traffic lights when sidebar is hidden
                 window.standardWindowButton(.closeButton)?.isHidden = !isSidebarVisible
                 window.standardWindowButton(.miniaturizeButton)?.isHidden = !isSidebarVisible

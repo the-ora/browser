@@ -22,7 +22,6 @@ struct oraApp: App {
                 .background(VisualEffectView())
         }
         .defaultSize(width: 1440, height: 900)
-        .windowResizability(.contentSize)
         .windowStyle(.hiddenTitleBar)
     }
 }

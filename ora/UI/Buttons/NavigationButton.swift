@@ -4,6 +4,7 @@ import SwiftUI
 struct NavigationButton: View {
     let systemName: String
     let isEnabled: Bool
+    let foregroundColor: Color
     let action: () -> Void
     @State private var isHovering = false
     
@@ -11,11 +12,11 @@ struct NavigationButton: View {
         Button(action: action) {
             Image(systemName: systemName)
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(isEnabled ? (isHovering ? .primary : .secondary) : .secondary.opacity(0.5))
+                .foregroundColor(isEnabled ? (isHovering ? foregroundColor.opacity(0.8) : foregroundColor) : foregroundColor.opacity(0.5))
                 .frame(width: 32, height: 32)
                 .background(
                     Circle()
-                        .fill(isHovering && isEnabled ? Color.primary.opacity(0.1) : Color.clear)
+                        .fill(isHovering && isEnabled ? foregroundColor.opacity(0.1) : Color.clear)
                 )
         }
         .buttonStyle(PlainButtonStyle())
@@ -24,4 +25,4 @@ struct NavigationButton: View {
             isHovering = hovering
         }
     }
-} 
+}

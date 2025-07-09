@@ -50,7 +50,7 @@ class TabManager: ObservableObject {
         addTab()
     }
     
-    func addTab(url: URL = URL(string: "https://www.x.com")!) {
+    func addTab(url: URL = URL(string: "https://www.arc.net/")!) {
         let newTab = BrowserTab(url: url, configuration: webViewConfiguration)
         tabs.append(newTab)
         selectedTabId = newTab.id

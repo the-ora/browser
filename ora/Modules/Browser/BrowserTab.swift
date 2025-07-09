@@ -11,7 +11,7 @@ class BrowserTab: Identifiable, ObservableObject {
     @Published var favicon: NSImage?
     let webView: WKWebView
     private var navigationDelegate: WebViewNavigationDelegate?
-    @Published var themeColor: NSColor? = .black // default
+    @Published var backgroundColor: Color = Color(nsColor: NSColor.windowBackgroundColor)
     
     init(url: URL, title: String = "New Tab", configuration: WKWebViewConfiguration) {
         self.url = url
@@ -40,6 +40,8 @@ class BrowserTab: Identifiable, ObservableObject {
     
     private func setupNavigationDelegate() {
         let delegate = WebViewNavigationDelegate()
+        delegate.tab = self 
+        
         delegate.onTitleChange = { [weak self] title in
             DispatchQueue.main.async {
                 self?.title = title ?? "New Tab"
@@ -55,11 +57,6 @@ class BrowserTab: Identifiable, ObservableObject {
         delegate.onLoadingChange = { [weak self] isLoading in
             DispatchQueue.main.async {
                 self?.isLoading = isLoading
-            }
-        }
-        delegate.onThemeColorExtracted = { [weak self] color in
-            DispatchQueue.main.async {
-                self?.themeColor = color
             }
         }
         

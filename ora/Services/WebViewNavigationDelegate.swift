@@ -1,12 +1,15 @@
 import WebKit
 import AppKit
+import SwiftUI
 
-// MARK: - WebView Navigation Delegate
 class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
     var onTitleChange: ((String?) -> Void)?
     var onURLChange: ((URL?) -> Void)?
     var onLoadingChange: ((Bool) -> Void)?
-    var onThemeColorExtracted: ((NSColor?) -> Void)? 
+    weak var tab: BrowserTab? // Weak reference to BrowserTab
+    private var retryCount = 0
+    private let maxRetries = 3
+    private let retryDelay: TimeInterval = 0.5 // 500ms delay between retries
     
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
         onLoadingChange?(true)
@@ -31,41 +34,9 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
             el.style.backfaceVisibility = 'hidden';
         });
         """
-
-        // 🌈 Extract theme color from <meta name="theme-color">
-        webView.evaluateJavaScript("""
-        (function() {
-            var meta = document.querySelector('meta[name="theme-color"]');
-            return meta ? meta.content : null;
-        })()
-        """) { result, _ in
-            if let hex = result as? String,
-               let nsColor = NSColor(hex: hex) {
-                self.onThemeColorExtracted?(nsColor)
-            }
-        }
-
-        // 🌇 Fallback: extract computed body background color
-        webView.evaluateJavaScript("""
-            window.getComputedStyle(document.body).backgroundColor;
-        """) { result, _ in
-            if let cssColor = result as? String,
-                let nsColor = NSColor.fromCSSColorString(cssColor) {
-                self.onThemeColorExtracted?(nsColor)
-            }
-        }
-
-        // 🖼️ Fetch favicon and extract color as fallback
-        if let host = webView.url?.host,
-           let faviconURL = URL(string: "https://\(host)/favicon.ico") {
-            URLSession.shared.dataTask(with: faviconURL) { data, _, _ in
-                if let data = data, let image = NSImage(data: data),
-                   let dominantColor = image.dominantColor() {
-                    self.onThemeColorExtracted?(dominantColor)
-                }
-            }.resume()
-        }
         
+        // Start the snapshot process after a short delay to allow rendering
+        takeSnapshotAfterLoad(webView)
         webView.evaluateJavaScript(script, completionHandler: nil)
     }
     
@@ -76,77 +47,92 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         onLoadingChange?(false)
     }
-} 
-
-extension NSImage {
-    func dominantColor() -> NSColor? {
-        guard let tiffData = self.tiffRepresentation,
-              let bitmap = NSBitmapImageRep(data: tiffData) else { return nil }
-
-        let width = bitmap.pixelsWide
-        let height = bitmap.pixelsHigh
-        
-        var red: CGFloat = 0
-        var green: CGFloat = 0
-        var blue: CGFloat = 0
-        var count: CGFloat = 0
-
-        for x in 0..<width {
-            for y in 0..<height {
-                guard let color = bitmap.colorAt(x: x, y: y) else { continue }
-                
-                // Ignore nearly white or black pixels
-                let brightness = (color.redComponent + color.greenComponent + color.blueComponent) / 3
-                if brightness > 0.95 || brightness < 0.05 { continue }
-                
-                red += color.redComponent
-                green += color.greenComponent
-                blue += color.blueComponent
-                count += 1
+    
+    private func takeSnapshotAfterLoad(_ webView: WKWebView) {
+        if retryCount < maxRetries && webView.isLoading {
+            // If still loading, retry after delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + retryDelay) { [weak self] in
+                self?.takeSnapshotAfterLoad(webView)
             }
-        }
-
-        guard count > 0 else { return nil }
-
-        return NSColor(
-            red: red / count,
-            green: green / count,
-            blue: blue / count,
-            alpha: 1.0
-        )
-    }
-}
-
-extension NSColor {
-    convenience init?(hex: String) {
-        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
-        hexSanitized = hexSanitized.replacingOccurrences(of: "#", with: "")
-        
-        var rgb: UInt64 = 0
-        Scanner(string: hexSanitized).scanHexInt64(&rgb)
-
-        let r = CGFloat((rgb >> 16) & 0xff) / 255
-        let g = CGFloat((rgb >> 8) & 0xff) / 255
-        let b = CGFloat(rgb & 0xff) / 255
-
-        self.init(red: r, green: g, blue: b, alpha: 1.0)
-    }
-}
-
-extension NSColor {
-    static func fromCSSColorString(_ cssString: String) -> NSColor? {
-        let pattern = #"rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)"#
-        guard let regex = try? NSRegularExpression(pattern: pattern),
-              let match = regex.firstMatch(in: cssString, range: NSRange(cssString.startIndex..., in: cssString)) else {
-            return nil
+            retryCount += 1
+            return
         }
         
-        let nsStr = cssString as NSString
-        let r = CGFloat(Int(nsStr.substring(with: match.range(at: 1))) ?? 0) / 255.0
-        let g = CGFloat(Int(nsStr.substring(with: match.range(at: 2))) ?? 0) / 255.0
-        let b = CGFloat(Int(nsStr.substring(with: match.range(at: 3))) ?? 0) / 255.0
-        let a = match.range(at: 4).location != NSNotFound ? CGFloat(Double(nsStr.substring(with: match.range(at: 4))) ?? 1.0) : 1.0
+        // If loading is complete or max retries reached
+        let configuration = WKSnapshotConfiguration()
+        configuration.rect = CGRect(x: 0, y: 0, width: webView.bounds.width, height: 1) // Capture top row
+        webView.takeSnapshot(with: configuration) { [weak self] image, error in
+            guard let self = self else { return }
+            if let image = image, let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) {
+                let color = self.extractDominantColor(from: cgImage)
+                DispatchQueue.main.async {
+                    if let tab = self.tab, let color = color {
+                        tab.backgroundColor = Color(nsColor: color)
+                        print("Extracted color: \(color)") // Debug log
+                        print("Tab background color: \(Color(nsColor: color))") // Debug log
+                    } else {
+                        print("Failed to extract color from snapshot")
+                    }
+                }
+            } else {
+                print("Snapshot failed with error: \(String(describing: error))")
+            }
+            self.retryCount = 0 // Reset retry count
+        }
+    }
+    
+    private func extractDominantColor(from cgImage: CGImage) -> NSColor? {
+        let width = cgImage.width
+        let height = cgImage.height
+        if width == 0 || height == 0 { 
+            print("Invalid image dimensions: \(width)x\(height)")
+            return nil 
+        }
         
-        return NSColor(red: r, green: g, blue: b, alpha: a)
+        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
+        guard let context = CGContext(data: nil,
+                                      width: width,
+                                      height: 1, // Only process the top row
+                                      bitsPerComponent: 8,
+                                      bytesPerRow: 4 * width,
+                                      space: colorSpace,
+                                      bitmapInfo: bitmapInfo.rawValue) else { 
+            print("Failed to create context")
+            return nil 
+        }
+        
+        context.draw(cgImage, in: CGRect(x: 0, y: 0, width: CGFloat(width), height: 1))
+        
+        guard let data = context.data else { 
+            print("Failed to get pixel data")
+            return nil 
+        }
+        let pixelData = data.bindMemory(to: UInt32.self, capacity: width)
+        
+        var redTotal: CGFloat = 0
+        var greenTotal: CGFloat = 0
+        var blueTotal: CGFloat = 0
+        var count = 0
+        
+        for x in 0..<width {
+            let pixel = pixelData[x]
+            let red = CGFloat((pixel >> 16) & 0xFF) / 255.0
+            let green = CGFloat((pixel >> 8) & 0xFF) / 255.0
+            let blue = CGFloat(pixel & 0xFF) / 255.0
+            redTotal += red
+            greenTotal += green
+            blueTotal += blue
+            count += 1
+        }
+        
+        if count > 0 {
+            let avgRed = redTotal / CGFloat(count)
+            let avgGreen = greenTotal / CGFloat(count)
+            let avgBlue = blueTotal / CGFloat(count)
+            return NSColor(red: avgRed, green: avgGreen, blue: avgBlue, alpha: 1.0)
+        }
+        print("No valid pixels found")
+        return nil
     }
 }

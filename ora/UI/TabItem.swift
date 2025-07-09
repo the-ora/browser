@@ -16,15 +16,13 @@ struct TabItem: View {
                 .frame(width: 16, height: 16)
                 .cornerRadius(4)
             
-            // Tab title
-            if isSelected || isHovering {
+
                 Text(tab.title.isEmpty ? "New Tab" : tab.title)
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(isSelected ? .primary : .secondary)
                     .lineLimit(1)
                     .truncationMode(.tail)
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
-            }
             
             Spacer()
             
