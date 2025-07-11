@@ -24,23 +24,9 @@ var onTitleChange: ((String?) -> Void)?
         onLoadingChange?(false)
         onTitleChange?(webView.title)
         onURLChange?(webView.url)
-
-        let script = """
-        // Force GPU rendering for smooth scrolling
-        document.body.style.transform = 'translateZ(0)';
-        document.body.style.backfaceVisibility = 'hidden';
-        
-        // Enable hardware acceleration for elements
-        const acceleratedElements = document.querySelectorAll('div, img, video, canvas');
-        acceleratedElements.forEach(el => {
-            el.style.transform = 'translateZ(0)';
-            el.style.backfaceVisibility = 'hidden';
-        });
-        """
         
         // Start the snapshot process after a short delay to allow rendering
         takeSnapshotAfterLoad(webView)
-        webView.evaluateJavaScript(script, completionHandler: nil)
     }
     
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
