@@ -6,6 +6,7 @@ struct BrowserViewController: View {
     @StateObject private var tabManager = TabManager()
     @Environment(\.colorScheme) var colorScheme
     @State private var columnVisibility: NavigationSplitViewVisibility = .all // Changed to NavigationSplitViewVisibility
+    @EnvironmentObject private var appState: AppState
 
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) { // Bind columnVisibility
@@ -32,6 +33,12 @@ struct BrowserViewController: View {
         }
         .navigationSplitViewStyle(.balanced) // Ensure balanced style for macOS
         .background(WindowAccessor(isSidebarVisible: columnVisibility == .all))
+        .environmentObject(tabManager)
+        .overlay {
+            if appState.showLauncher {
+                LauncherView()
+            }
+        }
     }
 }
 
@@ -41,6 +48,7 @@ struct VisualEffectView: NSViewRepresentable {
         view.blendingMode = .behindWindow
         view.state = .active
         view.material = .underWindowBackground
+        view.isEmphasized = true
         return view
     }
 
