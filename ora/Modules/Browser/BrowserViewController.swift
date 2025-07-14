@@ -54,13 +54,13 @@ struct VisualEffectView: NSViewRepresentable {
     }
 
     func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
-        // No updates needed
-    }
+    // No updates needed
+  }
 }
 
 struct WindowAccessor: NSViewRepresentable {
-    let isSidebarVisible: Bool
-    @Binding var isFullscreen: Bool
+  let isSidebarVisible: Bool
+  @Binding var isFullscreen: Bool
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)

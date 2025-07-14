@@ -316,8 +316,8 @@ struct LauncherInput: View {
     }
     .padding(8)
     .frame(width: 814, alignment: .leading)
-    .background(Color(.windowBackgroundColor).opacity(0.9))
-    .background(.ultraThinMaterial)
+    .background(Color(colorScheme == .dark ? .windowBackgroundColor : .white).opacity(0.8))
+    .background(BlurEffectView(material: .popover, blendingMode: .withinWindow))
     .cornerRadius(16)
     .overlay(
       RoundedRectangle(cornerRadius: 16)
@@ -327,8 +327,8 @@ struct LauncherInput: View {
           lineWidth: 0.5)
     )
     .shadow(
-      color: Color.black.opacity(0.25),
-      radius: 25, x: 0, y: 16
+      color: Color.black.opacity(0.3),
+      radius: 40, x: 0, y: 24
     )
   }
 
@@ -438,12 +438,14 @@ struct LauncherView: View {
 
   var body: some View {
     ZStack {
-      Color.clear
+      Color.black.opacity(0.5)
+        .ignoresSafeArea()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .contentShape(Rectangle())
+        .animation(.easeOut(duration: 0.3), value: isVisible)
         .onTapGesture {
           isVisible = false
-          DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+          DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             appState.showLauncher = false
           }
         }
@@ -479,7 +481,7 @@ struct LauncherView: View {
       .blur(radius: isVisible ? 0 : 2)
       .animation(
         isVisible
-          ? .spring(response: 0.1, dampingFraction: 0.7, blendDuration: 0.2)
+          ? .spring(response: 0.15, dampingFraction: 0.5, blendDuration: 0.2)
           : .easeOut(duration: 0.1),
         value: isVisible
       )
@@ -494,119 +496,10 @@ struct LauncherView: View {
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .onExitCommand {
       isVisible = false
-      DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
         appState.showLauncher = false
       }
     }
-  }
-}
-
-struct ShadowPopModifier: ViewModifier {
-  let color: Color
-  let trigger: Bool
-
-  func body(content: Content) -> some View {
-    PhaseAnimator(
-      trigger
-        ? [
-          .idle,
-          .validating,
-          .decrease,
-          .increase,
-          .finished,
-        ] : [.idle],
-      trigger: trigger
-    ) { (phase: ShadowPopPhase) in
-      let property = property(for: phase)
-      ZStack {
-        if phase == .decrease || phase == .increase {
-          RoundedRectangle(cornerRadius: 16.0)
-            .fill(Color(.windowBackgroundColor))
-            .scaleEffect(property.scale)
-            .shadow(
-              color: property.shadowColor,
-              radius: property.shadowRadius
-            )
-        }
-        content
-          .compositingGroup()
-          .scaleEffect(property.scale)
-          .overlay {
-            if phase == .validating {
-              RoundedRectangle(cornerRadius: 16.0)
-                .fill(property.overlayColor)
-            }
-          }
-          .shadow(
-            color: .clear,
-            radius: 5
-          )
-      }
-    } animation: { phase in
-      switch phase {
-      case .decrease:
-        .spring(duration: 0.09)
-      case .increase:
-        .easeOut(duration: 0.38)
-      case .validating:
-        .easeInOut(duration: 0.08)
-      case .finished, .idle:
-        .linear(duration: 0.01)
-      }
-    }
-  }
-
-  private func property(for phase: ShadowPopPhase) -> Property {
-    let shadowColor: Color =
-      switch phase {
-      case .validating, .idle:
-        .clear
-      case .decrease:
-        color
-      case .increase:
-        .clear
-      case .finished:
-        .clear
-      }
-    let shadowRadius: CGFloat =
-      switch phase {
-      case .validating, .finished, .idle:
-        5
-      case .decrease:
-        10
-      case .increase:
-        70
-      }
-    let overlayColor: Color =
-      switch phase {
-      case .validating:
-        color.opacity(0.18)
-      case .idle, .decrease, .increase, .finished:
-        .clear
-      }
-    let scale: CGFloat =
-      switch phase {
-      case .idle, .validating, .finished, .increase:
-        1.0
-      case .decrease:
-        0.96
-      }
-
-    return Property(
-      shadowColor: shadowColor,
-      shadowRadius: shadowRadius,
-      overlayColor: overlayColor,
-      scale: CGSize(width: scale, height: scale)
-    )
-  }
-}
-
-extension ShadowPopModifier {
-  struct Property {
-    let shadowColor: Color
-    let shadowRadius: CGFloat
-    let overlayColor: Color
-    let scale: CGSize
   }
 }
 
@@ -640,8 +533,8 @@ struct GradientBorderModifier: ViewModifier {
                 ),
                 lineWidth: 8.0
               )
-              .blur(radius: 120)
-              .opacity(0.8)
+              .blur(radius: 40)
+              .opacity(0.9)
 
             // Main border
             RoundedRectangle(cornerRadius: 16.0)
@@ -696,15 +589,6 @@ struct GradientBorderModifier: ViewModifier {
 }
 
 extension View {
-  func shadowPop(color: Color, trigger: Bool) -> some View {
-    modifier(
-      ShadowPopModifier(
-        color: color,
-        trigger: trigger
-      )
-    )
-  }
-
   func gradientBorder(color: Color, trigger: Bool) -> some View {
     modifier(
       GradientBorderModifier(
@@ -712,5 +596,24 @@ extension View {
         trigger: trigger
       )
     )
+  }
+}
+
+struct BlurEffectView: NSViewRepresentable {
+  let material: NSVisualEffectView.Material
+  let blendingMode: NSVisualEffectView.BlendingMode
+
+  func makeNSView(context: Context) -> NSVisualEffectView {
+    let visualEffectView = NSVisualEffectView()
+    visualEffectView.material = material
+    visualEffectView.blendingMode = blendingMode
+    visualEffectView.state = .active
+    return visualEffectView
+  }
+
+  func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
+    nsView.material = material
+    nsView.blendingMode = blendingMode
+    nsView.state = .active
   }
 }
