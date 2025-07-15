@@ -6,7 +6,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
 var onTitleChange: ((String?) -> Void)?
     var onURLChange: ((URL?) -> Void)?
     var onLoadingChange: ((Bool) -> Void)?
-    weak var tab: BrowserTab?
+    weak var tab: Tab?
     private var retryCount = 0
     private let maxRetries = 5
     private let retryDelay: TimeInterval = 1.0

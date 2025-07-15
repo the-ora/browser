@@ -11,16 +11,19 @@ struct BrowserViewController: View {
 
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) { // Bind columnVisibility
-            Sidebar(tabManager: tabManager, isSidebarVisible: .constant(columnVisibility == .all)) // Pass as constant
+            Sidebar(isSidebarVisible: .constant(columnVisibility == .all)) // Pass as constant
                 .transition(.move(edge: .leading).combined(with: .opacity))
                 .toolbar(removing: .sidebarToggle) // Hide default sidebar toggle
         } detail: {
             VStack(alignment: .leading, spacing: 0) {
-                if let selectedTab = tabManager.selectedTab {
-                    URLBar(tab: selectedTab, columnVisibility: $columnVisibility)
-                    
-                    WebView(webView: selectedTab.webView)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                if let selectedTab = tabManager.activeTab {
+                    URLBar(columnVisibility: $columnVisibility)
+                    ForEach(tabManager.tabs){ tab in
+                        if tab.id == tabManager.selectedTabId{
+                            WebView(webView: tab.webView)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        }
+                    }
                 } else {
                     Text("No tab selected")
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -34,7 +37,6 @@ struct BrowserViewController: View {
         }
         .navigationSplitViewStyle(.balanced) // Ensure balanced style for macOS
         .background(WindowAccessor(isSidebarVisible: columnVisibility == .all, isFullscreen: $isFullscreen))
-        .environmentObject(tabManager)
         .overlay {
             if appState.showLauncher {
                 LauncherView()
@@ -132,8 +134,4 @@ struct WindowAccessor: NSViewRepresentable {
         window.standardWindowButton(.miniaturizeButton)?.isHidden = shouldHide
         window.standardWindowButton(.zoomButton)?.isHidden = shouldHide
     }
-}
-
-#Preview {
-    BrowserViewController()
 }

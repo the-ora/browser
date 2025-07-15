@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - Sidebar
 struct Sidebar: View {
-    @ObservedObject var tabManager: TabManager
+    @StateObject private var tabManager = TabManager()
     @Binding var isSidebarVisible: Bool
     @Environment(\.colorScheme) var colorScheme
     @State private var searchText = ""
@@ -29,7 +29,9 @@ struct Sidebar: View {
                     Spacer()
                     
                     Button(action: {
-                        tabManager.addTab()
+                        if let container = tabManager.activeContainer {
+                            tabManager.addTab(container: container)
+                        }
                     }) {
                         Image(systemName: "plus")
                             .font(.system(size: 14, weight: .medium))
@@ -79,27 +81,29 @@ struct Sidebar: View {
                 .padding(.bottom, 8)
                 
                 // Tab list
-                ScrollView(showsIndicators: false) {
-                    LazyVStack(spacing: 4) {
-                        ForEach(tabManager.tabs) { tab in
-                            TabItem(
-                                tab: tab,
-                                isSelected: tab.id == tabManager.selectedTabId,
-                                onSelect: {
-                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                        tabManager.selectTab(id: tab.id)
+                ForEach(tabManager.containers){ container in
+                
+                    ScrollView(showsIndicators: false) {
+                        LazyVStack(spacing: 4) {
+                            ForEach(container.tabs) { tab in
+                                TabItem(
+                                    tab: tab,
+                                    isSelected: if let activeTab = tabManager.activeTab { tab.id == activeTab.id } else { false},
+                                    onSelect: {
+                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                            tabManager.selectTab(tab: tab)
+                                        }
+                                    },
+                                    onClose: {
+                                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                            tabManager.closeTab(tab: tab)
+                                        }
                                     }
-                                },
-                                onClose: {
-                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                        tabManager.closeTab(id: tab.id)
-                                    }
-                                }
-                            )
+                                )
+                            }
                         }
-                    }
-                    .padding(.horizontal, 12)
-                }
+                        .padding(.horizontal, 12)
+                    }}
             }
             
             Spacer()

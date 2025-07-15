@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - Sidebar Tab Item
 struct TabItem: View {
-    @ObservedObject var tab: BrowserTab
+    @Bindable var tab: Tab
     var isSelected: Bool
     var onSelect: () -> Void
     var onClose: () -> Void
@@ -55,9 +55,15 @@ struct TabItem: View {
     private var faviconView: some View {
         Group {
             if let favicon = tab.favicon {
-                Image(nsImage: favicon)
-                    .resizable()
-                    .scaledToFit()
+                AsyncImage(
+                    url: favicon
+                ) { image in
+                            image
+                                .resizable()
+                                .scaledToFit()
+                        } placeholder: {
+                            ProgressView() // or any placeholder
+                        }
             } else {
                 Circle()
                     .fill(LinearGradient(
