@@ -3,46 +3,50 @@ import SwiftUI
 
 // MARK: - BrowserViewController
 struct BrowserViewController: View {
-  @StateObject private var tabManager = TabManager()
-  @Environment(\.colorScheme) var colorScheme
-  @State private var columnVisibility: NavigationSplitViewVisibility = .all  // Changed to NavigationSplitViewVisibility
-  @EnvironmentObject private var appState: AppState
-  @State private var isFullscreen = false
+    @EnvironmentObject var tabManager: TabManager
+    @Environment(\.colorScheme) var colorScheme
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all // Changed to NavigationSplitViewVisibility
+    @EnvironmentObject private var appState: AppState
+    @State private var isFullscreen = false
 
-  var body: some View {
-    NavigationSplitView(columnVisibility: $columnVisibility) {  // Bind columnVisibility
-      SidebarView()
-        .transition(.move(edge: .leading).combined(with: .opacity))
-        .toolbar(removing: .sidebarToggle)
-    } detail: {
-      VStack(alignment: .leading, spacing: 0) {
-        if let selectedTab = tabManager.selectedTab {
-          URLBar(tab: selectedTab, columnVisibility: $columnVisibility)
+    var body: some View {
+        NavigationSplitView(columnVisibility: $columnVisibility) { // Bind columnVisibility
+            SidebarView().toolbar(removing: .sidebarToggle)
+        } detail: {
+            VStack(alignment: .leading, spacing: 0) {
+                    URLBar(
+                        columnVisibility: $columnVisibility
+                    )
+                if let tab  = tabManager.activeTab {
+                    if tab.isWebViewReady {
+                        WebView(webView: tab.webView)
+                            .id(tab.id)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        ProgressView()
+                            .frame(
+                                maxWidth: .infinity,
+                                maxHeight: .infinity
+                            ) 
+                    }
+                }
 
-          WebView(webView: selectedTab.webView)
+              
+            }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else {
-          Text("No tab selected")
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(VisualEffectView())
+            .cornerRadius(isFullscreen && columnVisibility != .all ? 0 : 8)
+            .padding(isFullscreen && columnVisibility != .all ? 0 : 6)
+            .ignoresSafeArea(.all)
         }
-      }
-      .frame(maxWidth: .infinity, maxHeight: .infinity)
-    //   .background(VisualEffectView())
-      .cornerRadius(isFullscreen && columnVisibility != .all ? 0 : 8)
-      .padding(isFullscreen && columnVisibility != .all ? 0 : 6)
-      .ignoresSafeArea(.all)
+        .navigationSplitViewStyle(.balanced)
+        .background(WindowAccessor(isSidebarVisible: columnVisibility == .all, isFullscreen: $isFullscreen))
+        .overlay {
+            if appState.showLauncher {
+                LauncherView()
+            }
+        }
     }
-    .navigationSplitViewStyle(.balanced)  // Ensure balanced style for macOS
-    .background(
-      WindowAccessor(isSidebarVisible: columnVisibility == .all, isFullscreen: $isFullscreen)
-    )
-    .environmentObject(tabManager)
-    .overlay {
-      if appState.showLauncher {
-        LauncherView()
-      }
-    }
-  }
 }
 
 struct VisualEffectView: NSViewRepresentable {
@@ -141,8 +145,4 @@ struct WindowAccessor: NSViewRepresentable {
     window.titlebarSeparatorStyle = .none
     window.isOpaque = false
   }
-}
-
-#Preview {
-  BrowserViewController()
 }

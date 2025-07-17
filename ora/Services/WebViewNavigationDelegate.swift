@@ -6,7 +6,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
 var onTitleChange: ((String?) -> Void)?
     var onURLChange: ((URL?) -> Void)?
     var onLoadingChange: ((Bool) -> Void)?
-    weak var tab: BrowserTab?
+    weak var tab: Tab?
     private var retryCount = 0
     private let maxRetries = 5
     private let retryDelay: TimeInterval = 1.0
@@ -18,6 +18,7 @@ var onTitleChange: ((String?) -> Void)?
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
         onLoadingChange?(true)
         onURLChange?(webView.url)
+
     }
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
@@ -36,6 +37,7 @@ var onTitleChange: ((String?) -> Void)?
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         onLoadingChange?(false)
     }
+   
     
     private func takeSnapshotAfterLoad(_ webView: WKWebView) {
         if retryCount < maxRetries && (webView.isLoading || webView.bounds.width == 0) {
