@@ -1,13 +1,12 @@
 import AppKit
 import SwiftUI
 
-// MARK: - Main View
-struct NewSidebarView: View {
+struct SidebarView: View {
   @Environment(\.colorScheme) private var colorScheme
   @State private var selectedContainer = "personal"
   @State private var isContainerDropdownOpen = false
   @State private var draggedItem: String?
-  @State private var containers: [ContainerData] = Self.defaultContainers
+  @State private var containers: [ContainerData] = SidebarView.defaultContainers
 
   private var selectedContainerData: ContainerData {
     containers.first { $0.id == selectedContainer } ?? containers[0]
@@ -17,226 +16,101 @@ struct NewSidebarView: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
-      favoriteTabsGrid
+      FavoriteTabsGrid(
+        tabs: favoriteTabs,
+        selectedTabId: selectedContainerData.activeTabId,
+        draggedItem: draggedItem,
+        containers: $containers,
+        selectedContainerId: selectedContainer,
+        onSelect: selectTab,
+        onFavoriteToggle: toggleFavorite,
+        onClose: removeTab,
+        onMoveToContainer: moveTab
+      )
 
       ScrollView(.vertical, showsIndicators: false) {
-        pinnedTabsList
-        if hasPinnedTabs && hasRegularTabs {
-          Divider()
-        }
-        regularTabsList
-      }
-
-      containerSelector
-    }
-    .padding(.leading, 8)
-    .padding(.bottom, 12)
-  }
-}
-
-// MARK: - View Components
-extension NewSidebarView {
-  fileprivate var favoriteTabsGrid: some View {
-    LazyVGrid(columns: columns, spacing: 10) {
-      ForEach(favoriteTabs) { tab in
-        FavoriteTabButton(
-          tab: tab,
-          colorScheme: colorScheme,
-          onTap: { selectTab(tab.id) },
-          onFavoriteToggle: { toggleFavorite(tab.id) },
-          onClose: { removeTab(tab.id) },
-          onMoveToContainer: { moveTab(tab.id, to: $0) },
-          availableContainers: containers,
-          selectedContainerId: selectedContainer
+        PinnedTabsList(
+          tabs: pinnedTabs,
+          selectedTabId: selectedContainerData.activeTabId,
+          draggedItem: draggedItem,
+          containers: $containers,
+          selectedContainerId: selectedContainer,
+          onSelect: selectTab,
+          onPinToggle: togglePin,
+          onFavoriteToggle: toggleFavorite,
+          onClose: removeTab,
+          onMoveToContainer: moveTab
         )
-        .onDrag { dragTab(tab.id) }
-        .onDrop(
-          of: [.text],
-          delegate: TabDropDelegate(
-            item: tab,
-            containers: $containers,
-            selectedContainerId: selectedContainer,
-            draggedItem: $draggedItem,
-            targetSection: .favorites
-          )
+        Divider()
+        RegularTabsList(
+          tabs: regularTabs,
+          selectedTabId: selectedContainerData.activeTabId,
+          draggedItem: draggedItem,
+          containers: $containers,
+          selectedContainerId: selectedContainer,
+          onSelect: selectTab,
+          onPinToggle: togglePin,
+          onFavoriteToggle: toggleFavorite,
+          onClose: removeTab,
+          onMoveToContainer: moveTab,
+          onAddNewTab: addNewTab
         )
       }
+
+      ContainerSelector(
+        containers: containers,
+        selectedContainerId: $selectedContainer,
+        isDropdownOpen: $isContainerDropdownOpen,
+        colorScheme: colorScheme
+      )
     }
+    .padding(.horizontal, 8)
+    .padding(.vertical, 12)
   }
 
-  fileprivate var pinnedTabsList: some View {
-    LazyVStack(spacing: 6) {
-      ForEach(pinnedTabs) { tab in
-        tabItem(for: tab)
-          .onDrag { dragTab(tab.id) }
-          .onDrop(
-            of: [.text],
-            delegate: TabDropDelegate(
-              item: tab,
-              containers: $containers,
-              selectedContainerId: selectedContainer,
-              draggedItem: $draggedItem,
-              targetSection: .pinned
-            )
-          )
-      }
-    }
-  }
-
-  fileprivate var regularTabsList: some View {
-    LazyVStack(spacing: 6) {
-      NewTabButton(addNewTab: addNewTab, colorScheme: colorScheme)
-
-      ForEach(regularTabs) { tab in
-        tabItem(for: tab)
-          .onDrag { dragTab(tab.id) }
-          .onDrop(
-            of: [.text],
-            delegate: TabDropDelegate(
-              item: tab,
-              containers: $containers,
-              selectedContainerId: selectedContainer,
-              draggedItem: $draggedItem,
-              targetSection: .regular
-            )
-          )
-      }
-    }
-    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: regularTabs.map(\.id))
-  }
-
-  fileprivate var containerSelector: some View {
-    VStack(spacing: 4) {
-      if isContainerDropdownOpen {
-        containerDropdown
-      }
-
-      containerButton
-    }
-    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isContainerDropdownOpen)
-  }
-
-  fileprivate var containerDropdown: some View {
-    VStack(spacing: 2) {
-      ForEach(containers) { container in
-        ContainerButton(
-          container: container,
-          isSelected: selectedContainer == container.id,
-          colorScheme: colorScheme
-        ) {
-          selectedContainer = container.id
-          isContainerDropdownOpen = false
-        }
-      }
-    }
-    .padding(.top, 4)
-    .padding(.horizontal, 4)
-    .background(Color.adaptiveBackground(for: colorScheme).opacity(0.4))
-    .cornerRadius(10)
-    .transition(.opacity.combined(with: .scale(scale: 0.95, anchor: .top)))
-  }
-
-  fileprivate var containerButton: some View {
-    Button {
-      isContainerDropdownOpen.toggle()
-    } label: {
-      HStack(spacing: 4) {
-        Image(systemName: selectedContainerData.icon)
-          .frame(width: 12, height: 12)
-
-        Spacer()
-
-        Text(selectedContainerData.title)
-          .font(.system(size: 13, weight: .medium))
-
-        Spacer()
-
-        Image(systemName: "chevron.down")
-          .frame(width: 12, height: 12)
-          .rotationEffect(.degrees(isContainerDropdownOpen ? 180 : 0))
-      }
-      .foregroundColor(.secondary)
-      .padding(8)
-      .background(Color.adaptiveBackground(for: colorScheme).opacity(0.4))
-      .cornerRadius(10)
-    }
-    .buttonStyle(.plain)
-  }
-
-  fileprivate func tabItem(for tab: TabData) -> some View {
-    NewTabItem(
-      tab: tab,
-      isSelected: selectedContainerData.activeTabId == tab.id,
-      isDragging: draggedItem == tab.id,
-      colorScheme: colorScheme,
-      onTap: { selectTab(tab.id) },
-      onPinToggle: { togglePin(tab.id) },
-      onFavoriteToggle: { toggleFavorite(tab.id) },
-      onClose: { removeTab(tab.id) },
-      onMoveToContainer: { moveTab(tab.id, to: $0) },
-      availableContainers: containers,
-      selectedContainerId: selectedContainer
-    )
-  }
-}
-
-// MARK: - Computed Properties
-extension NewSidebarView {
-  fileprivate var favoriteTabs: [TabData] {
+  private var favoriteTabs: [TabData] {
     selectedContainerData.tabs.filter(\.isFavorite)
   }
 
-  fileprivate var pinnedTabs: [TabData] {
+  private var pinnedTabs: [TabData] {
     selectedContainerData.tabs.filter { $0.isPinned && !$0.isFavorite }
   }
 
-  fileprivate var regularTabs: [TabData] {
+  private var regularTabs: [TabData] {
     selectedContainerData.tabs.filter { !$0.isPinned && !$0.isFavorite }
   }
 
-  fileprivate var hasPinnedTabs: Bool {
-    !pinnedTabs.isEmpty
-  }
-
-  fileprivate var hasRegularTabs: Bool {
-    !regularTabs.isEmpty
-  }
-}
-
-// MARK: - Actions
-extension NewSidebarView {
-  fileprivate func addNewTab() {
+  private func addNewTab() {
     let newTab = TabData(
       id: "new-tab-\(Date().timeIntervalSince1970)",
       icon: "globe",
       title: "New Tab"
     )
-
     guard let index = containers.firstIndex(where: { $0.id == selectedContainer }) else { return }
     containers[index].addTab(newTab)
   }
 
-  fileprivate func removeTab(_ tabId: String) {
+  private func removeTab(_ tabId: String) {
     guard let index = containers.firstIndex(where: { $0.id == selectedContainer }) else { return }
     containers[index].removeTab(withId: tabId)
   }
 
-  fileprivate func togglePin(_ tabId: String) {
+  private func togglePin(_ tabId: String) {
     guard let index = containers.firstIndex(where: { $0.id == selectedContainer }) else { return }
     containers[index].togglePin(tabId)
   }
 
-  fileprivate func toggleFavorite(_ tabId: String) {
+  private func toggleFavorite(_ tabId: String) {
     guard let index = containers.firstIndex(where: { $0.id == selectedContainer }) else { return }
     containers[index].toggleFavorite(tabId)
   }
 
-  fileprivate func selectTab(_ tabId: String) {
+  private func selectTab(_ tabId: String) {
     guard let index = containers.firstIndex(where: { $0.id == selectedContainer }) else { return }
     containers[index].setActiveTab(tabId)
   }
 
-  fileprivate func moveTab(_ tabId: String, to newContainerId: String) {
+  private func moveTab(_ tabId: String, to newContainerId: String) {
     guard let fromIndex = containers.firstIndex(where: { $0.id == selectedContainer }),
       let toIndex = containers.firstIndex(where: { $0.id == newContainerId }),
       fromIndex != toIndex,
@@ -248,15 +122,12 @@ extension NewSidebarView {
     containers[toIndex].addTab(tab)
   }
 
-  fileprivate func dragTab(_ tabId: String) -> NSItemProvider {
+  private func dragTab(_ tabId: String) -> NSItemProvider {
     draggedItem = tabId
     return NSItemProvider(object: NSString(string: tabId))
   }
-}
 
-// MARK: - Default Data
-extension NewSidebarView {
-  fileprivate static var defaultContainers: [ContainerData] {
+  private static var defaultContainers: [ContainerData] {
     [
       ContainerData(
         id: "personal", icon: "person", title: "Personal", activeTabId: "ora",
@@ -272,7 +143,6 @@ extension NewSidebarView {
           TabData(id: "settings", icon: "gearshape", title: "Settings"),
         ]
       ),
-
       ContainerData(
         id: "work", icon: "briefcase", title: "Work", activeTabId: "github",
         tabs: [
@@ -292,7 +162,6 @@ extension NewSidebarView {
           TabData(id: "terminal", icon: "terminal", title: "Terminal"),
         ]
       ),
-
       ContainerData(
         id: "school", icon: "graduationcap", title: "School", activeTabId: "classroom",
         tabs: [
@@ -318,7 +187,212 @@ extension NewSidebarView {
   }
 }
 
-// MARK: - Models
+struct FavoriteTabsGrid: View {
+  let tabs: [TabData]
+  let selectedTabId: String?
+  let draggedItem: String?
+  @Binding var containers: [ContainerData]
+  let selectedContainerId: String
+  let onSelect: (String) -> Void
+  let onFavoriteToggle: (String) -> Void
+  let onClose: (String) -> Void
+  let onMoveToContainer: (String, String) -> Void
+
+  private let columns = Array(repeating: GridItem(spacing: 10), count: 3)
+
+  var body: some View {
+    LazyVGrid(columns: columns, spacing: 10) {
+      ForEach(tabs) { tab in
+        FavoriteTabButton(
+          tab: tab,
+          isSelected: selectedTabId == tab.id,
+          isDragging: draggedItem == tab.id,
+          onTap: { onSelect(tab.id) },
+          onFavoriteToggle: { onFavoriteToggle(tab.id) },
+          onClose: { onClose(tab.id) },
+          onMoveToContainer: { onMoveToContainer(tab.id, $0) },
+          availableContainers: containers,
+          selectedContainerId: selectedContainerId
+        )
+        .onDrag { NSItemProvider(object: NSString(string: tab.id)) }
+        .onDrop(
+          of: [.text],
+          delegate: TabDropDelegate(
+            item: tab,
+            containers: $containers,
+            selectedContainerId: selectedContainerId,
+            draggedItem: .constant(draggedItem),
+            targetSection: .favorites
+          )
+        )
+      }
+    }
+  }
+}
+
+struct PinnedTabsList: View {
+  let tabs: [TabData]
+  let selectedTabId: String?
+  let draggedItem: String?
+  @Binding var containers: [ContainerData]
+  let selectedContainerId: String
+  let onSelect: (String) -> Void
+  let onPinToggle: (String) -> Void
+  let onFavoriteToggle: (String) -> Void
+  let onClose: (String) -> Void
+  let onMoveToContainer: (String, String) -> Void
+
+  var body: some View {
+    LazyVStack(spacing: 6) {
+      ForEach(tabs) { tab in
+        TabItem(
+          tab: tab,
+          isSelected: selectedTabId == tab.id,
+          isDragging: draggedItem == tab.id,
+          onTap: { onSelect(tab.id) },
+          onPinToggle: { onPinToggle(tab.id) },
+          onFavoriteToggle: { onFavoriteToggle(tab.id) },
+          onClose: { onClose(tab.id) },
+          onMoveToContainer: { onMoveToContainer(tab.id, $0) },
+          availableContainers: containers,
+          selectedContainerId: selectedContainerId
+        )
+        .onDrag { NSItemProvider(object: NSString(string: tab.id)) }
+        .onDrop(
+          of: [.text],
+          delegate: TabDropDelegate(
+            item: tab,
+            containers: $containers,
+            selectedContainerId: selectedContainerId,
+            draggedItem: .constant(draggedItem),
+            targetSection: .pinned
+          )
+        )
+      }
+    }
+  }
+}
+
+struct RegularTabsList: View {
+  let tabs: [TabData]
+  let selectedTabId: String?
+  let draggedItem: String?
+  @Binding var containers: [ContainerData]
+  let selectedContainerId: String
+  let onSelect: (String) -> Void
+  let onPinToggle: (String) -> Void
+  let onFavoriteToggle: (String) -> Void
+  let onClose: (String) -> Void
+  let onMoveToContainer: (String, String) -> Void
+  let onAddNewTab: () -> Void
+
+  var body: some View {
+    LazyVStack(spacing: 6) {
+      NewTabButton(addNewTab: onAddNewTab)
+      ForEach(tabs) { tab in
+        TabItem(
+          tab: tab,
+          isSelected: selectedTabId == tab.id,
+          isDragging: draggedItem == tab.id,
+          onTap: { onSelect(tab.id) },
+          onPinToggle: { onPinToggle(tab.id) },
+          onFavoriteToggle: { onFavoriteToggle(tab.id) },
+          onClose: { onClose(tab.id) },
+          onMoveToContainer: { onMoveToContainer(tab.id, $0) },
+          availableContainers: containers,
+          selectedContainerId: selectedContainerId
+        )
+        .onDrag { NSItemProvider(object: NSString(string: tab.id)) }
+        .onDrop(
+          of: [.text],
+          delegate: TabDropDelegate(
+            item: tab,
+            containers: $containers,
+            selectedContainerId: selectedContainerId,
+            draggedItem: .constant(draggedItem),
+            targetSection: .regular
+          )
+        )
+      }
+    }
+    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: tabs.map(\.id))
+  }
+}
+
+struct ContainerSelector: View {
+  let containers: [ContainerData]
+  @Binding var selectedContainerId: String
+  @Binding var isDropdownOpen: Bool
+  let colorScheme: ColorScheme
+
+  var body: some View {
+    VStack(spacing: 4) {
+      if isDropdownOpen {
+        ContainerDropdown(
+          containers: containers,
+          selectedContainerId: $selectedContainerId,
+          isDropdownOpen: $isDropdownOpen,
+          colorScheme: colorScheme
+        )
+      }
+      HStack {
+        Button(action: { isDropdownOpen.toggle() }) {
+          HStack(spacing: 4) {
+            Image(systemName: containers.first { $0.id == selectedContainerId }?.icon ?? "person")
+              .frame(width: 12, height: 12)
+
+            Spacer()
+
+            Text(containers.first { $0.id == selectedContainerId }?.title ?? "Personal")
+              .font(.system(size: 13, weight: .medium))
+
+            Spacer()
+
+            Image(systemName: isDropdownOpen ? "chevron.up" : "chevron.down")
+              .frame(width: 12, height: 12)
+          }
+          .foregroundColor(.secondary)
+          .padding(8)
+          .background(
+            Color.adaptiveBackground(for: colorScheme).opacity(0.8)
+          )
+          .cornerRadius(8)
+        }
+        .buttonStyle(.plain)
+        NewContainerButton(action: {})
+      }
+    }
+    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isDropdownOpen)
+  }
+}
+
+struct ContainerDropdown: View {
+  let containers: [ContainerData]
+  @Binding var selectedContainerId: String
+  @Binding var isDropdownOpen: Bool
+  let colorScheme: ColorScheme
+
+  var body: some View {
+    VStack(spacing: 2) {
+      ForEach(containers) { container in
+        ContainerButton(
+          container: container,
+          isSelected: selectedContainerId == container.id,
+          action: {
+            selectedContainerId = container.id
+            isDropdownOpen = false
+          }
+        )
+      }
+    }
+    .padding(.top, 4)
+    .padding(.horizontal, 4)
+    .background(Color.adaptiveBackground(for: colorScheme).opacity(0.4))
+    .cornerRadius(10)
+    .transition(.opacity.combined(with: .scale(scale: 0.95, anchor: .top)))
+  }
+}
+
 struct ContainerData: Identifiable {
   let id: String
   let icon: String
@@ -387,12 +461,10 @@ struct TabData: Identifiable {
   }
 }
 
-// MARK: - Tab Item
-struct NewTabItem: View {
+struct TabItem: View {
   let tab: TabData
   let isSelected: Bool
   let isDragging: Bool
-  let colorScheme: ColorScheme
   let onTap: () -> Void
   let onPinToggle: () -> Void
   let onFavoriteToggle: () -> Void
@@ -401,6 +473,7 @@ struct NewTabItem: View {
   let availableContainers: [ContainerData]
   let selectedContainerId: String
 
+  @Environment(\.colorScheme) var colorScheme
   @State private var isHovering = false
 
   var body: some View {
@@ -413,8 +486,6 @@ struct NewTabItem: View {
     .padding(8)
     .background(backgroundColor)
     .cornerRadius(10)
-    .overlay(dragOverlay)
-    .shadow(color: isDragging ? .red.opacity(0.2) : .clear, radius: 8, y: 4)
     .opacity(isDragging ? 0.0 : 1.0)
     .onTapGesture(perform: onTap)
     .onHover { isHovering = $0 }
@@ -446,11 +517,6 @@ struct NewTabItem: View {
 
   private var textColor: Color {
     isSelected ? Color.adaptiveText(for: colorScheme) : .secondary
-  }
-
-  private var dragOverlay: some View {
-    RoundedRectangle(cornerRadius: 10)
-      .stroke(isDragging ? Color.red.opacity(0.3) : Color.clear, lineWidth: 2)
   }
 
   @ViewBuilder
@@ -496,7 +562,6 @@ struct NewTabItem: View {
   }
 }
 
-// MARK: - Supporting Views
 struct ActionButton: View {
   let icon: String
   let color: Color
@@ -514,9 +579,16 @@ struct ActionButton: View {
 
 struct ContainerButton: View {
   let container: ContainerData
-  let isSelected: Bool
-  let colorScheme: ColorScheme
+  let isSelected: Bool?
   let action: () -> Void
+
+  init(container: ContainerData, isSelected: Bool? = nil, action: @escaping () -> Void) {
+    self.container = container
+    self.isSelected = isSelected
+    self.action = action
+  }
+
+  @Environment(\.colorScheme) var colorScheme
 
   var body: some View {
     Button(action: action) {
@@ -531,23 +603,49 @@ struct ContainerButton: View {
 
         Spacer()
 
-        if isSelected {
+        if isSelected == nil {
+          Image(systemName: "chevron.down")
+            .frame(width: 12, height: 12)
+        } else if isSelected == true {
           Image(systemName: "checkmark")
             .frame(width: 12, height: 12)
         }
       }
       .foregroundColor(.secondary)
       .padding(8)
-      .background(isSelected ? Color.adaptiveBackground(for: colorScheme).opacity(0.8) : .clear)
+      .background(
+        isSelected == true ? Color.adaptiveBackground(for: colorScheme).opacity(0.8) : .clear
+      )
       .cornerRadius(8)
     }
     .buttonStyle(.plain)
   }
 }
 
+struct NewContainerButton: View {
+  let action: () -> Void
+
+  @State private var isHovering = false
+  @Environment(\.colorScheme) var colorScheme
+
+  var body: some View {
+    Button(action: action) {
+      Image(systemName: "plus")
+        .frame(width: 12, height: 12)
+        .foregroundColor(.secondary)
+        .padding(8)
+        .background(isHovering ? Color.adaptiveBackground(for: colorScheme).opacity(0.3) : .clear)
+        .cornerRadius(10)
+    }
+    .buttonStyle(.plain)
+    .onHover { isHovering = $0 }
+  }
+}
+
 struct FavoriteTabButton: View {
   let tab: TabData
-  let colorScheme: ColorScheme
+  let isSelected: Bool
+  let isDragging: Bool
   let onTap: () -> Void
   let onFavoriteToggle: () -> Void
   let onClose: () -> Void
@@ -555,23 +653,23 @@ struct FavoriteTabButton: View {
   let availableContainers: [ContainerData]
   let selectedContainerId: String
 
-  var body: some View {
-    Button(action: onTap) {
-      VStack(spacing: 4) {
-        Image(systemName: tab.icon)
-          .frame(width: 16, height: 16)
+  @Environment(\.colorScheme) var colorScheme
 
-        Text(tab.title)
-          .font(.system(size: 10, weight: .medium))
-          .lineLimit(1)
-      }
-      .foregroundColor(Color.adaptiveText(for: colorScheme))
-      .frame(height: 48)
-      .frame(maxWidth: .infinity)
-      .background(Color.adaptiveBackground(for: colorScheme).opacity(0.6))
-      .cornerRadius(10)
+  var body: some View {
+    ZStack {
+      Image(systemName: tab.icon)
+        .frame(width: 16, height: 16)
     }
-    .buttonStyle(.plain)
+    .foregroundColor(Color.adaptiveText(for: colorScheme))
+    .frame(height: 48)
+    .frame(maxWidth: .infinity)
+    .background(
+      isSelected
+        ? Color.adaptiveBackground(for: colorScheme) : Color.mutedBackground(for: colorScheme)
+    )
+    .cornerRadius(10)
+    .opacity(isDragging ? 0.0 : 1.0)
+    .onTapGesture(perform: onTap)
     .contextMenu {
       Button(action: onFavoriteToggle) {
         Label("Remove from Favorites", systemImage: "star.slash")
@@ -600,8 +698,9 @@ struct FavoriteTabButton: View {
 
 struct NewTabButton: View {
   let addNewTab: () -> Void
-  let colorScheme: ColorScheme
+
   @State private var isHovering = false
+  @Environment(\.colorScheme) var colorScheme
 
   var body: some View {
     Button(action: addNewTab) {
@@ -623,14 +722,12 @@ struct NewTabButton: View {
   }
 }
 
-// MARK: - Tab Section Enum
 enum TabSection {
   case favorites
   case pinned
   case regular
 }
 
-// MARK: - Tab Drop Delegate
 struct TabDropDelegate: DropDelegate {
   let item: TabData
   @Binding var containers: [ContainerData]
@@ -641,17 +738,17 @@ struct TabDropDelegate: DropDelegate {
   func dropEntered(info: DropInfo) {
     guard let provider = info.itemProviders(for: [.text]).first else { return }
 
-    provider.loadObject(ofClass: NSString.self) { string, _ in
+    provider.loadObject(ofClass: NSString.self) { object, _ in
+      guard let fromId = object as? String else { return }
+
       DispatchQueue.main.async {
-        guard let fromId = string as? String,
-          let containerIndex = containers.firstIndex(where: { $0.id == selectedContainerId }),
+        guard let containerIndex = containers.firstIndex(where: { $0.id == selectedContainerId }),
           let fromIndex = containers[containerIndex].tabs.firstIndex(where: { $0.id == fromId }),
           let toIndex = containers[containerIndex].tabs.firstIndex(where: { $0.id == item.id }),
-          fromIndex != toIndex
+          fromId != item.id
         else { return }
 
-        // Handle reordering within the same section
-        if isInSameSection(fromId: fromId, toId: item.id) {
+        if isInSameSection(containerIndex: containerIndex, fromId: fromId, toId: item.id) {
           withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
             containers[containerIndex].tabs.move(
               fromOffsets: IndexSet(integer: fromIndex),
@@ -659,15 +756,15 @@ struct TabDropDelegate: DropDelegate {
             )
           }
         } else {
-          // Handle moving between sections
-          moveTabBetweenSections(fromId: fromId, toSection: targetSection)
+          moveTabBetweenSections(
+            containerIndex: containerIndex, fromId: fromId, toSection: targetSection)
         }
       }
     }
   }
 
   func dropUpdated(info: DropInfo) -> DropProposal? {
-    DropProposal(operation: .move)
+    .init(operation: .move)
   }
 
   func performDrop(info: DropInfo) -> Bool {
@@ -675,67 +772,39 @@ struct TabDropDelegate: DropDelegate {
     return true
   }
 
-  private func isInSameSection(fromId: String, toId: String) -> Bool {
-    guard let containerIndex = containers.firstIndex(where: { $0.id == selectedContainerId }) else {
-      return false
-    }
+  private func isInSameSection(containerIndex: Int, fromId: String, toId: String) -> Bool {
+    let tabs = containers[containerIndex].tabs
 
-    let fromTab = containers[containerIndex].tabs.first { $0.id == fromId }
-    let toTab = containers[containerIndex].tabs.first { $0.id == toId }
+    guard let fromTab = tabs.first(where: { $0.id == fromId }),
+      let toTab = tabs.first(where: { $0.id == toId })
+    else { return false }
 
-    guard let fromTab = fromTab, let toTab = toTab else { return false }
-
-    let fromSection = getSection(for: fromTab)
-    let toSection = getSection(for: toTab)
-
-    return fromSection == toSection
+    return section(for: fromTab) == section(for: toTab)
   }
 
-  private func getSection(for tab: TabData) -> TabSection {
-    if tab.isFavorite {
-      return .favorites
-    } else if tab.isPinned {
-      return .pinned
-    } else {
-      return .regular
-    }
+  private func section(for tab: TabData) -> TabSection {
+    if tab.isFavorite { return .favorites }
+    if tab.isPinned { return .pinned }
+    return .regular
   }
 
-  private func moveTabBetweenSections(fromId: String, toSection: TabSection) {
-    guard let containerIndex = containers.firstIndex(where: { $0.id == selectedContainerId }),
-      let tabIndex = containers[containerIndex].tabs.firstIndex(where: { $0.id == fromId })
-    else { return }
+  private func moveTabBetweenSections(containerIndex: Int, fromId: String, toSection: TabSection) {
+    var tabs = containers[containerIndex].tabs
 
-    var updatedContainers = containers
-    let tab = updatedContainers[containerIndex].tabs[tabIndex]
+    guard let fromIndex = tabs.firstIndex(where: { $0.id == fromId }) else { return }
 
-    // Remove from current position
-    updatedContainers[containerIndex].tabs.remove(at: tabIndex)
+    var tab = tabs.remove(at: fromIndex)
+    tab.isFavorite = (toSection == .favorites)
+    tab.isPinned = (toSection == .pinned)
 
-    // Update tab properties based on target section
-    var updatedTab = tab
-    switch toSection {
-    case .favorites:
-      updatedTab.isFavorite = true
-      updatedTab.isPinned = false
-    case .pinned:
-      updatedTab.isPinned = true
-      updatedTab.isFavorite = false
-    case .regular:
-      updatedTab.isPinned = false
-      updatedTab.isFavorite = false
-    }
-
-    // Add to the beginning of the appropriate section
-    updatedContainers[containerIndex].tabs.insert(updatedTab, at: 0)
+    tabs.insert(tab, at: 0)
 
     withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-      containers = updatedContainers
+      containers[containerIndex].tabs = tabs
     }
   }
 }
 
-// MARK: - Color Extension
 extension Color {
   static func adaptiveBackground(for colorScheme: ColorScheme) -> Color {
     colorScheme == .dark ? .black : .white
@@ -743,5 +812,9 @@ extension Color {
 
   static func adaptiveText(for colorScheme: ColorScheme) -> Color {
     colorScheme == .dark ? .white : .black
+  }
+
+  static func mutedBackground(for colorScheme: ColorScheme) -> Color {
+    colorScheme == .dark ? .black.opacity(0.15) : .white.opacity(0.5)
   }
 }
