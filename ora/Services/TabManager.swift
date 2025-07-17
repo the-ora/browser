@@ -115,6 +115,29 @@ class TabManager: ObservableObject {
         try? modelContext.save()
         return newTab
     }
+    func openTab(url: URL){
+        if let container = activeContainer {
+            if let host = url.host {
+                let faviconURL = URL(string: "https://www.google.com/s2/favicons?domain=\(host)")
+                
+                let newTab = Tab(
+                    url: url,
+                    title: url.host ?? "New Tab",
+                    favicon: faviconURL,
+                    container: container,
+                    type: .normal,
+                    isPlayingMedia: false,
+                    webViewConfiguration: webViewConfiguration
+                )
+                modelContext.insert(newTab)
+                container.tabs.append(newTab)
+                activeTab = newTab
+                newTab.lastAccessedAt = Date()
+                container.lastAccessedAt = Date()
+                try? modelContext.save()
+            }
+        }
+    }
     
     func closeTab(tab: Tab) {
         print("Attempting to close tab: \(tab.title) (\(tab.id))")

@@ -84,7 +84,11 @@ struct Sidebar: View {
                 .padding(.bottom, 8)
                 
 
-
+                if let container = tabManager.activeContainer {
+                    Text(
+                        "Container: \(container.emoji) \(container.name)"
+                    )
+                }
                     ScrollView(showsIndicators: false) {
                         LazyVStack(spacing: 4) {
                             ForEach(
