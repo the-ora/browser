@@ -3,50 +3,51 @@ import SwiftUI
 
 // MARK: - BrowserViewController
 struct BrowserViewController: View {
-    @EnvironmentObject var tabManager: TabManager
-    @Environment(\.colorScheme) var colorScheme
-    @State private var columnVisibility: NavigationSplitViewVisibility = .all // Changed to NavigationSplitViewVisibility
-    @EnvironmentObject private var appState: AppState
-    @State private var isFullscreen = false
+  @EnvironmentObject var tabManager: TabManager
+  @Environment(\.colorScheme) var colorScheme
+  @State private var columnVisibility: NavigationSplitViewVisibility = .all  // Changed to NavigationSplitViewVisibility
+  @EnvironmentObject private var appState: AppState
+  @State private var isFullscreen = false
 
-    var body: some View {
-        NavigationSplitView(columnVisibility: $columnVisibility) { // Bind columnVisibility
-            SidebarView().toolbar(removing: .sidebarToggle)
-        } detail: {
-            VStack(alignment: .leading, spacing: 0) {
-                    URLBar(
-                        columnVisibility: $columnVisibility
-                    )
-                if let tab  = tabManager.activeTab {
-                    if tab.isWebViewReady {
-                        WebView(webView: tab.webView)
-                            .id(tab.id)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else {
-                        ProgressView()
-                            .frame(
-                                maxWidth: .infinity,
-                                maxHeight: .infinity
-                            ) 
-                    }
-                }
+  var body: some View {
+    NavigationSplitView(columnVisibility: $columnVisibility) {  // Bind columnVisibility
+      SidebarView().toolbar(removing: .sidebarToggle)
+    } detail: {
+      VStack(alignment: .leading, spacing: 0) {
+        URLBar(
+          columnVisibility: $columnVisibility
+        )
+        if let tab = tabManager.activeTab {
+          if tab.isWebViewReady {
+            WebView(webView: tab.webView)
+              .id(tab.id)
+              .frame(maxWidth: .infinity, maxHeight: .infinity)
+          } else {
+            ProgressView()
+              .frame(
+                maxWidth: .infinity,
+                maxHeight: .infinity
+              )
+          }
+        }
 
-              
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(VisualEffectView())
-            .cornerRadius(isFullscreen && columnVisibility != .all ? 0 : 8)
-            .padding(isFullscreen && columnVisibility != .all ? 0 : 6)
-            .ignoresSafeArea(.all)
-        }
-        .navigationSplitViewStyle(.balanced)
-        .background(WindowAccessor(isSidebarVisible: columnVisibility == .all, isFullscreen: $isFullscreen))
-        .overlay {
-            if appState.showLauncher {
-                LauncherView()
-            }
-        }
+      }
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
+      .background(VisualEffectView())
+      .cornerRadius(isFullscreen && columnVisibility != .all ? 0 : 8)
+      .padding(isFullscreen && columnVisibility != .all ? 0 : 6)
+      .ignoresSafeArea(.all)
     }
+    .navigationSplitViewStyle(.balanced)
+    .background(
+      WindowAccessor(isSidebarVisible: columnVisibility == .all, isFullscreen: $isFullscreen)
+    )
+    .overlay {
+      if appState.showLauncher {
+        LauncherView()
+      }
+    }
+  }
 }
 
 struct VisualEffectView: NSViewRepresentable {
