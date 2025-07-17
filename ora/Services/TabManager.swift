@@ -98,9 +98,10 @@ class TabManager: ObservableObject {
     }
     
     func addTab(title: String = "Untitled", url: URL = URL(string: "https://www.youtube.com/")!, container: TabContainer, favicon: URL? = nil) -> Tab {
+        let cleanHost = url.host?.hasPrefix("www.") == true ? String(url.host!.dropFirst(4)) : url.host
         let newTab = Tab(
             url: url,
-            title: url.host ?? "New Tab",
+            title: cleanHost ?? "New Tab",
             favicon: favicon,
             container: container,
             type: .normal,
@@ -119,10 +120,12 @@ class TabManager: ObservableObject {
         if let container = activeContainer {
             if let host = url.host {
                 let faviconURL = URL(string: "https://www.google.com/s2/favicons?domain=\(host)")
-                
+               
+                    let cleanHost = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
+                    
                 let newTab = Tab(
                     url: url,
-                    title: url.host ?? "New Tab",
+                    title: cleanHost,
                     favicon: faviconURL,
                     container: container,
                     type: .normal,
@@ -247,7 +250,14 @@ enum TabType: String, Codable {
 // MARK: - Tab
 @Model
 class Tab: ObservableObject, Identifiable {
-    var id: UUID
+    var id: UUID {
+        didSet {
+            print(id)
+        }
+        willSet {
+            print(id)
+        }
+    }
     var url: URL
     var title: String
     var favicon: URL? // Add favicon property
@@ -261,6 +271,7 @@ class Tab: ObservableObject, Identifiable {
     // Not persisted: in-memory only
     @Transient var webView: WKWebView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
     @Transient private var navigationDelegate: WebViewNavigationDelegate?
+    @Transient @Published var isWebViewReady: Bool = false
 
     @Relationship(inverse: \TabContainer.tabs) var container: TabContainer
     
@@ -299,6 +310,13 @@ class Tab: ObservableObject, Identifiable {
         // Load initial URL
         DispatchQueue.main.async {
             self.webView.load(URLRequest(url: url))
+            self.isWebViewReady = true
+        }
+    }
+    public func setFavicon(){
+        if let host = self.url.host {
+            let faviconURL = URL(string: "https://www.google.com/s2/favicons?domain=\(host)")
+            self.favicon = faviconURL
         }
     }
     
@@ -315,10 +333,7 @@ class Tab: ObservableObject, Identifiable {
             DispatchQueue.main.async {
                 if let url = url {
                     self?.url = url
-                    if let host = url.host {
-                        let faviconURL = URL(string: "https://www.google.com/s2/favicons?domain=\(host)")
-                        self?.favicon = faviconURL
-                    }
+                    self?.setFavicon()
                 }
                 
             }
@@ -331,6 +346,31 @@ class Tab: ObservableObject, Identifiable {
         
         self.navigationDelegate = delegate
         webView.navigationDelegate = delegate
+    }
+    
+    func restoreTransientState() {
+        // Avoid double initialization
+        if webView.url != nil { return }
+
+        self.backgroundColor = Color(.black)
+        self.webView = WKWebView(frame: .zero, configuration: defaultWKConfig())
+
+        webView.allowsMagnification = true
+        webView.allowsBackForwardNavigationGestures = true
+        webView.wantsLayer = true
+        if let layer = webView.layer {
+            layer.isOpaque = true
+            layer.drawsAsynchronously = true
+        }
+
+
+        self.isWebViewReady = false
+        self.setupNavigationDelegate()
+        // Load after a short delay to ensure layout
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+            self.webView.load(URLRequest(url: self.url))
+            self.isWebViewReady = true
+        }
     }
     
     func loadURL(_ urlString: String) {

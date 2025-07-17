@@ -7,6 +7,7 @@ struct TabItem: View {
     var onSelect: () -> Void
     var onClose: () -> Void
     @Environment(\.colorScheme) var colorScheme
+    @EnvironmentObject() var tabManager: TabManager
     @State private var isHovering = false
     
     var body: some View {
@@ -43,11 +44,22 @@ struct TabItem: View {
         .animation(.easeInOut(duration: 0.2), value: isHovering)
         .onTapGesture {
             onSelect()
+            if !tab.isWebViewReady {
+                tab.restoreTransientState()
+            }
         }
         .onHover { hovering in
             withAnimation(.easeInOut(duration: 0.2)) {
                 isHovering = hovering
             }
+        }
+        .onAppear {
+            if let activeTab = tabManager.activeTab {
+                if activeTab.id == tab.id {
+                    tab.restoreTransientState()
+                }
+            }
+
         }
     }
     
@@ -55,15 +67,30 @@ struct TabItem: View {
     private var faviconView: some View {
         Group {
             if let favicon = tab.favicon {
-                AsyncImage(
-                    url: favicon
-                ) { image in
-                            image
-                                .resizable()
-                                .scaledToFit()
-                        } placeholder: {
-                            ProgressView() // or any placeholder
-                        }
+                if tab.isWebViewReady {
+                    AsyncImage(
+                        url: favicon
+                    ) { image in
+                        image
+                            .resizable()
+                            .scaledToFit()
+                    } placeholder: {
+                        Circle()
+                            .fill(LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color.purple.opacity(0.8),
+                                    Color.blue.opacity(0.8)
+                                ]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ))
+                            .overlay(
+                                Text(String(tab.title.prefix(1).uppercased()))
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .foregroundColor(.white)
+                            )
+                    }
+                }
             } else {
                 Circle()
                     .fill(LinearGradient(

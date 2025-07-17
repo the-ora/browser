@@ -20,10 +20,17 @@ struct BrowserViewController: View {
                         columnVisibility: $columnVisibility
                     )
                 if let tab  = tabManager.activeTab {
-                                    
-                    WebView(webView: tab.webView)
-                        .id(tab.id) // Force SwiftUI to treat it as a different view when ID changes
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    if tab.isWebViewReady {
+                        WebView(webView: tab.webView)
+                            .id(tab.id)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        ProgressView()
+                            .frame(
+                                maxWidth: .infinity,
+                                maxHeight: .infinity
+                            ) 
+                    }
                 }
 
               
