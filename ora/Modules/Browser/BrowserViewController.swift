@@ -11,9 +11,10 @@ struct BrowserViewController: View {
 
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) { // Bind columnVisibility
-            Sidebar(tabManager: tabManager, isSidebarVisible: .constant(columnVisibility == .all)) // Pass as constant
-                .transition(.move(edge: .leading).combined(with: .opacity))
-                .toolbar(removing: .sidebarToggle) // Hide default sidebar toggle
+            // Sidebar(tabManager: tabManager, isSidebarVisible: .constant(columnVisibility == .all)) // Pass as constant
+            //     .transition(.move(edge: .leading).combined(with: .opacity))
+            //     .toolbar(removing: .sidebarToggle) // Hide default sidebar toggle
+            NewSidebarView()
         } detail: {
             VStack(alignment: .leading, spacing: 0) {
                 if let selectedTab = tabManager.selectedTab {
@@ -117,7 +118,7 @@ struct WindowAccessor: NSViewRepresentable {
 
     func updateNSView(_ nsView: NSView, context: Context) {
         if let window = nsView.window {
-            self.isFullscreen = window.styleMask.contains(.fullScreen)
+//            self.isFullscreen = window.styleMask.contains(.fullScreen)
             self.updateTrafficLights(window: window)
         }
     }

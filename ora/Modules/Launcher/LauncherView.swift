@@ -489,7 +489,7 @@ struct LauncherView: View {
         isVisible = true
         isTextFieldFocused = true
       }
-      .onChange(of: appState.showLauncher) { newValue in
+      .onChange(of: appState.showLauncher) { _, newValue in
         isVisible = newValue
       }
     }
@@ -570,7 +570,7 @@ struct GradientBorderModifier: ViewModifier {
           }
         }
       }
-      .onChange(of: trigger) { newTrigger in
+      .onChange(of: trigger) { _, newTrigger in
         if newTrigger {
           showBorder = true
           isAnimating = false
