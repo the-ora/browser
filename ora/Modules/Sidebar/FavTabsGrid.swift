@@ -4,7 +4,7 @@ import AppKit
 struct FavTabsGrid: View {
   let tabs: [TabData]
   let selectedTabId: String?
-  let draggedItem: String?
+  @Binding var draggedItem: String?
   let onDrag: (String) -> NSItemProvider
   @Binding var containers: [ContainerData]
   let selectedContainerId: String
@@ -36,7 +36,7 @@ struct FavTabsGrid: View {
             item: tab,
             containers: $containers,
             selectedContainerId: selectedContainerId,
-            draggedItem: .constant(draggedItem),
+            draggedItem: $draggedItem,
             targetSection: .favorites
           )
         )

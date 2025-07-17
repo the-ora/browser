@@ -19,7 +19,7 @@ struct SidebarView: View {
       FavTabsGrid(
         tabs: favoriteTabs,
         selectedTabId: selectedContainerData.activeTabId,
-        draggedItem: draggedItem,
+        draggedItem: $draggedItem,
         onDrag: dragTab,
         containers: $containers,
         selectedContainerId: selectedContainer,
@@ -33,7 +33,7 @@ struct SidebarView: View {
         PinnedTabsList(
           tabs: pinnedTabs,
           selectedTabId: selectedContainerData.activeTabId,
-          draggedItem: draggedItem,
+          draggedItem: $draggedItem,
           onDrag: dragTab,
           containers: $containers,
           selectedContainerId: selectedContainer,
@@ -47,7 +47,7 @@ struct SidebarView: View {
         RegularTabsList(
           tabs: regularTabs,
           selectedTabId: selectedContainerData.activeTabId,
-          draggedItem: draggedItem,
+          draggedItem: $draggedItem,
           onDrag: dragTab,
           containers: $containers,
           selectedContainerId: selectedContainer,
@@ -127,6 +127,10 @@ struct SidebarView: View {
   private func dragTab(_ tabId: String) -> NSItemProvider {
     draggedItem = tabId
     return NSItemProvider(object: NSString(string: tabId))
+  }
+
+  private func dropTab(_ tabId: String) {
+    draggedItem = nil
   }
 
   private static var defaultContainers: [ContainerData] {
