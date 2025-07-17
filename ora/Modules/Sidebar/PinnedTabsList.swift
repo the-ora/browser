@@ -5,6 +5,7 @@ struct PinnedTabsList: View {
   let tabs: [TabData]
   let selectedTabId: String?
   let draggedItem: String?
+  let onDrag: (String) -> NSItemProvider
   @Binding var containers: [ContainerData]
   let selectedContainerId: String
   let onSelect: (String) -> Void
@@ -28,7 +29,7 @@ struct PinnedTabsList: View {
           availableContainers: containers,
           selectedContainerId: selectedContainerId
         )
-        .onDrag { NSItemProvider(object: NSString(string: tab.id)) }
+        .onDrag { onDrag(tab.id) }
         .onDrop(
           of: [.text],
           delegate: TabDropDelegate(

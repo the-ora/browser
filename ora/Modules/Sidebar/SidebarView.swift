@@ -20,6 +20,7 @@ struct SidebarView: View {
         tabs: favoriteTabs,
         selectedTabId: selectedContainerData.activeTabId,
         draggedItem: draggedItem,
+        onDrag: dragTab,
         containers: $containers,
         selectedContainerId: selectedContainer,
         onSelect: selectTab,
@@ -33,6 +34,7 @@ struct SidebarView: View {
           tabs: pinnedTabs,
           selectedTabId: selectedContainerData.activeTabId,
           draggedItem: draggedItem,
+          onDrag: dragTab,
           containers: $containers,
           selectedContainerId: selectedContainer,
           onSelect: selectTab,
@@ -46,6 +48,7 @@ struct SidebarView: View {
           tabs: regularTabs,
           selectedTabId: selectedContainerData.activeTabId,
           draggedItem: draggedItem,
+          onDrag: dragTab,
           containers: $containers,
           selectedContainerId: selectedContainer,
           onSelect: selectTab,
@@ -209,19 +212,5 @@ struct NewTabButton: View {
     .background(isHovering ? Color.adaptiveBackground(for: colorScheme).opacity(0.3) : .clear)
     .cornerRadius(10)
     .onHover { isHovering = $0 }
-  }
-}
-
-extension Color {
-  static func adaptiveBackground(for colorScheme: ColorScheme) -> Color {
-    colorScheme == .dark ? .black : .white
-  }
-
-  static func adaptiveText(for colorScheme: ColorScheme) -> Color {
-    colorScheme == .dark ? .white : .black
-  }
-
-  static func mutedBackground(for colorScheme: ColorScheme) -> Color {
-    colorScheme == .dark ? .black.opacity(0.15) : .white.opacity(0.5)
   }
 }
