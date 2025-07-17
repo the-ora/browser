@@ -42,24 +42,28 @@ class TabManager: ObservableObject {
     @Published var activeContainer: TabContainer?
     @Published var activeTab: Tab?
     
-    private let modelContainer: ModelContainer
-    private var modelContext: ModelContext
+    let modelContainer: ModelContainer
+    let modelContext: ModelContext
     private var webViewConfiguration: WKWebViewConfiguration
     
     @Query(sort: \TabContainer.lastAccessedAt, order: .reverse) var containers: [TabContainer]
     
-    init() {
-        self.webViewConfiguration = defaultWKConfig()
-        do {
-            modelContainer = try ModelContainer(for: TabContainer.self, Tab.self, Folder.self)
-            modelContext = ModelContext(modelContainer)
-            initializeActiveContainerAndTab()
-        } catch {
-            print("Failed to initialize ModelContainer: \(error)")
-            modelContainer = try! ModelContainer(for: TabContainer.self, Tab.self, Folder.self)
-            modelContext = ModelContext(modelContainer)
-            initializeActiveContainerAndTab()
+    init(modelContainer: ModelContainer, modelContext: ModelContext) {
+           self.modelContainer = modelContainer
+           self.modelContext = modelContext
+           self.webViewConfiguration = defaultWKConfig()
+           initializeActiveContainerAndTab()
+       }
+    
+    func isActive(_ tab: Tab)->Bool{
+        
+        if let activeTab = self.activeTab {
+            return activeTab.id == tab.id
         }
+        return false
+    }
+    func getActiveTab()->Tab?{
+        return self.activeTab
     }
     
     private func initializeActiveContainerAndTab() {
@@ -84,7 +88,7 @@ class TabManager: ObservableObject {
         }
     }
     
-    func addContainer(name: String = "Container \(UUID().uuidString.prefix(8))", emoji: String = "💩") -> TabContainer {
+    func addContainer(name: String = "Default", emoji: String = "💩") -> TabContainer {
         let newContainer = TabContainer(name: name, emoji: emoji)
         modelContext.insert(newContainer)
         activeContainer = newContainer
@@ -96,7 +100,7 @@ class TabManager: ObservableObject {
     func addTab(title: String = "Untitled", url: URL = URL(string: "https://www.youtube.com/")!, container: TabContainer, favicon: URL? = nil) -> Tab {
         let newTab = Tab(
             url: url,
-            title: title,
+            title: url.host ?? "New Tab",
             favicon: favicon,
             container: container,
             type: .normal,
@@ -112,21 +116,47 @@ class TabManager: ObservableObject {
         return newTab
     }
     
-    func closeTab(tab:Tab) {
-        // If the closed tab was active, select another tab
-        if activeTab?.id == tab.id {
-            if let firstTab = tab.container.tabs.sorted(by: { $0.lastAccessedAt ?? Date() > $1.lastAccessedAt ?? Date() }).first {
-                activateTab(firstTab)
-            } else if let nextContainer = containers.first(where: { $0.id != tab.container.id }) {
-                activateContainer(nextContainer)
-            } else {
-                activeTab = nil
-                activeContainer = nil
-            }
-        }
-        modelContext.delete(tab)
+    func closeTab(tab: Tab) {
+        print("Attempting to close tab: \(tab.title) (\(tab.id))")
         
-        try? modelContext.save()
+        if let activeTab = self.activeTab {
+            print("Current active tab: \(activeTab.title) (\(activeTab.id))")
+        } else {
+            print("No active tab currently")
+        }
+
+        // If the closed tab was active, select another tab
+        if self.activeTab?.id == tab.id {
+            print("Closing the active tab")
+
+            if let nextTab = tab.container.tabs
+                .filter({ $0.id != tab.id })
+                .sorted(by: { $0.lastAccessedAt ?? Date.distantPast > $1.lastAccessedAt ?? Date.distantPast })
+                .first {
+                
+                print("Switching to next most recent tab in the same container: \(nextTab.title) (\(nextTab.id))")
+                self.activateTab(nextTab)
+
+            } else if let nextContainer = containers.first(where: { $0.id != tab.container.id }) {
+                print("No other tabs in current container. Switching to container: \(nextContainer.name) (\(nextContainer.id))")
+                self.activateContainer(nextContainer)
+
+            } else {
+                print("No other tabs or containers available. Clearing activeTab and activeContainer.")
+                self.activeTab = nil
+            }
+        } else {
+            print("Closing a background tab: \(tab.title) (\(tab.id))")
+            self.activeTab = activeTab
+        }
+
+        modelContext.delete(tab)
+        do {
+            try modelContext.save()
+            print("Tab closed and changes saved successfully.")
+        } catch {
+            print("Error saving after closing tab: \(error)")
+        }
     }
     
     func activateContainer(_ container: TabContainer) {
@@ -160,7 +190,7 @@ class TabManager: ObservableObject {
     }
 }
 
-// MARK: - Tab and TabContainer for SwiftData
+// MARK: - TabContainer
 @Model
 class TabContainer: ObservableObject, Identifiable {
     var id: UUID
@@ -191,6 +221,7 @@ enum TabType: String, Codable {
     case fav
     case normal
 }
+// MARK: - Tab
 @Model
 class Tab: ObservableObject, Identifiable {
     var id: UUID
@@ -261,7 +292,12 @@ class Tab: ObservableObject, Identifiable {
             DispatchQueue.main.async {
                 if let url = url {
                     self?.url = url
+                    if let host = url.host {
+                        let faviconURL = URL(string: "https://www.google.com/s2/favicons?domain=\(host)")
+                        self?.favicon = faviconURL
+                    }
                 }
+                
             }
         }
         delegate.onLoadingChange = { [weak self] isLoading in
@@ -293,7 +329,7 @@ class Tab: ObservableObject, Identifiable {
     }
 }
 
-
+// MARK: - Folder
 @Model
 class Folder: ObservableObject, Identifiable {
     var id: UUID

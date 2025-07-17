@@ -18,6 +18,7 @@ var onTitleChange: ((String?) -> Void)?
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
         onLoadingChange?(true)
         onURLChange?(webView.url)
+        fetchTitleEarly(webView)
     }
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
@@ -35,6 +36,16 @@ var onTitleChange: ((String?) -> Void)?
     
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         onLoadingChange?(false)
+    }
+    private func fetchTitleEarly(_ webView: WKWebView) {
+        webView.evaluateJavaScript("document.title") { [weak self] result, error in
+            guard let self = self else { return }
+            if let title = result as? String, !title.isEmpty {
+                self.onTitleChange?(title)
+                self.tab?.title = title
+                print("Early title: \(title)")
+            }
+        }
     }
     
     private func takeSnapshotAfterLoad(_ webView: WKWebView) {

@@ -3,12 +3,12 @@ import AppKit
 
 // MARK: - URLBar
 struct URLBar: View {
-    @StateObject private var tabManager = TabManager()
+    @EnvironmentObject var tabManager: TabManager
     @Binding var columnVisibility: NavigationSplitViewVisibility // Add binding for column visibility
     @State private var editingURLString: String = ""
     @FocusState private var isEditing: Bool
     @Environment(\.colorScheme) var colorScheme
-
+    
     private func getForegroundColor(_ tab: Tab) -> Color {
         // Convert backgroundColor to NSColor for luminance calculation
         let nsColor = NSColor(tab.backgroundColor)
@@ -51,7 +51,7 @@ struct URLBar: View {
                     NavigationButton(
                         systemName: "chevron.right",
                         isEnabled: tab.webView.canGoForward,
-                        foregroundColor: getForegroundColor(),
+                        foregroundColor: getForegroundColor(tab),
                         action: { tab.webView.goForward() }
                     )
                     
@@ -114,7 +114,7 @@ struct URLBar: View {
                         .fill(getForegroundColor(tab).opacity(isEditing ? 0.1 : 0.09))
                         .overlay(
                             RoundedRectangle(cornerRadius: 10)
-                                .stroke(isEditing ? getForegroundColor().opacity(0.5) : Color.clear, lineWidth: 1)
+                                .stroke(isEditing ? getForegroundColor(tab).opacity(0.5) : Color.clear, lineWidth: 1)
                         )
                 )
                 
@@ -139,20 +139,27 @@ struct URLBar: View {
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
-            .onReceive(tab.$url) { newURL in
-                if !isEditing {
-                    editingURLString = newURL.absoluteString
-                }
-            }
+            //            .onReceive(tab.$url) { newURL in
+            //                if !isEditing {
+            //                    editingURLString = newURL.absoluteString
+            //                }
+            //            }
             .onAppear {
                 editingURLString = tab.url.absoluteString
+            }
+            .onChange(of: tab.url) { _, newValue in
+                if !isEditing {
+                    editingURLString = newValue.absoluteString
+                }
             }
             .background(
                 Rectangle()
                     .fill(tab.backgroundColor)
             )
+            
         }else{
-            Text("No tab selected")
+            Text("No selected tab")
         }
     }
+    
 }

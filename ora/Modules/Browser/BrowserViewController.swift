@@ -3,7 +3,7 @@ import AppKit
 
 // MARK: - BrowserViewController
 struct BrowserViewController: View {
-    @StateObject private var tabManager = TabManager()
+    @EnvironmentObject var tabManager: TabManager
     @Environment(\.colorScheme) var colorScheme
     @State private var columnVisibility: NavigationSplitViewVisibility = .all // Changed to NavigationSplitViewVisibility
     @EnvironmentObject private var appState: AppState
@@ -16,18 +16,17 @@ struct BrowserViewController: View {
                 .toolbar(removing: .sidebarToggle) // Hide default sidebar toggle
         } detail: {
             VStack(alignment: .leading, spacing: 0) {
-                if let selectedTab = tabManager.activeTab {
-                    URLBar(columnVisibility: $columnVisibility)
-                    ForEach(tabManager.tabs){ tab in
-                        if tab.id == tabManager.selectedTabId{
-                            WebView(webView: tab.webView)
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        }
-                    }
-                } else {
-                    Text("No tab selected")
+                    URLBar(
+                        columnVisibility: $columnVisibility
+                    )
+                if let tab  = tabManager.activeTab {
+                                    
+                    WebView(webView: tab.webView)
+                        .id(tab.id) // Force SwiftUI to treat it as a different view when ID changes
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
+
+              
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(VisualEffectView())
