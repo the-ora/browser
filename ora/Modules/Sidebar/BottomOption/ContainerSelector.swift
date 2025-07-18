@@ -1,46 +1,46 @@
 import SwiftUI
-import AppKit
+import SwiftData
 
 struct ContainerSelector: View {
-  let containers: [ContainerData]
 
-  @Binding var selectedContainerId: String
+
   @Binding var isDropdownOpen: Bool
   @Environment(\.colorScheme) var colorScheme
+    @EnvironmentObject var tabManger: TabManager
+    
 
   var body: some View {
     VStack(spacing: 4) {
       if isDropdownOpen {
         ContainerDropdown(
-          containers: containers,
-          selectedContainerId: $selectedContainerId,
-          isDropdownOpen: $isDropdownOpen,
+          isDropdownOpen: $isDropdownOpen
         )
       }
       HStack {
-        Button(action: { isDropdownOpen.toggle() }) {
-          HStack(spacing: 4) {
-            Image(systemName: containers.first { $0.id == selectedContainerId }?.icon ?? "person")
-              .frame(width: 12, height: 12)
-
-            Spacer()
-
-            Text(containers.first { $0.id == selectedContainerId }?.title ?? "Personal")
-              .font(.system(size: 13, weight: .medium))
-
-            Spacer()
-
-            Image(systemName: isDropdownOpen ? "chevron.up" : "chevron.down")
-              .frame(width: 12, height: 12)
+          if let container = tabManger.activeContainer {
+              Button(action: { isDropdownOpen.toggle() }) {
+                  HStack(spacing: 4) {
+                      Text(container.emoji)
+                      
+                      Spacer()
+                      
+                      Text(container.name)
+                          .font(.system(size: 13, weight: .medium))
+                      
+                      Spacer()
+                      
+                      Image(systemName: isDropdownOpen ? "chevron.up" : "chevron.down")
+                          .frame(width: 12, height: 12)
+                  }
+                  .foregroundColor(.secondary)
+                  .padding(8)
+                  .background(
+                    Color.adaptiveBackground(for: colorScheme).opacity(0.6)
+                  )
+                  .cornerRadius(8)
+              }
+              .buttonStyle(.plain)
           }
-          .foregroundColor(.secondary)
-          .padding(8)
-          .background(
-            Color.adaptiveBackground(for: colorScheme).opacity(0.6)
-          )
-          .cornerRadius(8)
-        }
-        .buttonStyle(.plain)
         NewContainerButton(action: {})
       }
     }
@@ -49,19 +49,18 @@ struct ContainerSelector: View {
 }
 
 struct ContainerDropdown: View {
-  let containers: [ContainerData]
-  @Binding var selectedContainerId: String
   @Binding var isDropdownOpen: Bool
   @Environment(\.colorScheme) var colorScheme
-
+    @EnvironmentObject var tabManager: TabManager
+    @Query var containers: [TabContainer]
   var body: some View {
     VStack(spacing: 2) {
       ForEach(containers) { container in
         ContainerButton(
           container: container,
-          isSelected: selectedContainerId == container.id,
+          isSelected: tabManager.activeContainer?.id == container.id,
           action: {
-            selectedContainerId = container.id
+              tabManager.activateContainer(container)
             isDropdownOpen = false
           }
         )
@@ -128,11 +127,15 @@ struct ContainerData: Identifiable {
 }
 
 struct ContainerButton: View {
-  let container: ContainerData
+    let container: TabContainer
   let isSelected: Bool?
   let action: () -> Void
 
-  init(container: ContainerData, isSelected: Bool? = nil, action: @escaping () -> Void) {
+    init(
+        container: TabContainer,
+        isSelected: Bool? = nil,
+        action: @escaping () -> Void
+    ) {
     self.container = container
     self.isSelected = isSelected
     self.action = action
@@ -143,12 +146,11 @@ struct ContainerButton: View {
   var body: some View {
     Button(action: action) {
       HStack(spacing: 4) {
-        Image(systemName: container.icon)
-          .frame(width: 12, height: 12)
+          Text(container.emoji)
 
         Spacer()
 
-        Text(container.title)
+        Text(container.name)
           .font(.system(size: 13, weight: .medium))
 
         Spacer()
@@ -172,22 +174,3 @@ struct ContainerButton: View {
   }
 }
 
-struct NewContainerButton: View {
-  let action: () -> Void
-
-  @State private var isHovering = false
-  @Environment(\.colorScheme) var colorScheme
-
-  var body: some View {
-    Button(action: action) {
-      Image(systemName: "plus")
-        .frame(width: 12, height: 12)
-        .foregroundColor(.secondary)
-        .padding(8)
-        .background(isHovering ? Color.adaptiveBackground(for: colorScheme).opacity(0.3) : .clear)
-        .cornerRadius(10)
-    }
-    .buttonStyle(.plain)
-    .onHover { isHovering = $0 }
-  }
-}

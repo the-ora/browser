@@ -18,16 +18,16 @@ struct TabData: Identifiable {
 }
 
 struct TabItem: View {
-  let tab: TabData
+  let tab: Tab
   let isSelected: Bool
   let isDragging: Bool
   let onTap: () -> Void
   let onPinToggle: () -> Void
   let onFavoriteToggle: () -> Void
   let onClose: () -> Void
-  let onMoveToContainer: (String) -> Void
-  let availableContainers: [ContainerData]
-  let selectedContainerId: String
+    let onMoveToContainer: (TabContainer) -> Void
+    @EnvironmentObject var tabManager: TabManager
+    let availableContainers: [TabContainer]
 
   @Environment(\.colorScheme) var colorScheme
   @State private var isHovering = false
@@ -38,6 +38,9 @@ struct TabItem: View {
       tabTitle
       Spacer()
       actionButton
+    }
+    .onAppear{
+        tab.restoreTransientState()
     }
     .padding(8)
     .background(backgroundColor)
@@ -50,9 +53,27 @@ struct TabItem: View {
   }
 
   private var tabIcon: some View {
-    Image(systemName: tab.icon)
-      .frame(width: 12, height: 8.57143)
-      .foregroundColor(textColor)
+      HStack {
+                
+                if let favicon = tab.favicon {
+                    if tab.isWebViewReady {
+                        AsyncImage(
+                          url: favicon
+                        ) { image in
+                            image
+                                .frame(width: 12, height: 8.57143)
+                        } placeholder: {
+                            Image(systemName: "glob")
+                                .frame(width: 12, height: 8.57143)
+                                .foregroundColor(textColor)
+                        }
+                    }
+                } else {
+                    Image(systemName: "glob")
+                        .frame(width: 12, height: 8.57143)
+                        .foregroundColor(textColor)
+                }
+            }
   }
 
   private var tabTitle: some View {
@@ -77,7 +98,7 @@ struct TabItem: View {
 
   @ViewBuilder
   private var actionButton: some View {
-    if tab.isPinned {
+      if tab.type == .pinned {
       ActionButton(icon: "pin.slash", color: textColor, action: onPinToggle)
     } else if isHovering {
       ActionButton(icon: "xmark", color: textColor, action: onClose)
@@ -88,23 +109,27 @@ struct TabItem: View {
   private var contextMenuItems: some View {
     Button(action: onPinToggle) {
       Label(
-        tab.isPinned ? "Unpin Tab" : "Pin Tab",
-        systemImage: tab.isPinned ? "pin.slash" : "pin")
+        tab.type == .pinned ? "Unpin Tab" : "Pin Tab",
+        systemImage: tab.type == .pinned ? "pin.slash" : "pin")
     }
 
     Button(action: onFavoriteToggle) {
       Label(
-        tab.isFavorite ? "Remove from Favorites" : "Add to Favorites",
-        systemImage: tab.isFavorite ? "star.slash" : "star")
+        tab.type == .fav ? "Remove from Favorites" : "Add to Favorites",
+        systemImage: tab.type == .fav ? "star.slash" : "star")
     }
 
     Divider()
 
     Menu("Move to Container") {
       ForEach(availableContainers) { container in
-        if container.id != selectedContainerId {
-          Button(action: { onMoveToContainer(container.id) }) {
-            Label(container.title, systemImage: container.icon)
+          if tab.container.id != tabManager.activeContainer?.id {
+              Button(action: { onMoveToContainer(tab.container) }) {
+                  Label {
+                      Text(container.name)
+                  } icon: {
+                      Text(container.emoji) // This is where you show the emoji
+                  }
           }
         }
       }

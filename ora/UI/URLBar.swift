@@ -126,7 +126,7 @@ struct URLBar: View {
                         Image(systemName: "square.and.arrow.up")
                             .font(.system(size: 14))
                             .foregroundColor(.secondary)
-                    }
+                    } 
                     .buttonStyle(PlainButtonStyle())
                     
                     Button(action: {}) {
@@ -146,6 +146,9 @@ struct URLBar: View {
             //            }
             .onAppear {
                 editingURLString = tab.url.absoluteString
+                DispatchQueue.main.async {
+                    isEditing = false
+                }
             }
             .onChange(of: tab.url) { _, newValue in
                 if !isEditing {

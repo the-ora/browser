@@ -1,23 +1,43 @@
 import SwiftUI
 import AppKit
+import SwiftData
 
 struct FavTabItem: View {
-  let tab: TabData
+  let tab: Tab
   let isSelected: Bool
   let isDragging: Bool
   let onTap: () -> Void
   let onFavoriteToggle: () -> Void
   let onClose: () -> Void
-  let onMoveToContainer: (String) -> Void
-  let availableContainers: [ContainerData]
-  let selectedContainerId: String
+    let onMoveToContainer: (TabContainer) -> Void
 
   @Environment(\.colorScheme) var colorScheme
+    @Query var containers: [TabContainer]
+    @EnvironmentObject var tabManager: TabManager
 
   var body: some View {
     ZStack {
-      Image(systemName: tab.icon)
-        .frame(width: 16, height: 16)
+        if let favicon = tab.favicon {
+            if tab.isWebViewReady {
+                AsyncImage(
+                  url: favicon
+                ) { image in
+                    image
+                        .frame(width: 16, height: 16)
+                } placeholder: {
+                    Image(systemName: "glob")
+                        .frame(width: 16, height: 16)
+
+                }
+            }
+        } else {
+            Image(systemName: "glob")
+                .frame(width: 16, height: 16)
+        }
+
+    }
+    .onAppear {
+        tab.restoreTransientState()
     }
     .foregroundColor(Color.adaptiveText(for: colorScheme))
     .frame(height: 48)
@@ -36,15 +56,15 @@ struct FavTabItem: View {
 
       Divider()
 
-      Menu("Move to Container") {
-        ForEach(availableContainers) { container in
-          if container.id != selectedContainerId {
-            Button(action: { onMoveToContainer(container.id) }) {
-              Label(container.title, systemImage: container.icon)
-            }
-          }
-        }
-      }
+//      Menu("Move to Container") {
+//        ForEach(containers) { container in
+//            if container.id != tabManager.activeContainer?.id {
+//            Button(action: { onMoveToContainer(container) }) {
+//              Label(container.title, systemImage: container.icon)
+//            }
+//          }
+//        }
+//      }
 
       Divider()
 

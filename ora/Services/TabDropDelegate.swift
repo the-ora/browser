@@ -8,10 +8,8 @@ enum TabSection {
 }
 
 struct TabDropDelegate: DropDelegate {
-  let item: TabData
-  @Binding var containers: [ContainerData]
-  let selectedContainerId: String
-  @Binding var draggedItem: String?
+  let item: Tab
+  @Binding var draggedItem: UUID?
   let targetSection: TabSection
 
   func dropEntered(info: DropInfo) {
@@ -20,25 +18,25 @@ struct TabDropDelegate: DropDelegate {
     provider.loadObject(ofClass: NSString.self) { object, _ in
       guard let fromId = object as? String else { return }
 
-      DispatchQueue.main.async {
-        guard let containerIndex = containers.firstIndex(where: { $0.id == selectedContainerId }),
-          let fromIndex = containers[containerIndex].tabs.firstIndex(where: { $0.id == fromId }),
-          let toIndex = containers[containerIndex].tabs.firstIndex(where: { $0.id == item.id }),
-          fromId != item.id
-        else { return }
-
-        if isInSameSection(containerIndex: containerIndex, fromId: fromId, toId: item.id) {
-          withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-            containers[containerIndex].tabs.move(
-              fromOffsets: IndexSet(integer: fromIndex),
-              toOffset: toIndex > fromIndex ? toIndex + 1 : toIndex
-            )
-          }
-        } else {
-          moveTabBetweenSections(
-            containerIndex: containerIndex, fromId: fromId, toSection: targetSection)
-        }
-      }
+//      DispatchQueue.main.async {
+//        guard let containerIndex = containers.firstIndex(where: { $0.id == selectedContainerId }),
+//          let fromIndex = containers[containerIndex].tabs.firstIndex(where: { $0.id == fromId }),
+//          let toIndex = containers[containerIndex].tabs.firstIndex(where: { $0.id == item.id }),
+//          fromId != item.id
+//        else { return }
+//
+//        if isInSameSection(containerIndex: containerIndex, fromId: fromId, toId: item.id) {
+//          withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+//            containers[containerIndex].tabs.move(
+//              fromOffsets: IndexSet(integer: fromIndex),
+//              toOffset: toIndex > fromIndex ? toIndex + 1 : toIndex
+//            )
+//          }
+//        } else {
+//          moveTabBetweenSections(
+//            containerIndex: containerIndex, fromId: fromId, toSection: targetSection)
+//        }
+//      }
     }
   }
 
@@ -52,34 +50,35 @@ struct TabDropDelegate: DropDelegate {
   }
 
   private func isInSameSection(containerIndex: Int, fromId: String, toId: String) -> Bool {
-    let tabs = containers[containerIndex].tabs
-
-    guard let fromTab = tabs.first(where: { $0.id == fromId }),
-      let toTab = tabs.first(where: { $0.id == toId })
-    else { return false }
-
-    return section(for: fromTab) == section(for: toTab)
+//    let tabs = containers[containerIndex].tabs
+//
+//    guard let fromTab = tabs.first(where: { $0.id == fromId }),
+//      let toTab = tabs.first(where: { $0.id == toId })
+//    else { return false }
+//
+//    return section(for: fromTab) == section(for: toTab)
+      return false
   }
 
-  private func section(for tab: TabData) -> TabSection {
-    if tab.isFavorite { return .favorites }
-    if tab.isPinned { return .pinned }
+  private func section(for tab: Tab) -> TabSection {
+      if tab.type == .fav { return .favorites }
+      if tab.type == .pinned { return .pinned }
     return .regular
   }
 
   private func moveTabBetweenSections(containerIndex: Int, fromId: String, toSection: TabSection) {
-    var tabs = containers[containerIndex].tabs
-
-    guard let fromIndex = tabs.firstIndex(where: { $0.id == fromId }) else { return }
-
-    var tab = tabs.remove(at: fromIndex)
-    tab.isFavorite = (toSection == .favorites)
-    tab.isPinned = (toSection == .pinned)
-
-    tabs.insert(tab, at: 0)
-
-    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-      containers[containerIndex].tabs = tabs
-    }
+//    var tabs = containers[containerIndex].tabs
+//
+//    guard let fromIndex = tabs.firstIndex(where: { $0.id == fromId }) else { return }
+//
+//    var tab = tabs.remove(at: fromIndex)
+//    tab.isFavorite = (toSection == .favorites)
+//    tab.isPinned = (toSection == .pinned)
+//
+//    tabs.insert(tab, at: 0)
+//
+//    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+//      containers[containerIndex].tabs = tabs
+//    }
   }
 }

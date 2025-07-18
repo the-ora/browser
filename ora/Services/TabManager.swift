@@ -62,10 +62,32 @@ class TabManager: ObservableObject {
         }
         return false
     }
+    func togglePinTab(_ tab: Tab){
+        if tab.type == .pinned {
+            tab.type = .normal
+        }else{
+            tab.type = .pinned
+        }
+
+        try? modelContext.save()
+    }
+    func toggleFavTab(_ tab: Tab){
+        if tab.type == .fav {
+            tab.type = .normal
+        }else{
+            tab.type = .fav
+        }
+
+        try? modelContext.save()
+    }
+
     func getActiveTab()->Tab?{
         return self.activeTab
     }
-    
+    func moveTabToContainer(_ tab: Tab, to: TabContainer) {
+        tab.container = to
+        try? modelContext.save()
+    }
     private func initializeActiveContainerAndTab() {
         // Ensure containers are fetched
         let containers = fetchContainers()
@@ -250,14 +272,7 @@ enum TabType: String, Codable {
 // MARK: - Tab
 @Model
 class Tab: ObservableObject, Identifiable {
-    var id: UUID {
-        didSet {
-            print(id)
-        }
-        willSet {
-            print(id)
-        }
-    }
+    var id: UUID
     var url: URL
     var title: String
     var favicon: URL? // Add favicon property
@@ -412,4 +427,3 @@ class Folder: ObservableObject, Identifiable {
         self.container = container
     }
 }
-

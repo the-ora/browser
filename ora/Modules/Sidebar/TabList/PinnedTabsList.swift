@@ -1,0 +1,42 @@
+import SwiftUI
+import SwiftData
+
+struct PinnedTabsList: View {
+  let tabs: [Tab]
+  @Binding var draggedItem: UUID?
+  let onDrag: (UUID) -> NSItemProvider
+  let onSelect: (Tab) -> Void
+  let onPinToggle: (Tab) -> Void
+  let onFavoriteToggle: (Tab) -> Void
+  let onClose: (Tab) -> Void
+  let onMoveToContainer: (Tab, TabContainer) -> Void
+    let containers: [TabContainer]
+    @EnvironmentObject var tabManager: TabManager
+ 
+  var body: some View {
+    LazyVStack(spacing: 6) {
+      ForEach(tabs) { tab in
+        TabItem(
+          tab: tab,
+          isSelected: tabManager.isActive(tab),
+          isDragging: draggedItem == tab.id,
+          onTap: { onSelect(tab) },
+          onPinToggle: { onPinToggle(tab) },
+          onFavoriteToggle: { onFavoriteToggle(tab) },
+          onClose: { onClose(tab) },
+          onMoveToContainer: { onMoveToContainer(tab, $0) },
+          availableContainers: containers
+        )
+        .onDrag { onDrag(tab.id) }
+        .onDrop(
+          of: [.text],
+          delegate: TabDropDelegate(
+            item: tab,
+            draggedItem: $draggedItem,
+            targetSection: .pinned
+          )
+        )
+      }
+    }
+  }
+}
