@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 struct SidebarView: View {
-  @Environment(\.colorScheme) private var colorScheme
+  @Environment(\.theme) private var theme
   @State private var selectedContainer = "personal"
   @State private var isContainerDropdownOpen = false
   @State private var draggedItem: String?
@@ -197,7 +197,7 @@ struct NewTabButton: View {
   let addNewTab: () -> Void
 
   @State private var isHovering = false
-  @Environment(\.colorScheme) var colorScheme
+  @Environment(\.theme) private var theme
 
   var body: some View {
     Button(action: addNewTab) {
@@ -213,7 +213,7 @@ struct NewTabButton: View {
     }
     .buttonStyle(.plain)
     .padding(8)
-    .background(isHovering ? Color.adaptiveBackground(for: colorScheme).opacity(0.3) : .clear)
+    .background(isHovering ? theme.background.opacity(0.3) : .clear)
     .cornerRadius(10)
     .onHover { isHovering = $0 }
   }

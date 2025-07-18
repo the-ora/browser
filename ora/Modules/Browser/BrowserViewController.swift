@@ -11,32 +11,9 @@ struct BrowserViewController: View {
 
   var body: some View {
     NavigationSplitView(columnVisibility: $columnVisibility) {  // Bind columnVisibility
-      SidebarView().toolbar(removing: .sidebarToggle)
+      SidebarView().toolbar(.hidden)
     } detail: {
-      VStack(alignment: .leading, spacing: 0) {
-        URLBar(
-          columnVisibility: $columnVisibility
-        )
-        if let tab = tabManager.activeTab {
-          if tab.isWebViewReady {
-            WebView(webView: tab.webView)
-              .id(tab.id)
-              .frame(maxWidth: .infinity, maxHeight: .infinity)
-          } else {
-            ProgressView()
-              .frame(
-                maxWidth: .infinity,
-                maxHeight: .infinity
-              )
-          }
-        }
-
-      }
-      .frame(maxWidth: .infinity, maxHeight: .infinity)
-      .background(VisualEffectView())
-      .cornerRadius(isFullscreen && columnVisibility != .all ? 0 : 8)
-      .padding(isFullscreen && columnVisibility != .all ? 0 : 6)
-      .ignoresSafeArea(.all)
+      webView.toolbar(.hidden)
     }
     .navigationSplitViewStyle(.balanced)
     .background(
@@ -47,6 +24,35 @@ struct BrowserViewController: View {
         LauncherView()
       }
     }
+    .toolbar(.hidden)
+  }
+
+  @ViewBuilder
+  private var webView: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      URLBar(
+        columnVisibility: $columnVisibility
+      )
+      if let tab = tabManager.activeTab {
+        if tab.isWebViewReady {
+          WebView(webView: tab.webView)
+            .id(tab.id)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+          ProgressView()
+            .frame(
+              maxWidth: .infinity,
+              maxHeight: .infinity
+            )
+        }
+      }
+
+    }
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .background(VisualEffectView())
+    .cornerRadius(isFullscreen && columnVisibility != .all ? 0 : 8)
+    .padding(isFullscreen && columnVisibility != .all ? 0 : 6)
+    .ignoresSafeArea(.all)
   }
 }
 
@@ -141,9 +147,5 @@ struct WindowAccessor: NSViewRepresentable {
     window.standardWindowButton(.closeButton)?.isHidden = shouldHide
     window.standardWindowButton(.miniaturizeButton)?.isHidden = shouldHide
     window.standardWindowButton(.zoomButton)?.isHidden = shouldHide
-    window.titlebarAppearsTransparent = true
-    window.titleVisibility = .hidden
-    window.titlebarSeparatorStyle = .none
-    window.isOpaque = false
   }
 }

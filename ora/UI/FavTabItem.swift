@@ -1,5 +1,5 @@
-import SwiftUI
 import AppKit
+import SwiftUI
 
 struct FavTabItem: View {
   let tab: TabData
@@ -12,19 +12,19 @@ struct FavTabItem: View {
   let availableContainers: [ContainerData]
   let selectedContainerId: String
 
-  @Environment(\.colorScheme) var colorScheme
+  @Environment(\.theme) private var theme
 
   var body: some View {
     ZStack {
       Image(systemName: tab.icon)
         .frame(width: 16, height: 16)
     }
-    .foregroundColor(Color.adaptiveText(for: colorScheme))
+    .foregroundColor(theme.foreground)
     .frame(height: 48)
     .frame(maxWidth: .infinity)
     .background(
       isSelected
-        ? Color.adaptiveBackground(for: colorScheme) : Color.mutedBackground(for: colorScheme)
+        ? theme.background : theme.mutedBackground
     )
     .cornerRadius(10)
     .opacity(isDragging ? 0.0 : 1.0)

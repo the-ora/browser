@@ -1,5 +1,5 @@
-import SwiftUI
 import AppKit
+import SwiftUI
 
 struct TabData: Identifiable {
   let id: String
@@ -29,7 +29,7 @@ struct TabItem: View {
   let availableContainers: [ContainerData]
   let selectedContainerId: String
 
-  @Environment(\.colorScheme) var colorScheme
+  @Environment(\.theme) private var theme
   @State private var isHovering = false
 
   var body: some View {
@@ -64,15 +64,15 @@ struct TabItem: View {
 
   private var backgroundColor: Color {
     if isSelected {
-      return Color.adaptiveBackground(for: colorScheme)
+      return theme.background
     } else if isHovering {
-      return Color.adaptiveBackground(for: colorScheme).opacity(0.3)
+      return theme.background.opacity(0.3)
     }
     return .clear
   }
 
   private var textColor: Color {
-    isSelected ? Color.adaptiveText(for: colorScheme) : .secondary
+    isSelected ? theme.foreground : theme.mutedForeground
   }
 
   @ViewBuilder
