@@ -52,6 +52,13 @@ struct SidebarView: View {
                     onMoveToContainer: moveTab,
                     onAddNewTab: addNewTab
                 )
+//                Button("Switch") {
+//                    tabManager
+//                        .reorderTabs(
+//                            from: normalTabs[1],
+//                            to: normalTabs[5]
+//                        )
+//                }
             }
             
             ContainerSelector(
@@ -64,19 +71,19 @@ struct SidebarView: View {
     
     private var favoriteTabs: [Tab] {
         return tabManager.activeContainer?.tabs
-            .sorted(by: { $0.createdAt > $1.createdAt })
+            .sorted(by: { $0.order > $1.order })
             .filter { $0.type == .fav } ?? []
     }
     
     private var pinnedTabs: [Tab] {
         return tabManager.activeContainer?.tabs
-            .sorted(by: { $0.createdAt > $1.createdAt })
+            .sorted(by: { $0.order > $1.order })
             .filter { $0.type == .pinned } ?? []
     }
     
     private var normalTabs: [Tab] {
         return tabManager.activeContainer?.tabs
-            .sorted(by: { $0.createdAt > $1.createdAt })
+            .sorted(by: { $0.order > $1.order })
             .filter { $0.type == .normal } ?? []
     }
     

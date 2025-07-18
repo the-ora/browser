@@ -1,6 +1,19 @@
 import SwiftUI
 import SwiftData
+import Foundation
 
+func deleteSwiftDataStore() {
+
+    let fileManager = FileManager.default
+    let storeURL = URL.applicationSupportDirectory.appending(path: "MyStore.sqlite")
+    print("🧹 Deleting SwiftData store at: \(storeURL.path)")
+    let shmURL = storeURL.appendingPathExtension("-shm")
+    let walURL = storeURL.appendingPathExtension("-wal")
+    
+    try? fileManager.removeItem(at: storeURL)
+    try? fileManager.removeItem(at: shmURL)
+    try? fileManager.removeItem(at: walURL)
+}
 class AppState: ObservableObject {
     @Published var showLauncher: Bool = false
     @Published var launcherSearchText: String = ""
@@ -8,39 +21,47 @@ class AppState: ObservableObject {
 @main
 struct oraApp: App {
     @StateObject private var appState = AppState()
-
-    // Create model container and context once
-    private let modelContainer: ModelContainer = {
-        do {
-            return try ModelContainer(for: Tab.self, TabContainer.self)
-        } catch {
-            fatalError("Failed to initialize ModelContainer: \(error)")
-        }
-    }()
-    private var modelContext: ModelContext {
-        ModelContext(modelContainer)
-    }
-
+    
     // Pass it to TabManager
     @StateObject private var tabManager: TabManager
-
+    let context: ModelContext
+    
     init() {
+        //#if DEBUG
+//                    deleteSwiftDataStore()
+        //#endif
         let container: ModelContainer
+        let modelContext: ModelContext
         do {
-            container = try ModelContainer(for: TabContainer.self)
+            let modelConfiguration = ModelConfiguration(
+                "MyModel",
+                schema: Schema([TabContainer.self]),
+                url: URL.applicationSupportDirectory.appending(path: "MyStore.sqlite")
+            )
+            container = try ModelContainer(
+                for: TabContainer.self,
+                configurations: modelConfiguration
+            )
+            modelContext = ModelContext(container)
         } catch {
             fatalError("Failed to initialize ModelContainer: \(error)")
         }
-
-        let context = ModelContext(container)
-        _tabManager = StateObject(wrappedValue: TabManager(modelContainer: container, modelContext: context))
+        
+        self.context = modelContext
+        _tabManager = StateObject(
+            wrappedValue: TabManager(
+                modelContainer: container,
+                modelContext: modelContext
+            )
+        )
     }
-
+    
     var body: some Scene {
         WindowGroup {
             BrowserViewController()
                 .environmentObject(appState)
                 .environmentObject(tabManager)
+                .modelContext(context)
                 .background(VisualEffectView())
         }
         .defaultSize(width: 1440, height: 900)

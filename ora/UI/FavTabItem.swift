@@ -25,13 +25,13 @@ struct FavTabItem: View {
                     image
                         .frame(width: 16, height: 16)
                 } placeholder: {
-                    Image(systemName: "glob")
+                    Image(systemName: "globe")
                         .frame(width: 16, height: 16)
 
                 }
             }
         } else {
-            Image(systemName: "glob")
+            Image(systemName: "globe")
                 .frame(width: 16, height: 16)
         }
 
