@@ -25,11 +25,11 @@ struct Theme {
   }
 
   var disabledForeground: Color {
-      colorScheme == .dark ? .white.opacity(0.3) : Color(.disabledControlTextColor)
+    colorScheme == .dark ? .white.opacity(0.3) : Color(.disabledControlTextColor)
   }
 
-  var launcherInputBackground: Color {
-    colorScheme == .dark ? Color(.windowBackgroundColor) : .white.opacity(0.8)
+  var launcherMainBackground: Color {
+    colorScheme == .dark ? Color(.windowBackgroundColor).opacity(0.7) : .white.opacity(0.8)
   }
 
   var placeholder: Color {
@@ -37,7 +37,7 @@ struct Theme {
   }
 
   var border: Color {
-      Color(.separatorColor)
+    Color(.separatorColor)
   }
 
   var destructive: Color {
@@ -54,6 +54,47 @@ struct Theme {
 
   var info: Color {
     Color(hex: "#799EFF")
+  }
+
+  // Search engine colors
+  var grok: Color {
+    colorScheme == .dark ? .white : .black
+  }
+
+  var claude: Color {
+    Color(hex: "#d97757")
+  }
+
+  var openai: Color {
+    colorScheme == .dark ? .white : .black
+  }
+
+  var t3chat: Color {
+    Color(hex: "#960971")
+  }
+
+  var perplexity: Color {
+    Color(hex: "#20808D")
+  }
+
+  var reddit: Color {
+    Color(hex: "#FF4500")
+  }
+
+  var x: Color {
+    colorScheme == .dark ? .white : .black
+  }
+
+  var google: Color {
+    .blue
+  }
+
+  var youtube: Color {
+    Color(hex: "#FC0D1B")
+  }
+
+  var github: Color {
+    colorScheme == .dark ? .white : Color(hex: "#181717")
   }
 }
 

@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct LauncherInput: View {
+struct LauncherMain: View {
   struct Match {
     let text: String
     let color: Color
@@ -14,38 +14,8 @@ struct LauncherInput: View {
   var isFocused: FocusState<Bool>.Binding
   let onTabPress: () -> Void
   let onSubmit: () -> Void
-  @Environment(\.theme) private var theme
 
-  var results: [(id: String, tile: LauncherResultTile)] {
-    [
-      (
-        "tab1",
-        LauncherResultTile(
-          type: .openedTab, title: "Tab 1", url: nil, icon: nil, backgroundColor: nil,
-          foregroundColor: nil, action: { print("Debug: Executing action for Tab 1") })
-      ),
-      (
-        "query",
-        LauncherResultTile(
-          type: .suggestedQuery, title: "Search for \"\(text)\"", url: nil, icon: nil,
-          backgroundColor: nil, foregroundColor: nil,
-          action: { print("Debug: Executing action for suggested query") })
-      ),
-      (
-        "link",
-        LauncherResultTile(
-          type: .suggestedLink, title: "Open link", url: URL(string: "https://www.google.com"),
-          icon: nil, backgroundColor: nil, foregroundColor: nil,
-          action: { print("Debug: Executing action for suggested link") })
-      ),
-      (
-        "ai",
-        LauncherResultTile(
-          type: .aiSearch, title: "Ask \"\(text)\"", url: nil, icon: nil, backgroundColor: nil,
-          foregroundColor: nil, action: { print("Debug: Executing action for AI search") })
-      ),
-    ]
-  }
+  @Environment(\.theme) private var theme
 
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
@@ -88,10 +58,14 @@ struct LauncherInput: View {
       .padding(.horizontal, 8)
       .padding(.vertical, 10)
       .frame(maxWidth: .infinity, alignment: .leading)
+
+      if match == nil {
+        LauncherSuggestionsView(text: $text)
+      }
     }
     .padding(8)
     .frame(width: 814, alignment: .leading)
-    .background(theme.launcherInputBackground)
+    .background(theme.launcherMainBackground)
     .background(BlurEffectView(material: .popover, blendingMode: .withinWindow))
     .cornerRadius(16)
     .overlay(
@@ -131,22 +105,6 @@ struct LauncherInput: View {
     default:
       return "Search on \(match!.text)"
     }
-  }
-
-  private func isDomainOrIP(_ text: String) -> Bool {
-    let cleanText = text.replacingOccurrences(of: "https://", with: "")
-      .replacingOccurrences(of: "http://", with: "")
-      .replacingOccurrences(of: "www.", with: "")
-
-    let ipPattern = #"^(\d{1,3}\.){3}\d{1,3}$"#
-    if cleanText.range(of: ipPattern, options: .regularExpression) != nil {
-      return true
-    }
-
-    let domainPattern =
-      #"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$"#
-    return cleanText.range(of: domainPattern, options: .regularExpression) != nil
-      && cleanText.contains(".")
   }
 
   private func getIconName(match: Match?, text: String) -> String {
