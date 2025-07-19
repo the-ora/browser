@@ -5,7 +5,7 @@ struct ContainerSelector: View {
 
 
   @Binding var isDropdownOpen: Bool
-  @Environment(\.colorScheme) var colorScheme
+  @Environment(\.theme) private var theme
     @EnvironmentObject var tabManger: TabManager
     
 
@@ -35,7 +35,7 @@ struct ContainerSelector: View {
                   .foregroundColor(.secondary)
                   .padding(8)
                   .background(
-                    Color.adaptiveBackground(for: colorScheme).opacity(0.6)
+                    theme.background.opacity(0.6)
                   )
                   .cornerRadius(8)
               }
@@ -50,9 +50,10 @@ struct ContainerSelector: View {
 
 struct ContainerDropdown: View {
   @Binding var isDropdownOpen: Bool
-  @Environment(\.colorScheme) var colorScheme
-    @EnvironmentObject var tabManager: TabManager
-    @Query var containers: [TabContainer]
+  @Environment(\.theme) private var theme
+  @EnvironmentObject var tabManager: TabManager
+  @Query var containers: [TabContainer]
+
   var body: some View {
     VStack(spacing: 2) {
       ForEach(containers) { container in
@@ -68,7 +69,7 @@ struct ContainerDropdown: View {
     }
     .padding(.top, 4)
     .padding(.horizontal, 4)
-    .background(Color.adaptiveBackground(for: colorScheme).opacity(0.4))
+    .background(theme.background.opacity(0.4))
     .cornerRadius(10)
     .transition(.opacity.combined(with: .scale(scale: 0.95, anchor: .top)))
   }
@@ -141,7 +142,7 @@ struct ContainerButton: View {
     self.action = action
   }
 
-  @Environment(\.colorScheme) var colorScheme
+  @Environment(\.theme) private var theme
 
   var body: some View {
     Button(action: action) {
@@ -166,11 +167,10 @@ struct ContainerButton: View {
       .foregroundColor(.secondary)
       .padding(8)
       .background(
-        isSelected == true ? Color.adaptiveBackground(for: colorScheme).opacity(0.8) : .clear
+        isSelected == true ? theme.background.opacity(0.8) : .clear
       )
       .cornerRadius(8)
     }
     .buttonStyle(.plain)
   }
 }
-

@@ -1,6 +1,6 @@
-import SwiftUI
 import AppKit
 import SwiftData
+import SwiftUI
 
 struct FavTabItem: View {
   let tab: Tab
@@ -9,42 +9,42 @@ struct FavTabItem: View {
   let onTap: () -> Void
   let onFavoriteToggle: () -> Void
   let onClose: () -> Void
-    let onMoveToContainer: (TabContainer) -> Void
+  let onMoveToContainer: (TabContainer) -> Void
 
-  @Environment(\.colorScheme) var colorScheme
-    @Query var containers: [TabContainer]
-    @EnvironmentObject var tabManager: TabManager
+  @Environment(\.theme) private var theme
+  @Query var containers: [TabContainer]
+  @EnvironmentObject var tabManager: TabManager
 
   var body: some View {
     ZStack {
-        if let favicon = tab.favicon {
-            if tab.isWebViewReady {
-                AsyncImage(
-                  url: favicon
-                ) { image in
-                    image
-                        .frame(width: 16, height: 16)
-                } placeholder: {
-                    Image(systemName: "globe")
-                        .frame(width: 16, height: 16)
-
-                }
-            }
-        } else {
+      if let favicon = tab.favicon {
+        if tab.isWebViewReady {
+          AsyncImage(
+            url: favicon
+          ) { image in
+            image
+              .frame(width: 16, height: 16)
+          } placeholder: {
             Image(systemName: "globe")
-                .frame(width: 16, height: 16)
+              .frame(width: 16, height: 16)
+
+          }
         }
+      } else {
+        Image(systemName: "globe")
+          .frame(width: 16, height: 16)
+      }
 
     }
     .onAppear {
-        tab.restoreTransientState()
+      tab.restoreTransientState()
     }
-    .foregroundColor(Color.adaptiveText(for: colorScheme))
+    .foregroundColor(theme.foreground)
     .frame(height: 48)
     .frame(maxWidth: .infinity)
     .background(
       isSelected
-        ? Color.adaptiveBackground(for: colorScheme) : Color.mutedBackground(for: colorScheme)
+        ? theme.background : theme.mutedBackground
     )
     .cornerRadius(10)
     .opacity(isDragging ? 0.0 : 1.0)
@@ -56,15 +56,15 @@ struct FavTabItem: View {
 
       Divider()
 
-//      Menu("Move to Container") {
-//        ForEach(containers) { container in
-//            if container.id != tabManager.activeContainer?.id {
-//            Button(action: { onMoveToContainer(container) }) {
-//              Label(container.title, systemImage: container.icon)
-//            }
-//          }
-//        }
-//      }
+      //      Menu("Move to Container") {
+      //        ForEach(containers) { container in
+      //            if container.id != tabManager.activeContainer?.id {
+      //            Button(action: { onMoveToContainer(container) }) {
+      //              Label(container.title, systemImage: container.icon)
+      //            }
+      //          }
+      //        }
+      //      }
 
       Divider()
 

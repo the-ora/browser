@@ -63,6 +63,7 @@ struct oraApp: App {
                 .environmentObject(tabManager)
                 .modelContext(context)
                 .background(VisualEffectView())
+                .withTheme()
         }
         .defaultSize(width: 1440, height: 900)
         .windowStyle(.hiddenTitleBar)
