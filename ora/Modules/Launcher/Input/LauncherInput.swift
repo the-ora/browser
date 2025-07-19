@@ -91,7 +91,7 @@ struct LauncherInput: View {
     }
     .padding(8)
     .frame(width: 814, alignment: .leading)
-    .background(theme.background.opacity(0.8))
+    .background(theme.launcherInputBackground)
     .background(BlurEffectView(material: .popover, blendingMode: .withinWindow))
     .cornerRadius(16)
     .overlay(

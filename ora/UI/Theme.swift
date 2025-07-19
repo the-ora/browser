@@ -28,6 +28,10 @@ struct Theme {
       colorScheme == .dark ? .white.opacity(0.3) : Color(.disabledControlTextColor)
   }
 
+  var launcherInputBackground: Color {
+    colorScheme == .dark ? Color(.windowBackgroundColor) : .white.opacity(0.8)
+  }
+
   var placeholder: Color {
     Color(.placeholderTextColor)
   }
