@@ -3,17 +3,13 @@ import SwiftUI
 import SwiftData
 
 struct SidebarView: View {
-    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.theme) private var theme
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var appState: AppState
     @State private var selectedContainer = "personal"
     @State private var isContainerDropdownOpen = false
     @State private var draggedItem: UUID?
-    //  @State private var containers: [ContainerData] = SidebarView.defaultContainers
     @Query var containers: [TabContainer]
-    
-    
-    private let columns = Array(repeating: GridItem(spacing: 10), count: 3)
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -65,6 +61,7 @@ struct SidebarView: View {
                 isDropdownOpen: $isContainerDropdownOpen
             )
         }
+        .frame(minWidth: 200)
         .padding(.horizontal, 8)
         .padding(.vertical, 12)
     }

@@ -70,8 +70,8 @@ struct URLBar: View {
                         ZStack {
                             if tab.isLoading {
                                 ProgressView()
-                                    .scaleEffect(0.3)
-                                    .tint(getForegroundColor(tab))
+                                    .progressViewStyle(CircularProgressViewStyle(tint: getForegroundColor(tab)))
+                                    .scaleEffect(0.5)
                             } else {
                                 Image(systemName: tab.url.scheme == "https" ? "lock.fill" : "globe")
                                     .font(.system(size: 12))
