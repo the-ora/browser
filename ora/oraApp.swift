@@ -59,10 +59,10 @@ struct oraApp: App {
     var body: some Scene {
         WindowGroup {
             BrowserViewController()
+                .background(.ultraThinMaterial)
                 .environmentObject(appState)
                 .environmentObject(tabManager)
                 .modelContext(context)
-                .background(VisualEffectView())
                 .withTheme()
         }
         .defaultSize(width: 1440, height: 900)

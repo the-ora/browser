@@ -3,11 +3,12 @@ import AppKit
 
 // MARK: - URLBar
 struct URLBar: View {
-    @EnvironmentObject var tabManager: TabManager
-    @Binding var columnVisibility: NavigationSplitViewVisibility // Add binding for column visibility
+    @EnvironmentObject var tabManager: TabManager 
     @State private var editingURLString: String = ""
     @FocusState private var isEditing: Bool
     @Environment(\.colorScheme) var colorScheme
+
+    let onSidebarToggle: () -> Void
     
     private func getForegroundColor(_ tab: Tab) -> Color {
         // Convert backgroundColor to NSColor for luminance calculation
@@ -36,7 +37,7 @@ struct URLBar: View {
                         foregroundColor: getForegroundColor(tab),
                         action: {
                             withAnimation { // Toggle sidebar visibility
-                                columnVisibility = (columnVisibility == .all) ? .detailOnly : .all
+                                onSidebarToggle()
                             }
                         }
                     )
@@ -82,7 +83,7 @@ struct URLBar: View {
                     }
                     
                     TextField("", text: $editingURLString)
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.system(size: 14))
                         .textFieldStyle(PlainTextFieldStyle())
                         .foregroundColor(getForegroundColor(tab))
                         .focused($isEditing)
@@ -98,7 +99,7 @@ struct URLBar: View {
                                 if !isEditing && editingURLString.isEmpty {
                                     HStack {
                                         Text(tab.title.isEmpty ? "New Tab" : tab.title)
-                                            .font(.system(size: 14, weight: .medium))
+                                            .font(.system(size: 14))
                                             .foregroundColor(getForegroundColor(tab))
                                             .lineLimit(1)
                                         Spacer()
