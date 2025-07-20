@@ -61,9 +61,14 @@ struct SidebarView: View {
                 isDropdownOpen: $isContainerDropdownOpen
             )
         }
-        .frame(minWidth: 200)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 12)
+        .padding(
+            EdgeInsets(
+                top: 36,
+                leading: 12,
+                bottom: 12,
+                trailing: 12
+            )
+        )
     }
     
     private var favoriteTabs: [Tab] {
