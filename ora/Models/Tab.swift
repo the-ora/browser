@@ -7,6 +7,11 @@ enum TabType: String, Codable {
     case fav
     case normal
 }
+struct URLUpdate: Codable {
+    let href: String
+    let title: String
+    let favicon: String
+}
 // MARK: - Tab
 @Model
 class Tab: ObservableObject, Identifiable {
@@ -20,16 +25,28 @@ class Tab: ObservableObject, Identifiable {
     var isLoading: Bool = false
     var type: TabType
     var order: Int
-
+    var faviconLocalFile: URL?
+    
     @Transient var backgroundColor: Color = Color(.black)
+    @Transient var historyManager: HistoryManager? = nil
     // Not persisted: in-memory only
     @Transient var webView: WKWebView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
     @Transient private var navigationDelegate: WebViewNavigationDelegate?
     @Transient @Published var isWebViewReady: Bool = false
-
+    
     @Relationship(inverse: \TabContainer.tabs) var container: TabContainer
     
-    init(id: UUID = UUID(), url: URL, title: String, favicon:URL? = nil, container: TabContainer, type: TabType = .normal, isPlayingMedia:Bool = false, webViewConfiguration: WKWebViewConfiguration? = nil,order: Int) {
+    init(
+        id: UUID = UUID(),
+        url: URL,
+        title: String,
+        favicon:URL? = nil,
+        container: TabContainer,
+        type: TabType = .normal,
+        isPlayingMedia:Bool = false,
+        order: Int,
+        historyManager: HistoryManager? = nil
+    ) {
         let nowDate = Date()
         self.id = id
         self.url = url
@@ -42,36 +59,67 @@ class Tab: ObservableObject, Identifiable {
         self.container = container
         self.backgroundColor = Color(.black)
         // Initialize webView with provided configuration or default
+        
+        let config = TabScriptHandler()
+        
         self.webView = WKWebView(
             frame: .zero,
-            configuration: defaultWKConfig()
+            configuration: config
+                .defaultWKConfig()
         )
+        
         self.order = order
+        self.historyManager = historyManager
+        
+        config.tab = self
         // Configure WebView for performance
         webView.allowsMagnification = true
         webView.allowsBackForwardNavigationGestures = true
         
         // Enable layer-backed view for hardware acceleration
         webView.wantsLayer = true
+        webView.isInspectable = true
         if let layer = webView.layer {
             layer.isOpaque = true
             layer.drawsAsynchronously = true
         }
         
         // Set up navigation delegate
-        setupNavigationDelegate()
+        
         
         // Load initial URL
         DispatchQueue.main.async {
+            self.setupNavigationDelegate()
             self.webView.load(URLRequest(url: url))
             self.isWebViewReady = true
         }
     }
-    public func setFavicon(){
-        if let host = self.url.host {
-            let faviconURL = URL(string: "https://www.google.com/s2/favicons?domain=\(host)")
-            self.favicon = faviconURL
-        }
+    
+    
+    
+    public func setFavicon(faviconURLDefault: URL? = nil) {
+        guard let host = self.url.host else { return }
+        
+        let faviconURL = faviconURLDefault != nil ? faviconURLDefault! :
+                           URL(string: "https://www.google.com/s2/favicons?domain=\(host)")!
+        self.favicon = faviconURL
+        
+        // Infer extension from URL or fallback to png
+          let ext = faviconURL.pathExtension.isEmpty ? "png" : faviconURL.pathExtension
+          let fileName = "\(self.id.uuidString).\(ext)"
+          let saveURL = FileManager.default.faviconDirectory.appendingPathComponent(fileName)
+
+          Task {
+              do {
+                  let (data, _) = try await URLSession.shared.data(from: faviconURL)
+                  try data.write(to: saveURL, options: .atomic)
+                  DispatchQueue.main.async {
+                      self.faviconLocalFile = saveURL
+                  }
+              } catch {
+                  print("⚠️ Failed to download/save favicon: \(error)")
+              }
+          }
     }
     func switchSections(from: Tab, to: Tab) {
         from.type = to.type
@@ -80,16 +128,39 @@ class Tab: ObservableObject, Identifiable {
         let delegate = WebViewNavigationDelegate()
         delegate.tab = self
         
+        delegate.onChange = { [weak self] title, url in
+            DispatchQueue.main.async {
+                if let title = title, let url = url  {
+                    if let historyManager = self?.historyManager {
+                        historyManager
+                            .record(
+                                title: title,
+                                url: url
+                            )
+                    }
+                }
+                //                self?.title = title
+                //                self?.url = url
+                //                self?.setFavicon()
+            }
+            
+        }
         delegate.onTitleChange = { [weak self] title in
             DispatchQueue.main.async {
-                self?.title = title ?? "New Tab"
+                
+                if let title = title, !title.isEmpty {
+                    self?.title = title
+                }
+                
             }
         }
         delegate.onURLChange = { [weak self] url in
             DispatchQueue.main.async {
                 if let url = url {
                     self?.url = url
-                    self?.setFavicon()
+                    if self?.favicon == nil {
+                        self?.setFavicon()
+                    }
                 }
                 
             }
@@ -104,13 +175,15 @@ class Tab: ObservableObject, Identifiable {
         webView.navigationDelegate = delegate
     }
     
-    func restoreTransientState() {
+    func restoreTransientState(historyManger: HistoryManager) {
         // Avoid double initialization
         if webView.url != nil { return }
-
+        
         self.backgroundColor = Color(.black)
-        self.webView = WKWebView(frame: .zero, configuration: defaultWKConfig())
-
+        let config = TabScriptHandler()
+        self.webView = WKWebView(frame: .zero, configuration: config.defaultWKConfig())
+        config.tab = self
+        
         webView.allowsMagnification = true
         webView.allowsBackForwardNavigationGestures = true
         webView.wantsLayer = true
@@ -118,8 +191,8 @@ class Tab: ObservableObject, Identifiable {
             layer.isOpaque = true
             layer.drawsAsynchronously = true
         }
-
-
+        
+        self.historyManager = historyManger
         self.isWebViewReady = false
         self.setupNavigationDelegate()
         // Load after a short delay to ensure layout
@@ -142,8 +215,19 @@ class Tab: ObservableObject, Identifiable {
             webView.load(request)
         }
     }
-
+    
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         print("Navigation failed: \(error.localizedDescription)")
+    }
+}
+
+extension FileManager {
+    var faviconDirectory: URL {
+        let dir = urls(for: .cachesDirectory, in: .userDomainMask).first!
+            .appendingPathComponent("Favicons")
+        if !fileExists(atPath: dir.path) {
+            try? createDirectory(at: dir, withIntermediateDirectories: true)
+        }
+        return dir
     }
 }

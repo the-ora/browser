@@ -1,15 +1,100 @@
 import WebKit
 import AppKit
 import SwiftUI
+let js = """
+(function () {
+    let lastHref = location.href;
+    let lastTitle = document.title;
+    let faviconURL = null;
+    let sentInitial = false;
+
+    function findFavicon(callback) {
+        // 1. Check <link rel="icon">
+        const links = document.getElementsByTagName('link');
+        for (let i = 0; i < links.length; i++) {
+            const rel = links[i].getAttribute('rel');
+            if (rel && rel.toLowerCase().includes('icon')) {
+                const href = links[i].getAttribute('href');
+                if (href) {
+                    const resolved = new URL(href, document.baseURI).href;
+                    return callback(resolved);
+                }
+            }
+        }
+
+        // 2. Try /favicon.ico
+        const fallback = `${location.origin}/favicon.ico`;
+        const img = new Image();
+        img.onload = () => callback(fallback);
+        img.onerror = () =>
+            callback(`https://www.google.com/s2/favicons?domain=${location.hostname}`);
+        img.src = fallback;
+    }
+
+    function notifyChange(force = false) {
+        if (
+            force ||
+            location.href !== lastHref ||
+            document.title !== lastTitle
+        ) {
+            lastHref = location.href;
+            lastTitle = document.title;
+
+            // Send update
+            window.webkit.messageHandlers.listener.postMessage(
+                JSON.stringify({
+                    href: lastHref,
+                    title: lastTitle,
+                    favicon: faviconURL
+                })
+            );
+        }
+    }
+
+    // Title mutation observer
+    const titleObserver = new MutationObserver(() => notifyChange());
+    const titleElement = document.querySelector('title');
+    if (titleElement) {
+        titleObserver.observe(titleElement, { childList: true });
+    }
+
+    // Fallback timer for SPAs
+    setInterval(() => notifyChange(), 500);
+
+    // Wrap pushState / replaceState
+    const originalPushState = history.pushState;
+    history.pushState = function () {
+        originalPushState.apply(this, arguments);
+        notifyChange(true);
+    };
+
+    const originalReplaceState = history.replaceState;
+    history.replaceState = function () {
+        originalReplaceState.apply(this, arguments);
+        notifyChange(true);
+    };
+
+    window.addEventListener('popstate', () => notifyChange(true));
+
+    // Fetch favicon once, then trigger first notify
+    findFavicon(function (icon) {
+        faviconURL = icon;
+        notifyChange(true); // Send first message once favicon is known
+    });
+})();
+"""
+
 
 class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
-var onTitleChange: ((String?) -> Void)?
+    var onTitleChange: ((String?) -> Void)?
     var onURLChange: ((URL?) -> Void)?
     var onLoadingChange: ((Bool) -> Void)?
+    var onChange: ((String?, URL?) ->Void)?
     weak var tab: Tab?
     private var retryCount = 0
     private let maxRetries = 5
     private let retryDelay: TimeInterval = 1.0
+    @EnvironmentObject var historyManager: HistoryManager
     
     override init() {
         super.init()
@@ -18,6 +103,17 @@ var onTitleChange: ((String?) -> Void)?
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
         onLoadingChange?(true)
         onURLChange?(webView.url)
+        onTitleChange?(webView.title)
+//        if let title = webView.title, let url = webView.url {
+//            onChange?(title, url)
+//        }
+        
+    }
+    func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+//        onLoadingChange?(false)
+        
+        onTitleChange?(webView.title)
+        onURLChange?(webView.url)
 
     }
     
@@ -25,7 +121,8 @@ var onTitleChange: ((String?) -> Void)?
         onLoadingChange?(false)
         onTitleChange?(webView.title)
         onURLChange?(webView.url)
-        
+        onChange?(webView.title, webView.url)
+        webView.evaluateJavaScript(js, completionHandler: nil)
         // Start the snapshot process after a short delay to allow rendering
         takeSnapshotAfterLoad(webView)
     }
@@ -37,7 +134,7 @@ var onTitleChange: ((String?) -> Void)?
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         onLoadingChange?(false)
     }
-   
+    
     
     private func takeSnapshotAfterLoad(_ webView: WKWebView) {
         if retryCount < maxRetries && (webView.isLoading || webView.bounds.width == 0) {

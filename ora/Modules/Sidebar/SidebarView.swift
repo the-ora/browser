@@ -11,8 +11,7 @@ struct SidebarView: View {
     @State private var draggedItem: UUID?
     //  @State private var containers: [ContainerData] = SidebarView.defaultContainers
     @Query var containers: [TabContainer]
-    
-    
+    @Query(filter: nil, sort: [.init(\History.lastAccessedAt, order: .reverse)]) var histories: [History]
     private let columns = Array(repeating: GridItem(spacing: 10), count: 3)
     
     var body: some View {
@@ -52,6 +51,10 @@ struct SidebarView: View {
                     onMoveToContainer: moveTab,
                     onAddNewTab: addNewTab
                 )
+//                ForEach(histories){ history in
+//                    Text("#\(history.visitCount)- \(history.title)")
+//                    Text("-----------------")
+//                }
 //                Button("Switch") {
 //                    tabManager
 //                        .reorderTabs(

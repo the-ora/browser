@@ -2,38 +2,6 @@ import SwiftUI
 import WebKit
 import SwiftData
 
-func defaultWKConfig() -> WKWebViewConfiguration {
-    // Configure WebView for performance
-    let configuration = WKWebViewConfiguration()
-    let userAgent = "Mozilla/5.0 (Macintosh; arm64 Mac OS X 14_5) AppleWebKit/616.1.1 (KHTML, like Gecko) Version/18.5 Safari/616.1.1 Ora/1.0"
-    configuration.applicationNameForUserAgent = userAgent
-
-    // Enable JavaScript
-    configuration.preferences.setValue(true, forKey: "javaScriptEnabled")
-    configuration.preferences.setValue(true, forKey: "javaScriptCanOpenWindowsAutomatically")
-    configuration.websiteDataStore = WKWebsiteDataStore.default()
-
-    // Performance optimizations
-    configuration.allowsAirPlayForMediaPlayback = true
-    configuration.preferences.javaScriptCanOpenWindowsAutomatically = false
-    
-    // Enable process pool for better memory management
-    let processPool = WKProcessPool()
-    configuration.processPool = processPool
-    
-    // Enable media playback without user interaction
-    configuration.mediaTypesRequiringUserActionForPlayback = []
-    
-    // Set up caching
-    let websiteDataStore = WKWebsiteDataStore.default()
-    configuration.websiteDataStore = websiteDataStore
-    
-    // GPU acceleration settings
-    let preferences = WKWebpagePreferences()
-    preferences.allowsContentJavaScript = true
-    configuration.defaultWebpagePreferences = preferences
-    return configuration
-}
 
 
 // MARK: - Tab Manager
@@ -44,16 +12,17 @@ class TabManager: ObservableObject {
     
     let modelContainer: ModelContainer
     let modelContext: ModelContext
-    private var webViewConfiguration: WKWebViewConfiguration
     
     @Query(sort: \TabContainer.lastAccessedAt, order: .reverse) var containers: [TabContainer]
     
-    init(modelContainer: ModelContainer, modelContext: ModelContext) {
-           self.modelContainer = modelContainer
-           self.modelContext = modelContext
-           self.webViewConfiguration = defaultWKConfig()
-           initializeActiveContainerAndTab()
-       }
+    init(
+        modelContainer: ModelContainer,
+        modelContext: ModelContext
+    ) {
+        self.modelContainer = modelContainer
+        self.modelContext = modelContext
+        initializeActiveContainerAndTab()
+    }
     
     func isActive(_ tab: Tab)->Bool{
         
@@ -68,7 +37,7 @@ class TabManager: ObservableObject {
         }else{
             tab.type = .pinned
         }
-
+        
         try? modelContext.save()
     }
     func toggleFavTab(_ tab: Tab){
@@ -77,10 +46,10 @@ class TabManager: ObservableObject {
         }else{
             tab.type = .fav
         }
-
+        
         try? modelContext.save()
     }
-
+    
     func getActiveTab()->Tab?{
         return self.activeTab
     }
@@ -115,11 +84,11 @@ class TabManager: ObservableObject {
         modelContext.insert(newContainer)
         activeContainer = newContainer
         try? modelContext.save()
-//        _ = fetchContainers() // Refresh containers
+        //        _ = fetchContainers() // Refresh containers
         return newContainer
     }
     
-    func addTab(title: String = "Untitled", url: URL = URL(string: "https://www.youtube.com/")!, container: TabContainer, favicon: URL? = nil) -> Tab {
+    func addTab(title: String = "Untitled", url: URL = URL(string: "https://www.youtube.com/")!, container: TabContainer, favicon: URL? = nil,historyManager: HistoryManager? = nil) -> Tab {
         let cleanHost = url.host?.hasPrefix("www.") == true ? String(url.host!.dropFirst(4)) : url.host
         let newTab = Tab(
             url: url,
@@ -128,8 +97,8 @@ class TabManager: ObservableObject {
             container: container,
             type: .normal,
             isPlayingMedia: false,
-            webViewConfiguration: webViewConfiguration,
-            order: container.tabs.count + 1
+            order: container.tabs.count + 1,
+            historyManager: historyManager
         )
         modelContext.insert(newTab)
         container.tabs.append(newTab)
@@ -139,7 +108,10 @@ class TabManager: ObservableObject {
         try? modelContext.save()
         return newTab
     }
-    func openTab(url: URL){
+    func openTab(
+        url: URL,
+        historyManager: HistoryManager
+    ){
         if let container = activeContainer {
             if let host = url.host {
                 let faviconURL = URL(string: "https://www.google.com/s2/favicons?domain=\(host)")
@@ -153,8 +125,8 @@ class TabManager: ObservableObject {
                     container: container,
                     type: .normal,
                     isPlayingMedia: false,
-                    webViewConfiguration: webViewConfiguration,
-                    order: container.tabs.count + 1
+                    order: container.tabs.count + 1,
+                    historyManager: historyManager
                 )
                 modelContext.insert(newTab)
                 container.tabs.append(newTab)
@@ -175,28 +147,29 @@ class TabManager: ObservableObject {
     }
     func closeTab(tab: Tab) {
         
-
+        
         // If the closed tab was active, select another tab
         if self.activeTab?.id == tab.id {
-
+            
             if let nextTab = tab.container.tabs
                 .filter({ $0.id != tab.id })
                 .sorted(by: { $0.lastAccessedAt ?? Date.distantPast > $1.lastAccessedAt ?? Date.distantPast })
                 .first {
+                self.activateTab(nextTab)
                 
-
+                
             } else if let nextContainer = containers.first(where: { $0.id != tab.container.id }) {
                 self.activateContainer(nextContainer)
-
+                
             } else {
                 self.activeTab = nil
             }
         } else {
             self.activeTab = activeTab
         }
-
+        
         modelContext.delete(tab)
-            try? modelContext.save()
+        try? modelContext.save()
     }
     
     func activateContainer(_ container: TabContainer) {
@@ -228,7 +201,15 @@ class TabManager: ObservableObject {
         }
         return []
     }
+    
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        if message.name == "listener",
+           let url = message.body as? String {
+            print("URL Changed to: \(url)")
+            // You can update the active tab’s url if needed
+            DispatchQueue.main.async {
+                self.activeTab?.url = URL(string: url) ?? self.activeTab?.url ?? URL(string: "about:blank")!
+            }
+        }
+    }
 }
-
-
-

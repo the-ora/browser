@@ -1,21 +1,43 @@
 import SwiftUI
 import AppKit
 
-struct TabData: Identifiable {
-    let id: String
-    let icon: String
-    let title: String
-    var isPinned: Bool
-    var isFavorite: Bool
-    
-    init(id: String, icon: String, title: String, isPinned: Bool = false, isFavorite: Bool = false) {
-        self.id = id
-        self.icon = icon
-        self.title = title
-        self.isPinned = isPinned
-        self.isFavorite = isFavorite
+struct LocalFavIcon: View {
+    let tab: Tab
+    let textColor: Color
+
+    @State private var image: NSImage?
+
+    var body: some View {
+        if let image = image {
+            Image(nsImage: image)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 16, height: 16)
+        } else {
+            Image(systemName: "globe")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 16, height: 16)
+                .foregroundColor(textColor)
+                .onAppear(perform: loadFavicon)
+        }
+    }
+
+    private func loadFavicon() {
+        guard let localURL = tab.faviconLocalFile,
+              FileManager.default.fileExists(atPath: localURL.path) else { return }
+        
+        // Loading may block briefly, so you can even do it async if needed
+        DispatchQueue.global(qos: .utility).async {
+            if let loadedImage = NSImage(contentsOfFile: localURL.path) {
+                DispatchQueue.main.async {
+                    self.image = loadedImage
+                }
+            }
+        }
     }
 }
+
 
 struct TabItem: View {
     let tab: Tab
@@ -27,6 +49,7 @@ struct TabItem: View {
     let onClose: () -> Void
     let onMoveToContainer: (TabContainer) -> Void
     @EnvironmentObject var tabManager: TabManager
+    @EnvironmentObject var historyManager: HistoryManager
     let availableContainers: [TabContainer]
     
     @Environment(\.colorScheme) var colorScheme
@@ -40,7 +63,10 @@ struct TabItem: View {
             actionButton
         }
         .onAppear{
-            tab.restoreTransientState()
+            tab
+                .restoreTransientState(
+                    historyManger: historyManager
+                )
         }
         .padding(8)
         .background(backgroundColor)
@@ -53,27 +79,28 @@ struct TabItem: View {
     }
     
     private var tabIcon: some View {
+        
         HStack {
             
-            if let favicon = tab.favicon {
+            if let favicon = tab.favicon{
                 if tab.isWebViewReady {
+                    Text("*")
                     AsyncImage(
                         url: favicon
                     ) { image in
                         image
-                            .frame(width: 12, height: 8.57143)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 16, height: 16)
                     } placeholder: {
-                        Image(systemName: "globe")
-                            .frame(width: 12, height: 8.57143)
-                            .foregroundColor(textColor)
+                        LocalFavIcon(tab: tab,textColor:textColor)
                     }
                 }
             } else {
-                Image(systemName: "globe")
-                    .frame(width: 12, height: 8.57143)
-                    .foregroundColor(textColor)
+                LocalFavIcon(tab: tab,textColor:textColor)
             }
         }
+        .frame(width:16,height: 16)
     }
     
     private var tabTitle: some View {
@@ -157,3 +184,4 @@ struct ActionButton: View {
         .buttonStyle(.plain)
     }
 }
+

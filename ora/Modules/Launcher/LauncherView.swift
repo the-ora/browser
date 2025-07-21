@@ -409,6 +409,7 @@ struct SearchEngine {
 struct LauncherView: View {
   @EnvironmentObject var appState: AppState
     @EnvironmentObject var tabManager: TabManager
+    @EnvironmentObject var historyManager: HistoryManager
   @State private var input = ""
   @State private var match: LauncherInput.Match? = nil
   @FocusState private var isTextFieldFocused: Bool
@@ -528,7 +529,11 @@ struct LauncherView: View {
             if let engine = engineToUse {
                 let urlString = engine.searchURL.replacingOccurrences(of: "{query}", with: encodedQuery)
                 if let url = URL(string: urlString) {
-                    tabManager.openTab(url: url)
+                    tabManager
+                        .openTab(
+                            url: url,
+                            historyManager:historyManager
+                        )
                 }
             }
             appState.showLauncher = false

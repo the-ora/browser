@@ -24,20 +24,26 @@ struct oraApp: App {
     
     // Pass it to TabManager
     @StateObject private var tabManager: TabManager
-    let context: ModelContext
+    @StateObject private var historyManager: HistoryManager
     
+    let tabContext: ModelContext
+    let historyContext: ModelContext
+    
+    let modelConfiguration = ModelConfiguration(
+        "MyModel",
+        schema: Schema([TabContainer.self]),
+        url: URL.applicationSupportDirectory.appending(path: "MyStore.sqlite")
+    )
     init() {
         //#if DEBUG
 //                    deleteSwiftDataStore()
         //#endif
+//        
+        // tabs
         let container: ModelContainer
         let modelContext: ModelContext
         do {
-            let modelConfiguration = ModelConfiguration(
-                "MyModel",
-                schema: Schema([TabContainer.self]),
-                url: URL.applicationSupportDirectory.appending(path: "MyStore.sqlite")
-            )
+           
             container = try ModelContainer(
                 for: TabContainer.self,
                 configurations: modelConfiguration
@@ -46,14 +52,36 @@ struct oraApp: App {
         } catch {
             fatalError("Failed to initialize ModelContainer: \(error)")
         }
+        // history
+        let historyContainer: ModelContainer
+        let historyModelContext: ModelContext
+        do {
+           
+            historyContainer = try ModelContainer(
+                for: History.self,
+                configurations: modelConfiguration
+            )
+            historyModelContext = ModelContext(historyContainer)
+        } catch {
+            fatalError("Failed to initialize ModelContainer: \(error)")
+        }
         
-        self.context = modelContext
+        self.tabContext = modelContext
+        self.historyContext = historyModelContext
+        let historyManagerObj = StateObject(
+            wrappedValue: HistoryManager(
+                modelContainer: historyContainer,
+                modelContext: historyModelContext
+            )
+        )
+        _historyManager = historyManagerObj
         _tabManager = StateObject(
             wrappedValue: TabManager(
                 modelContainer: container,
                 modelContext: modelContext
             )
         )
+        
     }
     
     var body: some Scene {
@@ -61,7 +89,9 @@ struct oraApp: App {
             BrowserViewController()
                 .environmentObject(appState)
                 .environmentObject(tabManager)
-                .modelContext(context)
+                .environmentObject(historyManager)
+                .modelContext(tabContext)
+                .modelContext(historyContext)
                 .background(VisualEffectView())
         }
         .defaultSize(width: 1440, height: 900)

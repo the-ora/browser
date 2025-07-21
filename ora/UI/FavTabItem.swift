@@ -14,6 +14,7 @@ struct FavTabItem: View {
   @Environment(\.colorScheme) var colorScheme
     @Query var containers: [TabContainer]
     @EnvironmentObject var tabManager: TabManager
+    @EnvironmentObject var historyManager: HistoryManager
 
   var body: some View {
     ZStack {
@@ -23,21 +24,30 @@ struct FavTabItem: View {
                   url: favicon
                 ) { image in
                     image
+                        .resizable()
+                        .scaledToFit()
                         .frame(width: 16, height: 16)
                 } placeholder: {
-                    Image(systemName: "globe")
-                        .frame(width: 16, height: 16)
+                    LocalFavIcon(
+                        tab: tab,
+                        textColor:Color(.white)
+                    )
 
                 }
             }
         } else {
-            Image(systemName: "globe")
-                .frame(width: 16, height: 16)
+            LocalFavIcon(
+                tab: tab,
+                textColor: Color(.white)
+            )
         }
 
     }
     .onAppear {
-        tab.restoreTransientState()
+        tab
+            .restoreTransientState(
+                historyManger: historyManager
+            )
     }
     .foregroundColor(Color.adaptiveText(for: colorScheme))
     .frame(height: 48)
