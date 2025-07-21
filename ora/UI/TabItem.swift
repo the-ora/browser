@@ -1,22 +1,6 @@
 import AppKit
 import SwiftUI
 
-struct TabData: Identifiable {
-    let id: String
-    let icon: String
-    let title: String
-    var isPinned: Bool
-    var isFavorite: Bool
-    
-    init(id: String, icon: String, title: String, isPinned: Bool = false, isFavorite: Bool = false) {
-        self.id = id
-        self.icon = icon
-        self.title = title
-        self.isPinned = isPinned
-        self.isFavorite = isFavorite
-    }
-}
-
 struct TabItem: View {
     let tab: Tab
     let isSelected: Bool
@@ -78,7 +62,7 @@ struct TabItem: View {
     
     private var tabTitle: some View {
         Text(tab.title)
-            .font(.system(size: 13, weight: .medium))
+            .font(.system(size: 13))
             .foregroundColor(textColor)
             .lineLimit(1)
     }
