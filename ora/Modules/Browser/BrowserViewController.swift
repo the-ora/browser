@@ -29,7 +29,7 @@ struct BrowserViewController: View {
       dragToHideP: true
     )
     .ignoresSafeArea(.all)
-    .background(.ultraThinMaterial)
+    .background(BlurEffectView(material: .underWindowBackground, blendingMode: .behindWindow).ignoresSafeArea(.all))
     .background(
       WindowAccessor(
         isSidebarHidden: hide.side == .primary,

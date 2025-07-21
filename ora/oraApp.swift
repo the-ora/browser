@@ -59,7 +59,6 @@ struct oraApp: App {
     var body: some Scene {
         WindowGroup {
             BrowserViewController()
-                .background(.ultraThinMaterial)
                 .environmentObject(appState)
                 .environmentObject(tabManager)
                 .modelContext(context)
