@@ -92,7 +92,7 @@ struct oraApp: App {
                 .environmentObject(historyManager)
                 .modelContext(tabContext)
                 .modelContext(historyContext)
-                .background(VisualEffectView())
+                .withTheme()
         }
         .defaultSize(width: 1440, height: 900)
         .windowStyle(.hiddenTitleBar)
@@ -101,7 +101,7 @@ struct oraApp: App {
                 Button("New Tab") {
                     appState.showLauncher = true
                 }
-                .keyboardShortcut("t", modifiers: .command)
+                .keyboardShortcut(KeyboardShortcuts.Tabs.new)
             }
         }
     }

@@ -3,11 +3,12 @@ import AppKit
 
 // MARK: - URLBar
 struct URLBar: View {
-    @EnvironmentObject var tabManager: TabManager
-    @Binding var columnVisibility: NavigationSplitViewVisibility // Add binding for column visibility
+    @EnvironmentObject var tabManager: TabManager 
     @State private var editingURLString: String = ""
     @FocusState private var isEditing: Bool
     @Environment(\.colorScheme) var colorScheme
+
+    let onSidebarToggle: () -> Void
     
     private func getForegroundColor(_ tab: Tab) -> Color {
         // Convert backgroundColor to NSColor for luminance calculation
@@ -25,8 +26,6 @@ struct URLBar: View {
     
     var body: some View {
         if let tab = tabManager.activeTab {
-            
-            
             HStack(spacing: 12) {
                 // Navigation buttons
                 HStack(spacing: 8) {
@@ -34,12 +33,9 @@ struct URLBar: View {
                         systemName: "sidebar.left",
                         isEnabled: true,
                         foregroundColor: getForegroundColor(tab),
-                        action: {
-                            withAnimation { // Toggle sidebar visibility
-                                columnVisibility = (columnVisibility == .all) ? .detailOnly : .all
-                            }
-                        }
+                        action: onSidebarToggle
                     )
+                    .keyboardShortcut(KeyboardShortcuts.App.toggleSidebar)
                     
                     NavigationButton(
                         systemName: "chevron.left",
@@ -47,34 +43,37 @@ struct URLBar: View {
                         foregroundColor: getForegroundColor(tab),
                         action: { tab.webView.goBack() }
                     )
-                    
+                    .keyboardShortcut(KeyboardShortcuts.Navigation.back)
+
                     NavigationButton(
                         systemName: "chevron.right",
                         isEnabled: tab.webView.canGoForward,
                         foregroundColor: getForegroundColor(tab),
                         action: { tab.webView.goForward() }
                     )
-                    
+                    .keyboardShortcut(KeyboardShortcuts.Navigation.forward)
+
                     NavigationButton(
                         systemName: "arrow.clockwise",
                         isEnabled: true,
                         foregroundColor: getForegroundColor(tab),
                         action: { tab.webView.reload() }
                     )
+                    .keyboardShortcut(KeyboardShortcuts.Navigation.reload)
                 }
                 
-                // URL field
-                HStack(spacing: 8) {
-                    // Security indicator
-                    if !isEditing {
-                        ZStack {
-                            if tab.isLoading {
-                                ProgressView()
-                                    .scaleEffect(0.3)
-                                    .tint(getForegroundColor(tab))
-                            } else {
-                                Image(systemName: tab.url.scheme == "https" ? "lock.fill" : "globe")
-                                    .font(.system(size: 12))
+        // URL field
+        HStack(spacing: 8) {
+          // Security indicator
+          if !isEditing {
+            ZStack {
+              if tab.isLoading {
+                ProgressView()
+                  .progressViewStyle(CircularProgressViewStyle(tint: getForegroundColor(tab)))
+                  .scaleEffect(0.5)
+              } else {
+                Image(systemName: tab.url.scheme == "https" ? "lock.fill" : "globe")
+                  .font(.system(size: 12))
                                     .foregroundColor(tab.url.scheme == "https" ? .green : getForegroundColor(tab))
                             }
                         }
@@ -82,7 +81,7 @@ struct URLBar: View {
                     }
                     
                     TextField("", text: $editingURLString)
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.system(size: 14))
                         .textFieldStyle(PlainTextFieldStyle())
                         .foregroundColor(getForegroundColor(tab))
                         .focused($isEditing)
@@ -98,7 +97,7 @@ struct URLBar: View {
                                 if !isEditing && editingURLString.isEmpty {
                                     HStack {
                                         Text(tab.title.isEmpty ? "New Tab" : tab.title)
-                                            .font(.system(size: 14, weight: .medium))
+                                            .font(.system(size: 14))
                                             .foregroundColor(getForegroundColor(tab))
                                             .lineLimit(1)
                                         Spacer()

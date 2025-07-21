@@ -5,42 +5,36 @@ import SwiftUI
 struct BrowserViewController: View {
   @EnvironmentObject var tabManager: TabManager
   @Environment(\.colorScheme) var colorScheme
-  @State private var columnVisibility: NavigationSplitViewVisibility = .all  // Changed to NavigationSplitViewVisibility
   @EnvironmentObject private var appState: AppState
   @State private var isFullscreen = false
 
-  var body: some View {
-    NavigationSplitView(columnVisibility: $columnVisibility) {  // Bind columnVisibility
-      SidebarView().toolbar(removing: .sidebarToggle)
-    } detail: {
-      VStack(alignment: .leading, spacing: 0) {
-        URLBar(
-          columnVisibility: $columnVisibility
-        )
-        if let tab = tabManager.activeTab {
-          if tab.isWebViewReady {
-            WebView(webView: tab.webView)
-              .id(tab.id)
-              .frame(maxWidth: .infinity, maxHeight: .infinity)
-          } else {
-            ProgressView()
-              .frame(
-                maxWidth: .infinity,
-                maxHeight: .infinity
-              )
-          }
-        }
+  @StateObject var hide = SideHolder()
 
+  var body: some View {
+    HSplit(
+      left: {
+        SidebarView()
+      },
+      right: {
+        webView
       }
-      .frame(maxWidth: .infinity, maxHeight: .infinity)
-      .background(VisualEffectView())
-      .cornerRadius(isFullscreen && columnVisibility != .all ? 0 : 8)
-      .padding(isFullscreen && columnVisibility != .all ? 0 : 6)
-      .ignoresSafeArea(.all)
-    }
-    .navigationSplitViewStyle(.balanced)
+    )
+    .hide(hide)
+    .splitter { Splitter.invisible() }
+    .fraction(0.2)
+    .constraints(
+      minPFraction: 0.15,
+      minSFraction: 0.7,
+      priority: .left,
+      dragToHideP: true
+    )
+    .ignoresSafeArea(.all)
+    .background(BlurEffectView(material: .underWindowBackground, blendingMode: .behindWindow).ignoresSafeArea(.all))
     .background(
-      WindowAccessor(isSidebarVisible: columnVisibility == .all, isFullscreen: $isFullscreen)
+      WindowAccessor(
+        isSidebarHidden: hide.side == .primary,
+        isFullscreen: $isFullscreen
+      )
     )
     .overlay {
       if appState.showLauncher {
@@ -48,102 +42,49 @@ struct BrowserViewController: View {
       }
     }
   }
-}
 
-struct VisualEffectView: NSViewRepresentable {
-  func makeNSView(context: Context) -> NSVisualEffectView {
-    let view = NSVisualEffectView()
-    view.blendingMode = .behindWindow
-    view.state = .active
-    view.material = .underWindowBackground
-    view.isEmphasized = true
-    return view
-  }
-
-  func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
-    // No updates needed
-  }
-}
-
-struct WindowAccessor: NSViewRepresentable {
-  let isSidebarVisible: Bool
-  @Binding var isFullscreen: Bool
-
-  func makeCoordinator() -> Coordinator {
-    Coordinator(self)
-  }
-
-  class Coordinator {
-    var parent: WindowAccessor
-    var observers: [Any] = []
-
-    init(_ parent: WindowAccessor) {
-      self.parent = parent
-    }
-
-    @objc func didEnterFullScreen(_ notification: Notification) {
-      parent.isFullscreen = true
-      if let window = (notification.object as? NSWindow) {
-        parent.updateTrafficLights(window: window)
+  @ViewBuilder
+  private var webView: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      URLBar(
+        onSidebarToggle: {
+          withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
+            hide.toggle(.primary)  // Toggle sidebar with Cmd+S
+          }
+        }
+      )
+      if let tab = tabManager.activeTab {
+        if tab.isWebViewReady {
+          WebView(webView: tab.webView)
+            .id(tab.id)
+        } else {
+          ProgressView()
+            .frame(
+              maxWidth: .infinity,
+              maxHeight: .infinity
+            )
+        }
       }
+
     }
-
-    @objc func didExitFullScreen(_ notification: Notification) {
-      parent.isFullscreen = false
-      if let window = (notification.object as? NSWindow) {
-        parent.updateTrafficLights(window: window)
-      }
-    }
-  }
-
-  func makeNSView(context: Context) -> NSView {
-    let view = NSView()
-
-    DispatchQueue.main.async {
-      if let window = view.window {
-        window.titlebarAppearsTransparent = true
-        window.titleVisibility = .hidden
-        window.titlebarSeparatorStyle = .none
-        window.isOpaque = false
-
-        self.isFullscreen = window.styleMask.contains(.fullScreen)
-
-        let coord = context.coordinator
-
-        let enterObs = NotificationCenter.default.addObserver(
-          forName: NSWindow.didEnterFullScreenNotification, object: window, queue: nil,
-          using: coord.didEnterFullScreen)
-
-        let exitObs = NotificationCenter.default.addObserver(
-          forName: NSWindow.didExitFullScreenNotification, object: window, queue: nil,
-          using: coord.didExitFullScreen)
-
-        coord.observers = [enterObs, exitObs]
-
-        self.updateTrafficLights(window: window)
-      }
-    }
-    return view
-  }
-
-  func updateNSView(_ nsView: NSView, context: Context) {
-    if let window = nsView.window {
-      self.updateTrafficLights(window: window)
-    }
-  }
-
-  func dismantleNSView(_ nsView: NSView, coordinator: Coordinator) {
-    coordinator.observers.forEach { NotificationCenter.default.removeObserver($0) }
-  }
-
-  private func updateTrafficLights(window: NSWindow) {
-    let shouldHide = !self.isSidebarVisible && !self.isFullscreen
-    window.standardWindowButton(.closeButton)?.isHidden = shouldHide
-    window.standardWindowButton(.miniaturizeButton)?.isHidden = shouldHide
-    window.standardWindowButton(.zoomButton)?.isHidden = shouldHide
-    window.titlebarAppearsTransparent = true
-    window.titleVisibility = .hidden
-    window.titlebarSeparatorStyle = .none
-    window.isOpaque = false
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .cornerRadius(isFullscreen && hide.side == .primary ? 0 : 8)
+    .padding(
+      isFullscreen && hide.side == .primary
+        ? EdgeInsets(
+          top: 0,
+          leading: 0,
+          bottom: 0,
+          trailing: 0
+        )
+        : EdgeInsets(
+          top: 10,
+          leading: hide.side == .primary ? 10 : 0,
+          bottom: 10,
+          trailing: 10
+        )
+    )
+    .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 2)
+    .ignoresSafeArea(.all)
   }
 }

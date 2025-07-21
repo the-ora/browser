@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 import AppKit
 
@@ -52,7 +53,7 @@ struct TabItem: View {
     @EnvironmentObject var historyManager: HistoryManager
     let availableContainers: [TabContainer]
     
-    @Environment(\.colorScheme) var colorScheme
+    @Environment(\.theme) private var theme
     @State private var isHovering = false
     
     var body: some View {
@@ -105,22 +106,22 @@ struct TabItem: View {
     
     private var tabTitle: some View {
         Text(tab.title)
-            .font(.system(size: 13, weight: .medium))
+            .font(.system(size: 13))
             .foregroundColor(textColor)
             .lineLimit(1)
     }
     
     private var backgroundColor: Color {
         if isSelected {
-            return Color.adaptiveBackground(for: colorScheme)
+            return theme.background
         } else if isHovering {
-            return Color.adaptiveBackground(for: colorScheme).opacity(0.3)
+            return theme.background.opacity(0.3)
         }
         return .clear
     }
     
     private var textColor: Color {
-        isSelected ? Color.adaptiveText(for: colorScheme) : .secondary
+        isSelected ? theme.foreground : .secondary
     }
     
     @ViewBuilder

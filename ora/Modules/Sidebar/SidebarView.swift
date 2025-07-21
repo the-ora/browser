@@ -3,13 +3,12 @@ import SwiftUI
 import SwiftData
 
 struct SidebarView: View {
-    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.theme) private var theme
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var appState: AppState
     @State private var selectedContainer = "personal"
     @State private var isContainerDropdownOpen = false
     @State private var draggedItem: UUID?
-    //  @State private var containers: [ContainerData] = SidebarView.defaultContainers
     @Query var containers: [TabContainer]
     @Query(filter: nil, sort: [.init(\History.lastAccessedAt, order: .reverse)]) var histories: [History]
     private let columns = Array(repeating: GridItem(spacing: 10), count: 3)
@@ -68,8 +67,14 @@ struct SidebarView: View {
                 isDropdownOpen: $isContainerDropdownOpen
             )
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 12)
+        .padding(
+            EdgeInsets(
+                top: 36,
+                leading: 12,
+                bottom: 12,
+                trailing: 12
+            )
+        )
     }
     
     private var favoriteTabs: [Tab] {
