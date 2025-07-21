@@ -41,6 +41,17 @@ struct BrowserViewController: View {
         LauncherView()
       }
     }
+    .onAppear {
+      NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+        if event.modifierFlags.contains(.command) && event.charactersIgnoringModifiers == "s" {
+          withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
+            hide.toggle(.primary)  // Toggle sidebar with Cmd+S
+          }
+          return nil
+        }
+        return event
+      }
+    }
   }
 
   @ViewBuilder
@@ -48,7 +59,9 @@ struct BrowserViewController: View {
     VStack(alignment: .leading, spacing: 0) {
       URLBar(
         onSidebarToggle: {
-          hide.toggle(.primary)
+          withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
+            hide.toggle(.primary)  // Toggle sidebar with Cmd+S
+          }
         }
       )
       if let tab = tabManager.activeTab {
