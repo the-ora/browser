@@ -124,6 +124,16 @@ class Tab: ObservableObject, Identifiable {
     func switchSections(from: Tab, to: Tab) {
         from.type = to.type
     }
+    public func updateHistory(){
+        if let historyManager = self.historyManager {
+            Task { @MainActor in
+                historyManager.record(
+                    title: self.title,
+                    url: self.url
+                )
+            }
+        }
+    }
     private func setupNavigationDelegate() {
         let delegate = WebViewNavigationDelegate()
         delegate.tab = self
@@ -131,13 +141,7 @@ class Tab: ObservableObject, Identifiable {
         delegate.onChange = { [weak self] title, url in
             DispatchQueue.main.async {
                 if let title = title, let url = url  {
-                    if let historyManager = self?.historyManager {
-                        historyManager
-                            .record(
-                                title: title,
-                                url: url
-                            )
-                    }
+                    self?.updateHistory()
                 }
                 //                self?.title = title
                 //                self?.url = url

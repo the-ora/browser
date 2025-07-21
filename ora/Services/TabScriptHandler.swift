@@ -28,6 +28,8 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
                     .setFavicon(
                         faviconURLDefault: URL(string: update.favicon)
                     )
+                tab.updateHistory()
+
                
             }
             
