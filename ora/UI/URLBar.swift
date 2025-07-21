@@ -35,11 +35,7 @@ struct URLBar: View {
                         systemName: "sidebar.left",
                         isEnabled: true,
                         foregroundColor: getForegroundColor(tab),
-                        action: {
-                            withAnimation { // Toggle sidebar visibility
-                                onSidebarToggle()
-                            }
-                        }
+                        action: onSidebarToggle
                     )
                     
                     NavigationButton(
