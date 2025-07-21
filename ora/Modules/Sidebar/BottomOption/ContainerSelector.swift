@@ -75,58 +75,6 @@ struct ContainerDropdown: View {
   }
 }
 
-struct ContainerData: Identifiable {
-  let id: String
-  let icon: String
-  let title: String
-  var tabs: [TabData]
-  var activeTabId: String?
-
-  init(id: String, icon: String, title: String, activeTabId: String? = nil, tabs: [TabData]) {
-    self.id = id
-    self.icon = icon
-    self.title = title
-    self.tabs = tabs
-    self.activeTabId = activeTabId ?? tabs.first?.id
-  }
-
-  mutating func addTab(_ tab: TabData) {
-    tabs.insert(tab, at: 0)
-    if activeTabId == nil {
-      activeTabId = tab.id
-    }
-  }
-
-  mutating func removeTab(withId id: String) {
-    tabs.removeAll { $0.id == id }
-    if activeTabId == id {
-      activeTabId = tabs.first?.id
-    }
-  }
-
-  mutating func setActiveTab(_ id: String) {
-    if tabs.contains(where: { $0.id == id }) {
-      activeTabId = id
-    }
-  }
-
-  mutating func togglePin(_ id: String) {
-    guard let index = tabs.firstIndex(where: { $0.id == id }) else { return }
-    tabs[index].isPinned.toggle()
-    if tabs[index].isPinned {
-      tabs[index].isFavorite = false
-    }
-  }
-
-  mutating func toggleFavorite(_ id: String) {
-    guard let index = tabs.firstIndex(where: { $0.id == id }) else { return }
-    tabs[index].isFavorite.toggle()
-    if tabs[index].isFavorite {
-      tabs[index].isPinned = false
-    }
-  }
-}
-
 struct ContainerButton: View {
     let container: TabContainer
   let isSelected: Bool?
