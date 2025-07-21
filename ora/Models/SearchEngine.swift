@@ -36,7 +36,7 @@ extension SearchEngine {
       foregroundColor: foregroundColor ?? .white,
       icon: icon,
       originalAlias: originalAlias,
-      searchURL: searchURL,
+      searchURL: searchURL
     )
   }
 }

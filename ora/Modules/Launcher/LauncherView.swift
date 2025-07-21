@@ -29,7 +29,11 @@ struct LauncherView: View {
     if let engine = engineToUse,
       let url = searchEngineService.createSearchURL(for: engine, query: input)
     {
-      tabManager.openTab(url: url)
+        tabManager
+            .openTab(
+                url: url,
+                historyManager: historyManager
+            )
     }
     appState.showLauncher = false
   }
