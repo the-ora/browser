@@ -26,8 +26,6 @@ struct URLBar: View {
     
     var body: some View {
         if let tab = tabManager.activeTab {
-            
-            
             HStack(spacing: 12) {
                 // Navigation buttons
                 HStack(spacing: 8) {
@@ -37,6 +35,7 @@ struct URLBar: View {
                         foregroundColor: getForegroundColor(tab),
                         action: onSidebarToggle
                     )
+                    .keyboardShortcut(KeyboardShortcuts.App.toggleSidebar)
                     
                     NavigationButton(
                         systemName: "chevron.left",
@@ -44,34 +43,37 @@ struct URLBar: View {
                         foregroundColor: getForegroundColor(tab),
                         action: { tab.webView.goBack() }
                     )
-                    
+                    .keyboardShortcut(KeyboardShortcuts.Navigation.back)
+
                     NavigationButton(
                         systemName: "chevron.right",
                         isEnabled: tab.webView.canGoForward,
                         foregroundColor: getForegroundColor(tab),
                         action: { tab.webView.goForward() }
                     )
-                    
+                    .keyboardShortcut(KeyboardShortcuts.Navigation.forward)
+
                     NavigationButton(
                         systemName: "arrow.clockwise",
                         isEnabled: true,
                         foregroundColor: getForegroundColor(tab),
                         action: { tab.webView.reload() }
                     )
+                    .keyboardShortcut(KeyboardShortcuts.Navigation.reload)
                 }
                 
-                // URL field
-                HStack(spacing: 8) {
-                    // Security indicator
-                    if !isEditing {
-                        ZStack {
-                            if tab.isLoading {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: getForegroundColor(tab)))
-                                    .scaleEffect(0.5)
-                            } else {
-                                Image(systemName: tab.url.scheme == "https" ? "lock.fill" : "globe")
-                                    .font(.system(size: 12))
+        // URL field
+        HStack(spacing: 8) {
+          // Security indicator
+          if !isEditing {
+            ZStack {
+              if tab.isLoading {
+                ProgressView()
+                  .progressViewStyle(CircularProgressViewStyle(tint: getForegroundColor(tab)))
+                  .scaleEffect(0.5)
+              } else {
+                Image(systemName: tab.url.scheme == "https" ? "lock.fill" : "globe")
+                  .font(.system(size: 12))
                                     .foregroundColor(tab.url.scheme == "https" ? .green : getForegroundColor(tab))
                             }
                         }

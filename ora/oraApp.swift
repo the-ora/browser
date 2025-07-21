@@ -71,7 +71,7 @@ struct oraApp: App {
                 Button("New Tab") {
                     appState.showLauncher = true
                 }
-                .keyboardShortcut("t", modifiers: .command)
+                .keyboardShortcut(KeyboardShortcuts.Tabs.new)
             }
         }
     }
