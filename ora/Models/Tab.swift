@@ -17,6 +17,7 @@ struct URLUpdate: Codable {
 class Tab: ObservableObject, Identifiable {
     var id: UUID
     var url: URL
+    var urlString: String
     var title: String
     var favicon: URL? // Add favicon property
     var createdAt: Date
@@ -50,6 +51,8 @@ class Tab: ObservableObject, Identifiable {
         let nowDate = Date()
         self.id = id
         self.url = url
+        self.urlString = url.absoluteString
+        
         self.title = title
         self.favicon = favicon
         self.createdAt = nowDate
@@ -101,25 +104,25 @@ class Tab: ObservableObject, Identifiable {
         guard let host = self.url.host else { return }
         
         let faviconURL = faviconURLDefault != nil ? faviconURLDefault! :
-                           URL(string: "https://www.google.com/s2/favicons?domain=\(host)")!
+        URL(string: "https://www.google.com/s2/favicons?domain=\(host)")!
         self.favicon = faviconURL
         
         // Infer extension from URL or fallback to png
-          let ext = faviconURL.pathExtension.isEmpty ? "png" : faviconURL.pathExtension
-          let fileName = "\(self.id.uuidString).\(ext)"
-          let saveURL = FileManager.default.faviconDirectory.appendingPathComponent(fileName)
-
-          Task {
-              do {
-                  let (data, _) = try await URLSession.shared.data(from: faviconURL)
-                  try data.write(to: saveURL, options: .atomic)
-                  DispatchQueue.main.async {
-                      self.faviconLocalFile = saveURL
-                  }
-              } catch {
-                  print("⚠️ Failed to download/save favicon: \(error)")
-              }
-          }
+        let ext = faviconURL.pathExtension.isEmpty ? "png" : faviconURL.pathExtension
+        let fileName = "\(self.id.uuidString).\(ext)"
+        let saveURL = FileManager.default.faviconDirectory.appendingPathComponent(fileName)
+        
+        Task {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: faviconURL)
+                try data.write(to: saveURL, options: .atomic)
+                
+                self.faviconLocalFile = saveURL
+                
+            } catch {
+                print("⚠️ Failed to download/save favicon: \(error)")
+            }
+        }
     }
     func switchSections(from: Tab, to: Tab) {
         from.type = to.type
@@ -129,7 +132,9 @@ class Tab: ObservableObject, Identifiable {
             Task { @MainActor in
                 historyManager.record(
                     title: self.title,
-                    url: self.url
+                    url: self.url,
+                    faviconURL: self.favicon,
+                    faviconLocalFile: self.faviconLocalFile
                 )
             }
         }
@@ -138,17 +143,6 @@ class Tab: ObservableObject, Identifiable {
         let delegate = WebViewNavigationDelegate()
         delegate.tab = self
         
-        delegate.onChange = { [weak self] title, url in
-            DispatchQueue.main.async {
-                if let title = title, let url = url  {
-                    self?.updateHistory()
-                }
-                //                self?.title = title
-                //                self?.url = url
-                //                self?.setFavicon()
-            }
-            
-        }
         delegate.onTitleChange = { [weak self] title in
             DispatchQueue.main.async {
                 
@@ -164,8 +158,11 @@ class Tab: ObservableObject, Identifiable {
                     self?.url = url
                     if self?.favicon == nil {
                         self?.setFavicon()
+                        
                     }
+                    self?.updateHistory()
                 }
+                
                 
             }
         }

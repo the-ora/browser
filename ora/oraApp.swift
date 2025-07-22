@@ -102,6 +102,22 @@ struct oraApp: App {
                     appState.showLauncher = true
                 }
                 .keyboardShortcut(KeyboardShortcuts.Tabs.new)
+                Button("Close Tab") {
+                    tabManager
+                        .closeActiveTab()
+                }
+                .keyboardShortcut(
+                    KeyboardShortcuts.Tabs.close
+                )
+                Button("Pin Tab") {
+                    if let tab = tabManager.activeTab {
+                        tabManager
+                            .togglePinTab(tab)
+                    }
+                }
+                .keyboardShortcut(
+                    KeyboardShortcuts.Tabs.pin
+                )
             }
         }
     }

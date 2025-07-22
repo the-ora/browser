@@ -29,7 +29,7 @@ struct FavTabItem: View {
                         .frame(width: 16, height: 16)
                 } placeholder: {
                     LocalFavIcon(
-                        tab: tab,
+                        faviconLocalFile: tab.faviconLocalFile,
                         textColor:Color(.white)
                     )
 
@@ -37,8 +37,8 @@ struct FavTabItem: View {
             }
         } else {
             LocalFavIcon(
-                tab: tab,
-                textColor: Color(.white)
+                faviconLocalFile: tab.faviconLocalFile,
+                textColor:Color(.white)
             )
         }
 

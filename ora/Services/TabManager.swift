@@ -23,7 +23,78 @@ class TabManager: ObservableObject {
         self.modelContext = modelContext
         initializeActiveContainerAndTab()
     }
+    public func search(_ text: String) -> [Tab] {
+        let trimmedText = text.trimmingCharacters(in: .whitespaces)
+        
+        let predicate: Predicate<Tab>
+        if trimmedText.isEmpty {
+            predicate = #Predicate { _ in true }
+        } else {
+            predicate = #Predicate { tab in
+                tab.urlString.localizedStandardContains(trimmedText) ||
+                tab.title.localizedStandardContains(trimmedText)
+            }
+        }
+        
+        let descriptor = FetchDescriptor<Tab>(predicate: predicate)
+        
+        do {
+            let results = try modelContext.fetch(descriptor)
+            let now = Date()
+            
+            return results.sorted { a, b in
+                let aScore = combinedScore(for: a, query: trimmedText, now: now)
+                let bScore = combinedScore(for: b, query: trimmedText, now: now)
+                return aScore > bScore
+            }
+            
+        } catch {
+            print("Error fetching history: \(error)")
+            return []
+        }
+    }
     
+    private func combinedScore(for tab: Tab, query: String, now: Date) -> Double {
+        let match = scoreMatch(tab, text: query)
+
+        let timeInterval: TimeInterval
+        if let accessedAt = tab.lastAccessedAt {
+            timeInterval = now.timeIntervalSince(accessedAt)
+        } else {
+            timeInterval = 1_000_000 // far in the past → lowest recency
+        }
+
+        let recencyBoost = max(0, 1_000_000 - timeInterval)
+        return Double(match * 1000) + recencyBoost
+    }
+    
+    private func scoreMatch(_ tab: Tab, text: String) -> Int {
+        let text = text.lowercased()
+        let title = tab.title.lowercased()
+        let url = tab.urlString.lowercased()
+        
+        func score(_ field: String) -> Int {
+            if field == text { return 100 }
+            if field.hasPrefix(text) { return 90 }
+            if field.contains(text) { return 75 }
+            if text.contains(field) { return 50 }
+            return 0
+        }
+        
+        return max(score(title), score(url))
+    }
+    func openFromEngine(
+        engineName: SearchEngineID,
+        query: String,
+        historyManager: HistoryManager
+    ){
+        if let url = SearchEngineService().getSearchURLForEngine(
+            engineName: engineName,
+            query: query
+        ) {
+            openTab(url: url, historyManager: historyManager)
+        }
+    }
     func isActive(_ tab: Tab)->Bool{
         
         if let activeTab = self.activeTab {
@@ -170,6 +241,11 @@ class TabManager: ObservableObject {
         
         modelContext.delete(tab)
         try? modelContext.save()
+    }
+    func closeActiveTab(){
+        if let tab = activeTab {
+            closeTab(tab: tab)
+        }
     }
     
     func activateContainer(_ container: TabContainer) {

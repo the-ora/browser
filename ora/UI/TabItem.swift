@@ -3,11 +3,11 @@ import SwiftUI
 import AppKit
 
 struct LocalFavIcon: View {
-    let tab: Tab
+    let faviconLocalFile: URL?
     let textColor: Color
-
+    
     @State private var image: NSImage?
-
+    
     var body: some View {
         if let image = image {
             Image(nsImage: image)
@@ -23,9 +23,9 @@ struct LocalFavIcon: View {
                 .onAppear(perform: loadFavicon)
         }
     }
-
+    
     private func loadFavicon() {
-        guard let localURL = tab.faviconLocalFile,
+        guard let localURL = faviconLocalFile,
               FileManager.default.fileExists(atPath: localURL.path) else { return }
         
         // Loading may block briefly, so you can even do it async if needed
@@ -38,7 +38,43 @@ struct LocalFavIcon: View {
         }
     }
 }
-
+struct FavIcon:  View {
+    let isWebViewReady: Bool
+    let favicon: URL?
+    let faviconLocalFile: URL?
+    let textColor: Color
+    
+    var body: some View {
+        
+        HStack {
+            if let favicon = favicon{
+                if isWebViewReady {
+                    
+                    AsyncImage(
+                        url: favicon
+                    ) { image in
+                        image
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 16, height: 16)
+                    } placeholder: {
+                        LocalFavIcon(
+                            faviconLocalFile: faviconLocalFile,
+                            textColor: textColor
+                        )
+                    }
+                    
+                }
+            } else {
+                LocalFavIcon(
+                    faviconLocalFile: faviconLocalFile,
+                    textColor: textColor
+                )
+            }
+        }
+        .frame(width:16,height: 16)
+    }
+}
 
 struct TabItem: View {
     let tab: Tab
@@ -58,7 +94,12 @@ struct TabItem: View {
     
     var body: some View {
         HStack {
-            tabIcon
+            FavIcon(
+                isWebViewReady: tab.isWebViewReady,
+                favicon: tab.favicon,
+                faviconLocalFile: tab.faviconLocalFile,
+                textColor: textColor
+            )
             tabTitle
             Spacer()
             actionButton
@@ -79,30 +120,7 @@ struct TabItem: View {
         .animation(.spring(response: 0.2, dampingFraction: 0.8), value: isDragging)
     }
     
-    private var tabIcon: some View {
-        
-        HStack {
-            
-            if let favicon = tab.favicon{
-                if tab.isWebViewReady {
-                    Text("*")
-                    AsyncImage(
-                        url: favicon
-                    ) { image in
-                        image
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 16, height: 16)
-                    } placeholder: {
-                        LocalFavIcon(tab: tab,textColor:textColor)
-                    }
-                }
-            } else {
-                LocalFavIcon(tab: tab,textColor:textColor)
-            }
-        }
-        .frame(width:16,height: 16)
-    }
+    
     
     private var tabTitle: some View {
         Text(tab.title)

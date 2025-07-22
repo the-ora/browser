@@ -4,21 +4,25 @@ import SwiftData
 @Model
 final class History {
     @Attribute(.unique) var id: UUID // Unique identifier
-    var url: String
+    var url: URL
+    var urlString: String
     var title: String
-    var faviconURL: String
+    var faviconURL: URL
+    var faviconLocalFile: URL?
     var createdAt: Date
     var visitCount: Int
     var lastAccessedAt: Date
     
-    init(id: UUID = UUID(), url: String, title: String, faviconURL: String, createdAt: Date,lastAccessedAt: Date, visitCount: Int) {
+    init(id: UUID = UUID(), url: URL, title: String, faviconURL: URL,faviconLocalFile:URL? = nil, createdAt: Date,lastAccessedAt: Date, visitCount: Int) {
         let now = Date()
         self.id = id
         self.url = url
+        self.urlString = url.absoluteString
         self.title = title
         self.faviconURL = faviconURL
         self.createdAt = now
         self.lastAccessedAt = now
         self.visitCount = visitCount
+        self.faviconLocalFile = faviconLocalFile
     }
 }
