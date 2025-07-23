@@ -5,6 +5,7 @@ import SwiftData
 struct SidebarView: View {
     @Environment(\.theme) private var theme
     @EnvironmentObject var tabManager: TabManager
+    @EnvironmentObject var historyManger: HistoryManager
     @EnvironmentObject var appState: AppState
     @State private var selectedContainer = "personal"
     @State private var isContainerDropdownOpen = false
@@ -13,6 +14,84 @@ struct SidebarView: View {
     @Query(filter: nil, sort: [.init(\History.lastAccessedAt, order: .reverse)]) var histories: [History]
     private let columns = Array(repeating: GridItem(spacing: 10), count: 3)
     
+    func importArc() {
+        if let root = getRoot() {
+            let result = inspectItems(root)
+            var newContainers: [TabContainer] = []
+            
+            for space in result.cleanSpaces {
+                let container = tabManager
+                    .addContainer(
+                        name: space.title ?? "Unknown",
+                        emoji: space.emoji ?? "💀"
+                    )
+                newContainers
+                    .append(
+                        container
+                    )
+                for tab in result.cleanTabs {
+                    if space.containerIDs
+                        .contains(
+                            tab.parentID
+                        ){
+                        if let url = URL(
+                            string: tab.urlString
+                        ) {
+                            
+                            
+                            let newTab = tabManager
+                                .addTab(
+                                    title: tab.title,
+                                    url: url,
+                                    container: container,
+                                    historyManager: historyManger
+                                )
+                            
+                            tabManager
+                                .togglePinTab(
+                                    newTab
+                                )
+                        }
+                    }
+                }
+                
+            }
+           
+            var seenContainers: Set<UUID> = []
+            for container in newContainers {
+              
+                if seenContainers
+                    .contains(container.id) {continue}
+                seenContainers
+                    .insert(container.id)
+                for tab in result.cleanTabs {
+                    
+                    if result.favs
+                        .contains(
+                            tab.parentID
+                        ){
+                        if let url = URL(
+                            string: tab.urlString
+                        ) {
+                            print(tab.title,container.name)
+                            let newTab = tabManager
+                                .addTab(
+                                    title: tab.title,
+                                    url: url,
+                                    container: container,
+                                    historyManager: historyManger
+                                )
+                            tabManager
+                                .toggleFavTab(
+                                    newTab
+                                )
+                        }
+                    }
+                }
+            }
+            
+        }
+    }
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             FavTabsGrid(
@@ -50,17 +129,21 @@ struct SidebarView: View {
                     onMoveToContainer: moveTab,
                     onAddNewTab: addNewTab
                 )
-//                ForEach(histories){ history in
-//                    Text("#\(history.visitCount)- \(history.title)")
-//                    Text("-----------------")
-//                }
-//                Button("Switch") {
-//                    tabManager
-//                        .reorderTabs(
-//                            from: normalTabs[1],
-//                            to: normalTabs[5]
-//                        )
-//                }
+                
+                Button("Import arc") {
+                 importArc()
+                }
+                //                ForEach(histories){ history in
+                //                    Text("#\(history.visitCount)- \(history.title)")
+                //                    Text("-----------------")
+                //                }
+                //                Button("Switch") {
+                //                    tabManager
+                //                        .reorderTabs(
+                //                            from: normalTabs[1],
+                //                            to: normalTabs[5]
+                //                        )
+                //                }
             }
             
             ContainerSelector(
