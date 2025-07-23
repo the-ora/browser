@@ -36,7 +36,7 @@ struct oraApp: App {
     )
     init() {
         //#if DEBUG
-//                    deleteSwiftDataStore()
+                    deleteSwiftDataStore()
         //#endif
 //        
         // tabs

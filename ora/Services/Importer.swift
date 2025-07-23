@@ -144,7 +144,8 @@ struct TopAppsObject: Decodable {
 }
 
 func getRoot() -> Root? {
-    let url = URL(fileURLWithPath: "~/Library/Application Support/Arc/StorableSidebar.json")
+//    let url = URL(fileURLWithPath: "/Users/keni/Library/Application Support/Arc/StorableSidebar.json")
+    let url = URL(fileURLWithPath: NSString(string: "~/Library/Application Support/Arc/StorableSidebar.json").expandingTildeInPath)
 
     do {
         let data = try Data(contentsOf: url)
