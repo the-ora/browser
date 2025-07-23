@@ -238,9 +238,13 @@ class TabManager: ObservableObject {
         } else {
             self.activeTab = activeTab
         }
-        
-        modelContext.delete(tab)
-        try? modelContext.save()
+        tab.stopMedia { [weak self] in
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.modelContext.delete(tab)
+                try? self.modelContext.save()
+            }
+        }
     }
     func closeActiveTab(){
         if let tab = activeTab {

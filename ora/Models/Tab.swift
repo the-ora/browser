@@ -202,6 +202,21 @@ class Tab: ObservableObject, Identifiable {
             self.isWebViewReady = true
         }
     }
+    public func stopMedia(completed: @escaping () -> Void) {
+        let js = """
+        document.querySelectorAll('video, audio').forEach(el => {
+            try {
+                el.pause();
+                el.src = '';
+                el.load();
+            } catch (e) {}
+        });
+        """
+        
+        webView.evaluateJavaScript(js) { _, _ in
+            self.webView.closeAllMediaPresentations(completionHandler: completed)
+        }
+    }
     
     func loadURL(_ urlString: String) {
         var finalURLString = urlString
