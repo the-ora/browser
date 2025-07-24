@@ -56,6 +56,7 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         // Enable process pool for better memory management
         let processPool = WKProcessPool()
         configuration.processPool = processPool
+        configuration.preferences.isElementFullscreenEnabled = true
         
         // Enable media playback without user interaction
         configuration.mediaTypesRequiringUserActionForPlayback = []
