@@ -16,6 +16,7 @@ struct BrowserViewController: View {
         SidebarView()
       },
       right: {
+//          ContentView()
         webView
       }
     )

@@ -56,7 +56,13 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         // Enable process pool for better memory management
         let processPool = WKProcessPool()
         configuration.processPool = processPool
+        // video shit
         configuration.preferences.isElementFullscreenEnabled = true
+        if #available(macOS 10.12, *) {
+//            configuration.allowsPictureInPictureMediaPlayback = true
+        }
+        configuration.allowsAirPlayForMediaPlayback = true
+//        configuration.allowsInlineMediaPlayback = true
         
         // Enable media playback without user interaction
         configuration.mediaTypesRequiringUserActionForPlayback = []

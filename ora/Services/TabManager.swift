@@ -218,7 +218,8 @@ class TabManager: ObservableObject {
     }
     func closeTab(tab: Tab) {
         
-        
+    
+
         // If the closed tab was active, select another tab
         if self.activeTab?.id == tab.id {
             
@@ -268,6 +269,10 @@ class TabManager: ObservableObject {
         tab.lastAccessedAt = Date()
         activeContainer = tab.container
         tab.container.lastAccessedAt = Date()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { 
+            tab.navigationDelegate?
+                .takeSnapshotAfterLoad(tab.webView)
+        }
         try? modelContext.save()
     }
     

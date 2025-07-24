@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import WebKit
+import AppKit
 
 enum TabType: String, Codable {
     case pinned
@@ -27,12 +28,14 @@ class Tab: ObservableObject, Identifiable {
     var type: TabType
     var order: Int
     var faviconLocalFile: URL?
+    var backgroundColorHex: String = "#000000"
     
-    @Transient var backgroundColor: Color = Color(.black)
+//    @Transient @Published var backgroundColor: Color = Color(.black)
+    @Transient @Published var backgroundColor: Color = .black
     @Transient var historyManager: HistoryManager? = nil
     // Not persisted: in-memory only
     @Transient var webView: WKWebView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
-    @Transient private var navigationDelegate: WebViewNavigationDelegate?
+    @Transient public var navigationDelegate: WebViewNavigationDelegate?
     @Transient @Published var isWebViewReady: Bool = false
     
     @Relationship(inverse: \TabContainer.tabs) var container: TabContainer
@@ -60,7 +63,6 @@ class Tab: ObservableObject, Identifiable {
         self.type = type
         self.isPlayingMedia = isPlayingMedia
         self.container = container
-        self.backgroundColor = Color(.black)
         // Initialize webView with provided configuration or default
         
         let config = TabScriptHandler()
@@ -93,11 +95,21 @@ class Tab: ObservableObject, Identifiable {
         // Load initial URL
         DispatchQueue.main.async {
             self.setupNavigationDelegate()
+            self.syncBackgroundColorFromHex()
             self.webView.load(URLRequest(url: url))
             self.isWebViewReady = true
         }
     }
     
+    func syncBackgroundColorFromHex() {
+        backgroundColor = Color(hex: backgroundColorHex)
+    }
+
+    // Call this whenever the color is set
+    func updateBackgroundColor(_ color: Color) {
+        backgroundColor = color
+        backgroundColorHex = color.toHex() ?? "#000000"
+    }
     
     
     public func setFavicon(faviconURLDefault: URL? = nil) {
@@ -180,7 +192,6 @@ class Tab: ObservableObject, Identifiable {
         // Avoid double initialization
         if webView.url != nil { return }
         
-        self.backgroundColor = Color(.black)
         let config = TabScriptHandler()
         self.webView = WKWebView(frame: .zero, configuration: config.defaultWKConfig())
         config.tab = self
@@ -196,6 +207,7 @@ class Tab: ObservableObject, Identifiable {
         self.historyManager = historyManger
         self.isWebViewReady = false
         self.setupNavigationDelegate()
+        self.syncBackgroundColorFromHex()
         // Load after a short delay to ensure layout
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
             self.webView.load(URLRequest(url: self.url))
@@ -212,7 +224,6 @@ class Tab: ObservableObject, Identifiable {
             } catch (e) {}
         });
         """
-        
         webView.evaluateJavaScript(js) { _, _ in
             self.webView.closeAllMediaPresentations(completionHandler: completed)
         }
@@ -245,5 +256,44 @@ extension FileManager {
             try? createDirectory(at: dir, withIntermediateDirectories: true)
         }
         return dir
+    }
+}
+
+
+extension NSColor {
+    convenience init?(hex: String) {
+        var hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+
+        let r, g, b, a: Double
+        switch hex.count {
+        case 6:
+            r = Double((int >> 16) & 0xFF) / 255
+            g = Double((int >> 8) & 0xFF) / 255
+            b = Double(int & 0xFF) / 255
+            a = 1.0
+        case 8:
+            r = Double((int >> 24) & 0xFF) / 255
+            g = Double((int >> 16) & 0xFF) / 255
+            b = Double((int >> 8) & 0xFF) / 255
+            a = Double(int & 0xFF) / 255
+        default:
+            return nil
+        }
+
+        self.init(calibratedRed: CGFloat(r), green: CGFloat(g), blue: CGFloat(b), alpha: CGFloat(a))
+    }
+
+    func toHex() -> String? {
+        guard let color = usingColorSpace(.deviceRGB) else { return nil }
+        let r = Int(color.redComponent * 255)
+        let g = Int(color.greenComponent * 255)
+        let b = Int(color.blueComponent * 255)
+        let a = Int(color.alphaComponent * 255)
+
+        return a < 255
+            ? String(format: "#%02X%02X%02X%02X", r, g, b, a)
+            : String(format: "#%02X%02X%02X", r, g, b)
     }
 }

@@ -124,7 +124,9 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
         onChange?(webView.title, webView.url)
         webView.evaluateJavaScript(js, completionHandler: nil)
         // Start the snapshot process after a short delay to allow rendering
-        takeSnapshotAfterLoad(webView)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { [weak self] in
+            self?.takeSnapshotAfterLoad(webView)
+        }
     }
     
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
@@ -134,16 +136,19 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         onLoadingChange?(false)
     }
+  
     
-    
-    private func takeSnapshotAfterLoad(_ webView: WKWebView) {
-        if retryCount < maxRetries && (webView.isLoading || webView.bounds.width == 0) {
-            DispatchQueue.main.asyncAfter(deadline: .now() + retryDelay) { [weak self] in
-                self?.takeSnapshotAfterLoad(webView)
-            }
-            retryCount += 1
-            return
-        }
+    public func takeSnapshotAfterLoad(_ webView: WKWebView) {
+        
+//        if retryCount < maxRetries && (webView.isLoading || webView.bounds.width == 0) {
+//            print("[Snapshot] Waiting - isLoading: \(webView.isLoading), bounds.width: \(webView.bounds.width), retryCount: \(retryCount)")
+//            DispatchQueue.main.asyncAfter(deadline: .now() + retryDelay) { [weak self] in
+//                print("[Snapshot] Retrying after delay")
+//                self?.takeSnapshotAfterLoad(webView)
+//            }
+//            retryCount += 1
+//            return
+//        }
         
         guard !webView.isLoading, webView.bounds.width > 0 else {
             retryCount = 0
@@ -152,29 +157,38 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
         
         let configuration = WKSnapshotConfiguration()
         configuration.rect = CGRect(x: 0, y: 0, width: webView.bounds.width, height: 24)
+        
         webView.takeSnapshot(with: configuration) { [weak self] image, error in
-            guard let self = self else { return }
+            guard let self = self else {
+                return
+            }
+
+            if let error = error {
+                return
+            }
+
             if let image = image {
                 if let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) {
                     let color = self.extractDominantColor(from: cgImage)
                     DispatchQueue.main.async {
                         if let tab = self.tab {
                             if let color = color {
-                                tab.backgroundColor = Color(nsColor: color)
+                                tab.updateBackgroundColor(Color(nsColor: color))
                             } else {
-                                tab.backgroundColor = Color(nsColor: NSColor.black)
+                                tab.updateBackgroundColor( Color(nsColor: NSColor.black))
                             }
                         } else {
-                            print("Tab reference is nil during color set")
+                            print("[Snapshot] Tab reference is nil during color set")
                         }
                     }
                 } else {
-                    print("Failed to get cgImage from snapshot")
+                    print("[Snapshot] Failed to get CGImage from snapshot")
                 }
             } else {
-                print("Snapshot failed with error: \(String(describing: error))")
+                print("[Snapshot] Image is nil")
             }
-            self.retryCount = 0 // Reset retry count
+
+            self.retryCount = 0
         }
     }
     

@@ -118,6 +118,22 @@ struct oraApp: App {
                 .keyboardShortcut(
                     KeyboardShortcuts.Tabs.pin
                 )
+                Button("Reload") {
+                    if let tab = tabManager.activeTab {
+                        tab.webView.reload()
+                    }
+                }
+                .keyboardShortcut(
+                    KeyboardShortcuts.Navigation.reload
+                )
+                Button("Forward") {
+                    if let tab = tabManager.activeTab {
+                        tab.webView.reload()
+                    }
+                }
+                .keyboardShortcut(
+                    KeyboardShortcuts.Navigation.reload
+                )
             }
         }
     }
