@@ -34,7 +34,7 @@ struct LauncherMain: View {
     @Binding var match: Match?
     var isFocused: FocusState<Bool>.Binding
     let onTabPress: () -> Void
-    let onSubmit: () -> Void
+    let onSubmit: (String?) -> Void
     
     @Environment(\.theme) private var theme
     @EnvironmentObject var historyManager: HistoryManager
@@ -50,7 +50,7 @@ struct LauncherMain: View {
         return [
             LauncherSuggestion(
                 type: .suggestedQuery, title: "Search on Google",
-                action: { onSubmit() }),
+                action: { onSubmit(nil) }),
             LauncherSuggestion(
                 type: .aiChat,
                 title: "Grok",
@@ -127,22 +127,28 @@ struct LauncherMain: View {
         // search on google
         suggestions.append(LauncherSuggestion(
             type: .suggestedQuery, title: "\(text) - Search with google",
-            action: { onSubmit() }))
+            action: { onSubmit(nil) }))
         let at = suggestions.count
-        Task {
-            debouncer.run {
-                let searchEngine = SearchEngineService().getDefaultSearchEngine()
-                if let autoSuggestions = searchEngine?.autoSuggestions {
-                    let searchSuggestions = await autoSuggestions(text)
+        
+        debouncer.run {
+            let searchEngine = SearchEngineService().getDefaultSearchEngine()
+            if let autoSuggestions = searchEngine?.autoSuggestions {
+                let searchSuggestions = await autoSuggestions(text)
+                
+                await MainActor.run {
                     var x = 0
                     for ss in searchSuggestions {
                         if x == 3 { break }
-                        suggestions.insert(LauncherSuggestion(
-                            type: .suggestedQuery, title: ss,
-                            action: { onSubmit() }), at: at+x)
+                        suggestions.insert(
+                            LauncherSuggestion(
+                                type: .suggestedQuery,
+                                title: ss,
+                                action: { onSubmit(ss) }
+                            ),
+                            at: at + x
+                        )
                         x += 1
                     }
-                    print(searchSuggestions)
                 }
             }
         }

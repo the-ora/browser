@@ -40,13 +40,14 @@ struct LauncherView: View {
         }
     }
     
-    private func onSubmit() {
+    private func onSubmit(_ newInput:String? = nil) {
+        let correctInput = newInput ?? input
         let engineToUse =
         match
-        ?? searchEngineService.getDefaultSearchEngine()?.toLauncherMatch(originalAlias: input)
+        ?? searchEngineService.getDefaultSearchEngine()?.toLauncherMatch(originalAlias:correctInput)
         
         if let engine = engineToUse,
-           let url = searchEngineService.createSearchURL(for: engine, query: input)
+           let url = searchEngineService.createSearchURL(for: engine, query: correctInput)
         {
             tabManager
                 .openTab(
