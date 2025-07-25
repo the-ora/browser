@@ -3,6 +3,24 @@ enum MoveDirection {
     case up
     case down
 }
+class Debouncer {
+    private var workItem: DispatchWorkItem?
+    private let delay: TimeInterval
+
+    init(delay: TimeInterval) {
+        self.delay = delay
+    }
+
+    func run(_ block: @escaping @Sendable () async -> Void) {
+        workItem?.cancel()
+        let item = DispatchWorkItem {
+            Task { await block() }
+        }
+        workItem = item
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: item)
+    }
+}
+let debouncer = Debouncer(delay: 0.3)
 struct LauncherMain: View {
     struct Match {
         let text: String
@@ -25,7 +43,7 @@ struct LauncherMain: View {
     @State var focusedElement: UUID = UUID()
     
     @State private var suggestions: [LauncherSuggestion] = [
-       
+        
     ]
     func defaultSuggestions()-> [LauncherSuggestion]  {
         
@@ -71,9 +89,6 @@ struct LauncherMain: View {
         }
         let histories = historyManager.search(text)
         let tabs = tabManager.search(text)
-        for tab in tabs {
-            print("Matched: \(tab.title) (\(tab.urlString))")
-        }
         suggestions = []
         var x  = 0
         for tab in tabs {
@@ -111,9 +126,26 @@ struct LauncherMain: View {
         }
         // search on google
         suggestions.append(LauncherSuggestion(
-            type: .suggestedQuery, title: "Search on Google",
+            type: .suggestedQuery, title: "\(text) - Search with google",
             action: { onSubmit() }))
-        
+        let at = suggestions.count
+        Task {
+            debouncer.run {
+                let searchEngine = SearchEngineService().getDefaultSearchEngine()
+                if let autoSuggestions = searchEngine?.autoSuggestions {
+                    let searchSuggestions = await autoSuggestions(text)
+                    var x = 0
+                    for ss in searchSuggestions {
+                        if x == 3 { break }
+                        suggestions.insert(LauncherSuggestion(
+                            type: .suggestedQuery, title: ss,
+                            action: { onSubmit() }), at: at+x)
+                        x += 1
+                    }
+                    print(searchSuggestions)
+                }
+            }
+        }
         
         // show some history entries
         for history in histories {

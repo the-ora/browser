@@ -163,7 +163,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
                 return
             }
 
-            if let error = error {
+            if error != nil {
                 return
             }
 

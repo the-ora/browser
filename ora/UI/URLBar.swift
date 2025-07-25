@@ -45,7 +45,7 @@ struct URLBar: View {
                         foregroundColor: tabManager.activeTab.map { getForegroundColor($0) } ?? .gray,
                         action: {
                             if let activeTab = tabManager.activeTab {
-                                activeTab.webView.goBack()
+                                activeTab.goBack()
                             }
                         }
                     )
@@ -58,7 +58,7 @@ struct URLBar: View {
                         foregroundColor: tabManager.activeTab.map { getForegroundColor($0) } ?? .gray,
                         action: {
                             if let activeTab = tabManager.activeTab {
-                                activeTab.webView.goForward()
+                                activeTab.goForward()
                             }
                         }
                     )

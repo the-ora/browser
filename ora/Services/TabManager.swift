@@ -269,10 +269,7 @@ class TabManager: ObservableObject {
         tab.lastAccessedAt = Date()
         activeContainer = tab.container
         tab.container.lastAccessedAt = Date()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { 
-            tab.navigationDelegate?
-                .takeSnapshotAfterLoad(tab.webView)
-        }
+        tab.updateHeaderColor()
         try? modelContext.save()
     }
     

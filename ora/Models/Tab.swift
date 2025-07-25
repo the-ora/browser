@@ -139,7 +139,16 @@ class Tab: ObservableObject, Identifiable {
     func switchSections(from: Tab, to: Tab) {
         from.type = to.type
     }
+    public func updateHeaderColor(){
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+            if let wv = self?.webView {
+                self?.navigationDelegate?
+                    .takeSnapshotAfterLoad(wv)
+            }
+        }
+    }
     public func updateHistory(){
+       
         if let historyManager = self.historyManager {
             Task { @MainActor in
                 historyManager.record(
@@ -173,6 +182,7 @@ class Tab: ObservableObject, Identifiable {
                         
                     }
                     self?.updateHistory()
+                    self?.updateHeaderColor()
                 }
                 
                 
@@ -186,6 +196,14 @@ class Tab: ObservableObject, Identifiable {
         
         self.navigationDelegate = delegate
         webView.navigationDelegate = delegate
+    }
+    func goForward(){
+        self.webView.goForward()
+        self.updateHeaderColor()
+    }
+    func goBack(){
+        self.webView.goBack()
+        self.updateHeaderColor()
     }
     
     func restoreTransientState(historyManger: HistoryManager) {

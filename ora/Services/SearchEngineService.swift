@@ -9,6 +9,18 @@ enum SearchEngineID: String, CaseIterable {
     case t3chat = "T3Chat"
     case x = "X"
 }
+
+struct SuggestResponse: Decodable {
+    let query: String
+    let suggestions: [String]
+
+    init(from decoder: Decoder) throws {
+        var container = try decoder.unkeyedContainer()
+        self.query = try container.decode(String.self)
+        self.suggestions = try container.decode([String].self)
+        // Skip the rest (3rd and 4th elements)
+    }
+}
 class SearchEngineService: ObservableObject {
     private var theme: Theme?
     
@@ -40,8 +52,9 @@ class SearchEngineService: ObservableObject {
                 color: .blue,
                 icon: "",
                 aliases: ["google", "goo", "g", "search"],
-                searchURL: "https://www.google.com/search?q={query}",
-                isAIChat: false
+                searchURL: "https://www.google.com/search?client=safari&rls=en&ie=UTF-8&oe=UTF-8&q={query}",
+                isAIChat: false,
+                autoSuggestions: self.googleSuggestions
             ),
             SearchEngine(
                 name: "Grok",
@@ -127,6 +140,26 @@ class SearchEngineService: ObservableObject {
         let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         let urlString = match.searchURL.replacingOccurrences(of: "{query}", with: encodedQuery)
         return URL(string: urlString)
+    }
+    func createSuggestionsURL(urlString:String,query:String)->URL?{
+        let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let urlString = urlString.replacingOccurrences(of: "{query}", with: encodedQuery)
+        return URL(string: urlString)
+    }
+
+    func googleSuggestions(_ query: String) async -> [String] {
+        guard let url = createSuggestionsURL(urlString: "https://suggestqueries.google.com/complete/search?client=firefox&q={query}", query: query) else {
+            return []
+        }
+
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let decoded = try JSONDecoder().decode(SuggestResponse.self, from: data)
+            return decoded.suggestions
+        } catch {
+            print("Error: \(error)")
+            return []
+        }
     }
     
 }
