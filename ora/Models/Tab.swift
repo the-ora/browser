@@ -280,7 +280,7 @@ extension FileManager {
 
 extension NSColor {
     convenience init?(hex: String) {
-        var hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         var int: UInt64 = 0
         Scanner(string: hex).scanHexInt64(&int)
 

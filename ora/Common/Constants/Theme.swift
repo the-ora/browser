@@ -4,6 +4,14 @@ import SwiftUI
 struct Theme {
   let colorScheme: ColorScheme
 
+  var primary: Color {
+    Color(hex: "f3e5d6")
+  }
+
+  var primaryDark: Color {
+    Color(hex: "63411D")
+  }
+
   var background: Color {
     colorScheme == .dark ? .black : .white
   }
@@ -12,8 +20,24 @@ struct Theme {
     colorScheme == .dark ? .white : .black
   }
 
+  var windowBackgroundColor: Color {
+    colorScheme == .dark ? self.primaryDark.opacity(0.3) : self.primary.opacity(0.8)
+  }
+
+  var solidWindowBackgroundColor: Color {
+    colorScheme == .dark ? self.primaryDark : self.primary
+  }
+
+  var invertedSolidWindowBackgroundColor: Color {
+    colorScheme == .dark ? self.primary : self.primaryDark
+  }
+
+  var activeTabBackground: Color {
+    colorScheme == .dark ? .white.opacity(0.15) : self.primaryDark.opacity(0.8)
+  }
+
   var mutedBackground: Color {
-    colorScheme == .dark ? .black.opacity(0.15) : .white.opacity(0.5)
+    colorScheme == .dark ? .white.opacity(0.17) : self.primaryDark.opacity(0.1)
   }
 
   var mutedForeground: Color {

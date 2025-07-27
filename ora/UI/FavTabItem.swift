@@ -14,57 +14,65 @@ struct FavTabItem: View {
   @Environment(\.theme) private var theme
   @Query var containers: [TabContainer]
   @EnvironmentObject var tabManager: TabManager
-    @EnvironmentObject var historyManager: HistoryManager
+  @EnvironmentObject var historyManager: HistoryManager
+
+  @State private var isHovering = false
 
   var body: some View {
     ZStack {
-        if let favicon = tab.favicon {
-            if tab.isWebViewReady {
-                AsyncImage(
-                  url: favicon
-                ) { image in
-                    image
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 16, height: 16)
-                } placeholder: {
-                    LocalFavIcon(
-                        faviconLocalFile: tab.faviconLocalFile,
-                        textColor:Color(.white)
-                    )
-
-                }
-            }
-        } else {
+      if let favicon = tab.favicon {
+        if tab.isWebViewReady {
+          AsyncImage(
+            url: favicon
+          ) { image in
+            image
+              .resizable()
+              .scaledToFit()
+              .frame(width: 16, height: 16)
+          } placeholder: {
             LocalFavIcon(
-                faviconLocalFile: tab.faviconLocalFile,
-                textColor:Color(.white)
+              faviconLocalFile: tab.faviconLocalFile,
+              textColor: Color(.white)
             )
+
+          }
         }
+      } else {
+        LocalFavIcon(
+          faviconLocalFile: tab.faviconLocalFile,
+          textColor: Color(.white)
+        )
+      }
 
     }
     .onAppear {
-        tab
-            .restoreTransientState(
-                historyManger: historyManager
-            )
+      tab
+        .restoreTransientState(
+          historyManger: historyManager
+        )
     }
     .foregroundColor(theme.foreground)
     .frame(height: 48)
     .frame(maxWidth: .infinity)
-    .background(
-      isSelected
-        ? theme.background : theme.mutedBackground
-    )
-    .cornerRadius(10)
     .opacity(isDragging ? 0.0 : 1.0)
+    .background(backgroundColor)
+    .cornerRadius(10)
+    .overlay(
+      isDragging
+        ? RoundedRectangle(cornerRadius: 10)
+          .stroke(
+            theme.invertedSolidWindowBackgroundColor.opacity(0.25),
+            style: StrokeStyle(lineWidth: 1, dash: [5, 5]))
+        : nil
+    )
     .onTapGesture(perform: onTap)
+    .onHover { isHovering = $0 }
     .contextMenu {
       Button(action: onFavoriteToggle) {
         Label("Remove from Favorites", systemImage: "star.slash")
       }
 
-      Divider()
+      // Divider()
 
       //      Menu("Move to Container") {
       //        ForEach(containers) { container in
@@ -82,5 +90,16 @@ struct FavTabItem: View {
         Label("Close Tab", systemImage: "xmark")
       }
     }
+  }
+
+  private var backgroundColor: Color {
+    if isDragging {
+      return theme.activeTabBackground.opacity(0.1)
+    } else if isSelected {
+      return theme.activeTabBackground
+    } else if isHovering {
+      return theme.activeTabBackground.opacity(0.3)
+    }
+    return theme.mutedBackground
   }
 }
