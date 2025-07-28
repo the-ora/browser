@@ -148,6 +148,7 @@ class TabManager: ObservableObject {
             activeContainer = newContainer
             activeTab = addTab(container: newContainer)
         }
+        activeTab?.maybeIsActive = true
     }
     
     func addContainer(name: String = "Default", emoji: String = "💩") -> TabContainer {
@@ -173,7 +174,9 @@ class TabManager: ObservableObject {
         )
         modelContext.insert(newTab)
         container.tabs.append(newTab)
+        activeTab?.maybeIsActive  = false
         activeTab = newTab
+        activeTab?.maybeIsActive  = true
         newTab.lastAccessedAt = Date()
         container.lastAccessedAt = Date()
         try? modelContext.save()
@@ -201,7 +204,9 @@ class TabManager: ObservableObject {
                 )
                 modelContext.insert(newTab)
                 container.tabs.append(newTab)
+                activeTab?.maybeIsActive  = false
                 activeTab = newTab
+                activeTab?.maybeIsActive = true
                 newTab.lastAccessedAt = Date()
                 container.lastAccessedAt = Date()
                 try? modelContext.save()
@@ -246,6 +251,7 @@ class TabManager: ObservableObject {
                 try? self.modelContext.save()
             }
         }
+        self.activeTab?.maybeIsActive = true
     }
     func closeActiveTab(){
         if let tab = activeTab {
@@ -258,14 +264,18 @@ class TabManager: ObservableObject {
         container.lastAccessedAt = Date()
         // Set the most recently accessed tab in the container
         if let lastAccessedTab = container.tabs.sorted(by: { $0.lastAccessedAt ?? Date() > $1.lastAccessedAt ?? Date() }).first {
+            activeTab?.maybeIsActive = false
             activeTab = lastAccessedTab
+            activeTab?.maybeIsActive = true
             lastAccessedTab.lastAccessedAt = Date()
         }
         try? modelContext.save()
     }
     
     func activateTab(_ tab: Tab) {
+        activeTab?.maybeIsActive = false
         activeTab = tab
+        activeTab?.maybeIsActive = true
         tab.lastAccessedAt = Date()
         activeContainer = tab.container
         tab.container.lastAccessedAt = Date()

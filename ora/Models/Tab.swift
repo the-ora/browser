@@ -30,13 +30,16 @@ class Tab: ObservableObject, Identifiable {
     var faviconLocalFile: URL?
     var backgroundColorHex: String = "#000000"
     
-//    @Transient @Published var backgroundColor: Color = Color(.black)
+    
+    //    @Transient @Published var backgroundColor: Color = Color(.black)
     @Transient @Published var backgroundColor: Color = .black
     @Transient var historyManager: HistoryManager? = nil
     // Not persisted: in-memory only
     @Transient var webView: WKWebView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
     @Transient public var navigationDelegate: WebViewNavigationDelegate?
     @Transient @Published var isWebViewReady: Bool = false
+    @Transient var colorUpdated = false
+    @Transient var maybeIsActive = false
     
     @Relationship(inverse: \TabContainer.tabs) var container: TabContainer
     
@@ -104,7 +107,7 @@ class Tab: ObservableObject, Identifiable {
     func syncBackgroundColorFromHex() {
         backgroundColor = Color(hex: backgroundColorHex)
     }
-
+    
     // Call this whenever the color is set
     func updateBackgroundColor(_ color: Color) {
         backgroundColor = color
@@ -148,7 +151,7 @@ class Tab: ObservableObject, Identifiable {
         }
     }
     public func updateHistory(){
-       
+        
         if let historyManager = self.historyManager {
             Task { @MainActor in
                 historyManager.record(
@@ -160,10 +163,22 @@ class Tab: ObservableObject, Identifiable {
             }
         }
     }
+    func maintainSnapShots() {
+        if (!self.colorUpdated ||  self.webView.isLoading) && self.maybeIsActive  {
+            self.updateHeaderColor()
+            
+            Timer.scheduledTimer(withTimeInterval: 0.25, repeats: false) { [weak self] _ in
+                guard let tab = self else { return }
+                tab.maintainSnapShots()
+            }
+        }
+    }
     private func setupNavigationDelegate() {
         let delegate = WebViewNavigationDelegate()
         delegate.tab = self
-        
+        delegate.onStart = { [weak self] in
+            self?.maintainSnapShots()
+        }
         delegate.onTitleChange = { [weak self] title in
             DispatchQueue.main.async {
                 
@@ -280,10 +295,10 @@ extension FileManager {
 
 extension NSColor {
     convenience init?(hex: String) {
-        var hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         var int: UInt64 = 0
         Scanner(string: hex).scanHexInt64(&int)
-
+        
         let r, g, b, a: Double
         switch hex.count {
         case 6:
@@ -299,19 +314,19 @@ extension NSColor {
         default:
             return nil
         }
-
+        
         self.init(calibratedRed: CGFloat(r), green: CGFloat(g), blue: CGFloat(b), alpha: CGFloat(a))
     }
-
+    
     func toHex() -> String? {
         guard let color = usingColorSpace(.deviceRGB) else { return nil }
         let r = Int(color.redComponent * 255)
         let g = Int(color.greenComponent * 255)
         let b = Int(color.blueComponent * 255)
         let a = Int(color.alphaComponent * 255)
-
+        
         return a < 255
-            ? String(format: "#%02X%02X%02X%02X", r, g, b, a)
-            : String(format: "#%02X%02X%02X", r, g, b)
+        ? String(format: "#%02X%02X%02X%02X", r, g, b, a)
+        : String(format: "#%02X%02X%02X", r, g, b)
     }
 }

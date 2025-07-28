@@ -90,6 +90,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
     var onURLChange: ((URL?) -> Void)?
     var onLoadingChange: ((Bool) -> Void)?
     var onChange: ((String?, URL?) ->Void)?
+    var onStart: (()->Void)?
     weak var tab: Tab?
     private var retryCount = 0
     private let maxRetries = 5
@@ -104,6 +105,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
         onLoadingChange?(true)
         onURLChange?(webView.url)
         onTitleChange?(webView.title)
+        onStart?()
 //        if let title = webView.title, let url = webView.url {
 //            onChange?(title, url)
 //        }
@@ -139,7 +141,6 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
   
     
     public func takeSnapshotAfterLoad(_ webView: WKWebView) {
-        
 //        if retryCount < maxRetries && (webView.isLoading || webView.bounds.width == 0) {
 //            print("[Snapshot] Waiting - isLoading: \(webView.isLoading), bounds.width: \(webView.bounds.width), retryCount: \(retryCount)")
 //            DispatchQueue.main.asyncAfter(deadline: .now() + retryDelay) { [weak self] in
@@ -158,7 +159,9 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
         let configuration = WKSnapshotConfiguration()
         configuration.rect = CGRect(x: 0, y: 0, width: webView.bounds.width, height: 24)
         
-        webView.takeSnapshot(with: configuration) { [weak self] image, error in
+        webView.takeSnapshot(with: configuration) {
+ [weak self] image,
+ error in
             guard let self = self else {
                 return
             }
@@ -172,6 +175,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
                     let color = self.extractDominantColor(from: cgImage)
                     DispatchQueue.main.async {
                         if let tab = self.tab {
+                            tab.colorUpdated = true
                             if let color = color {
                                 tab.updateBackgroundColor(Color(nsColor: color))
                             } else {
