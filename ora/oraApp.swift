@@ -134,6 +134,12 @@ struct oraApp: App {
                 .keyboardShortcut(
                     KeyboardShortcuts.Navigation.reload
                 )
+                Button("Restore") {
+                    tabManager.restoreLastTab()
+                }
+                .keyboardShortcut(
+                    KeyboardShortcuts.Tabs.restore
+                )
             }
         }
     }

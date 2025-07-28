@@ -19,6 +19,7 @@ class Tab: ObservableObject, Identifiable {
     var id: UUID
     var url: URL
     var urlString: String
+    var savedURL: URL? 
     var title: String
     var favicon: URL? // Add favicon property
     var createdAt: Date
@@ -278,6 +279,15 @@ class Tab: ObservableObject, Identifiable {
     
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         print("Navigation failed: \(error.localizedDescription)")
+    }
+    
+    func destroyWebView() {
+        webView.stopLoading()
+        webView.navigationDelegate = nil
+        webView.uiDelegate = nil
+        webView.configuration.userContentController.removeAllUserScripts()
+        webView.removeFromSuperview()
+        webView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
     }
 }
 

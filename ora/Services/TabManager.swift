@@ -12,7 +12,7 @@ class TabManager: ObservableObject {
     
     let modelContainer: ModelContainer
     let modelContext: ModelContext
-    
+   
     @Query(sort: \TabContainer.lastAccessedAt, order: .reverse) var containers: [TabContainer]
     
     init(
@@ -21,6 +21,8 @@ class TabManager: ObservableObject {
     ) {
         self.modelContainer = modelContainer
         self.modelContext = modelContext
+
+        self.modelContext.undoManager = UndoManager()
         initializeActiveContainerAndTab()
     }
     public func search(_ text: String) -> [Tab] {
@@ -56,14 +58,14 @@ class TabManager: ObservableObject {
     
     private func combinedScore(for tab: Tab, query: String, now: Date) -> Double {
         let match = scoreMatch(tab, text: query)
-
+        
         let timeInterval: TimeInterval
         if let accessedAt = tab.lastAccessedAt {
             timeInterval = now.timeIntervalSince(accessedAt)
         } else {
             timeInterval = 1_000_000 // far in the past → lowest recency
         }
-
+        
         let recencyBoost = max(0, 1_000_000 - timeInterval)
         return Double(match * 1000) + recencyBoost
     }
@@ -105,8 +107,10 @@ class TabManager: ObservableObject {
     func togglePinTab(_ tab: Tab){
         if tab.type == .pinned {
             tab.type = .normal
+            tab.savedURL = nil
         }else{
             tab.type = .pinned
+            tab.savedURL = tab.url
         }
         
         try? modelContext.save()
@@ -114,8 +118,10 @@ class TabManager: ObservableObject {
     func toggleFavTab(_ tab: Tab){
         if tab.type == .fav {
             tab.type = .normal
+            tab.savedURL = nil
         }else{
             tab.type = .fav
+            tab.savedURL = tab.url
         }
         
         try? modelContext.save()
@@ -136,19 +142,21 @@ class TabManager: ObservableObject {
         if let lastAccessedContainer = containers.first {
             activeContainer = lastAccessedContainer
             // Get the last accessed tab from the active container
-            if let lastAccessedTab = lastAccessedContainer.tabs.sorted(by: { $0.lastAccessedAt ?? Date() > $1.lastAccessedAt ?? Date() }).first {
-                activeTab = lastAccessedTab
-            } else {
-                // No tabs, create one
-                activeTab = addTab(container: lastAccessedContainer)
-            }
+//            if let lastAccessedTab = lastAccessedContainer.tabs.sorted(by: { $0.lastAccessedAt ?? Date() > $1.lastAccessedAt ?? Date() }).first {
+//                activeTab = lastAccessedTab
+//            } else {
+//                // No tabs, create one
+//                
+//                activeTab = addTab(container: lastAccessedContainer)
+//            }
         } else {
             // No containers, create one
             let newContainer = addContainer()
             activeContainer = newContainer
-            activeTab = addTab(container: newContainer)
+//            activeTab = addTab(container: newContainer)
         }
-        activeTab?.maybeIsActive = true
+       
+//        activeTab?.maybeIsActive = true
     }
     
     func addContainer(name: String = "Default", emoji: String = "💩") -> TabContainer {
@@ -223,31 +231,40 @@ class TabManager: ObservableObject {
     }
     func closeTab(tab: Tab) {
         
-    
-
         // If the closed tab was active, select another tab
         if self.activeTab?.id == tab.id {
             
             if let nextTab = tab.container.tabs
-                .filter({ $0.id != tab.id })
+                .filter({ $0.id != tab.id && $0.isWebViewReady })
                 .sorted(by: { $0.lastAccessedAt ?? Date.distantPast > $1.lastAccessedAt ?? Date.distantPast })
                 .first {
                 self.activateTab(nextTab)
                 
                 
-            } else if let nextContainer = containers.first(where: { $0.id != tab.container.id }) {
-                self.activateContainer(nextContainer)
-                
+//            } else if let nextContainer = containers.first(where: { $0.id != tab.container.id }) {
+//                self.activateContainer(nextContainer)
+//                
             } else {
                 self.activeTab = nil
             }
         } else {
             self.activeTab = activeTab
         }
+        if activeTab?.isWebViewReady != nil, let historyManager = tab.historyManager {
+            activeTab?
+                .restoreTransientState(
+                    historyManger: historyManager
+                )
+        }
         tab.stopMedia { [weak self] in
             DispatchQueue.main.async {
                 guard let self else { return }
-                self.modelContext.delete(tab)
+                if tab.type == .normal {
+                    self.modelContext.delete(tab)
+                }else{
+                    tab.isWebViewReady = false
+                    tab.destroyWebView()
+                }
                 try? self.modelContext.save()
             }
         }
@@ -257,6 +274,12 @@ class TabManager: ObservableObject {
         if let tab = activeTab {
             closeTab(tab: tab)
         }
+    }
+    func restoreLastTab(){
+        guard let undoManager = modelContext.undoManager else { return }
+        undoManager.undo() // Reverts the last deletion
+        try? modelContext.save() // Persist the undo operation
+        
     }
     
     func activateContainer(_ container: TabContainer) {

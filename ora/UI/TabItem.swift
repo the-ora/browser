@@ -13,6 +13,7 @@ struct LocalFavIcon: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: 16, height: 16)
+                .grayscale(1.0)
         } else {
             Image(systemName: "globe")
                 .resizable()
@@ -46,9 +47,7 @@ struct FavIcon:  View {
     var body: some View {
         
         HStack {
-            if let favicon = favicon{
-                if isWebViewReady {
-                    
+            if let favicon = favicon, isWebViewReady{
                     AsyncImage(
                         url: favicon
                     ) { image in
@@ -62,8 +61,6 @@ struct FavIcon:  View {
                             textColor: textColor
                         )
                     }
-                    
-                }
             } else {
                 LocalFavIcon(
                     faviconLocalFile: faviconLocalFile,
@@ -103,11 +100,24 @@ struct TabItem: View {
             Spacer()
             actionButton
         }
-        .onAppear{
-            tab
-                .restoreTransientState(
-                    historyManger: historyManager
-                )
+        .onAppear {
+            if tabManager.isActive(tab) {
+                tab
+                    .restoreTransientState(
+                        historyManger: historyManager
+                    )
+            }
+        }
+        .onTapGesture {
+            onTap()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                if !tab.isWebViewReady {
+                    tab
+                        .restoreTransientState(
+                            historyManger: historyManager
+                        )
+                }
+            }
         }
         .padding(8)
         .opacity(isDragging ? 0.0 : 1.0)
@@ -121,7 +131,7 @@ struct TabItem: View {
                         style: StrokeStyle(lineWidth: 1, dash: [5, 5]))
             : nil
         )
-        .onTapGesture(perform: onTap)
+//        .onTapGesture(perform: onTap)
         .onHover { isHovering = $0 }
         .contextMenu { contextMenuItems }
         .animation(.spring(response: 0.2, dampingFraction: 0.8), value: isDragging)

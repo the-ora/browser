@@ -20,15 +20,14 @@ struct FavTabItem: View {
 
   var body: some View {
     ZStack {
-      if let favicon = tab.favicon {
-        if tab.isWebViewReady {
+      if let favicon = tab.favicon,tab.isWebViewReady {
           AsyncImage(
             url: favicon
           ) { image in
             image
               .resizable()
               .scaledToFit()
-              .frame(width: 16, height: 16)
+              .frame(width: 20, height: 20)
           } placeholder: {
             LocalFavIcon(
               faviconLocalFile: tab.faviconLocalFile,
@@ -36,7 +35,6 @@ struct FavTabItem: View {
             )
 
           }
-        }
       } else {
         LocalFavIcon(
           faviconLocalFile: tab.faviconLocalFile,
@@ -45,11 +43,22 @@ struct FavTabItem: View {
       }
 
     }
+    .onTapGesture {
+        onTap()
+        if !tab.isWebViewReady {
+            tab
+              .restoreTransientState(
+                historyManger: historyManager
+              )
+        }
+    }
     .onAppear {
-      tab
-        .restoreTransientState(
-          historyManger: historyManager
-        )
+        if tabManager.isActive(tab) {
+            tab
+              .restoreTransientState(
+                historyManger: historyManager
+              )
+        }
     }
     .foregroundColor(theme.foreground)
     .frame(height: 48)

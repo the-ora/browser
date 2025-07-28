@@ -4,9 +4,12 @@ import AppKit
 // MARK: - URLBar
 struct URLBar: View {
     @EnvironmentObject var tabManager: TabManager
+    @EnvironmentObject var appState: AppState
+    
     @State private var editingURLString: String = ""
     @FocusState private var isEditing: Bool
     @Environment(\.colorScheme) var colorScheme
+    
     
     let onSidebarToggle: () -> Void
     
@@ -186,7 +189,7 @@ struct URLBar: View {
                 )
                 
             }else{
-                Text("No selected tab")
+                LauncherView()
             }
         }
     }
