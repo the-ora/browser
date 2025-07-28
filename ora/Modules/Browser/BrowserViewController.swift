@@ -4,7 +4,7 @@ import SwiftUI
 // MARK: - BrowserViewController
 struct BrowserViewController: View {
   @EnvironmentObject var tabManager: TabManager
-  @Environment(\.colorScheme) var colorScheme
+  @Environment(\.theme) var theme
   @EnvironmentObject private var appState: AppState
   @State private var isFullscreen = false
 
@@ -30,6 +30,7 @@ struct BrowserViewController: View {
       dragToHideP: true
     )
     .ignoresSafeArea(.all)
+    .background(theme.windowBackgroundColor)
     .background(BlurEffectView(material: .underWindowBackground, blendingMode: .behindWindow).ignoresSafeArea(.all))
     .background(
       WindowAccessor(

@@ -211,7 +211,11 @@ struct SidebarView: View {
     
     private func dragTab(_ tabId: UUID) -> NSItemProvider {
         draggedItem = tabId
-        return NSItemProvider(object: NSString(string: tabId.uuidString))
+        let provider = TabItemProvider(object: tabId.uuidString as NSString)
+        provider.didEnd = {
+            draggedItem = nil
+        }
+        return provider
     }
     
     private func dropTab(_ tabId: String) {
@@ -219,3 +223,9 @@ struct SidebarView: View {
     }
 }
 
+class TabItemProvider: NSItemProvider {
+  var didEnd: (() -> Void)?
+  deinit {
+    didEnd?()
+  }
+}

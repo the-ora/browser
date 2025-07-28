@@ -1,5 +1,5 @@
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct PinnedTabsList: View {
   let tabs: [Tab]
@@ -10,11 +10,12 @@ struct PinnedTabsList: View {
   let onFavoriteToggle: (Tab) -> Void
   let onClose: (Tab) -> Void
   let onMoveToContainer: (Tab, TabContainer) -> Void
-    let containers: [TabContainer]
-    @EnvironmentObject var tabManager: TabManager
- 
+  let containers: [TabContainer]
+  @EnvironmentObject var tabManager: TabManager
+  @Environment(\.theme) var theme
+
   var body: some View {
-    LazyVStack(spacing: 6) {
+      Section(header: Text("Pinned").font(.callout).foregroundColor(theme.mutedForeground).padding(.top, 8)) {
       ForEach(tabs) { tab in
         TabItem(
           tab: tab,
@@ -38,5 +39,16 @@ struct PinnedTabsList: View {
         )
       }
     }
+    .frame(height: tabs.isEmpty ? 20 : nil)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .onDrop(
+      of: [.text],
+      delegate: SectionDropDelegate(
+        items: tabs,
+        draggedItem: $draggedItem,
+        targetSection: .pinned,
+        tabManager: tabManager
+      )
+    )
   }
 }

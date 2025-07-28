@@ -21,7 +21,7 @@ struct NewTabButton: View {
     }
     .buttonStyle(.plain)
     .padding(8)
-    .background(isHovering ? theme.background.opacity(0.3) : .clear)
+    .background(isHovering ? theme.activeTabBackground.opacity(0.3) : .clear)
     .cornerRadius(10)
     .onHover { isHovering = $0 }
   }

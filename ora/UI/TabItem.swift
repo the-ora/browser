@@ -1,6 +1,5 @@
 import AppKit
 import SwiftUI
-import AppKit
 
 struct LocalFavIcon: View {
     let faviconLocalFile: URL?
@@ -111,9 +110,17 @@ struct TabItem: View {
                 )
         }
         .padding(8)
+        .opacity(isDragging ? 0.0 : 1.0)
         .background(backgroundColor)
         .cornerRadius(10)
-        .opacity(isDragging ? 0.0 : 1.0)
+        .overlay(
+            isDragging ? 
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(
+                        theme.invertedSolidWindowBackgroundColor.opacity(0.25),
+                        style: StrokeStyle(lineWidth: 1, dash: [5, 5]))
+            : nil
+        )
         .onTapGesture(perform: onTap)
         .onHover { isHovering = $0 }
         .contextMenu { contextMenuItems }
@@ -130,16 +137,18 @@ struct TabItem: View {
     }
     
     private var backgroundColor: Color {
-        if isSelected {
-            return theme.background
+        if isDragging {
+            return theme.activeTabBackground.opacity(0.1)
+        } else if isSelected {
+            return theme.activeTabBackground
         } else if isHovering {
-            return theme.background.opacity(0.3)
+            return theme.activeTabBackground.opacity(0.3)
         }
         return .clear
     }
     
     private var textColor: Color {
-        isSelected ? theme.foreground : .secondary
+        isSelected ? .white : .secondary
     }
     
     @ViewBuilder
@@ -190,17 +199,16 @@ struct TabItem: View {
 }
 
 struct ActionButton: View {
-    let icon: String
-    let color: Color
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            Image(systemName: icon)
-                .frame(width: 12, height: 12)
-                .foregroundColor(color)
-        }
-        .buttonStyle(.plain)
-    }
-}
+  let icon: String
+  let color: Color
+  let action: () -> Void
 
+  var body: some View {
+    Button(action: action) {
+      Image(systemName: icon)
+        .frame(width: 12, height: 12)
+        .foregroundColor(color)
+    }
+    .buttonStyle(.plain)
+  }
+}

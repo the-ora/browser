@@ -16,13 +16,20 @@ struct URLBar: View {
         if let ciColor = CIColor(color: nsColor) {
             let luminance = 0.299 * ciColor.red + 0.587 * ciColor.green + 0.114 * ciColor.blue
             let baseColor: Color = luminance < 0.5 ? .white : .black
-            return isEditing ? baseColor : baseColor.opacity(0.5)
+            return baseColor
         } else {
             // Fallback to black if CIColor conversion fails
-            return isEditing ? .black : .black.opacity(0.5)
+            return .black
         }
     }
+
+    private func getUrlFieldColor(_ tab: Tab) -> Color {
+        return tabManager.activeTab.map { getForegroundColor($0).opacity(isEditing ? 1.0 : 0.5) } ?? .gray
+    }
     
+    var buttonForegroundColor: Color {
+        return tabManager.activeTab.map { getForegroundColor($0).opacity(0.5) } ?? .gray
+    }
     
     var body: some View {
         HStack(spacing: 12) {
@@ -33,7 +40,7 @@ struct URLBar: View {
                     NavigationButton(
                         systemName: "sidebar.left",
                         isEnabled: true,
-                        foregroundColor: tabManager.activeTab.map { getForegroundColor($0) } ?? .gray,
+                        foregroundColor: buttonForegroundColor,
                         action: onSidebarToggle
                     )
                     .keyboardShortcut(KeyboardShortcuts.App.toggleSidebar)
@@ -42,7 +49,7 @@ struct URLBar: View {
                     NavigationButton(
                         systemName: "chevron.left",
                         isEnabled: tabManager.activeTab?.webView.canGoBack ?? false,
-                        foregroundColor: tabManager.activeTab.map { getForegroundColor($0) } ?? .gray,
+                        foregroundColor: buttonForegroundColor,
                         action: {
                             if let activeTab = tabManager.activeTab {
                                 activeTab.goBack()
@@ -55,7 +62,7 @@ struct URLBar: View {
                     NavigationButton(
                         systemName: "chevron.right",
                         isEnabled: tabManager.activeTab?.webView.canGoForward ?? false,
-                        foregroundColor: tabManager.activeTab.map { getForegroundColor($0) } ?? .gray,
+                        foregroundColor: buttonForegroundColor,
                         action: {
                             if let activeTab = tabManager.activeTab {
                                 activeTab.goForward()
@@ -68,7 +75,7 @@ struct URLBar: View {
                     NavigationButton(
                         systemName: "arrow.clockwise",
                         isEnabled: tabManager.activeTab != nil,
-                        foregroundColor: tabManager.activeTab.map { getForegroundColor($0) } ?? .gray,
+                        foregroundColor: buttonForegroundColor,
                         action: {
                             if let activeTab = tabManager.activeTab {
                                 activeTab.webView.reload()
@@ -87,12 +94,13 @@ struct URLBar: View {
                             ZStack {
                                 if tab.isLoading {
                                     ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle(tint: getForegroundColor(tab)))
+                                        // .progressViewStyle(CircularProgressViewStyle(tint: getForegroundColor(tab)))
+                                        .tint(buttonForegroundColor)
                                         .scaleEffect(0.5)
                                 } else {
                                     Image(systemName: tab.url.scheme == "https" ? "lock.fill" : "globe")
                                         .font(.system(size: 12))
-                                        .foregroundColor(tab.url.scheme == "https" ? .green : getForegroundColor(tab))
+                                        .foregroundColor(tab.url.scheme == "https" ? .green : buttonForegroundColor)
                                 }
                             }
                             .frame(width: 16, height: 16)
@@ -101,7 +109,7 @@ struct URLBar: View {
                         TextField("", text: $editingURLString)
                             .font(.system(size: 14))
                             .textFieldStyle(PlainTextFieldStyle())
-                            .foregroundColor(getForegroundColor(tab))
+                            .foregroundColor(getUrlFieldColor(tab))
                             .focused($isEditing)
                             .onSubmit {
                                 tab.loadURL(editingURLString)
@@ -116,7 +124,7 @@ struct URLBar: View {
                                         HStack {
                                             Text(tab.title.isEmpty ? "New Tab" : tab.title)
                                                 .font(.system(size: 14))
-                                                .foregroundColor(getForegroundColor(tab))
+                                                .foregroundColor(getUrlFieldColor(tab))
                                                 .lineLimit(1)
                                             Spacer()
                                         }
@@ -128,10 +136,10 @@ struct URLBar: View {
                     .padding(.vertical, 6)
                     .background(
                         RoundedRectangle(cornerRadius: 10)
-                            .fill(getForegroundColor(tab).opacity(isEditing ? 0.1 : 0.09))
+                            .fill(getUrlFieldColor(tab).opacity(isEditing ? 0.1 : 0.09))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10)
-                                    .stroke(isEditing ? getForegroundColor(tab).opacity(0.5) : Color.clear, lineWidth: 1)
+                                    .stroke(isEditing ? getUrlFieldColor(tab).opacity(0.5) : Color.clear, lineWidth: 1)
                             )
                     )
                     

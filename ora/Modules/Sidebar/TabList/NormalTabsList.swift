@@ -1,5 +1,5 @@
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct NormalTabsList: View {
   let tabs: [Tab]
@@ -9,21 +9,22 @@ struct NormalTabsList: View {
   let onPinToggle: (Tab) -> Void
   let onFavoriteToggle: (Tab) -> Void
   let onClose: (Tab) -> Void
-    let onMoveToContainer: (
-        Tab,
-        TabContainer
+  let onMoveToContainer:
+    (
+      Tab,
+      TabContainer
     ) -> Void
   let onAddNewTab: () -> Void
   @Query var containers: [TabContainer]
-    @EnvironmentObject var tabManger: TabManager
-    
+  @EnvironmentObject var tabManager: TabManager
+
   var body: some View {
-    LazyVStack(spacing: 6) {
+    Section {
       NewTabButton(addNewTab: onAddNewTab)
       ForEach(tabs) { tab in
         TabItem(
           tab: tab,
-          isSelected: tabManger.isActive(tab),
+          isSelected: tabManager.isActive(tab),
           isDragging: draggedItem == tab.id,
           onTap: { onSelect(tab) },
           onPinToggle: { onPinToggle(tab) },
@@ -38,11 +39,20 @@ struct NormalTabsList: View {
           delegate: TabDropDelegate(
             item: tab,
             draggedItem: $draggedItem,
-            targetSection: .regular
+            targetSection: .normal
           )
         )
       }
     }
+    .onDrop(
+      of: [.text],
+      delegate: SectionDropDelegate(
+        items: tabs,
+        draggedItem: $draggedItem,
+        targetSection: .normal,
+        tabManager: tabManager
+      )
+    )
     .animation(.spring(response: 0.3, dampingFraction: 0.8), value: tabs.map(\.id))
   }
 }
