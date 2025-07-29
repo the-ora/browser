@@ -13,25 +13,6 @@ struct LauncherView: View {
     @FocusState private var isTextFieldFocused: Bool
     @State private var match: LauncherMain.Match? = nil
     
-    @State private var suggestions: [LauncherSuggestion] = [
-      LauncherSuggestion(
-        type: .openedTab, title: "Tab 1",
-        action: { print("Debug: Executing action for Tab 1") }),
-      LauncherSuggestion(
-        type: .openedTab, title: "Tab 2",
-        action: { print("Debug: Executing action for Tab 2") }),
-      LauncherSuggestion(
-        type: .suggestedQuery, title: "Search on Google",
-        action: { print("Debug: Executing action for suggested query") }),
-      LauncherSuggestion(
-        type: .suggestedLink, title: "Open link", url: URL(string: "https://www.google.com"),
-        action: { print("Debug: Executing action for suggested link") }),
-      LauncherSuggestion(
-        type: .aiChat, title: "Grok",
-        action: { print("Debug: Executing action for AI search") }),
-    ]
-
-    
     private func onTabPress() {
         guard !input.isEmpty else { return }
         if let searchEngine = searchEngineService.findSearchEngine(for: input) {

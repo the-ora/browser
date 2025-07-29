@@ -52,7 +52,7 @@ struct LauncherSuggestionItem: View {
     }
     
     private var shouldShowURL: Bool {
-        suggestion.url != nil && !isAIChat && suggestion.type != .suggestedQuery
+        suggestion.url != nil && !isAIChat && suggestion.type != .suggestedQuery && suggestion.type != .openedTab
     }
     
     private var foregroundColor: Color {
@@ -107,7 +107,7 @@ struct LauncherSuggestionItem: View {
     var actionLabel: some View {
         if isAIChat {
             HStack(alignment: .center, spacing: 10) {
-                Text("Ask \(suggestion.title ?? defaultAI?.name ?? "")")
+                Text("Ask \(suggestion.title ?? defaultAI?.name ?? "")  ↩")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(
                         focusedElement == suggestion.id || isHovered
@@ -121,16 +121,32 @@ struct LauncherSuggestionItem: View {
             )
             .cornerRadius(6)
         } else if suggestion.type == .openedTab {
-            HStack(alignment: .center, spacing: 10) {
-                Text("Switch to tab")
+            HStack(alignment: .center, spacing: 8) {
+                Text("Switch to tab ")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(
                         focusedElement == suggestion.id || isHovered
                         ? theme.foreground : .secondary)
+                        
+                Image(systemName: "arrow.right")
+                    .resizable()
+                    .frame(width: 12, height: 12)
+                    .padding(6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(
+                                focusedElement == suggestion.id || isHovered
+                                ? theme.foreground : theme.foreground.opacity(0.07)
+                            )
+                    )
+                    .foregroundStyle(
+                        focusedElement == suggestion.id || isHovered
+                        ? theme.background : .secondary)
+                    
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(theme.foreground.opacity(0.07))
+            // .padding(.horizontal, 8)
+            // .padding(.vertical, 4)
+            // .background(theme.foreground.opacity(0.07))
             .cornerRadius(6)
         }
     }
@@ -138,16 +154,20 @@ struct LauncherSuggestionItem: View {
     var body: some View {
         HStack(alignment: .center, spacing: 8) {
             icon
-            HStack(alignment: .center, spacing: 8) {
+            HStack(alignment: .center, spacing: 4) {
                 Text(suggestion.title)
-                    .font(.system(size: 16, weight: .medium))
-                    .bold()
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(foregroundColor)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
                 
                 if shouldShowURL {
                     Text(" — \(suggestion.url?.absoluteString ?? "")")
-                        .font(.system(size: 14))
+                        .font(.system(size: 13))
                         .foregroundStyle(Color(.secondaryLabelColor))
+                        .frame(width: 250, alignment: .leading)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
                 }
             }
             Spacer()
@@ -163,7 +183,9 @@ struct LauncherSuggestionItem: View {
             appState.showLauncher = false
         }
         .onHover { hover in
-            isHovered = hover
+            if hover {
+                focusedElement = suggestion.id
+            }
         }
 //        .focused($focusedElement, equals: suggestion.id)
     }
