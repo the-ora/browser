@@ -128,6 +128,10 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
         // Start the snapshot process after a short delay to allow rendering
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { [weak self] in
             self?.takeSnapshotAfterLoad(webView)
+            let findController = FindController(
+                webView: webView
+            )
+            findController.injectMarkJS()
         }
     }
     

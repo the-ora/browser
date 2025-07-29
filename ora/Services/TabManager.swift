@@ -9,7 +9,6 @@ import SwiftData
 class TabManager: ObservableObject {
     @Published var activeContainer: TabContainer?
     @Published var activeTab: Tab?
-    
     let modelContainer: ModelContainer
     let modelContext: ModelContext
    

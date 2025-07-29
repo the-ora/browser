@@ -212,6 +212,8 @@ class Tab: ObservableObject, Identifiable {
         
         self.navigationDelegate = delegate
         webView.navigationDelegate = delegate
+        
+       
     }
     func goForward(){
         self.webView.goForward()
@@ -232,6 +234,7 @@ class Tab: ObservableObject, Identifiable {
         
         webView.allowsMagnification = true
         webView.allowsBackForwardNavigationGestures = true
+
         webView.wantsLayer = true
         if let layer = webView.layer {
             layer.isOpaque = true

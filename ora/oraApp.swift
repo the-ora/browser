@@ -17,6 +17,7 @@ func deleteSwiftDataStore() {
 class AppState: ObservableObject {
     @Published var showLauncher: Bool = false
     @Published var launcherSearchText: String = ""
+    @Published var showFinderIn: UUID? = nil
 }
 @main
 struct oraApp: App {
@@ -139,6 +140,15 @@ struct oraApp: App {
                 }
                 .keyboardShortcut(
                     KeyboardShortcuts.Tabs.restore
+                )
+                Button("Find") {
+                    if let activeTab = tabManager.activeTab {
+                        appState.showFinderIn = activeTab.id
+                    }
+                    
+                }
+                .keyboardShortcut(
+                    KeyboardShortcuts.Address.find
                 )
             }
         }
