@@ -1,5 +1,6 @@
 import SwiftUI
 
+
 struct NewTabButton: View {
   let addNewTab: () -> Void
 
@@ -16,12 +17,12 @@ struct NewTabButton: View {
           .font(.system(size: 13, weight: .medium))
       }
       .foregroundColor(.secondary)
-      .padding(8)
       .frame(maxWidth: .infinity, alignment: .leading)
-      .background(isHovering ? theme.activeTabBackground.opacity(0.3) : .clear)
-      .cornerRadius(10)
     }
     .buttonStyle(.plain)
+    .padding(8)
+    .background(isHovering ? theme.activeTabBackground.opacity(0.3) : .clear)
+    .cornerRadius(10)
     .onHover { isHovering = $0 }
   }
 }
