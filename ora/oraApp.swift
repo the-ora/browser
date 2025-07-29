@@ -1,6 +1,6 @@
-import Foundation
-import SwiftData
 import SwiftUI
+import SwiftData
+import Foundation
 
 func deleteSwiftDataStore() {
 
@@ -18,12 +18,10 @@ class AppState: ObservableObject {
     @Published var showLauncher: Bool = false
     @Published var launcherSearchText: String = ""
     @Published var showFinderIn: UUID? = nil
-    @Published var isFloatingTabSwitchVisible: Bool = false
 }
 @main
 struct oraApp: App {
     @StateObject private var appState = AppState()
-    @StateObject private var keyModifierListener = KeyModifierListener()
     
     // Pass it to TabManager
     @StateObject private var tabManager: TabManager
@@ -86,31 +84,15 @@ struct oraApp: App {
         )
         
     }
-
+    
     var body: some Scene {
         WindowGroup {
-                BrowserViewController()
+            BrowserViewController()
                 .environmentObject(appState)
                 .environmentObject(tabManager)
                 .environmentObject(historyManager)
-                .environmentObject(keyModifierListener)
                 .modelContext(tabContext)
                 .modelContext(historyContext)
-                .onAppear {
-                    keyModifierListener.registerKeyDownHandler { event in
-                        guard !appState.isFloatingTabSwitchVisible else { return false }
-
-                        if event.keyCode == 48 {  // Tab key
-                            if event.modifierFlags.contains(.control) {
-                                DispatchQueue.main.async {
-                                    appState.isFloatingTabSwitchVisible = true
-                                }
-                                return true
-                            }
-                        }
-                        return false
-                    }
-                }
                 .withTheme()
         }
         .defaultSize(width: 1440, height: 900)
@@ -121,58 +103,6 @@ struct oraApp: App {
                     appState.showLauncher = true
                 }
                 .keyboardShortcut(KeyboardShortcuts.Tabs.new)
-            }
-
-            CommandGroup(after: .pasteboard) {
-                Button("Restore") {
-                    tabManager.restoreLastTab()
-                }
-                .keyboardShortcut(
-                    KeyboardShortcuts.Tabs.restore
-                )
-                Button("Find") {
-                    if let activeTab = tabManager.activeTab {
-                        appState.showFinderIn = activeTab.id
-                    }
-                    
-                }
-                .keyboardShortcut(
-                    KeyboardShortcuts.Address.find
-                )
-            }
-
-            CommandMenu("Navigation") {
-                Button("Reload") {
-                    if let tab = tabManager.activeTab {
-                        tab.webView.reload()
-                    }
-                }
-                .keyboardShortcut(
-                    KeyboardShortcuts.Navigation.reload
-                )
-                Button("Back") {
-                    if let tab = tabManager.activeTab {
-                        tab.webView.goBack()
-                    }
-                }
-                .keyboardShortcut(
-                    KeyboardShortcuts.Navigation.back
-                )
-                Button("Forward") {
-                    if let tab = tabManager.activeTab {
-                        tab.webView.goForward()
-                    }
-                }
-                .keyboardShortcut(
-                    KeyboardShortcuts.Navigation.forward
-                )
-            }
-
-            CommandMenu("Tabs") {
-                Button("New Tab") {
-                    appState.showLauncher = true
-                }
-                
                 Button("Close Tab") {
                     tabManager
                         .closeActiveTab()
@@ -189,16 +119,37 @@ struct oraApp: App {
                 .keyboardShortcut(
                     KeyboardShortcuts.Tabs.pin
                 )
-                
-                Divider()
-
-                Button("Next Tab") {
-                    appState.isFloatingTabSwitchVisible = true
+                Button("Reload") {
+                    if let tab = tabManager.activeTab {
+                        tab.webView.reload()
+                    }
                 }
-
-                Button("Previous Tab") {
-                    appState.isFloatingTabSwitchVisible = true
+                .keyboardShortcut(
+                    KeyboardShortcuts.Navigation.reload
+                )
+                Button("Forward") {
+                    if let tab = tabManager.activeTab {
+                        tab.webView.reload()
+                    }
                 }
+                .keyboardShortcut(
+                    KeyboardShortcuts.Navigation.reload
+                )
+                Button("Restore") {
+                    tabManager.restoreLastTab()
+                }
+                .keyboardShortcut(
+                    KeyboardShortcuts.Tabs.restore
+                )
+                Button("Find") {
+                    if let activeTab = tabManager.activeTab {
+                        appState.showFinderIn = activeTab.id
+                    }
+                    
+                }
+                .keyboardShortcut(
+                    KeyboardShortcuts.Address.find
+                )
             }
         }
     }
