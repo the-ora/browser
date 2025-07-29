@@ -43,15 +43,6 @@ struct FavTabItem: View {
       }
 
     }
-    .onTapGesture {
-        onTap()
-        if !tab.isWebViewReady {
-            tab
-              .restoreTransientState(
-                historyManger: historyManager
-              )
-        }
-    }
     .onAppear {
         if tabManager.isActive(tab) {
             tab
@@ -72,9 +63,23 @@ struct FavTabItem: View {
           .stroke(
             theme.invertedSolidWindowBackgroundColor.opacity(0.25),
             style: StrokeStyle(lineWidth: 1, dash: [5, 5]))
+        : isSelected 
+          ? RoundedRectangle(cornerRadius: 10)
+            .stroke(
+              theme.invertedSolidWindowBackgroundColor,
+              lineWidth: 1
+            )
         : nil
     )
-    .onTapGesture(perform: onTap)
+    .onTapGesture {
+      onTap()
+      if !tab.isWebViewReady {
+          tab
+            .restoreTransientState(
+              historyManger: historyManager
+            )
+        }
+    }
     .onHover { isHovering = $0 }
     .contextMenu {
       Button(action: onFavoriteToggle) {
@@ -105,7 +110,7 @@ struct FavTabItem: View {
     if isDragging {
       return theme.activeTabBackground.opacity(0.1)
     } else if isSelected {
-      return theme.activeTabBackground
+      return theme.invertedSolidWindowBackgroundColor.opacity(0.3)
     } else if isHovering {
       return theme.activeTabBackground.opacity(0.3)
     }
