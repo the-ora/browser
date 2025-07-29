@@ -213,7 +213,6 @@ class Tab: ObservableObject, Identifiable {
         self.navigationDelegate = delegate
         webView.navigationDelegate = delegate
         
-       
     }
     func goForward(){
         self.webView.goForward()
@@ -264,6 +263,11 @@ class Tab: ObservableObject, Identifiable {
         webView.evaluateJavaScript(js) { _, _ in
             self.webView.closeAllMediaPresentations(completionHandler: completed)
         }
+        webView.removeFromSuperview()
+        webView.navigationDelegate = nil
+        webView.uiDelegate = nil
+        webView.stopLoading()
+        webView = WKWebView()
     }
     
     func loadURL(_ urlString: String) {
@@ -282,6 +286,14 @@ class Tab: ObservableObject, Identifiable {
     
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         print("Navigation failed: \(error.localizedDescription)")
+    }
+    
+    func webView(_ webView: WKWebView,
+                 requestMediaCapturePermissionFor origin: WKSecurityOrigin,
+                 initiatedByFrame frame: WKFrameInfo,
+                 decisionHandler: @escaping (WKPermissionDecision) -> Void) {
+        // For now, grant all
+        decisionHandler(.grant)
     }
     
     func destroyWebView() {

@@ -1,21 +1,34 @@
 import SwiftUI
 import WebKit
 
-// MARK: - WebView Wrapper for macOS
 struct WebView: NSViewRepresentable {
     let webView: WKWebView
-    
+
+    func makeCoordinator() -> Coordinator {
+        return Coordinator()
+    }
+
     func makeNSView(context: Context) -> WKWebView {
+        webView.uiDelegate = context.coordinator
+
         webView.autoresizingMask = [.width, .height]
-        
-        // Enable hardware acceleration
         webView.layer?.isOpaque = true
         webView.layer?.drawsAsynchronously = true
-        
+
         return webView
     }
 
     func updateNSView(_ nsView: WKWebView, context: Context) {
-        // No need to reload - the tab handles navigation
+        // No update logic needed
     }
-} 
+
+    // MARK: - Coordinator for WKUIDelegate
+    class Coordinator: NSObject, WKUIDelegate {
+        func webView(_ webView: WKWebView,
+                     requestMediaCapturePermissionFor origin: WKSecurityOrigin,
+                     initiatedByFrame frame: WKFrameInfo,
+                     decisionHandler: @escaping (WKPermissionDecision) -> Void) {
+            decisionHandler(.grant)
+        }
+    }
+}

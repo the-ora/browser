@@ -64,12 +64,10 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         if #available(macOS 10.12, *) {
 //            configuration.allowsPictureInPictureMediaPlayback = true
         }
-        configuration.allowsAirPlayForMediaPlayback = true
-//        configuration.allowsInlineMediaPlayback = true
         
         // Enable media playback without user interaction
         configuration.mediaTypesRequiringUserActionForPlayback = []
-        
+
         // Set up caching
         let websiteDataStore = WKWebsiteDataStore.default()
         configuration.websiteDataStore = websiteDataStore
