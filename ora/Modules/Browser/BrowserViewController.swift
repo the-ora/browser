@@ -13,7 +13,7 @@ struct BrowserViewController: View {
     var body: some View {
         HSplit(
             left: {
-                SidebarView()
+                SidebarView(isFullscreen: isFullscreen)
             },
             right: {
                 //          ContentView()
@@ -34,7 +34,7 @@ struct BrowserViewController: View {
             dragToHideP: true
         )
         .ignoresSafeArea(.all)
-        .background(theme.windowBackgroundColor)
+        .background(theme.subtleWindowBackgroundColor)
         .background(BlurEffectView(material: .underWindowBackground, blendingMode: .behindWindow).ignoresSafeArea(.all))
         .background(
             WindowAccessor(
@@ -45,6 +45,10 @@ struct BrowserViewController: View {
         .overlay {
             if appState.showLauncher && tabManager.activeTab != nil {
                 LauncherView()
+            }
+
+            if appState.isFloatingTabSwitchVisible {
+                FloatingTabSwitcher()
             }
         }
     }

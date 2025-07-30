@@ -108,17 +108,6 @@ struct TabItem: View {
                     )
             }
         }
-        .onTapGesture {
-            onTap()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
-                if !tab.isWebViewReady {
-                    tab
-                        .restoreTransientState(
-                            historyManger: historyManager
-                        )
-                }
-            }
-        }
         .padding(8)
         .opacity(isDragging ? 0.0 : 1.0)
         .background(backgroundColor)
@@ -131,6 +120,17 @@ struct TabItem: View {
                         style: StrokeStyle(lineWidth: 1, dash: [5, 5]))
             : nil
         )
+        .onTapGesture {
+            onTap()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                if !tab.isWebViewReady {
+                    tab
+                        .restoreTransientState(
+                            historyManger: historyManager
+                        )
+                }
+            }
+        }
 //        .onTapGesture(perform: onTap)
         .onHover { isHovering = $0 }
         .contextMenu { contextMenuItems }
@@ -158,7 +158,7 @@ struct TabItem: View {
     }
     
     private var textColor: Color {
-        isSelected ? .white : .secondary
+        isSelected ? .white : theme.foreground
     }
     
     @ViewBuilder
