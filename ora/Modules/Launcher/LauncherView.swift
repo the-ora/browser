@@ -47,9 +47,11 @@ struct LauncherView: View {
                 .contentShape(Rectangle())
                 .animation(.easeOut(duration: 0.3), value: isVisible)
                 .onTapGesture {
-                    isVisible = false
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        appState.showLauncher = false
+                    if tabManager.activeTab != nil {
+                        isVisible = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                            appState.showLauncher = false
+                        }
                     }
                 }
             
