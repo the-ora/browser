@@ -20,7 +20,7 @@ struct Theme {
     colorScheme == .dark ? .white : .black
   }
 
-  var windowBackgroundColor: Color {
+  var subtleWindowBackgroundColor: Color {
     colorScheme == .dark ? self.primaryDark.opacity(0.3) : self.primary.opacity(0.8)
   }
 
