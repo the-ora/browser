@@ -17,7 +17,11 @@ struct BrowserViewController: View {
             },
             right: {
                 //          ContentView()
-                webView
+                if tabManager.activeTab != nil {
+                    webView
+                }else{
+                    LauncherView()
+                }
             }
         )
         .hide(hide)
@@ -39,7 +43,7 @@ struct BrowserViewController: View {
             )
         )
         .overlay {
-            if appState.showLauncher {
+            if appState.showLauncher && tabManager.activeTab != nil {
                 LauncherView()
             }
         }

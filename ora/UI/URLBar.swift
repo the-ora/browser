@@ -188,8 +188,6 @@ struct URLBar: View {
                         .fill(tab.backgroundColor)
                 )
                 
-            }else{
-                LauncherView()
             }
         }
     }
