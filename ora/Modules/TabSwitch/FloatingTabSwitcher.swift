@@ -38,14 +38,16 @@ struct FloatingTabSwitcher: View {
     .onAppear {
       preloadSnapshots()
       if recentTabs.count > 0 {
-        focusedTab = recentTabs[1].id
+        let _to = recentTabs.count == 1 ? 0 : 1
+        focusedTab = recentTabs[_to].id
       }
     }
     .onChange(of: appState.isFloatingTabSwitchVisible) { _, isVisible in
       if isVisible {
         preloadSnapshots()
         if recentTabs.count > 0 {
-          focusedTab = recentTabs[1].id
+          let _to = recentTabs.count == 1 ? 0 : 1
+          focusedTab = recentTabs[_to].id
         }
       }
     }

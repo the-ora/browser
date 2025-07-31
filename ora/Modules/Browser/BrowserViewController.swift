@@ -16,10 +16,9 @@ struct BrowserViewController: View {
                 SidebarView(isFullscreen: isFullscreen)
             },
             right: {
-                //          ContentView()
                 if tabManager.activeTab != nil {
                     webView
-                }else{
+                } else {
                     LauncherView()
                 }
             }
@@ -78,11 +77,13 @@ struct BrowserViewController: View {
                         }
                     }
                 } else {
-                    ProgressView()
-                        .frame(
-                            maxWidth: .infinity,
-                            maxHeight: .infinity
-                        )
+                    ZStack {
+                        Rectangle()
+                            .fill(theme.background)
+                            
+                        ProgressView().frame(width: 32, height: 32)
+                            
+                    }.frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
             
