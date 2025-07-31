@@ -27,15 +27,16 @@ struct SectionDropDelegate: DropDelegate {
           from.type = tabType(for: self.targetSection)
           let maxOrder = container.tabs.max(by: { $0.order < $1.order })?.order ?? 0
           from.order = maxOrder + 1
-        } else if let to = self.items.last {
-          if isInSameSection(from: from, to: to) {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-              container.reorderTabs(from: from, to: to)
-            }
-          } else {
-            moveTabBetweenSections(from: from, to: to)
-          }
-        }
+        } 
+        // else if let to = self.items.last {
+          // if isInSameSection(from: from, to: to) {
+            // withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            //   container.reorderTabs(from: from, to: to)
+            // }
+          // } else {
+            // moveTabBetweenSections(from: from, to: to)
+          // }
+        // }
       }
     }
   }
