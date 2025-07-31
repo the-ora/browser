@@ -20,7 +20,9 @@ class Debouncer {
         DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: item)
     }
 }
+
 let debouncer = Debouncer(delay: 0.3)
+
 struct LauncherMain: View {
     struct Match {
         let text: String
@@ -299,7 +301,7 @@ struct LauncherMain: View {
                     lineWidth: 0.5)
         )
         .shadow(
-            color: Color.black.opacity(0.3),
+            color: Color.black.opacity(0.1),
             radius: 40, x: 0, y: 24
         )
     }

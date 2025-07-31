@@ -13,7 +13,7 @@ struct Theme: Equatable {
   }
 
   var background: Color {
-    colorScheme == .dark ? .black : .white
+    colorScheme == .dark ? Color(hex: "#141414") : .white
   }
 
   var foreground: Color {
