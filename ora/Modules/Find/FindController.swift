@@ -35,6 +35,7 @@ class FindController: NSObject {
                 style.textContent = `
                     mark.search-highlight {
                         background-color: yellow;
+                        color: black;
                     }
                     mark.search-highlight.current {
                         background-color: orange !important;
