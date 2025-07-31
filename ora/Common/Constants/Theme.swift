@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-struct Theme {
+struct Theme: Equatable {
   let colorScheme: ColorScheme
 
   var primary: Color {
