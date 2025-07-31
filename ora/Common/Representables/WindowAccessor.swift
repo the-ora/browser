@@ -1,9 +1,13 @@
-import SwiftUI
 import AppKit
+import SwiftUI
 
 struct WindowAccessor: NSViewRepresentable {
   let isSidebarHidden: Bool
+  let isFloatingSidebar: Bool
   @Binding var isFullscreen: Bool
+
+  // Store original button frames to restore them later
+  private static var originalButtonFrames: [NSWindow.ButtonType: NSRect] = [:]
 
   func makeCoordinator() -> Coordinator {
     Coordinator(self)
@@ -72,9 +76,35 @@ struct WindowAccessor: NSViewRepresentable {
   }
 
   private func updateTrafficLights(for window: NSWindow) {
-    let hide = isSidebarHidden && !isFullscreen
-    [.closeButton, .miniaturizeButton, .zoomButton].forEach {
-      window.standardWindowButton($0)?.isHidden = hide
+
+    [NSWindow.ButtonType.closeButton, .miniaturizeButton, .zoomButton].forEach { buttonType in
+      guard let button = window.standardWindowButton(buttonType) else { return }
+
+      // Store original frame if we haven't already
+      if WindowAccessor.originalButtonFrames[buttonType] == nil {
+        WindowAccessor.originalButtonFrames[buttonType] = button.frame
+      }
+
+      if isFloatingSidebar && !isFullscreen {
+        if let originalFrame = WindowAccessor.originalButtonFrames[buttonType] {
+          var newFrame = originalFrame
+          newFrame.origin.y -= 12
+          newFrame.origin.x += 16
+          button.frame = newFrame
+        }
+        button.isHidden = false
+      } else {
+        // Restore original position
+        if let originalFrame = WindowAccessor.originalButtonFrames[buttonType] {
+          button.frame = originalFrame
+        }
+
+        if isFullscreen || (!isSidebarHidden && !isFullscreen) {
+          button.isHidden = false
+        } else {
+          button.isHidden = true
+        }
+      }
     }
   }
 }
