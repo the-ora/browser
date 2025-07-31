@@ -24,7 +24,7 @@ class AppState: ObservableObject {
 struct oraApp: App {
     @StateObject private var appState = AppState()
     @StateObject private var keyModifierListener = KeyModifierListener()
-    
+    @StateObject private var appearanceManager = AppearanceManager()
     // Pass it to TabManager
     @StateObject private var tabManager: TabManager
     @StateObject private var historyManager: HistoryManager
@@ -94,6 +94,7 @@ struct oraApp: App {
                 .environmentObject(tabManager)
                 .environmentObject(historyManager)
                 .environmentObject(keyModifierListener)
+                .environmentObject(appearanceManager)
                 .modelContext(tabContext)
                 .modelContext(historyContext)
                 .onAppear {
@@ -121,6 +122,14 @@ struct oraApp: App {
                     appState.showLauncher = true
                 }
                 .keyboardShortcut(KeyboardShortcuts.Tabs.new)
+
+                Button("Close Tab") {
+                    tabManager
+                        .closeActiveTab()
+                }
+                .keyboardShortcut(
+                    KeyboardShortcuts.Tabs.close
+                )
             }
 
             CommandGroup(after: .pasteboard) {
@@ -141,6 +150,13 @@ struct oraApp: App {
                 )
             }
 
+            CommandGroup(replacing: .sidebar) {
+                Picker("Appearance", selection: $appearanceManager.appearance) {
+                    ForEach(AppAppearance.allCases) { mode in
+                        Text(mode.rawValue).tag(mode)
+                    }
+                }
+            }
             CommandMenu("Navigation") {
                 Button("Reload") {
                     if let tab = tabManager.activeTab {
@@ -172,14 +188,6 @@ struct oraApp: App {
                 Button("New Tab") {
                     appState.showLauncher = true
                 }
-                
-                Button("Close Tab") {
-                    tabManager
-                        .closeActiveTab()
-                }
-                .keyboardShortcut(
-                    KeyboardShortcuts.Tabs.close
-                )
                 Button("Pin Tab") {
                     if let tab = tabManager.activeTab {
                         tabManager
