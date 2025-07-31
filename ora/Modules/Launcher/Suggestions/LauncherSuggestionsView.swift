@@ -25,5 +25,11 @@ struct LauncherSuggestionsView: View {
                 .foregroundColor(theme.border.opacity(0.5)),
             alignment: .top
         )
+        .onAppear {
+            searchEngineService.setTheme(theme)
+        }
+        .onChange(of: theme) { _, newValue in
+            searchEngineService.setTheme(newValue)
+        }
     }
 }

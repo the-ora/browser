@@ -84,6 +84,9 @@ struct LauncherView: View {
             .onChange(of: appState.showLauncher) { _, newValue in
                 isVisible = newValue
             }
+            .onChange(of: theme) { _, newValue in
+                searchEngineService.setTheme(newValue)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onExitCommand {
