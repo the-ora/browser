@@ -89,7 +89,7 @@ struct oraApp: App {
 
     var body: some Scene {
         WindowGroup {
-                BrowserViewController()
+                BrowserView()
                 .environmentObject(appState)
                 .environmentObject(tabManager)
                 .environmentObject(historyManager)

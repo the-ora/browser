@@ -1,13 +1,13 @@
 import AppKit
 import SwiftUI
 
-// MARK: - BrowserViewController
-struct BrowserViewController: View {
+// MARK: - BrowserView
+struct BrowserView: View {
     @EnvironmentObject var tabManager: TabManager
     @Environment(\.theme) var theme
     @EnvironmentObject private var appState: AppState
     @State private var isFullscreen = false
-    @State private var showFloating = false
+    @State private var showFloatingSidebar = false
 
     @StateObject var hide = SideHolder()
 
@@ -45,6 +45,7 @@ struct BrowserViewController: View {
             .background(
                 WindowAccessor(
                     isSidebarHidden: hide.side == .primary,
+                    isFloatingSidebar: showFloatingSidebar,
                     isFullscreen: $isFullscreen
                 )
             )
@@ -59,23 +60,23 @@ struct BrowserViewController: View {
             }
 
             if hide.side == .primary {
-                if showFloating {
-                    FloatingSidebar()
-                    .frame(width: 300)
+                if showFloatingSidebar {
+                    FloatingSidebar(isFullscreen: isFullscreen)
+                    .frame(width: 340)
                     .transition(.move(edge: .leading))
                     .zIndex(3)
                 }
 
                 Color.clear
-                    .frame(width: showFloating ? 300 : 10)
+                    .frame(width: showFloatingSidebar ? 300 : 10)
                     .overlay(
-                        MouseTrackingArea(mouseEntered: $showFloating, xExit: 310)
+                        MouseTrackingArea(mouseEntered: $showFloatingSidebar, xExit: 340)
                     )
                     .zIndex(2)
             }
         }
         .edgesIgnoringSafeArea(.all)
-        .animation(.spring(response: 0.25, dampingFraction: 0.9), value: showFloating)
+        .animation(.spring(response: 0.25, dampingFraction: 0.9), value: showFloatingSidebar)
     }
 
     @ViewBuilder

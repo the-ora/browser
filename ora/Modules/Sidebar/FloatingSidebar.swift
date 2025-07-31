@@ -1,11 +1,12 @@
 import SwiftUI
 
 struct FloatingSidebar: View {
+  let isFullscreen: Bool
   @Environment(\.theme) var theme
 
   var body: some View {
     ZStack(alignment: .leading) { 
-      SidebarView(isFullscreen: true)
+      SidebarView(isFullscreen: isFullscreen)
         .background(theme.subtleWindowBackgroundColor)
         .background(BlurEffectView(material: .popover, blendingMode: .withinWindow))
         .cornerRadius(8)

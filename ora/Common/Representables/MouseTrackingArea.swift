@@ -51,7 +51,7 @@ private final class TrackingStrip: NSView {
     let xExitCondition = xExit.map { mouse.x > $0 || mouse.x < 0 } ?? true
     let yExitCondition = yExit.map { mouse.y > $0 || mouse.y < 0 } ?? true
 
-    if xExitCondition && yExitCondition {
+    if xExitCondition || yExitCondition {
       mouseEntered = false
     }
   }
