@@ -12,6 +12,8 @@ struct LauncherView: View {
     @State private var isVisible = false
     @FocusState private var isTextFieldFocused: Bool
     @State private var match: LauncherMain.Match? = nil
+
+    var clearOverlay: Bool? = false
     
     private func onTabPress() {
         guard !input.isEmpty else { return }
@@ -41,7 +43,7 @@ struct LauncherView: View {
     
     var body: some View {
         ZStack(alignment: .top) {
-            Color.black.opacity(0.3)
+            Color.black.opacity(clearOverlay! ? 0 : 0.3)
                 .ignoresSafeArea()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())

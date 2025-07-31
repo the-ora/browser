@@ -9,7 +9,7 @@ struct SectionDropDelegate: DropDelegate {
 
   func dropEntered(info: DropInfo) {
     guard let provider = info.itemProviders(for: [.text]).first else { return }
-    performHapticFeedback(pattern: .generic)
+    performHapticFeedback(pattern: .alignment)
 
     provider.loadObject(ofClass: NSString.self) { object, _ in
       guard

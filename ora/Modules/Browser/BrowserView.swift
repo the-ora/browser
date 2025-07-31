@@ -21,9 +21,56 @@ struct BrowserView: View {
                     if tabManager.activeTab != nil {
                         webView
                     } else {
-                        LauncherView()
+                        // Show logo when no tab is active
+                        ZStack {
+                            Color.clear
+                                .ignoresSafeArea(.all)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .contentShape(Rectangle())
+                                .background(theme.background.opacity(0.7))
+                                .background(BlurEffectView(material: .underWindowBackground, blendingMode: .behindWindow))
+                            
+                            NavigationButton(
+                                systemName: "sidebar.left",
+                                isEnabled: true,
+                                foregroundColor: theme.foreground.opacity(0.3),
+                                action: {
+                                    withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
+                                        hide.toggle(.primary)
+                                    }
+                                }
+                            )
+                            .keyboardShortcut(KeyboardShortcuts.App.toggleSidebar)
+                            .position(x: 24, y: 24)
+                            .zIndex(3)
+
+                            Text("Less noise, more browsing.")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(theme.foreground.opacity(0.3))
+                                .offset(x: -10, y: -230)
+                                .zIndex(3)
+
+                            Image("ora-logo-plain")
+                                .resizable()
+                                .renderingMode(.template)   
+                                .frame(width: 50, height: 50)
+                                .foregroundColor(theme.foreground.opacity(0.2))
+                                .offset(x: -10,y: -300)
+
+                                LauncherView(clearOverlay: true)
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .cornerRadius(8)
+                            .padding(EdgeInsets(
+                                top: 10,
+                                leading: 0,
+                                bottom: 10,
+                                trailing: 10
+                            ))
+                            .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
+                            .ignoresSafeArea(.all)
+                        }
                     }
-                }
             )
             .hide(hide)
             .splitter { Splitter.invisible() }
@@ -68,7 +115,7 @@ struct BrowserView: View {
                 }
 
                 Color.clear
-                    .frame(width: showFloatingSidebar ? 300 : 10)
+                    .frame(width: showFloatingSidebar ? 340 : 10)
                     .overlay(
                         MouseTrackingArea(mouseEntered: $showFloatingSidebar, xExit: 340)
                     )
