@@ -24,7 +24,7 @@ struct FindView: View {
     
     var body: some View {
         HStack(spacing: 12) {
-            searchIcon
+            // searchIcon
             searchTextField
             matchCounter
             navigationButtons
@@ -33,7 +33,7 @@ struct FindView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .background(backgroundView)
-        .cornerRadius(16)
+        .cornerRadius(18)
         .overlay(borderView)
         .shadow(
             color: colorScheme == .dark ? .black.opacity(0.5) : .black.opacity(0.15),
@@ -100,9 +100,9 @@ struct FindView: View {
         RoundedRectangle(cornerRadius: 6)
             .stroke(
                 isTextFieldFocused 
-                    ? theme.foreground
+                    ? theme.foreground.opacity(0.3)
                     : theme.border, 
-                lineWidth: isTextFieldFocused ? 2 : 1
+                lineWidth: 1
             )
     }
     
