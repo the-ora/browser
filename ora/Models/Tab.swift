@@ -331,7 +331,8 @@ class Tab: ObservableObject, Identifiable {
     }
     
     func retryNavigation() {
-        clearNavigationError()
+        // Don't clear error state immediately - let onStart callback handle it
+        // This prevents showing white background before navigation begins
         if let url = failedURL {
             let request = URLRequest(url: url)
             webView.load(request)
