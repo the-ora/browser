@@ -84,6 +84,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
         if !isDownloadNavigation {
             onLoadingChange?(false)
+            tab?.setNavigationError(error, for: webView.url)
         }
         originalURL = nil // Clear stored URL on navigation failure
     }
@@ -91,6 +92,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         if !isDownloadNavigation {
             onLoadingChange?(false)
+            tab?.setNavigationError(error, for: webView.url)
         }
         originalURL = nil // Clear stored URL on navigation failure
     }

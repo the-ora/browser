@@ -139,16 +139,33 @@ struct BrowserView: View {
             )
             if let tab = tabManager.activeTab {
                 if tab.isWebViewReady {
-                    ZStack(alignment: .topTrailing) {
-                        WebView(webView: tab.webView)
-                            .id(tab.id)
+                    if tab.hasNavigationError, let error = tab.navigationError {
+                        // Show status page for navigation errors
+                        StatusPageView(
+                            error: error,
+                            failedURL: tab.failedURL,
+                            onRetry: {
+                                tab.retryNavigation()
+                            },
+                            onGoBack: tab.webView.canGoBack ? {
+                                tab.webView.goBack()
+                                tab.clearNavigationError()
+                            } : nil
+                        )
+                        .id(tab.id)
+                    } else {
+                        // Show normal web view
+                        ZStack(alignment: .topTrailing) {
+                            WebView(webView: tab.webView)
+                                .id(tab.id)
 
-                        // Floating find view overlay
-                        if appState.showFinderIn == tab.id {
-                            FindView(webView: tab.webView)
-                                .padding(.top, 16)
-                                .padding(.trailing, 16)
-                                .zIndex(1000)
+                            // Floating find view overlay
+                            if appState.showFinderIn == tab.id {
+                                FindView(webView: tab.webView)
+                                    .padding(.top, 16)
+                                    .padding(.trailing, 16)
+                                    .zIndex(1000)
+                            }
                         }
                     }
                 } else {

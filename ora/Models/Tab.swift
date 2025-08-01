@@ -42,6 +42,9 @@ class Tab: ObservableObject, Identifiable {
     @Transient @Published var isWebViewReady: Bool = false
     @Transient var colorUpdated = false
     @Transient var maybeIsActive = false
+    @Transient @Published var hasNavigationError: Bool = false
+    @Transient @Published var navigationError: Error?
+    @Transient @Published var failedURL: URL?
     
     @Relationship(inverse: \TabContainer.tabs) var container: TabContainer
     
@@ -182,6 +185,7 @@ class Tab: ObservableObject, Identifiable {
         delegate.tab = self
         delegate.downloadManager = self.downloadManager
         delegate.onStart = { [weak self] in
+            self?.clearNavigationError()
             self?.maintainSnapShots()
         }
         delegate.onTitleChange = { [weak self] title in
@@ -308,6 +312,30 @@ class Tab: ObservableObject, Identifiable {
         webView.configuration.userContentController.removeAllUserScripts()
         webView.removeFromSuperview()
         webView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
+    }
+    
+    func setNavigationError(_ error: Error, for url: URL?) {
+        DispatchQueue.main.async {
+            self.hasNavigationError = true
+            self.navigationError = error
+            self.failedURL = url
+        }
+    }
+    
+    func clearNavigationError() {
+        DispatchQueue.main.async {
+            self.hasNavigationError = false
+            self.navigationError = nil
+            self.failedURL = nil
+        }
+    }
+    
+    func retryNavigation() {
+        clearNavigationError()
+        if let url = failedURL {
+            let request = URLRequest(url: url)
+            webView.load(request)
+        }
     }
 }
 
