@@ -8,6 +8,7 @@ struct LauncherSuggestion: Identifiable {
     let id = UUID()
     let type: LauncherSuggestionType
     let title: String
+    let name: String?
     let url: URL?
     let icon: String?
     let faviconURL: URL?
@@ -17,6 +18,7 @@ struct LauncherSuggestion: Identifiable {
     init(
         type: LauncherSuggestionType,
         title: String,
+        name: String? = nil,
         url: URL? = nil,
         icon: String? = nil,
         faviconURL: URL? = nil,
@@ -25,6 +27,7 @@ struct LauncherSuggestion: Identifiable {
     ) {
         self.type = type
         self.title = title
+        self.name = name
         self.url = url
         self.icon = icon
         self.faviconURL = faviconURL
@@ -107,7 +110,7 @@ struct LauncherSuggestionItem: View {
     var actionLabel: some View {
         if isAIChat {
             HStack(alignment: .center, spacing: 10) {
-                Text("Ask \(suggestion.title ?? defaultAI?.name ?? "")  ↩")
+                Text("Ask \(suggestion.name ?? defaultAI?.name ?? "")  ↩")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(
                         focusedElement == suggestion.id || isHovered

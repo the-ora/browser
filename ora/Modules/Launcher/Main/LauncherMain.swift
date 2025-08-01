@@ -56,6 +56,7 @@ struct LauncherMain: View {
             LauncherSuggestion(
                 type: .aiChat,
                 title: "Grok",
+                name: "Grok",
                 action: {
                     tabManager
                         .openFromEngine(
@@ -68,6 +69,7 @@ struct LauncherMain: View {
             LauncherSuggestion(
                 type: .aiChat,
                 title: "ChatGPT",
+                name: "ChatGPT",
                 action: {
                     tabManager
                         .openFromEngine(
@@ -182,7 +184,8 @@ struct LauncherMain: View {
             // at the ai some ai suggestions
             suggestions.append( LauncherSuggestion(
                 type: .aiChat,
-                title: "Grok",
+                title: text,
+                name: "Grok",
                 action: {
                     tabManager
                         .openFromEngine(
@@ -196,7 +199,8 @@ struct LauncherMain: View {
 
             suggestions.append( LauncherSuggestion(
                 type: .aiChat,
-                title: "ChatGPT",
+                title: text,
+                name: "ChatGPT",
                 action: {
                     tabManager
                         .openFromEngine(
