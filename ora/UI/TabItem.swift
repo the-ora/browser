@@ -83,6 +83,7 @@ struct TabItem: View {
     let onMoveToContainer: (TabContainer) -> Void
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var historyManager: HistoryManager
+    @EnvironmentObject var downloadManager: DownloadManager
     let availableContainers: [TabContainer]
     
     @Environment(\.theme) private var theme
@@ -104,7 +105,8 @@ struct TabItem: View {
             if tabManager.isActive(tab) {
                 tab
                     .restoreTransientState(
-                        historyManger: historyManager
+                        historyManger: historyManager,
+                        downloadManager: downloadManager
                     )
             }
         }
@@ -114,7 +116,8 @@ struct TabItem: View {
                 if !tab.isWebViewReady {
                     tab
                         .restoreTransientState(
-                            historyManger: historyManager
+                            historyManger: historyManager,
+                            downloadManager: downloadManager
                         )
                 }
             }

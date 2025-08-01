@@ -1,275 +1,250 @@
-import WebKit
+@preconcurrency import WebKit
 import AppKit
 import SwiftUI
+
+// JavaScript for monitoring URL, title, and favicon changes
 let js = """
 (function () {
     let lastHref = location.href;
     let lastTitle = document.title;
     let faviconURL = null;
-    let sentInitial = false;
-
+    
     function findFavicon(callback) {
-        // 1. Check <link rel="icon">
         const links = document.getElementsByTagName('link');
         for (let i = 0; i < links.length; i++) {
             const rel = links[i].getAttribute('rel');
             if (rel && rel.toLowerCase().includes('icon')) {
                 const href = links[i].getAttribute('href');
-                if (href) {
-                    const resolved = new URL(href, document.baseURI).href;
-                    return callback(resolved);
-                }
+                if (href) return callback(new URL(href, document.baseURI).href);
             }
         }
-
-        // 2. Try /favicon.ico
-        const fallback = `${location.origin}/favicon.ico`;
-        const img = new Image();
-        img.onload = () => callback(fallback);
-        img.onerror = () =>
-            callback(`https://www.google.com/s2/favicons?domain=${location.hostname}`);
-        img.src = fallback;
+        callback(`https://www.google.com/s2/favicons?domain=${location.hostname}`);
     }
-
+    
     function notifyChange(force = false) {
-        if (
-            force ||
-            location.href !== lastHref ||
-            document.title !== lastTitle
-        ) {
+        if (force || location.href !== lastHref || document.title !== lastTitle) {
             lastHref = location.href;
             lastTitle = document.title;
-
-            // Send update
             window.webkit.messageHandlers.listener.postMessage(
-                JSON.stringify({
-                    href: lastHref,
-                    title: lastTitle,
-                    favicon: faviconURL
-                })
+                JSON.stringify({ href: lastHref, title: lastTitle, favicon: faviconURL })
             );
         }
     }
-
-    // Title mutation observer
+    
     const titleObserver = new MutationObserver(() => notifyChange());
     const titleElement = document.querySelector('title');
-    if (titleElement) {
-        titleObserver.observe(titleElement, { childList: true });
-    }
-
-    // Fallback timer for SPAs
+    if (titleElement) titleObserver.observe(titleElement, { childList: true });
+    
     setInterval(() => notifyChange(), 500);
-
-    // Wrap pushState / replaceState
-    const originalPushState = history.pushState;
-    history.pushState = function () {
-        originalPushState.apply(this, arguments);
-        notifyChange(true);
-    };
-
-    const originalReplaceState = history.replaceState;
-    history.replaceState = function () {
-        originalReplaceState.apply(this, arguments);
-        notifyChange(true);
-    };
-
     window.addEventListener('popstate', () => notifyChange(true));
-
-    // Fetch favicon once, then trigger first notify
-    findFavicon(function (icon) {
-        faviconURL = icon;
-        notifyChange(true); // Send first message once favicon is known
-    });
+    findFavicon((icon) => { faviconURL = icon; notifyChange(true); });
 })();
 """
-
 
 class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
     var onTitleChange: ((String?) -> Void)?
     var onURLChange: ((URL?) -> Void)?
     var onLoadingChange: ((Bool) -> Void)?
-    var onChange: ((String?, URL?) ->Void)?
-    var onStart: (()->Void)?
+    var onChange: ((String?, URL?) -> Void)?
+    var onStart: (() -> Void)?
     weak var tab: Tab?
-    private var retryCount = 0
-    private let maxRetries = 5
-    private let retryDelay: TimeInterval = 1.0
-    @EnvironmentObject var historyManager: HistoryManager
-    
-    override init() {
-        super.init()
-    }
-    
-    func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
-        onLoadingChange?(true)
-        onURLChange?(webView.url)
-        onTitleChange?(webView.title)
-        onStart?()
-//        if let title = webView.title, let url = webView.url {
-//            onChange?(title, url)
-//        }
-        
-    }
-    func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
-//        onLoadingChange?(false)
-        
-        onTitleChange?(webView.title)
-        onURLChange?(webView.url)
+    weak var downloadManager: DownloadManager?
+    private var downloadDelegates: [UUID: DownloadDelegate] = [:]
+    private var isDownloadNavigation = false 
+    private var originalURL: URL? 
 
+    func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+        if !isDownloadNavigation {
+            // Store original URL before navigation
+            originalURL = tab?.url
+            onLoadingChange?(true)
+            onURLChange?(webView.url)
+            onStart?()
+        }
     }
-    
+
+    func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+        if !isDownloadNavigation {
+            onTitleChange?(webView.title)
+        }
+    }
+
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        onLoadingChange?(false)
-        onTitleChange?(webView.title)
-        onURLChange?(webView.url)
-        onChange?(webView.title, webView.url)
-        webView.evaluateJavaScript(js, completionHandler: nil)
-        // Start the snapshot process after a short delay to allow rendering
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { [weak self] in
-            self?.takeSnapshotAfterLoad(webView)
-            let findController = FindController(
-                webView: webView
-            )
-            findController.injectMarkJS()
+        if !isDownloadNavigation {
+            onLoadingChange?(false)
+            onTitleChange?(webView.title)
+            onURLChange?(webView.url)
+            onChange?(webView.title, webView.url)
+            webView.evaluateJavaScript(js, completionHandler: nil)
+            takeSnapshotAfterLoad(webView)
+            originalURL = nil // Clear stored URL after successful navigation
         }
     }
-    
+
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-        onLoadingChange?(false)
-    }
-    
-    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-        onLoadingChange?(false)
-    }
-  
-    
-    public func takeSnapshotAfterLoad(_ webView: WKWebView) {
-//        if retryCount < maxRetries && (webView.isLoading || webView.bounds.width == 0) {
-//            print("[Snapshot] Waiting - isLoading: \(webView.isLoading), bounds.width: \(webView.bounds.width), retryCount: \(retryCount)")
-//            DispatchQueue.main.asyncAfter(deadline: .now() + retryDelay) { [weak self] in
-//                print("[Snapshot] Retrying after delay")
-//                self?.takeSnapshotAfterLoad(webView)
-//            }
-//            retryCount += 1
-//            return
-//        }
-        
-        guard !webView.isLoading, webView.bounds.width > 0 else {
-            retryCount = 0
-            return
+        if !isDownloadNavigation {
+            onLoadingChange?(false)
         }
+        originalURL = nil // Clear stored URL on navigation failure
+    }
+
+    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        if !isDownloadNavigation {
+            onLoadingChange?(false)
+        }
+        originalURL = nil // Clear stored URL on navigation failure
+    }
+
+    @available(macOS 11.3, *)
+    func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
+        if navigationResponse.canShowMIMEType {
+            isDownloadNavigation = false
+            originalURL = nil // Clear stored URL for normal navigation
+            decisionHandler(.allow)
+        } else {
+            isDownloadNavigation = true // Mark as download to suppress navigation callbacks
+            
+            // Revert URL bar back to original URL since this is a download
+            if let originalURL = originalURL {
+                onURLChange?(originalURL)
+            }
+            
+            // Set loading to false since navigation won't complete normally for downloads
+            onLoadingChange?(false)
+            
+            decisionHandler(.download)
+        }
+    }
+
+    @available(macOS 11.3, *)
+    func webView(_ webView: WKWebView, navigationResponse: WKNavigationResponse, didBecome download: WKDownload) {
+        handleDownload(download, from: navigationResponse.response.url)
+    }
+
+    @available(macOS 11.3, *)
+    private func handleDownload(_ download: WKDownload, from url: URL?) {
+        guard let downloadManager = downloadManager, let originalURL = url else { return }
+        let downloadDelegate = DownloadDelegate(downloadManager: downloadManager, originalURL: originalURL, wkDownload: download)
+        download.delegate = downloadDelegate
+        downloadDelegates[downloadDelegate.id] = downloadDelegate
+        downloadDelegate.onCompletion = { [weak self] id in
+            self?.downloadDelegates.removeValue(forKey: id)
+            self?.isDownloadNavigation = false // Reset after download completes
+            self?.originalURL = nil // Clear stored original URL
+        }
+    }
+
+    func takeSnapshotAfterLoad(_ webView: WKWebView) {
+        guard !webView.isLoading, webView.bounds.width > 0 else { return }
         
         let configuration = WKSnapshotConfiguration()
         configuration.rect = CGRect(x: 0, y: 0, width: webView.bounds.width, height: 24)
         
-        webView.takeSnapshot(with: configuration) {
- [weak self] image,
- error in
-            guard let self = self else {
-                return
-            }
-
-            if error != nil {
-                return
-            }
-
-            if let image = image {
-                if let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) {
-                    let color = self.extractDominantColor(from: cgImage)
-                    DispatchQueue.main.async {
-                        if let tab = self.tab {
-                            tab.colorUpdated = true
-                            if let color = color {
-                                tab.updateBackgroundColor(Color(nsColor: color))
-                            } else {
-                                tab.updateBackgroundColor( Color(nsColor: NSColor.black))
-                            }
-                        } else {
-                            print("[Snapshot] Tab reference is nil during color set")
-                        }
-                    }
-                } else {
-                    print("[Snapshot] Failed to get CGImage from snapshot")
+        webView.takeSnapshot(with: configuration) { [weak self] image, error in
+            guard let self = self, let image = image, error == nil else { return }
+            
+            if let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) {
+                let color = self.extractDominantColor(from: cgImage)
+                DispatchQueue.main.async {
+                    self.tab?.updateBackgroundColor(Color(nsColor: color ?? .black))
+                    self.tab?.colorUpdated = true
                 }
-            } else {
-                print("[Snapshot] Image is nil")
             }
-
-            self.retryCount = 0
         }
     }
-    
+
     private func extractDominantColor(from cgImage: CGImage) -> NSColor? {
         let width = cgImage.width
         let height = cgImage.height
-        if width == 0 || height == 0 {
-            print("Invalid image dimensions: \(width)x\(height)")
-            return nil
-        }
+        guard width > 0, height > 0 else { return nil }
         
         let colorSpace = CGColorSpaceCreateDeviceRGB()
         let bitmapInfo = CGImageAlphaInfo.premultipliedLast.rawValue
-        guard let context = CGContext(data: nil,
-                                      width: width,
-                                      height: height,
-                                      bitsPerComponent: 8,
-                                      bytesPerRow: 0,
-                                      space: colorSpace,
-                                      bitmapInfo: bitmapInfo) else {
-            print("Failed to create context")
-            return nil
-        }
+        guard let context = CGContext(data: nil, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4, space: colorSpace, bitmapInfo: bitmapInfo) else { return nil }
         
-        context.draw(cgImage, in: CGRect(x: 0, y: 0, width: CGFloat(width), height: CGFloat(height)))
-        guard let data = context.data else {
-            print("Failed to get pixel data")
-            return nil
-        }
+        context.draw(cgImage, in: CGRect(x: 0, y: 0, width: 1, height: 1))
+        guard let data = context.data else { return nil }
+        
         let pixels = data.assumingMemoryBound(to: UInt8.self)
+        let red = CGFloat(pixels[0]) / 255.0
+        let green = CGFloat(pixels[1]) / 255.0
+        let blue = CGFloat(pixels[2]) / 255.0
+        let alpha = CGFloat(pixels[3]) / 255.0
         
-        let samplePoints = [
-            (0, 0),
-            (Int(width) - 1, 0),
-            (0, Int(height) - 1),
-            (Int(width) - 1, Int(height) - 1)
-        ]
-        
-        var colors: [NSColor] = []
-        
-        for (x, y) in samplePoints {
-            let offset = 4 * (y * Int(width) + x)
-            let red = CGFloat(pixels[offset]) / 255.0
-            let green = CGFloat(pixels[offset + 1]) / 255.0
-            let blue = CGFloat(pixels[offset + 2]) / 255.0
-            let alpha = CGFloat(pixels[offset + 3]) / 255.0
-            let color = NSColor(deviceRed: red, green: green, blue: blue, alpha: alpha)
-            colors.append(color)
-        }
-        
-        return findMostCommonColor(colors)
+        return NSColor(red: red, green: green, blue: blue, alpha: alpha)
     }
-    
-    private func findMostCommonColor(_ colors: [NSColor]) -> NSColor? {
-        var colorCounts: [String: (NSColor, Int)] = [:]
+}
+
+@available(macOS 11.3, *)
+class DownloadDelegate: NSObject, WKDownloadDelegate {
+    let id = UUID()
+    let downloadManager: DownloadManager
+    var originalURL: URL
+    let wkDownload: WKDownload
+    var download: Download?
+    var onCompletion: ((UUID) -> Void)?
+    private var progressTimer: Timer?
+
+    init(downloadManager: DownloadManager, originalURL: URL, wkDownload: WKDownload) {
+        self.downloadManager = downloadManager
+        self.originalURL = originalURL
+        self.wkDownload = wkDownload
+        super.init()
+    }
+
+    func download(_ download: WKDownload, decideDestinationUsing response: URLResponse, suggestedFilename: String, completionHandler: @escaping (URL?) -> Void) {
+        let downloadsDir = downloadManager.getDownloadsDirectory()
+        let destinationURL = downloadsDir.appendingPathComponent(suggestedFilename)
+        let finalURL = downloadManager.createUniqueFilename(for: destinationURL)
         
-        for color in colors {
-            var red: CGFloat = 0
-            var green: CGFloat = 0
-            var blue: CGFloat = 0
-            var alpha: CGFloat = 0
+        Task { @MainActor in
+            let expectedSize = (response as? HTTPURLResponse)?.expectedContentLength ?? 0
+            self.download = downloadManager.startDownload(from: download, originalURL: originalURL, suggestedFilename: suggestedFilename, expectedSize: expectedSize)
             
-            color.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
-            let key = "\(Int(red * 255))-\(Int(green * 255))-\(Int(blue * 255))"
-            
-            if let (_, count) = colorCounts[key] {
-                colorCounts[key] = (color, count + 1)
-            } else {
-                colorCounts[key] = (color, 1)
+            // Start timer to monitor WKDownload progress
+            self.progressTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+                guard let self = self, let download = self.download else { return }
+                let completedBytes = self.wkDownload.progress.completedUnitCount
+                let totalBytes = self.wkDownload.progress.totalUnitCount > 0 ? self.wkDownload.progress.totalUnitCount : expectedSize
+                self.downloadManager.updateDownloadProgress(download, downloadedBytes: completedBytes, totalBytes: totalBytes)
             }
         }
-        
-        let mostCommon = colorCounts.max(by: { $0.value.1 < $1.value.1 })
-        return mostCommon?.value.0 ?? NSColor.white
+        completionHandler(finalURL)
+    }
+
+    func download(_ download: WKDownload, willPerformHTTPRedirection response: HTTPURLResponse, newRequest: URLRequest, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        if let newURL = newRequest.url {
+            self.originalURL = newURL
+            if let download = self.download {
+                download.originalURL = newURL
+                download.originalURLString = newURL.absoluteString
+                try? downloadManager.modelContext.save()
+            }
+        }
+        decisionHandler(.allow)
+    }
+
+    func downloadDidFinish(_ download: WKDownload) {
+        guard let download = self.download else { return }
+        let destinationURL = downloadManager.getDownloadsDirectory().appendingPathComponent(download.fileName)
+        Task { @MainActor in
+            downloadManager.completeDownload(download, destinationURL: destinationURL)
+        }
+        cleanup()
+        onCompletion?(id)
+    }
+
+    func download(_ download: WKDownload, didFailWithError error: Error) {
+        guard let download = self.download else { return }
+        Task { @MainActor in
+            downloadManager.failDownload(download, error: error.localizedDescription)
+        }
+        cleanup()
+        onCompletion?(id)
+    }
+
+    private func cleanup() {
+        progressTimer?.invalidate()
+        progressTimer = nil
     }
 }

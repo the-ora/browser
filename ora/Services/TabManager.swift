@@ -50,7 +50,6 @@ class TabManager: ObservableObject {
             }
             
         } catch {
-            print("Error fetching history: \(error)")
             return []
         }
     }
@@ -167,7 +166,7 @@ class TabManager: ObservableObject {
         return newContainer
     }
     
-    func addTab(title: String = "Untitled", url: URL = URL(string: "https://www.youtube.com/")!, container: TabContainer, favicon: URL? = nil,historyManager: HistoryManager? = nil) -> Tab {
+    func addTab(title: String = "Untitled", url: URL = URL(string: "https://www.youtube.com/")!, container: TabContainer, favicon: URL? = nil, historyManager: HistoryManager? = nil, downloadManager: DownloadManager? = nil) -> Tab {
         let cleanHost = url.host?.hasPrefix("www.") == true ? String(url.host!.dropFirst(4)) : url.host
         let newTab = Tab(
             url: url,
@@ -177,7 +176,8 @@ class TabManager: ObservableObject {
             type: .normal,
             isPlayingMedia: false,
             order: container.tabs.count + 1,
-            historyManager: historyManager
+            historyManager: historyManager,
+            downloadManager: downloadManager
         )
         modelContext.insert(newTab)
         container.tabs.append(newTab)
@@ -191,7 +191,8 @@ class TabManager: ObservableObject {
     }
     func openTab(
         url: URL,
-        historyManager: HistoryManager
+        historyManager: HistoryManager,
+        downloadManager: DownloadManager? = nil
     ){
         if let container = activeContainer {
             if let host = url.host {
@@ -207,7 +208,8 @@ class TabManager: ObservableObject {
                     type: .normal,
                     isPlayingMedia: false,
                     order: container.tabs.count + 1,
-                    historyManager: historyManager
+                    historyManager: historyManager,
+                    downloadManager: downloadManager
                 )
                 modelContext.insert(newTab)
                 container.tabs.append(newTab)
@@ -311,7 +313,7 @@ class TabManager: ObservableObject {
             let descriptor = FetchDescriptor<TabContainer>(sortBy: [SortDescriptor(\.lastAccessedAt, order: .reverse)])
             return try modelContext.fetch(descriptor)
         } catch {
-            print("Failed to fetch containers: \(error)")
+            // Failed to fetch containers
         }
         return []
     }
@@ -319,7 +321,7 @@ class TabManager: ObservableObject {
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         if message.name == "listener",
            let url = message.body as? String {
-            print("URL Changed to: \(url)")
+
             // You can update the active tab’s url if needed
             DispatchQueue.main.async {
                 self.activeTab?.url = URL(string: url) ?? self.activeTab?.url ?? URL(string: "about:blank")!

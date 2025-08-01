@@ -5,6 +5,7 @@ struct LauncherView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var historyManager: HistoryManager
+    @EnvironmentObject var downloadManager: DownloadManager
     @Environment(\.theme) private var theme
     @StateObject private var searchEngineService = SearchEngineService()
     
@@ -16,19 +17,19 @@ struct LauncherView: View {
     @State private var suggestions: [LauncherSuggestion] = [
       LauncherSuggestion(
         type: .openedTab, title: "Tab 1",
-        action: { print("Debug: Executing action for Tab 1") }),
+        action: { }),
       LauncherSuggestion(
         type: .openedTab, title: "Tab 2",
-        action: { print("Debug: Executing action for Tab 2") }),
+        action: { }),
       LauncherSuggestion(
         type: .suggestedQuery, title: "Search on Google",
-        action: { print("Debug: Executing action for suggested query") }),
+        action: { }),
       LauncherSuggestion(
         type: .suggestedLink, title: "Open link", url: URL(string: "https://www.google.com"),
-        action: { print("Debug: Executing action for suggested link") }),
+        action: { }),
       LauncherSuggestion(
         type: .aiChat, title: "Grok",
-        action: { print("Debug: Executing action for AI search") }),
+        action: { }),
     ]
 
     
@@ -52,7 +53,8 @@ struct LauncherView: View {
             tabManager
                 .openTab(
                     url: url,
-                    historyManager: historyManager
+                    historyManager: historyManager,
+                    downloadManager: downloadManager
                 )
         }
         appState.showLauncher = false

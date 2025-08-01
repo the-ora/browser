@@ -35,6 +35,7 @@ class Tab: ObservableObject, Identifiable {
     //    @Transient @Published var backgroundColor: Color = Color(.black)
     @Transient @Published var backgroundColor: Color = .black
     @Transient var historyManager: HistoryManager? = nil
+    @Transient var downloadManager: DownloadManager? = nil
     // Not persisted: in-memory only
     @Transient var webView: WKWebView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
     @Transient public var navigationDelegate: WebViewNavigationDelegate?
@@ -53,7 +54,8 @@ class Tab: ObservableObject, Identifiable {
         type: TabType = .normal,
         isPlayingMedia:Bool = false,
         order: Int,
-        historyManager: HistoryManager? = nil
+        historyManager: HistoryManager? = nil,
+        downloadManager: DownloadManager? = nil
     ) {
         let nowDate = Date()
         self.id = id
@@ -79,6 +81,7 @@ class Tab: ObservableObject, Identifiable {
         
         self.order = order
         self.historyManager = historyManager
+        self.downloadManager = downloadManager
         
         config.tab = self
         // Configure WebView for performance
@@ -136,7 +139,7 @@ class Tab: ObservableObject, Identifiable {
                 self.faviconLocalFile = saveURL
                 
             } catch {
-                print("⚠️ Failed to download/save favicon: \(error)")
+                // Failed to download/save favicon
             }
         }
     }
@@ -177,6 +180,7 @@ class Tab: ObservableObject, Identifiable {
     private func setupNavigationDelegate() {
         let delegate = WebViewNavigationDelegate()
         delegate.tab = self
+        delegate.downloadManager = self.downloadManager
         delegate.onStart = { [weak self] in
             self?.maintainSnapShots()
         }
@@ -223,7 +227,7 @@ class Tab: ObservableObject, Identifiable {
         self.updateHeaderColor()
     }
     
-    func restoreTransientState(historyManger: HistoryManager) {
+    func restoreTransientState(historyManger: HistoryManager, downloadManager: DownloadManager? = nil) {
         // Avoid double initialization
         if webView.url != nil { return }
         
@@ -241,6 +245,7 @@ class Tab: ObservableObject, Identifiable {
         }
         
         self.historyManager = historyManger
+        self.downloadManager = downloadManager
         self.isWebViewReady = false
         self.setupNavigationDelegate()
         self.syncBackgroundColorFromHex()
@@ -285,7 +290,7 @@ class Tab: ObservableObject, Identifiable {
     }
     
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-        print("Navigation failed: \(error.localizedDescription)")
+        // Navigation failed
     }
     
     func webView(_ webView: WKWebView,

@@ -6,6 +6,7 @@ struct SidebarView: View {
     @Environment(\.theme) private var theme
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var historyManger: HistoryManager
+    @EnvironmentObject var downloadManager: DownloadManager
     @EnvironmentObject var appState: AppState
     @State private var selectedContainer = "personal"
     @State private var isContainerDropdownOpen = false
@@ -44,7 +45,8 @@ struct SidebarView: View {
                                     title: tab.title,
                                     url: url,
                                     container: container,
-                                    historyManager: historyManger
+                                    historyManager: historyManger,
+                                    downloadManager: downloadManager
                                 )
                             
                             tabManager
@@ -73,13 +75,13 @@ struct SidebarView: View {
                         if let url = URL(
                             string: tab.urlString
                         ) {
-                            print(tab.title,container.name)
                             let newTab = tabManager
                                 .addTab(
                                     title: tab.title,
                                     url: url,
                                     container: container,
-                                    historyManager: historyManger
+                                    historyManager: historyManger,
+                                    downloadManager: downloadManager
                                 )
                             tabManager
                                 .toggleFavTab(
@@ -145,6 +147,9 @@ struct SidebarView: View {
                 //                        )
                 //                }
             }
+            
+            DownloadsWidget()
+                .padding(.bottom, 8)
             
             ContainerSelector(
                 isDropdownOpen: $isContainerDropdownOpen

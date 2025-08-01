@@ -2,11 +2,10 @@ import SwiftUI
 import SwiftData
 import Foundation
 
-func deleteSwiftDataStore() {
+func deleteSwiftDataStore(_ loc: String) {
 
     let fileManager = FileManager.default
-    let storeURL = URL.applicationSupportDirectory.appending(path: "MyStore.sqlite")
-    print("🧹 Deleting SwiftData store at: \(storeURL.path)")
+    let storeURL = URL.applicationSupportDirectory.appending(path: loc)
     let shmURL = storeURL.appendingPathExtension("-shm")
     let walURL = storeURL.appendingPathExtension("-wal")
     
@@ -26,18 +25,32 @@ struct oraApp: App {
     // Pass it to TabManager
     @StateObject private var tabManager: TabManager
     @StateObject private var historyManager: HistoryManager
+    @StateObject private var downloadManager: DownloadManager
     
     let tabContext: ModelContext
     let historyContext: ModelContext
+    let downloadContext: ModelContext
     
-    let modelConfiguration = ModelConfiguration(
-        "MyModel",
+    let tabModelConfiguration = ModelConfiguration(
+        "Tab",
         schema: Schema([TabContainer.self]),
-        url: URL.applicationSupportDirectory.appending(path: "MyStore.sqlite")
+        url: URL.applicationSupportDirectory.appending(path: "Tabs.sqlite")
+    )
+    let historyModelConfiguration = ModelConfiguration(
+        "History",
+        schema: Schema([History.self]),
+        url: URL.applicationSupportDirectory.appending(path: "History.sqlite")
+    )
+    let downloadModelConfiguration = ModelConfiguration(
+        "Download",
+        schema: Schema([Download.self]),
+        url: URL.applicationSupportDirectory.appending(path: "Download.sqlite")
     )
     init() {
         //#if DEBUG
-//                    deleteSwiftDataStore()
+//        deleteSwiftDataStore("Tabs.sqlite")
+//        deleteSwiftDataStore("History.sqlite")
+//        deleteSwiftDataStore("Download.sqlite")
         //#endif
 //        
         // tabs
@@ -47,7 +60,7 @@ struct oraApp: App {
            
             container = try ModelContainer(
                 for: TabContainer.self,
-                configurations: modelConfiguration
+                configurations: tabModelConfiguration
             )
             modelContext = ModelContext(container)
         } catch {
@@ -60,14 +73,28 @@ struct oraApp: App {
            
             historyContainer = try ModelContainer(
                 for: History.self,
-                configurations: modelConfiguration
+                configurations: historyModelConfiguration
             )
             historyModelContext = ModelContext(historyContainer)
         } catch {
             fatalError("Failed to initialize ModelContainer: \(error)")
         }
+        // downloads
+        let downloadContainer: ModelContainer
+        let downloadModelContext: ModelContext
+        do {
+           
+            downloadContainer = try ModelContainer(
+                for: Download.self,
+                configurations: downloadModelConfiguration
+            )
+            downloadModelContext = ModelContext(downloadContainer)
+        } catch {
+            fatalError("Failed to initialize ModelContainer: \(error)")
+        }
         
         self.tabContext = modelContext
+        self.downloadContext = downloadModelContext
         self.historyContext = historyModelContext
         let historyManagerObj = StateObject(
             wrappedValue: HistoryManager(
@@ -83,6 +110,13 @@ struct oraApp: App {
             )
         )
         
+        _downloadManager = StateObject(
+            wrappedValue: DownloadManager(
+                modelContainer: downloadContainer,
+                modelContext: downloadModelContext
+            )
+        )
+        
     }
     
     var body: some Scene {
@@ -91,8 +125,10 @@ struct oraApp: App {
                 .environmentObject(appState)
                 .environmentObject(tabManager)
                 .environmentObject(historyManager)
+                .environmentObject(downloadManager)
                 .modelContext(tabContext)
                 .modelContext(historyContext)
+                .modelContext(downloadContext)
                 .withTheme()
         }
         .defaultSize(width: 1440, height: 900)

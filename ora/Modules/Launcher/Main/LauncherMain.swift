@@ -38,6 +38,7 @@ struct LauncherMain: View {
     
     @Environment(\.theme) private var theme
     @EnvironmentObject var historyManager: HistoryManager
+    @EnvironmentObject var downloadManager: DownloadManager
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var appState: AppState
     @State var focusedElement: UUID = UUID()
@@ -120,7 +121,7 @@ struct LauncherMain: View {
                 url: url.scheme != nil ? url : URL(string: "https://\(text)")!,
                 action: {
                     tabManager
-                        .openTab(url: url.scheme != nil ? url : URL(string: "https://\(text)")!, historyManager: historyManager)
+                        .openTab(url: url.scheme != nil ? url : URL(string: "https://\(text)")!, historyManager: historyManager, downloadManager: downloadManager)
                 }
             ))
         }

@@ -15,6 +15,7 @@ struct FavTabItem: View {
   @Query var containers: [TabContainer]
   @EnvironmentObject var tabManager: TabManager
   @EnvironmentObject var historyManager: HistoryManager
+  @EnvironmentObject var downloadManager: DownloadManager
 
   @State private var isHovering = false
 
@@ -48,7 +49,8 @@ struct FavTabItem: View {
         if !tab.isWebViewReady {
             tab
               .restoreTransientState(
-                historyManger: historyManager
+                historyManger: historyManager,
+                downloadManager: downloadManager
               )
         }
     }
@@ -56,7 +58,8 @@ struct FavTabItem: View {
         if tabManager.isActive(tab) {
             tab
               .restoreTransientState(
-                historyManger: historyManager
+                historyManger: historyManager,
+                downloadManager: downloadManager
               )
         }
     }

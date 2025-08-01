@@ -4,6 +4,7 @@ import SwiftUI
 // MARK: - BrowserViewController
 struct BrowserViewController: View {
     @EnvironmentObject var tabManager: TabManager
+    @EnvironmentObject var downloadManager: DownloadManager
     @Environment(\.theme) var theme
     @EnvironmentObject private var appState: AppState
     @State private var isFullscreen = false
@@ -18,6 +19,9 @@ struct BrowserViewController: View {
             right: {
                 //          ContentView()
                 webView
+                if tabManager.activeTab  == nil {
+                    LauncherView()
+                }
             }
         )
         .hide(hide)
@@ -39,7 +43,7 @@ struct BrowserViewController: View {
             )
         )
         .overlay {
-            if appState.showLauncher {
+            if appState.showLauncher && tabManager.activeTab  != nil {
                 LauncherView()
             }
         }
