@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-struct Theme {
+struct Theme: Equatable {
   let colorScheme: ColorScheme
 
   var primary: Color {
@@ -13,14 +13,14 @@ struct Theme {
   }
 
   var background: Color {
-    colorScheme == .dark ? .black : .white
+    colorScheme == .dark ? Color(hex: "#141414") : .white
   }
 
   var foreground: Color {
     colorScheme == .dark ? .white : .black
   }
 
-  var windowBackgroundColor: Color {
+  var subtleWindowBackgroundColor: Color {
     colorScheme == .dark ? self.primaryDark.opacity(0.3) : self.primary.opacity(0.8)
   }
 

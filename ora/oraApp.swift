@@ -1,6 +1,6 @@
-import SwiftUI
-import SwiftData
 import Foundation
+import SwiftData
+import SwiftUI
 
 func deleteSwiftDataStore(_ loc: String) {
 
@@ -17,11 +17,13 @@ class AppState: ObservableObject {
     @Published var showLauncher: Bool = false
     @Published var launcherSearchText: String = ""
     @Published var showFinderIn: UUID? = nil
+    @Published var isFloatingTabSwitchVisible: Bool = false
 }
 @main
 struct oraApp: App {
     @StateObject private var appState = AppState()
-    
+    @StateObject private var keyModifierListener = KeyModifierListener()
+    @StateObject private var appearanceManager = AppearanceManager()
     // Pass it to TabManager
     @StateObject private var tabManager: TabManager
     @StateObject private var historyManager: HistoryManager
@@ -118,16 +120,33 @@ struct oraApp: App {
         )
         
     }
-    
+
     var body: some Scene {
         WindowGroup {
-            BrowserViewController()
+                BrowserView()
                 .environmentObject(appState)
                 .environmentObject(tabManager)
                 .environmentObject(historyManager)
+                .environmentObject(keyModifierListener)
+                .environmentObject(appearanceManager)
                 .environmentObject(downloadManager)
                 .modelContext(tabContext)
                 .modelContext(historyContext)
+                .onAppear {
+                    keyModifierListener.registerKeyDownHandler { event in
+                        guard !appState.isFloatingTabSwitchVisible else { return false }
+
+                        if event.keyCode == 48 {  // Tab key
+                            if event.modifierFlags.contains(.control) {
+                                DispatchQueue.main.async {
+                                    appState.isFloatingTabSwitchVisible = true
+                                }
+                                return true
+                            }
+                        }
+                        return false
+                    }
+                }
                 .modelContext(downloadContext)
                 .withTheme()
         }
@@ -139,6 +158,7 @@ struct oraApp: App {
                     appState.showLauncher = true
                 }
                 .keyboardShortcut(KeyboardShortcuts.Tabs.new)
+
                 Button("Close Tab") {
                     tabManager
                         .closeActiveTab()
@@ -146,31 +166,9 @@ struct oraApp: App {
                 .keyboardShortcut(
                     KeyboardShortcuts.Tabs.close
                 )
-                Button("Pin Tab") {
-                    if let tab = tabManager.activeTab {
-                        tabManager
-                            .togglePinTab(tab)
-                    }
-                }
-                .keyboardShortcut(
-                    KeyboardShortcuts.Tabs.pin
-                )
-                Button("Reload") {
-                    if let tab = tabManager.activeTab {
-                        tab.webView.reload()
-                    }
-                }
-                .keyboardShortcut(
-                    KeyboardShortcuts.Navigation.reload
-                )
-                Button("Forward") {
-                    if let tab = tabManager.activeTab {
-                        tab.webView.reload()
-                    }
-                }
-                .keyboardShortcut(
-                    KeyboardShortcuts.Navigation.reload
-                )
+            }
+
+            CommandGroup(after: .pasteboard) {
                 Button("Restore") {
                     tabManager.restoreLastTab()
                 }
@@ -186,6 +184,65 @@ struct oraApp: App {
                 .keyboardShortcut(
                     KeyboardShortcuts.Address.find
                 )
+            }
+
+            CommandGroup(replacing: .sidebar) {
+                Picker("Appearance", selection: $appearanceManager.appearance) {
+                    ForEach(AppAppearance.allCases) { mode in
+                        Text(mode.rawValue).tag(mode)
+                    }
+                }
+            }
+            CommandMenu("Navigation") {
+                Button("Reload") {
+                    if let tab = tabManager.activeTab {
+                        tab.webView.reload()
+                    }
+                }
+                .keyboardShortcut(
+                    KeyboardShortcuts.Navigation.reload
+                )
+                Button("Back") {
+                    if let tab = tabManager.activeTab {
+                        tab.webView.goBack()
+                    }
+                }
+                .keyboardShortcut(
+                    KeyboardShortcuts.Navigation.back
+                )
+                Button("Forward") {
+                    if let tab = tabManager.activeTab {
+                        tab.webView.goForward()
+                    }
+                }
+                .keyboardShortcut(
+                    KeyboardShortcuts.Navigation.forward
+                )
+            }
+
+            CommandMenu("Tabs") {
+                Button("New Tab") {
+                    appState.showLauncher = true
+                }
+                Button("Pin Tab") {
+                    if let tab = tabManager.activeTab {
+                        tabManager
+                            .togglePinTab(tab)
+                    }
+                }
+                .keyboardShortcut(
+                    KeyboardShortcuts.Tabs.pin
+                )
+                
+                Divider()
+
+                Button("Next Tab") {
+                    appState.isFloatingTabSwitchVisible = true
+                }
+
+                Button("Previous Tab") {
+                    appState.isFloatingTabSwitchVisible = true
+                }
             }
         }
     }

@@ -14,6 +14,7 @@ struct SidebarView: View {
     @Query var containers: [TabContainer]
     @Query(filter: nil, sort: [.init(\History.lastAccessedAt, order: .reverse)]) var histories: [History]
     private let columns = Array(repeating: GridItem(spacing: 10), count: 3)
+    let isFullscreen: Bool
     
     func importArc() {
         if let root = getRoot() {
@@ -157,7 +158,7 @@ struct SidebarView: View {
         }
         .padding(
             EdgeInsets(
-                top: 36,
+                top: isFullscreen ? 12 : 36,
                 leading: 12,
                 bottom: 12,
                 trailing: 12
