@@ -45,8 +45,9 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
     var onTitleChange: ((String?) -> Void)?
     var onURLChange: ((URL?) -> Void)?
     var onLoadingChange: ((Bool) -> Void)?
-    var onChange: ((String?, URL?) -> Void)?
-    var onStart: (() -> Void)?
+    var onProgressChange: ((Double) -> Void)?
+    var onChange: ((String?, URL?) ->Void)?
+    var onStart: (()->Void)?
     weak var tab: Tab?
     weak var downloadManager: DownloadManager?
     private var downloadDelegates: [UUID: DownloadDelegate] = [:]
@@ -58,6 +59,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
             // Store original URL before navigation
             originalURL = tab?.url
             onLoadingChange?(true)
+            onProgressChange?(10.0)
             onURLChange?(webView.url)
             onStart?()
         }
@@ -66,6 +68,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
         if !isDownloadNavigation {
             onTitleChange?(webView.title)
+            onProgressChange?(webView.estimatedProgress * 100.0)
         }
     }
 
@@ -75,9 +78,14 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
             onTitleChange?(webView.title)
             onURLChange?(webView.url)
             onChange?(webView.title, webView.url)
+            onProgressChange?(webView.estimatedProgress * 100.0)
             webView.evaluateJavaScript(js, completionHandler: nil)
             takeSnapshotAfterLoad(webView)
             originalURL = nil // Clear stored URL after successful navigation
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
+            self?.onProgressChange?(0.0)
         }
     }
 
@@ -87,13 +95,15 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
             tab?.setNavigationError(error, for: webView.url)
         }
         originalURL = nil // Clear stored URL on navigation failure
+        onProgressChange?(100.0)
     }
 
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         if !isDownloadNavigation {
             onLoadingChange?(false)
             tab?.setNavigationError(error, for: webView.url)
-        }
+            onProgressChange?(100.0)
+    }
         originalURL = nil // Clear stored URL on navigation failure
     }
 

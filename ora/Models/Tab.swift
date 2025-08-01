@@ -40,6 +40,7 @@ class Tab: ObservableObject, Identifiable {
     @Transient var webView: WKWebView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
     @Transient public var navigationDelegate: WebViewNavigationDelegate?
     @Transient @Published var isWebViewReady: Bool = false
+    @Transient @Published var loadingProgress: Double = 10.0
     @Transient var colorUpdated = false
     @Transient var maybeIsActive = false
     @Transient @Published var hasNavigationError: Bool = false
@@ -217,10 +218,16 @@ class Tab: ObservableObject, Identifiable {
                 self?.isLoading = isLoading
             }
         }
+
+        delegate.onProgressChange = { [weak self] progress in
+            DispatchQueue.main.async {
+                self?.loadingProgress = progress
+            }
+        }
         
         self.navigationDelegate = delegate
         webView.navigationDelegate = delegate
-        
+    
     }
     func goForward(){
         self.webView.goForward()
