@@ -20,7 +20,9 @@ class Debouncer {
         DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: item)
     }
 }
+
 let debouncer = Debouncer(delay: 0.3)
+
 struct LauncherMain: View {
     struct Match {
         let text: String
@@ -55,6 +57,7 @@ struct LauncherMain: View {
             LauncherSuggestion(
                 type: .aiChat,
                 title: "Grok",
+                name: "Grok",
                 action: {
                     tabManager
                         .openFromEngine(
@@ -67,6 +70,7 @@ struct LauncherMain: View {
             LauncherSuggestion(
                 type: .aiChat,
                 title: "ChatGPT",
+                name: "ChatGPT",
                 action: {
                     tabManager
                         .openFromEngine(
@@ -117,7 +121,7 @@ struct LauncherMain: View {
            url.scheme != nil || isValidHostname(text) {
             suggestions.append(LauncherSuggestion(
                 type: .suggestedLink,
-                title: "Open Link",
+                title: text,
                 url: url.scheme != nil ? url : URL(string: "https://\(text)")!,
                 action: {
                     tabManager
@@ -177,12 +181,12 @@ struct LauncherMain: View {
             x += 1
             
         }
-        
-        // at the ai some ai suggestions
-        suggestions.append(
-            LauncherSuggestion(
+        if isAISuitableQuery(text) {
+            // at the ai some ai suggestions
+            suggestions.append( LauncherSuggestion(
                 type: .aiChat,
-                title: "Grok",
+                title: text,
+                name: "Grok",
                 action: {
                     tabManager
                         .openFromEngine(
@@ -190,21 +194,25 @@ struct LauncherMain: View {
                             query: text,
                             historyManager: historyManager
                         )
-                }
+                    }
+                )
             )
-        )
-        suggestions.append( LauncherSuggestion(
-            type: .aiChat,
-            title: "ChatGPT",
-            action: {
-                tabManager
-                    .openFromEngine(
-                        engineName:.chatgpt,
-                        query: text,
-                        historyManager: historyManager
-                    )
-            }
-        ))
+
+            suggestions.append( LauncherSuggestion(
+                type: .aiChat,
+                title: text,
+                name: "ChatGPT",
+                action: {
+                    tabManager
+                        .openFromEngine(
+                            engineName:.chatgpt,
+                            query: text,
+                            historyManager: historyManager
+                        )
+                    }
+                )
+            )
+        }
         focusedElement = suggestions.first?.id ?? UUID()
         
     }
@@ -298,7 +306,7 @@ struct LauncherMain: View {
                     lineWidth: 0.5)
         )
         .shadow(
-            color: Color.black.opacity(0.3),
+            color: Color.black.opacity(0.1),
             radius: 40, x: 0, y: 24
         )
     }
@@ -335,4 +343,25 @@ struct LauncherMain: View {
         }
         return isDomainOrIP(text) ? "globe" : "magnifyingglass"
     }
+}
+
+func isAISuitableQuery(_ query: String) -> Bool {
+  let lowercased = query.lowercased()
+
+  // AI-suited queries: open-ended, creative, opinion-based, etc.
+  let aiKeywords = [
+    #"^(who|when|where|what|how|why)\b.*\?$"#,  // e.g. "When was Apple founded?"
+    #"^\d{4}"#,
+    "summarize", "rewrite", "explain", "code", "how to", "generate",
+    "idea", "opinion", "feedback", "story", "joke", "email", "draft",
+    "translate", "compare", "alternatives", "improve", "fix", "suggest",
+  ]
+
+  for keyword in aiKeywords {
+    if lowercased.contains(keyword) {
+      return true
+    }
+  }
+
+  return false
 }

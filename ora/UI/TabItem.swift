@@ -134,6 +134,17 @@ struct TabItem: View {
                         style: StrokeStyle(lineWidth: 1, dash: [5, 5]))
             : nil
         )
+        .onTapGesture {
+            onTap()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                if !tab.isWebViewReady {
+                    tab
+                        .restoreTransientState(
+                            historyManger: historyManager
+                        )
+                }
+            }
+        }
 //        .onTapGesture(perform: onTap)
         .onHover { isHovering = $0 }
         .contextMenu { contextMenuItems }
@@ -161,15 +172,15 @@ struct TabItem: View {
     }
     
     private var textColor: Color {
-        isSelected ? .white : .secondary
+        isSelected ? .white : theme.foreground
     }
     
     @ViewBuilder
     private var actionButton: some View {
-        if tab.type == .pinned {
-            ActionButton(icon: "pin.slash", color: textColor, action: onPinToggle)
+        if isHovering && tab.type == .pinned && !tab.isWebViewReady {
+            ActionButton(icon: "pin.slash", color: textColor, action: onPinToggle).help("Unpin Tab")
         } else if isHovering {
-            ActionButton(icon: "xmark", color: textColor, action: onClose)
+            ActionButton(icon: "xmark", color: textColor, action: onClose).help("Close Tab")
         }
     }
     
@@ -215,13 +226,16 @@ struct ActionButton: View {
   let icon: String
   let color: Color
   let action: () -> Void
+  @State private var isHovering = false
 
   var body: some View {
     Button(action: action) {
       Image(systemName: icon)
         .frame(width: 12, height: 12)
         .foregroundColor(color)
+        .fontWeight(.semibold)
     }
     .buttonStyle(.plain)
+    .onHover { isHovering = $0 }
   }
 }

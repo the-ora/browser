@@ -13,25 +13,8 @@ struct LauncherView: View {
     @State private var isVisible = false
     @FocusState private var isTextFieldFocused: Bool
     @State private var match: LauncherMain.Match? = nil
-    
-    @State private var suggestions: [LauncherSuggestion] = [
-      LauncherSuggestion(
-        type: .openedTab, title: "Tab 1",
-        action: { }),
-      LauncherSuggestion(
-        type: .openedTab, title: "Tab 2",
-        action: { }),
-      LauncherSuggestion(
-        type: .suggestedQuery, title: "Search on Google",
-        action: { }),
-      LauncherSuggestion(
-        type: .suggestedLink, title: "Open link", url: URL(string: "https://www.google.com"),
-        action: { }),
-      LauncherSuggestion(
-        type: .aiChat, title: "Grok",
-        action: { }),
-    ]
 
+    var clearOverlay: Bool? = false
     
     private func onTabPress() {
         guard !input.isEmpty else { return }
@@ -62,15 +45,17 @@ struct LauncherView: View {
     
     var body: some View {
         ZStack(alignment: .top) {
-            Color.black.opacity(0.3)
+            Color.black.opacity(clearOverlay! ? 0 : 0.3)
                 .ignoresSafeArea()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
                 .animation(.easeOut(duration: 0.3), value: isVisible)
                 .onTapGesture {
-                    isVisible = false
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        appState.showLauncher = false
+                    if tabManager.activeTab != nil {
+                        isVisible = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                            appState.showLauncher = false
+                        }
                     }
                 }
             
@@ -102,6 +87,9 @@ struct LauncherView: View {
             }
             .onChange(of: appState.showLauncher) { _, newValue in
                 isVisible = newValue
+            }
+            .onChange(of: theme) { _, newValue in
+                searchEngineService.setTheme(newValue)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
