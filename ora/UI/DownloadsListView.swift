@@ -63,7 +63,7 @@ struct DownloadsListView: View {
             }
         }
         .frame(width: 320)
-        .background(theme.windowBackgroundColor)
+//        .background(theme.windowBackgroundColor)
         .cornerRadius(8)
         .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
     }
