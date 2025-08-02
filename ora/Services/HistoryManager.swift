@@ -13,7 +13,13 @@ class HistoryManager: ObservableObject {
         self.modelContainer = modelContainer
         self.modelContext = modelContext
     }
-    public func record(title: String, url: URL, faviconURL: URL? = nil,faviconLocalFile:URL? = nil ) {
+    public func record(
+        title: String,
+        url: URL,
+        faviconURL: URL? = nil,
+        faviconLocalFile:URL? = nil,
+        container: TabContainer
+    ) {
         let urlString = url.absoluteString
         
         // Check if a history record already exists for this URL
@@ -37,14 +43,15 @@ class HistoryManager: ObservableObject {
                 faviconLocalFile: faviconLocalFile,
                 createdAt: now,
                 lastAccessedAt: now,
-                visitCount: 1
+                visitCount: 1,
+                container: container
             ))
         }
         
         try? modelContext.save()
     }
 
-    public func search(_ text: String) -> [History] {
+    public func search(_ text: String,activeContainerId: UUID) -> [History] {
         let trimmedText = text.trimmingCharacters(in: .whitespaces)
         
         // Define the predicate for searching
@@ -55,8 +62,8 @@ class HistoryManager: ObservableObject {
         } else {
             // Case-insensitive substring search on url and title
             predicate = #Predicate { history in
-                history.urlString.localizedStandardContains(trimmedText) ||
-                history.title.localizedStandardContains(trimmedText)
+                (history.urlString.localizedStandardContains(trimmedText) ||
+                 history.title.localizedStandardContains(trimmedText)) && history.container.id == activeContainerId
             }
         }
         

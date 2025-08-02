@@ -33,75 +33,37 @@ struct oraApp: App {
     let historyContext: ModelContext
     let downloadContext: ModelContext
     
-    let tabModelConfiguration = ModelConfiguration(
-        "Tab",
-        schema: Schema([TabContainer.self]),
-        url: URL.applicationSupportDirectory.appending(path: "Tabs.sqlite")
-    )
-    let historyModelConfiguration = ModelConfiguration(
-        "History",
-        schema: Schema([History.self]),
-        url: URL.applicationSupportDirectory.appending(path: "History.sqlite")
-    )
-    let downloadModelConfiguration = ModelConfiguration(
-        "Download",
-        schema: Schema([Download.self]),
-        url: URL.applicationSupportDirectory.appending(path: "Download.sqlite")
+    let modelConfiguration = ModelConfiguration(
+        "OraData",
+        schema: Schema([TabContainer.self, History.self, Download.self]),
+        url: URL.applicationSupportDirectory.appending(path: "OraData.sqlite")
     )
     init() {
         //#if DEBUG
-//        deleteSwiftDataStore("Tabs.sqlite")
-//        deleteSwiftDataStore("History.sqlite")
-//        deleteSwiftDataStore("Download.sqlite")
+//        deleteSwiftDataStore("OraData.sqlite")
         //#endif
 //        
-        // tabs
+        // Create single container for all models
         let container: ModelContainer
         let modelContext: ModelContext
         do {
            
             container = try ModelContainer(
-                for: TabContainer.self,
-                configurations: tabModelConfiguration
+                for: TabContainer.self, History.self, Download.self,
+                configurations: modelConfiguration
             )
             modelContext = ModelContext(container)
         } catch {
             fatalError("Failed to initialize ModelContainer: \(error)")
         }
-        // history
-        let historyContainer: ModelContainer
-        let historyModelContext: ModelContext
-        do {
-           
-            historyContainer = try ModelContainer(
-                for: History.self,
-                configurations: historyModelConfiguration
-            )
-            historyModelContext = ModelContext(historyContainer)
-        } catch {
-            fatalError("Failed to initialize ModelContainer: \(error)")
-        }
-        // downloads
-        let downloadContainer: ModelContainer
-        let downloadModelContext: ModelContext
-        do {
-           
-            downloadContainer = try ModelContainer(
-                for: Download.self,
-                configurations: downloadModelConfiguration
-            )
-            downloadModelContext = ModelContext(downloadContainer)
-        } catch {
-            fatalError("Failed to initialize ModelContainer: \(error)")
-        }
         
         self.tabContext = modelContext
-        self.downloadContext = downloadModelContext
-        self.historyContext = historyModelContext
+        self.downloadContext = modelContext
+        self.historyContext = modelContext
         let historyManagerObj = StateObject(
             wrappedValue: HistoryManager(
-                modelContainer: historyContainer,
-                modelContext: historyModelContext
+                modelContainer: container,
+                modelContext: modelContext
             )
         )
         _historyManager = historyManagerObj
@@ -114,8 +76,8 @@ struct oraApp: App {
         
         _downloadManager = StateObject(
             wrappedValue: DownloadManager(
-                modelContainer: downloadContainer,
-                modelContext: downloadModelContext
+                modelContainer: container,
+                modelContext: modelContext
             )
         )
         

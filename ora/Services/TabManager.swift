@@ -11,7 +11,7 @@ class TabManager: ObservableObject {
     @Published var activeTab: Tab?
     let modelContainer: ModelContainer
     let modelContext: ModelContext
-   
+    
     @Query(sort: \TabContainer.lastAccessedAt, order: .reverse) var containers: [TabContainer]
     
     init(
@@ -20,11 +20,12 @@ class TabManager: ObservableObject {
     ) {
         self.modelContainer = modelContainer
         self.modelContext = modelContext
-
+        
         self.modelContext.undoManager = UndoManager()
         initializeActiveContainerAndTab()
     }
     public func search(_ text: String) -> [Tab] {
+        let activeContainerId = activeContainer?.id ?? UUID()
         let trimmedText = text.trimmingCharacters(in: .whitespaces)
         
         let predicate: Predicate<Tab>
@@ -32,8 +33,13 @@ class TabManager: ObservableObject {
             predicate = #Predicate { _ in true }
         } else {
             predicate = #Predicate { tab in
-                tab.urlString.localizedStandardContains(trimmedText) ||
-                tab.title.localizedStandardContains(trimmedText)
+                (
+                    tab.urlString.localizedStandardContains(trimmedText) ||
+                    tab.title
+                        .localizedStandardContains(
+                            trimmedText
+                        )
+                ) && tab.container.id == activeContainerId
             }
         }
         
@@ -140,21 +146,21 @@ class TabManager: ObservableObject {
         if let lastAccessedContainer = containers.first {
             activeContainer = lastAccessedContainer
             // Get the last accessed tab from the active container
-//            if let lastAccessedTab = lastAccessedContainer.tabs.sorted(by: { $0.lastAccessedAt ?? Date() > $1.lastAccessedAt ?? Date() }).first {
-//                activeTab = lastAccessedTab
-//            } else {
-//                // No tabs, create one
-//                
-//                activeTab = addTab(container: lastAccessedContainer)
-//            }
+            //            if let lastAccessedTab = lastAccessedContainer.tabs.sorted(by: { $0.lastAccessedAt ?? Date() > $1.lastAccessedAt ?? Date() }).first {
+            //                activeTab = lastAccessedTab
+            //            } else {
+            //                // No tabs, create one
+            //
+            //                activeTab = addTab(container: lastAccessedContainer)
+            //            }
         } else {
             // No containers, create one
             let newContainer = addContainer()
             activeContainer = newContainer
-//            activeTab = addTab(container: newContainer)
+            //            activeTab = addTab(container: newContainer)
         }
-       
-//        activeTab?.maybeIsActive = true
+        
+        //        activeTab?.maybeIsActive = true
     }
     
     func addContainer(name: String = "Default", emoji: String = "💩") -> TabContainer {
@@ -242,9 +248,9 @@ class TabManager: ObservableObject {
                 self.activateTab(nextTab)
                 
                 
-//            } else if let nextContainer = containers.first(where: { $0.id != tab.container.id }) {
-//                self.activateContainer(nextContainer)
-//                
+                //            } else if let nextContainer = containers.first(where: { $0.id != tab.container.id }) {
+                //                self.activateContainer(nextContainer)
+                //
             } else {
                 self.activeTab = nil
             }
@@ -321,7 +327,7 @@ class TabManager: ObservableObject {
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         if message.name == "listener",
            let url = message.body as? String {
-
+            
             // You can update the active tab’s url if needed
             DispatchQueue.main.async {
                 self.activeTab?.url = URL(string: url) ?? self.activeTab?.url ?? URL(string: "about:blank")!

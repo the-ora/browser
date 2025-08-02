@@ -12,8 +12,9 @@ final class History {
     var createdAt: Date
     var visitCount: Int
     var lastAccessedAt: Date
+    @Relationship(inverse: \TabContainer.history) var container: TabContainer
     
-    init(id: UUID = UUID(), url: URL, title: String, faviconURL: URL,faviconLocalFile:URL? = nil, createdAt: Date,lastAccessedAt: Date, visitCount: Int) {
+    init(id: UUID = UUID(), url: URL, title: String, faviconURL: URL,faviconLocalFile:URL? = nil, createdAt: Date,lastAccessedAt: Date, visitCount: Int,container: TabContainer) {
         let now = Date()
         self.id = id
         self.url = url
@@ -24,5 +25,6 @@ final class History {
         self.lastAccessedAt = now
         self.visitCount = visitCount
         self.faviconLocalFile = faviconLocalFile
+        self.container = container
     }
 }

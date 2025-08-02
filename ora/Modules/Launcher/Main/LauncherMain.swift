@@ -92,7 +92,10 @@ struct LauncherMain: View {
             suggestions = defaultSuggestions()
             return
         }
-        let histories = historyManager.search(text)
+        let histories = historyManager.search(
+            text,
+            activeContainerId: tabManager.activeContainer?.id ?? UUID()
+        )
         let tabs = tabManager.search(text)
         suggestions = []
         var x  = 0
@@ -107,6 +110,12 @@ struct LauncherMain: View {
                     faviconURL: tab.favicon,
                     faviconLocalFile: tab.faviconLocalFile,
                     action: {
+                        if !tab.isWebViewReady {
+                            tab
+                                .restoreTransientState(
+                                    historyManger: historyManager
+                                )
+                        }
                         tabManager
                             .activateTab(tab)
                     }
