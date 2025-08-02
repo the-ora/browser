@@ -183,7 +183,8 @@ class TabManager: ObservableObject {
             isPlayingMedia: false,
             order: container.tabs.count + 1,
             historyManager: historyManager,
-            downloadManager: downloadManager
+            downloadManager: downloadManager,
+            tabManager: self
         )
         modelContext.insert(newTab)
         container.tabs.append(newTab)
@@ -215,7 +216,8 @@ class TabManager: ObservableObject {
                     isPlayingMedia: false,
                     order: container.tabs.count + 1,
                     historyManager: historyManager,
-                    downloadManager: downloadManager
+                    downloadManager: downloadManager,
+                    tabManager: self
                 )
                 modelContext.insert(newTab)
                 container.tabs.append(newTab)
@@ -257,10 +259,12 @@ class TabManager: ObservableObject {
         } else {
             self.activeTab = activeTab
         }
-        if activeTab?.isWebViewReady != nil, let historyManager = tab.historyManager {
+        if activeTab?.isWebViewReady != nil, let historyManager = tab.historyManager, let downloadManager = tab.downloadManager, let tabManager = tab.tabManager {
             activeTab?
                 .restoreTransientState(
-                    historyManger: historyManager
+                    historyManger: historyManager,
+                    downloadManager: downloadManager,
+                    tabManager: tabManager
                 )
         }
         tab.stopMedia { [weak self] in

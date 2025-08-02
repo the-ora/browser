@@ -49,10 +49,38 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
     var onChange: ((String?, URL?) ->Void)?
     var onStart: (()->Void)?
     weak var tab: Tab?
-    weak var downloadManager: DownloadManager?
     private var downloadDelegates: [UUID: DownloadDelegate] = [:]
     private var isDownloadNavigation = false 
     private var originalURL: URL? 
+
+    // MARK: - Handle cmd+click to open in new tab
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        // Check if command key is pressed (cmd+click)
+        print(navigationAction.modifierFlags,navigationAction.modifierFlags.contains(.command))
+        if navigationAction.modifierFlags.contains(.command),
+           let url = navigationAction.request.url,
+           let tab = self.tab,
+           let tabManager = tab.tabManager,
+           let historyManager = tab.historyManager,
+           let downloadManager = tab.downloadManager {
+            
+            // Open link in new tab
+            DispatchQueue.main.async {
+               tabManager.openTab(
+                    url: url,
+                    historyManager: historyManager,
+                    downloadManager: downloadManager
+                )
+            }
+            
+            // Cancel the current navigation
+            decisionHandler(.cancel)
+            return
+        }
+        
+        // Allow normal navigation
+        decisionHandler(.allow)
+    }
 
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
         if !isDownloadNavigation {
@@ -135,7 +163,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
 
     @available(macOS 11.3, *)
     private func handleDownload(_ download: WKDownload, from url: URL?) {
-        guard let downloadManager = downloadManager, let originalURL = url else { return }
+        guard let downloadManager = tab?.downloadManager, let originalURL = url else { return }
         let downloadDelegate = DownloadDelegate(downloadManager: downloadManager, originalURL: originalURL, wkDownload: download)
         download.delegate = downloadDelegate
         downloadDelegates[downloadDelegate.id] = downloadDelegate

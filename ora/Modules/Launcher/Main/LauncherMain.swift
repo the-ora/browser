@@ -113,7 +113,9 @@ struct LauncherMain: View {
                         if !tab.isWebViewReady {
                             tab
                                 .restoreTransientState(
-                                    historyManger: historyManager
+                                    historyManger: historyManager,
+                                    downloadManager: downloadManager,
+                                    tabManager: tabManager
                                 )
                         }
                         tabManager

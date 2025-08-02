@@ -106,7 +106,8 @@ struct TabItem: View {
                 tab
                     .restoreTransientState(
                         historyManger: historyManager,
-                        downloadManager: downloadManager
+                        downloadManager: downloadManager,
+                        tabManager: tabManager
                     )
             }
         }
@@ -117,7 +118,8 @@ struct TabItem: View {
                     tab
                         .restoreTransientState(
                             historyManger: historyManager,
-                            downloadManager: downloadManager
+                            downloadManager: downloadManager,
+                            tabManager: tabManager
                         )
                 }
             }
@@ -140,7 +142,9 @@ struct TabItem: View {
                 if !tab.isWebViewReady {
                     tab
                         .restoreTransientState(
-                            historyManger: historyManager
+                            historyManger: historyManager,
+                            downloadManager: downloadManager,
+                            tabManager: tabManager
                         )
                 }
             }

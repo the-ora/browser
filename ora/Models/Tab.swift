@@ -36,6 +36,7 @@ class Tab: ObservableObject, Identifiable {
     @Transient @Published var backgroundColor: Color = .black
     @Transient var historyManager: HistoryManager? = nil
     @Transient var downloadManager: DownloadManager? = nil
+    @Transient var tabManager: TabManager? = nil
     // Not persisted: in-memory only
     @Transient var webView: WKWebView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
     @Transient public var navigationDelegate: WebViewNavigationDelegate?
@@ -59,7 +60,8 @@ class Tab: ObservableObject, Identifiable {
         isPlayingMedia:Bool = false,
         order: Int,
         historyManager: HistoryManager? = nil,
-        downloadManager: DownloadManager? = nil
+        downloadManager: DownloadManager? = nil,
+        tabManager: TabManager
     ) {
         let nowDate = Date()
         self.id = id
@@ -86,6 +88,7 @@ class Tab: ObservableObject, Identifiable {
         self.order = order
         self.historyManager = historyManager
         self.downloadManager = downloadManager
+        self.tabManager = tabManager
         
         config.tab = self
         // Configure WebView for performance
@@ -185,7 +188,6 @@ class Tab: ObservableObject, Identifiable {
     private func setupNavigationDelegate() {
         let delegate = WebViewNavigationDelegate()
         delegate.tab = self
-        delegate.downloadManager = self.downloadManager
         delegate.onStart = { [weak self] in
             self?.clearNavigationError()
             self?.maintainSnapShots()
@@ -239,7 +241,7 @@ class Tab: ObservableObject, Identifiable {
         self.updateHeaderColor()
     }
     
-    func restoreTransientState(historyManger: HistoryManager, downloadManager: DownloadManager? = nil) {
+    func restoreTransientState(historyManger: HistoryManager, downloadManager: DownloadManager,tabManager: TabManager) {
         // Avoid double initialization
         if webView.url != nil { return }
         
@@ -258,6 +260,7 @@ class Tab: ObservableObject, Identifiable {
         
         self.historyManager = historyManger
         self.downloadManager = downloadManager
+        self.tabManager = tabManager
         self.isWebViewReady = false
         self.setupNavigationDelegate()
         self.syncBackgroundColorFromHex()
