@@ -97,7 +97,7 @@ struct LauncherSuggestionItem: View {
                 textColor: Color(.secondaryLabelColor)
             )
         } else {
-            Image(systemName: "magnifyingglass")
+            Image(systemName: suggestion.type == .suggestedLink ? "globe" : "magnifyingglass")
                 .resizable()
                 .frame(width: 14, height: 14)
                 .foregroundStyle(
@@ -192,4 +192,4 @@ struct LauncherSuggestionItem: View {
         }
 //        .focused($focusedElement, equals: suggestion.id)
     }
-}
+ }
