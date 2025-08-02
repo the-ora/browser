@@ -6,11 +6,11 @@ enum MoveDirection {
 class Debouncer {
     private var workItem: DispatchWorkItem?
     private let delay: TimeInterval
-
+    
     init(delay: TimeInterval) {
         self.delay = delay
     }
-
+    
     func run(_ block: @escaping @Sendable () async -> Void) {
         workItem?.cancel()
         let item = DispatchWorkItem {
@@ -21,7 +21,7 @@ class Debouncer {
     }
 }
 
-let debouncer = Debouncer(delay: 0.3)
+let debouncer = Debouncer(delay: 0.2)
 
 struct LauncherMain: View {
     struct Match {
@@ -140,20 +140,33 @@ struct LauncherMain: View {
             if let autoSuggestions = searchEngine?.autoSuggestions {
                 let searchSuggestions = await autoSuggestions(text)
                 
-                await MainActor.run {
-                    var x = 0
-                    for ss in searchSuggestions {
-                        if x == 3 { break }
-                        suggestions.insert(
-                            LauncherSuggestion(
-                                type: .suggestedQuery,
-                                title: ss,
-                                action: { onSubmit(ss) }
-                            ),
-                            at: at + x
-                        )
+            await MainActor.run {
+                var x = 0
+                for ss in searchSuggestions {
+                    if x == 3 { break }
+                        let insertIndex = at + x
+                        if insertIndex <= suggestions.count {
+                            suggestions.insert(
+                                LauncherSuggestion(
+                                    type: .suggestedQuery,
+                                    title: ss,
+                                    action: { onSubmit(ss) }
+                                ),
+                                at: insertIndex
+                            )
+                        } else {
+                            suggestions.append(
+                                LauncherSuggestion(
+                                    type: .suggestedQuery,
+                                    title: ss,
+                                    action: { onSubmit(ss) }
+                                )
+                            )
+                        }
+                        
                         x += 1
                     }
+                
                 }
             }
         }
@@ -194,10 +207,10 @@ struct LauncherMain: View {
                             query: text,
                             historyManager: historyManager
                         )
-                    }
-                )
+                }
             )
-
+            )
+            
             suggestions.append( LauncherSuggestion(
                 type: .aiChat,
                 title: text,
@@ -209,8 +222,8 @@ struct LauncherMain: View {
                             query: text,
                             historyManager: historyManager
                         )
-                    }
-                )
+                }
+            )
             )
         }
         focusedElement = suggestions.first?.id ?? UUID()
@@ -346,22 +359,22 @@ struct LauncherMain: View {
 }
 
 func isAISuitableQuery(_ query: String) -> Bool {
-  let lowercased = query.lowercased()
-
-  // AI-suited queries: open-ended, creative, opinion-based, etc.
-  let aiKeywords = [
-    #"^(who|when|where|what|how|why)\b.*\?$"#,  // e.g. "When was Apple founded?"
-    #"^\d{4}"#,
-    "summarize", "rewrite", "explain", "code", "how to", "generate",
-    "idea", "opinion", "feedback", "story", "joke", "email", "draft",
-    "translate", "compare", "alternatives", "improve", "fix", "suggest",
-  ]
-
-  for keyword in aiKeywords {
-    if lowercased.contains(keyword) {
-      return true
+    let lowercased = query.lowercased()
+    
+    // AI-suited queries: open-ended, creative, opinion-based, etc.
+    let aiKeywords = [
+        #"^(who|when|where|what|how|why)\b.*\?$"#,  // e.g. "When was Apple founded?"
+        #"^\d{4}"#,
+        "summarize", "rewrite", "explain", "code", "how to", "generate",
+        "idea", "opinion", "feedback", "story", "joke", "email", "draft",
+        "translate", "compare", "alternatives", "improve", "fix", "suggest",
+    ]
+    
+    for keyword in aiKeywords {
+        if lowercased.contains(keyword) {
+            return true
+        }
     }
-  }
-
-  return false
+    
+    return false
 }

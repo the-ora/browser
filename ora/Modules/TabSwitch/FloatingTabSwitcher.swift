@@ -143,7 +143,9 @@ struct FloatingTabSwitcher: View {
     if let snapshot = tabSnapshots[tab] {
       Image(nsImage: snapshot.image)
         .resizable()
+        .aspectRatio(contentMode: .fill)
         .frame(width: Constants.previewWidth, height: Constants.previewHeight)
+        .clipped()
         .cornerRadius(Constants.cornerRadius)
         .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 4)
         .drawingGroup()
@@ -311,10 +313,9 @@ struct FloatingTabSwitcher: View {
             return
           }
 
-          let nsImage = NSImage(
-            cgImage: cgImage,
-            size: CGSize(width: Constants.previewWidth, height: Constants.previewHeight)
-          )
+          // Preserve the original aspect ratio of the snapshot
+          let originalSize = CGSize(width: cgImage.width, height: cgImage.height)
+          let nsImage = NSImage(cgImage: cgImage, size: originalSize)
 
           self.tabSnapshots[tab] = TabSnapshot(image: nsImage, url: url)
         }
@@ -325,7 +326,7 @@ struct FloatingTabSwitcher: View {
   private func createSnapshotConfiguration(for tab: Tab) -> WKSnapshotConfiguration {
     let config = WKSnapshotConfiguration()
     config.afterScreenUpdates = false
-    config.snapshotWidth = NSNumber(value: Constants.previewWidth)
+    // Don't force a specific width - let the webview determine natural size
     return config
   }
 
