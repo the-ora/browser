@@ -28,8 +28,8 @@ struct LauncherSuggestionsView: View {
         .onAppear {
             searchEngineService.setTheme(theme)
         }
-        .onChange(of: theme) { _, newValue in
-            searchEngineService.setTheme(newValue)
-        }
+        // .onChange(of: theme) { _, newValue in
+        //     searchEngineService.setTheme(newValue)
+        // }
     }
 }
