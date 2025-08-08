@@ -8,6 +8,10 @@ targets:
     deploymentTarget: "14.0"
     sources:
       - path: ora
+    resources:
+      - path: ora/Modules/EmojiPicker/emoji-set.json
+      - path: ora/Resources
+        optional: true
     settings:
       base:
         SWIFT_VERSION: 5.9

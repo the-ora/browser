@@ -155,7 +155,7 @@ class TabManager: ObservableObject {
             //            }
         } else {
             // No containers, create one
-            let newContainer = addContainer()
+            let newContainer = createContainer()
             activeContainer = newContainer
             //            activeTab = addTab(container: newContainer)
         }
@@ -163,13 +163,23 @@ class TabManager: ObservableObject {
         //        activeTab?.maybeIsActive = true
     }
     
-    func addContainer(name: String = "Default", emoji: String = "💩") -> TabContainer {
+    func createContainer(name: String = "Default", emoji: String = "💩") -> TabContainer {
         let newContainer = TabContainer(name: name, emoji: emoji)
         modelContext.insert(newContainer)
         activeContainer = newContainer
         try? modelContext.save()
         //        _ = fetchContainers() // Refresh containers
         return newContainer
+    }
+
+    func renameContainer(_ container: TabContainer, name: String, emoji: String) {
+        container.name = name
+        container.emoji = emoji
+        try? modelContext.save()
+    }
+
+    func deleteContainer(_ container: TabContainer) {
+        modelContext.delete(container)
     }
     
     func addTab(title: String = "Untitled", url: URL = URL(string: "https://www.youtube.com/")!, container: TabContainer, favicon: URL? = nil, historyManager: HistoryManager? = nil, downloadManager: DownloadManager? = nil) -> Tab {

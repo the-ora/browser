@@ -17,15 +17,14 @@ struct FavTabsGrid: View {
       TabContainer
     ) -> Void
 
-  private let columns = Array(repeating: GridItem(spacing: 10), count: 3)
-
-  private var paddingCount: Int {
-    let remainder = tabs.count % 3
-    return remainder == 0 ? 0 : 3 - remainder
+  private var adaptiveColumns: [GridItem] {
+    let maxColumns = 3
+    let columnCount = min(max(1, tabs.count), maxColumns)
+    return Array(repeating: GridItem(spacing: 10), count: columnCount)
   }
 
   var body: some View {
-    LazyVGrid(columns: tabs.isEmpty ? [GridItem(spacing: 10)] : columns, spacing: 10) {
+    LazyVGrid(columns: adaptiveColumns, spacing: 10) {
       if tabs.isEmpty {
         EmptyFavTabItem()
           .onDrop(
@@ -59,7 +58,9 @@ struct FavTabsGrid: View {
           )
         }
       }
-    }.onDrop(
+    }
+    .animation(.easeOut(duration: 0.1), value: adaptiveColumns.count)
+    .onDrop(
       of: [.text],
       delegate: SectionDropDelegate(
         items: tabs,

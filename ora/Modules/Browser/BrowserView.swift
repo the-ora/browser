@@ -214,7 +214,7 @@ struct BrowserContentContainer<Content: View>: View {
               .frame(
                 width: geometry.size.width
                   * CGFloat((tabManager.activeTab?.loadingProgress ?? 10) / 100),
-                height: 3
+                height: 1.5
               )
               .cornerRadius(8)
               .offset(y: -12)  // Overlap slightly with the gradient

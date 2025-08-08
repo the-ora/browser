@@ -12,6 +12,10 @@ struct Theme: Equatable {
     Color(hex: "63411D")
   }
 
+  var accent: Color {
+    Color(hex: "FF5F57")
+  }
+
   var background: Color {
     colorScheme == .dark ? Color(hex: "#141414") : .white
   }

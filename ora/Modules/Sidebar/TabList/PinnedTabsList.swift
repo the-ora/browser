@@ -15,7 +15,9 @@ struct PinnedTabsList: View {
   @Environment(\.theme) var theme
 
   var body: some View {
-      Section(header: Text("Pinned").font(.callout).foregroundColor(theme.mutedForeground).padding(.top, 8)) {
+    Section(
+      header: Text("Pinned").font(.callout).foregroundColor(theme.mutedForeground).padding(.top, 8)
+    ) {
       ForEach(tabs) { tab in
         TabItem(
           tab: tab,

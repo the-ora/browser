@@ -24,40 +24,32 @@ struct DownloadsWidget: View {
                 downloadManager.isDownloadsPopoverOpen.toggle()
             }) {
                 HStack(spacing: 8) {
-                    Image(systemName: "arrow.down.circle")
+                    Image(systemName: "arrow.down")
                         .foregroundColor(downloadButtonColor)
-                        .frame(width: 16, height: 16)
-                    
-                    Text("Downloads")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(theme.foreground)
-                    
-                    Spacer()
-                    
-                    if !downloadManager.recentDownloads.isEmpty {
-                        Text("\(downloadManager.recentDownloads.count)")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(.secondary)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(theme.background.opacity(0.6))
-                            .cornerRadius(8)
-                    }
-                    
-                    Image(systemName: downloadManager.isDownloadsPopoverOpen ? "chevron.up" : "chevron.down")
-                        .foregroundColor(.secondary)
                         .frame(width: 12, height: 12)
+                    
+                    // Text("Downloads")
+                    //     .font(.system(size: 13, weight: .medium))
+                    //     .foregroundColor(theme.foreground)
+                    
+                    // Spacer()
+                    
+                    // if !downloadManager.recentDownloads.isEmpty {
+                    //     Text("\(downloadManager.recentDownloads.count)")
+                    //         .font(.system(size: 11, weight: .medium))
+                    //         .foregroundColor(.secondary)
+                    //         .padding(.horizontal, 6)
+                    //         .padding(.vertical, 2)
+                    //         .background(theme.background.opacity(0.6))
+                    //         .cornerRadius(8)
+                    // }
+                    
+                    // Image(systemName: downloadManager.isDownloadsPopoverOpen ? "chevron.up" : "chevron.down")
+                    //     .foregroundColor(.secondary)
+                    //     .frame(width: 12, height: 12)
                 }
                 .padding(8)
-                .background(
-                    Group {
-                        if isHovered || downloadManager.isDownloadsPopoverOpen {
-                            theme.background.opacity(0.8)
-                        } else {
-                            theme.background.opacity(0.4)
-                        }
-                    }
-                )
+                .background(isHovered ? theme.invertedSolidWindowBackgroundColor.opacity(0.3) : .clear)
                 .cornerRadius(8)
             }
             .buttonStyle(.plain)
