@@ -12,7 +12,7 @@ struct GradientAnimatingBorder: ViewModifier {
         if showBorder {
           ZStack {
             // Glow effect - outer blur
-            RoundedRectangle(cornerRadius: 16.0)
+            RoundedRectangle(cornerRadius: 16.0, style: .continuous)
               .stroke(
                 AngularGradient(
                   gradient: Gradient(colors: [
@@ -34,7 +34,7 @@ struct GradientAnimatingBorder: ViewModifier {
               .opacity(0.9)
 
             // Main border
-            RoundedRectangle(cornerRadius: 16.0)
+            RoundedRectangle(cornerRadius: 16.0, style: .continuous)
               .stroke(
                 AngularGradient(
                   gradient: Gradient(colors: [

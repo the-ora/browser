@@ -224,7 +224,7 @@ struct BrowserContentContainer<Content: View>: View {
           }
           .frame(maxWidth: .infinity, alignment: .leading)
           .clipShape(
-            RoundedRectangle(cornerRadius: isFullscreen && hideState.side == .primary ? 0 : 9)
+            RoundedRectangle(cornerRadius: isFullscreen && hideState.side == .primary ? 0 : 9, style: .continuous)
           )
           .opacity(tabManager.activeTab?.isLoading == true ? 1 : 0)
           .animation(

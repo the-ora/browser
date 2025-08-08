@@ -74,7 +74,7 @@ struct FloatingTabSwitcher: View {
       if tabManager.activeContainer != nil {
         if recentTabs.count == 0 {
           ZStack {
-            RoundedRectangle(cornerRadius: Constants.cornerRadius)
+            RoundedRectangle(cornerRadius: Constants.cornerRadius, style: .continuous)
               .fill(Color.gray.opacity(0.1))
               .frame(width: Constants.previewWidth, height: Constants.previewHeight)
 
@@ -151,7 +151,7 @@ struct FloatingTabSwitcher: View {
         .drawingGroup()
         .overlay(focusBorder(for: tab))
     } else {
-      RoundedRectangle(cornerRadius: Constants.cornerRadius)
+      RoundedRectangle(cornerRadius: Constants.cornerRadius, style: .continuous)
         .fill(Color.gray.opacity(0.3))
         .frame(width: Constants.previewWidth, height: Constants.previewHeight)
         .overlay(focusBorder(for: tab))
@@ -159,7 +159,7 @@ struct FloatingTabSwitcher: View {
   }
 
   private func focusBorder(for tab: Tab) -> some View {
-    RoundedRectangle(cornerRadius: Constants.cornerRadius)
+    RoundedRectangle(cornerRadius: Constants.cornerRadius, style: .continuous)
       .stroke(
         focusedTab == tab.id ? theme.invertedSolidWindowBackgroundColor : Color.clear,
         lineWidth: 2
@@ -186,7 +186,7 @@ struct FloatingTabSwitcher: View {
 
   private var loadingTabView: some View {
     ZStack {
-      RoundedRectangle(cornerRadius: Constants.cornerRadius)
+      RoundedRectangle(cornerRadius: Constants.cornerRadius, style: .continuous)
         .fill(Color.gray)
         .frame(width: Constants.previewWidth, height: Constants.previewHeight)
 
@@ -207,7 +207,7 @@ struct FloatingTabSwitcher: View {
   }
 
   private var containerBorder: some View {
-    RoundedRectangle(cornerRadius: Constants.containerCornerRadius)
+    RoundedRectangle(cornerRadius: Constants.containerCornerRadius, style: .continuous)
       .stroke(Color(.separatorColor), lineWidth: 1.5)
   }
 
