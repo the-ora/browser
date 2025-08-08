@@ -53,7 +53,7 @@ struct NewContainerButton: View {
           }
           .frame(width: 32, height: 32)
           .overlay(
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
               .stroke(
                 emoji.isEmpty ? theme.border : theme.border,
                 style: emoji.isEmpty
@@ -83,7 +83,7 @@ struct NewContainerButton: View {
               }
             }
             .overlay(
-              RoundedRectangle(cornerRadius: 10)
+              RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .stroke(
                   isTextFieldFocused ? theme.foreground.opacity(0.5) : theme.border,
                   lineWidth: isTextFieldFocused ? 2 : 1)

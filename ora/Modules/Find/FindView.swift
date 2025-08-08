@@ -97,7 +97,7 @@ struct FindView: View {
     
     @ViewBuilder
     private var textFieldBorder: some View {
-        RoundedRectangle(cornerRadius: 6)
+        RoundedRectangle(cornerRadius: 6, style: .continuous)
             .stroke(
                 isTextFieldFocused 
                     ? theme.foreground.opacity(0.3)
@@ -215,10 +215,10 @@ struct FindView: View {
     
     @ViewBuilder
     private var navigationButtonsBackground: some View {
-        RoundedRectangle(cornerRadius: 6)
+        RoundedRectangle(cornerRadius: 6, style: .continuous)
             .fill(colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
             .overlay(
-                RoundedRectangle(cornerRadius: 6)
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
                     .stroke(Color.gray.opacity(0.2), lineWidth: 1)
             )
     }
@@ -254,7 +254,7 @@ struct FindView: View {
     
     @ViewBuilder
     private var borderView: some View {
-        RoundedRectangle(cornerRadius: 12)
+        RoundedRectangle(cornerRadius: 12, style: .continuous)
             .stroke(
                 colorScheme == .dark 
                     ? Color.white.opacity(0.2)

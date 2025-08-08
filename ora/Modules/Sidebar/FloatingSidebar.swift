@@ -11,7 +11,7 @@ struct FloatingSidebar: View {
         .background(BlurEffectView(material: .popover, blendingMode: .withinWindow))
         .cornerRadius(8)
         .overlay(
-          RoundedRectangle(cornerRadius: 8)
+          RoundedRectangle(cornerRadius: 8, style: .continuous)
             .stroke(theme.invertedSolidWindowBackgroundColor.opacity(0.3), lineWidth: 1)
         )
     }

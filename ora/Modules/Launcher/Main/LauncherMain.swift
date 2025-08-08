@@ -323,7 +323,7 @@ struct LauncherMain: View {
         .background(BlurEffectView(material: .popover, blendingMode: .withinWindow))
         .cornerRadius(16)
         .overlay(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .inset(by: 0.25)
                 .stroke(
                     Color(match?.color ?? theme.foreground).opacity(0.15),

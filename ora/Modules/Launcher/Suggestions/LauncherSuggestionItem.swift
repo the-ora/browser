@@ -136,7 +136,7 @@ struct LauncherSuggestionItem: View {
                     .frame(width: 12, height: 12)
                     .padding(6)
                     .background(
-                        RoundedRectangle(cornerRadius: 6)
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
                             .fill(
                                 focusedElement == suggestion.id || isHovered
                                 ? theme.foreground : theme.foreground.opacity(0.07)
