@@ -39,9 +39,15 @@ jobs:
           sudo gem install cocoapods
           pod install --repo-update
 
-      - name: Install SwiftLint
+      - name: Install XcodeGen
         run: |
-          brew install swiftlint
+          brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Install SwiftLint
+        run: brew install swiftlint
 
       - name: Run SwiftLint
         run: swiftlint
