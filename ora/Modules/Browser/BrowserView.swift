@@ -25,12 +25,12 @@ struct BrowserView: View {
           } else {
             // Start page (visible when no tab is active)
             BrowserContentContainer(isFullscreen: isFullscreen, hideState: hide) {
-              ZStack {
+              ZStack(alignment: .top) {
                 Color.clear
                   .ignoresSafeArea(.all)
                   .frame(maxWidth: .infinity, maxHeight: .infinity)
                   .contentShape(Rectangle())
-                  .background(theme.background.opacity(0.7))
+                  .background(theme.background.opacity(0.65))
                   .background(
                     BlurEffectView(material: .underWindowBackground, blendingMode: .behindWindow))
 
@@ -48,18 +48,19 @@ struct BrowserView: View {
                 .position(x: 24, y: 24)
                 .zIndex(3)
 
-                Text("Less noise, more browsing.")
-                  .font(.system(size: 16, weight: .semibold))
-                  .foregroundColor(theme.foreground.opacity(0.3))
-                  .offset(x: -10, y: -260)
-                  .zIndex(3)
+                VStack(alignment: .center, spacing: 16) {
+                  Image("ora-logo-plain")
+                    .resizable()
+                    .renderingMode(.template)
+                    .frame(width: 50, height: 50)
+                    .foregroundColor(theme.foreground.opacity(0.3))
 
-                Image("ora-logo-plain")
-                  .resizable()
-                  .renderingMode(.template)
-                  .frame(width: 50, height: 50)
-                  .foregroundColor(theme.foreground.opacity(0.3))
-                  .offset(x: -10, y: -320)
+                  Text("Less noise, more browsing.")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(theme.foreground.opacity(0.3))
+                }
+                .offset(x: -10,y: 120)
+                .zIndex(2)
 
                 LauncherView(clearOverlay: true)
               }
@@ -121,52 +122,52 @@ struct BrowserView: View {
     .animation(.spring(response: 0.25, dampingFraction: 0.9), value: showFloatingSidebar)
   }
 
-    @ViewBuilder
-    private var webView: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            URLBar(
-                onSidebarToggle: {
-                    withAnimation(.spring(response: 0.2, dampingFraction: 1.0))
-                    {
-                        hide.toggle(.primary)  // Toggle sidebar with Cmd+S
-                    }
-                }
+  @ViewBuilder
+  private var webView: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      URLBar(
+        onSidebarToggle: {
+          withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
+            hide.toggle(.primary)  // Toggle sidebar with Cmd+S
+          }
+        }
+      )
+      if let tab = tabManager.activeTab {
+        if tab.isWebViewReady {
+          if tab.hasNavigationError, let error = tab.navigationError {
+            // Show status page for navigation errors
+            StatusPageView(
+              error: error,
+              failedURL: tab.failedURL,
+              onRetry: {
+                tab.retryNavigation()
+              },
+              onGoBack: tab.webView.canGoBack
+                ? {
+                  tab.webView.goBack()
+                  tab.clearNavigationError()
+                } : nil
             )
-            if let tab = tabManager.activeTab {
-                if tab.isWebViewReady {
-                    if tab.hasNavigationError, let error = tab.navigationError {
-                        // Show status page for navigation errors
-                        StatusPageView(
-                            error: error,
-                            failedURL: tab.failedURL,
-                            onRetry: {
-                                tab.retryNavigation()
-                            },
-                            onGoBack: tab.webView.canGoBack ? {
-                                tab.webView.goBack()
-                                tab.clearNavigationError()
-                            } : nil
-                        )
-                        .id(tab.id)
-                    } else {
-                        // Show normal web view
-                        ZStack(alignment: .topTrailing) {
-                            WebView(webView: tab.webView)
-                                .id(tab.id)
+            .id(tab.id)
+          } else {
+            // Show normal web view
+            ZStack(alignment: .topTrailing) {
+              WebView(webView: tab.webView)
+                .id(tab.id)
 
-                            // Floating find view overlay
-                            if appState.showFinderIn == tab.id {
-                                FindView(webView: tab.webView)
-                                    .padding(.top, 16)
-                                    .padding(.trailing, 16)
-                                    .zIndex(1000)
-                            }
-                        }
-                    }
-                } else {
-                    ZStack {
-                        Rectangle()
-                            .fill(theme.background)
+              // Floating find view overlay
+              if appState.showFinderIn == tab.id {
+                FindView(webView: tab.webView)
+                  .padding(.top, 16)
+                  .padding(.trailing, 16)
+                  .zIndex(1000)
+              }
+            }
+          }
+        } else {
+          ZStack {
+            Rectangle()
+              .fill(theme.background)
 
             ProgressView().frame(width: 32, height: 32)
 
@@ -224,7 +225,8 @@ struct BrowserContentContainer<Content: View>: View {
           }
           .frame(maxWidth: .infinity, alignment: .leading)
           .clipShape(
-            RoundedRectangle(cornerRadius: isFullscreen && hideState.side == .primary ? 0 : 9, style: .continuous)
+            RoundedRectangle(
+              cornerRadius: isFullscreen && hideState.side == .primary ? 0 : 9, style: .continuous)
           )
           .opacity(tabManager.activeTab?.isLoading == true ? 1 : 0)
           .animation(

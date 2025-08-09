@@ -15,6 +15,6 @@ struct FloatingSidebar: View {
             .stroke(theme.invertedSolidWindowBackgroundColor.opacity(0.3), lineWidth: 1)
         )
     }
-    .padding(8)
+    .padding(6)
   }
 }
