@@ -1,0 +1,68 @@
+name: build-and-test
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+  pull_request:
+    branches:
+      - main
+      - staging
+
+jobs:
+  build-and-test:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      # Cache SwiftPM dependencies
+      - name: Cache Swift Package Manager
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.swiftpm
+            .build
+          key: ${{ runner.os }}-swiftpm-${{ hashFiles('**/Package.resolved') }}
+
+      # Cache CocoaPods dependencies (if you use CocoaPods)
+      - name: Cache CocoaPods
+        uses: actions/cache@v3
+        with:
+          path: Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
+
+      - name: Install CocoaPods (if needed)
+        if: files.exists('Podfile')
+        run: |
+          sudo gem install cocoapods
+          pod install --repo-update
+
+      - name: Install SwiftLint
+        run: |
+          brew install swiftlint
+
+      - name: Run SwiftLint
+        run: swiftlint
+
+      - name: Build and test
+        run: |
+          xcodebuild clean build test \
+          -scheme Ora \
+          -destination 'platform=macOS,arch=x86_64' \
+          -enableCodeCoverage YES
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: DerivedData/**/Logs/Test/*.xcresult
+
+      - name: Upload code coverage (optional)
+        if: always()
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./DerivedData/**/Logs/Test/*.xcresult
+          fail_ci_if_error: true
