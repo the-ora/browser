@@ -34,7 +34,7 @@ jobs:
           key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
 
       - name: Install CocoaPods (if needed)
-        if: files.exists('Podfile')
+        if: ${{ hashFiles('Podfile') != '' }}
         run: |
           sudo gem install cocoapods
           pod install --repo-update
