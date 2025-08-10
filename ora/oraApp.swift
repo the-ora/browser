@@ -16,11 +16,11 @@ func deleteSwiftDataStore(_ loc: String) {
 class AppState: ObservableObject {
   @Published var showLauncher: Bool = false
   @Published var launcherSearchText: String = ""
-  @Published var showFinderIn: UUID? = nil
+  @Published var showFinderIn: UUID?
   @Published var isFloatingTabSwitchVisible: Bool = false
 }
 @main
-struct oraApp: App {
+struct OraApp: App {
   @StateObject private var appState = AppState()
   @StateObject private var keyModifierListener = KeyModifierListener()
   @StateObject private var appearanceManager = AppearanceManager()
@@ -39,9 +39,9 @@ struct oraApp: App {
     url: URL.applicationSupportDirectory.appending(path: "OraData.sqlite")
   )
   init() {
-    //#if DEBUG
+    // #if DEBUG
     //        deleteSwiftDataStore("OraData.sqlite")
-    //#endif
+    // #endif
     //
     // Create single container for all models
     let container: ModelContainer

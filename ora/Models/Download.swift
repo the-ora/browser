@@ -23,12 +23,12 @@ class Download: ObservableObject, Identifiable {
     var createdAt: Date
     var completedAt: Date?
     var error: String?
-    
+
     @Transient @Published var isActive: Bool = false
     @Transient @Published var displayProgress: Double = 0.0
     @Transient @Published var displayDownloadedBytes: Int64 = 0
     @Transient @Published var displayFileSize: Int64 = 0
-    
+
     init(
         id: UUID = UUID(),
         originalURL: URL,
@@ -44,18 +44,18 @@ class Download: ObservableObject, Identifiable {
         self.status = .pending
         self.progress = 0.0
         self.createdAt = Date()
-        
+
         // Initialize published properties
         self.displayFileSize = fileSize
         self.displayDownloadedBytes = 0
         self.displayProgress = 0.0
     }
-    
+
     func updateProgress(downloadedBytes: Int64, totalBytes: Int64) {
         self.downloadedBytes = downloadedBytes
         self.fileSize = totalBytes
         self.progress = totalBytes > 0 ? Double(downloadedBytes) / Double(totalBytes) : 0.0
-        
+
         // Update published properties for UI
         DispatchQueue.main.async {
             self.displayDownloadedBytes = downloadedBytes
@@ -63,7 +63,7 @@ class Download: ObservableObject, Identifiable {
             self.displayProgress = self.progress
         }
     }
-    
+
     func markCompleted(destinationURL: URL) {
         self.status = .completed
         self.progress = 1.0
@@ -71,23 +71,23 @@ class Download: ObservableObject, Identifiable {
         self.completedAt = Date()
         self.isActive = false
     }
-    
+
     func markFailed(error: String) {
         self.status = .failed
         self.error = error
         self.isActive = false
     }
-    
+
     func markCancelled() {
         self.status = .cancelled
         self.isActive = false
     }
-    
+
     var formattedFileSize: String {
         return ByteCountFormatter.string(fromByteCount: displayFileSize > 0 ? displayFileSize : fileSize, countStyle: .file)
     }
-    
+
     var formattedDownloadedSize: String {
         return ByteCountFormatter.string(fromByteCount: displayDownloadedBytes, countStyle: .file)
     }
-} 
+}

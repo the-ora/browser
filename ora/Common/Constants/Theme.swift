@@ -1,6 +1,7 @@
 import AppKit
 import SwiftUI
 
+// swiftlint:disable identifier_name
 struct Theme: Equatable {
   let colorScheme: ColorScheme
 
@@ -142,11 +143,5 @@ struct ThemeProvider: ViewModifier {
 
   func body(content: Content) -> some View {
     content.environment(\.theme, Theme(colorScheme: colorScheme))
-  }
-}
-
-extension View {
-  func withTheme() -> some View {
-    self.modifier(ThemeProvider())
   }
 }

@@ -7,7 +7,7 @@ struct NavigationButton: View {
     let foregroundColor: Color
     let action: () -> Void
     @State private var isHovering = false
-    
+
     var body: some View {
         Button(action: action) {
             Image(systemName: systemName)
@@ -26,4 +26,3 @@ struct NavigationButton: View {
         }
     }
 }
-

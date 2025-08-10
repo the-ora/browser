@@ -35,7 +35,7 @@ struct Global: Decodable {}
 enum SpaceItem: Decodable {
     case id(String)
     case custom(CustomInfo)
-    
+
     struct CustomInfo: Decodable {
         let customInfo: IconWrapper
         let title: String?
@@ -48,6 +48,7 @@ enum SpaceItem: Decodable {
     }
 
     struct IconType: Decodable {
+        // swiftlint:disable:next identifier_name
         let emoji_v2: String?
         let emoji: Int?
     }
@@ -182,14 +183,14 @@ func inspectItems(_ root: Root) -> Result {
 //        print("Container \(index):")
 
         // Inspect spaces
-        
+
         if let spaces = container.spaces {
 //            print("  has \(spaces.count) spaces")
             for item in spaces {
                 switch item {
                 case .custom(let customInfo):
                     var cleanSpace = CleanSpace(
-                        emoji:customInfo.customInfo.iconType.emoji_v2,
+                        emoji: customInfo.customInfo.iconType.emoji_v2,
                         title: customInfo.title,
                         containerIDs: []
                     )
@@ -199,7 +200,7 @@ func inspectItems(_ root: Root) -> Result {
                     }
                     cleanSpace.containerIDs
                         .insert(customInfo.id)
-                    
+
                     cleanSpaces.append(cleanSpace)
                 case .id(let id):
                     print("    Space ID: \(id)")
@@ -208,7 +209,6 @@ func inspectItems(_ root: Root) -> Result {
         } else {
 //            print("  no spaces")
         }
-       
 
         // Inspect items with detailed output
         if let items = container.items {
@@ -222,7 +222,7 @@ func inspectItems(_ root: Root) -> Result {
                     idCount += 1
                     print("      ID: \(id)")
                 case .object(let itemObject):
-                    
+
                     objectCount += 1
 //                    print("      Object:")
 //                    print("        ID: \(itemObject.id)")
@@ -234,7 +234,7 @@ func inspectItems(_ root: Root) -> Result {
 //                    print("        Children IDs: \(itemObject.childrenIds)")
                     if let data = itemObject.data {
                         if let tab = data.tab {
-                            if let parentID = itemObject.parentID,let urlString = tab.savedURL {
+                            if let parentID = itemObject.parentID, let urlString = tab.savedURL {
                                 cleanTabs.append(
                                     CleanTab(
                                         title: tab.savedTitle ?? "New Tab",
@@ -262,8 +262,7 @@ func inspectItems(_ root: Root) -> Result {
         } else {
 //            print("  no items")
         }
-       
-       
+
         // Inspect topAppsContainerIDs
         if let topApps = container.topAppsContainerIDs {
 //            print("  has \(topApps.count) topAppsContainerIDs")
@@ -288,6 +287,6 @@ func inspectItems(_ root: Root) -> Result {
         result.favs.insert(tid)
     }
 //    return []
-    
+
     return result
 }

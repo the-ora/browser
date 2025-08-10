@@ -21,7 +21,7 @@ struct FavTabItem: View {
 
   var body: some View {
     ZStack {
-      if let favicon = tab.favicon,tab.isWebViewReady {
+      if let favicon = tab.favicon, tab.isWebViewReady {
           AsyncImage(
             url: favicon
           ) { image in
@@ -77,7 +77,7 @@ struct FavTabItem: View {
           .stroke(
             theme.invertedSolidWindowBackgroundColor.opacity(0.25),
             style: StrokeStyle(lineWidth: 1, dash: [5, 5]))
-        : isSelected 
+        : isSelected
           ? RoundedRectangle(cornerRadius: 10, style: .continuous)
             .stroke(
               theme.invertedSolidWindowBackgroundColor,

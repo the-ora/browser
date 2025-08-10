@@ -14,7 +14,7 @@ struct LauncherSuggestion: Identifiable {
     let faviconURL: URL?
     let faviconLocalFile: URL?
     let action: () -> Void
-    
+
     init(
         type: LauncherSuggestionType,
         title: String,
@@ -40,11 +40,11 @@ struct LauncherSuggestionItem: View {
     let suggestion: LauncherSuggestion
     let defaultAI: SearchEngine?
     @Binding var focusedElement: UUID
-    
+
     @State private var isHovered = false
     @Environment(\.theme) private var theme
     @EnvironmentObject var appState: AppState
-    
+
     init(suggestion: LauncherSuggestion, defaultAI: SearchEngine?, focusedElement: Binding<UUID>) {
            self.suggestion = suggestion
            self.defaultAI = defaultAI
@@ -53,11 +53,11 @@ struct LauncherSuggestionItem: View {
     private var isAIChat: Bool {
         suggestion.type == .aiChat
     }
-    
+
     private var shouldShowURL: Bool {
         suggestion.url != nil && !isAIChat && suggestion.type != .suggestedQuery && suggestion.type != .openedTab
     }
-    
+
     private var foregroundColor: Color {
         if (focusedElement == suggestion.id || isHovered) && isAIChat {
             return defaultAI?.foregroundColor ?? .secondary
@@ -66,21 +66,21 @@ struct LauncherSuggestionItem: View {
         }
         return .secondary
     }
-    
+
     private var backgroundColor: Color {
         if focusedElement != suggestion.id || isHovered { return .clear }
         return isAIChat
         ? defaultAI?.color ?? .clear
         : isHovered ? theme.foreground.opacity(0.07) : theme.foreground.opacity(0.1)
     }
-    
+
     private var aiIcon: String {
         guard isAIChat && defaultAI?.icon != nil else { return "" }
         return focusedElement == suggestion.id || isHovered
         ? defaultAI!.icon
         : defaultAI!.icon + "-inverted"
     }
-    
+
     @ViewBuilder
     var icon: some View {
         if isAIChat && defaultAI?.icon != nil {
@@ -105,7 +105,7 @@ struct LauncherSuggestionItem: View {
                     ? theme.foreground : .secondary)
         }
     }
-    
+
     @ViewBuilder
     var actionLabel: some View {
         if isAIChat {
@@ -130,7 +130,7 @@ struct LauncherSuggestionItem: View {
                     .foregroundStyle(
                         focusedElement == suggestion.id || isHovered
                         ? theme.foreground : .secondary)
-                        
+
                 Image(systemName: "arrow.right")
                     .resizable()
                     .frame(width: 12, height: 12)
@@ -145,7 +145,7 @@ struct LauncherSuggestionItem: View {
                     .foregroundStyle(
                         focusedElement == suggestion.id || isHovered
                         ? theme.background : .secondary)
-                    
+
             }
             // .padding(.horizontal, 8)
             // .padding(.vertical, 4)
@@ -153,7 +153,7 @@ struct LauncherSuggestionItem: View {
             .cornerRadius(6)
         }
     }
-    
+
     var body: some View {
         HStack(alignment: .center, spacing: 8) {
             icon
@@ -163,7 +163,7 @@ struct LauncherSuggestionItem: View {
                     .foregroundStyle(foregroundColor)
                     .lineLimit(1)
                     .truncationMode(.tail)
-                
+
                 if shouldShowURL {
                     Text(" — \(suggestion.url?.absoluteString ?? "")")
                         .font(.system(size: 13))

@@ -16,12 +16,12 @@ public class LayoutHolder: ObservableObject {
             setter?(value)
         }
     }
-    public var getter: (()->SplitLayout)?
-    public var setter: ((SplitLayout)->Void)?
-    
+    public var getter: (() -> SplitLayout)?
+    public var setter: ((SplitLayout) -> Void)?
+
     public var isHorizontal: Bool { value == .horizontal }
-    
-    public init(_ layout: SplitLayout? = nil, getter: (()->SplitLayout)? = nil, setter: ((SplitLayout)->Void)? = nil) {
+
+    public init(_ layout: SplitLayout? = nil, getter: (() -> SplitLayout)? = nil, setter: ((SplitLayout) -> Void)? = nil) {
         value = getter?() ?? layout ?? .horizontal
         self.getter = getter
         self.setter = setter
@@ -44,7 +44,7 @@ public class LayoutHolder: ObservableObject {
             }
         )
     }
-    
+
     public func toggle() {
         value = value == .horizontal ? .vertical : .horizontal
     }
@@ -61,10 +61,10 @@ public class FractionHolder: ObservableObject {
             setter?(value)
         }
     }
-    public var getter: (()->CGFloat)?
-    public var setter: ((CGFloat)->Void)?
-    
-    public init(_ fraction: CGFloat? = nil, getter: (()->CGFloat)? = nil, setter: ((CGFloat)->Void)? = nil) {
+    public var getter: (() -> CGFloat)?
+    public var setter: ((CGFloat) -> Void)?
+
+    public init(_ fraction: CGFloat? = nil, getter: (() -> CGFloat)? = nil, setter: ((CGFloat) -> Void)? = nil) {
         value = getter?() ?? fraction ?? 0.5
         self.getter = getter
         self.setter = setter
@@ -88,16 +88,16 @@ public class SideHolder: ObservableObject {
             setter?(value)
         }
     }
-    public var getter: (()->SplitSide?)?
-    public var setter: ((SplitSide?)->Void)?
+    public var getter: (() -> SplitSide?)?
+    public var setter: ((SplitSide?) -> Void)?
     public var side: SplitSide? {
         get { value }
         set { setValue(newValue) }
     }
     public var oldSide: SplitSide? { oldValue }
     private var oldValue: SplitSide?
-    
-    public init(_ hide: SplitSide? = nil, getter: (()->SplitSide?)? = nil, setter: ((SplitSide?)->Void)? = nil) {
+
+    public init(_ hide: SplitSide? = nil, getter: (() -> SplitSide?)? = nil, setter: ((SplitSide?) -> Void)? = nil) {
         let value = getter?() ?? hide
         self.value = value
         self.getter = getter
@@ -107,12 +107,12 @@ public class SideHolder: ObservableObject {
         // or toggle(.left) or toggle(.top). See discussion below in the toggle method.
         oldValue = value == nil ? .secondary : nil
     }
-    
+
     /// Hide the `side`.
     public func hide(_ side: SplitSide) {
         setValue(side)
     }
-    
+
     /// Toggle whether `side` is hidden or not. 
     ///
     /// For example, multiple invocations of `toggle(.primary)` will alternate between the
@@ -134,14 +134,14 @@ public class SideHolder: ObservableObject {
             setValue(side)
         }
     }
-    
+
     private func setValue(_ side: SplitSide?) {
         guard value != side else { return }
         let oldSide = value
         value = side
         oldValue = oldSide
     }
-    
+
     public static func usingUserDefaults(_ hide: SplitSide? = nil, key: String) -> SideHolder {
         SideHolder(
             hide,

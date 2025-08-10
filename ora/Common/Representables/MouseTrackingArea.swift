@@ -2,8 +2,8 @@ import SwiftUI
 
 struct MouseTrackingArea: NSViewRepresentable {
   @Binding var mouseEntered: Bool
-  var xExit: CGFloat? = nil
-  var yExit: CGFloat? = nil
+  var xExit: CGFloat?
+  var yExit: CGFloat?
 
   func makeNSView(context: Context) -> NSView {
     TrackingStrip(mouseEntered: _mouseEntered, xExit: xExit, yExit: yExit)

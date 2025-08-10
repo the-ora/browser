@@ -5,14 +5,13 @@ import AppKit
 struct URLBar: View {
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var appState: AppState
-    
+
     @State private var editingURLString: String = ""
     @FocusState private var isEditing: Bool
     @Environment(\.colorScheme) var colorScheme
-    
-    
+
     let onSidebarToggle: () -> Void
-    
+
     private func getForegroundColor(_ tab: Tab) -> Color {
         // Convert backgroundColor to NSColor for luminance calculation
         let nsColor = NSColor(tab.backgroundColor)
@@ -29,11 +28,11 @@ struct URLBar: View {
     private func getUrlFieldColor(_ tab: Tab) -> Color {
         return tabManager.activeTab.map { getForegroundColor($0).opacity(isEditing ? 1.0 : 0.5) } ?? .gray
     }
-    
+
     var buttonForegroundColor: Color {
         return tabManager.activeTab.map { getForegroundColor($0).opacity(0.5) } ?? .gray
     }
-    
+
     var body: some View {
         HStack(spacing: 12) {
             // Navigation buttons
@@ -47,7 +46,7 @@ struct URLBar: View {
                         action: onSidebarToggle
                     )
                     .keyboardShortcut(KeyboardShortcuts.App.toggleSidebar)
-                    
+
                     // Back button
                     NavigationButton(
                         systemName: "chevron.left",
@@ -60,7 +59,7 @@ struct URLBar: View {
                         }
                     )
                     .keyboardShortcut(KeyboardShortcuts.Navigation.back)
-                    
+
                     // Forward button
                     NavigationButton(
                         systemName: "chevron.right",
@@ -73,7 +72,7 @@ struct URLBar: View {
                         }
                     )
                     .keyboardShortcut(KeyboardShortcuts.Navigation.forward)
-                    
+
                     // Reload button
                     NavigationButton(
                         systemName: "arrow.clockwise",
@@ -86,10 +85,7 @@ struct URLBar: View {
                         }
                     )
                     .keyboardShortcut(KeyboardShortcuts.Navigation.reload)
-                    
-                    
-                    
-                    
+
                     // URL field
                     HStack(spacing: 8) {
                         // Security indicator
@@ -108,7 +104,7 @@ struct URLBar: View {
                             }
                             .frame(width: 16, height: 16)
                         }
-                        
+
                         TextField("", text: $editingURLString)
                             .font(.system(size: 14))
                             .textFieldStyle(PlainTextFieldStyle())
@@ -145,9 +141,9 @@ struct URLBar: View {
                                     .stroke(isEditing ? getUrlFieldColor(tab).opacity(0.5) : Color.clear, lineWidth: 1)
                             )
                     )
-                    
+
                     Spacer()
-                    
+
                     // Action buttons
                     HStack(spacing: 8) {
                         Button(action: {}) {
@@ -156,7 +152,7 @@ struct URLBar: View {
                                 .foregroundColor(.secondary)
                         }
                         .buttonStyle(PlainButtonStyle())
-                        
+
                         Button(action: {}) {
                             Image(systemName: "ellipsis")
                                 .font(.system(size: 14))
@@ -187,7 +183,7 @@ struct URLBar: View {
                     Rectangle()
                         .fill(tab.backgroundColor)
                 )
-                
+
             }
         }
     }

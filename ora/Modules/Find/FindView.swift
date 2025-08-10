@@ -17,11 +17,11 @@ struct FindView: View {
     @Environment(\.theme) var theme
     @Environment(\.colorScheme) var colorScheme
     private let controller: FindController
-    
+
     init(webView: WKWebView) {
         self.controller = FindController(webView: webView)
     }
-    
+
     var body: some View {
         HStack(spacing: 12) {
             // searchIcon
@@ -50,14 +50,14 @@ struct FindView: View {
             }
         }
     }
-    
+
     @ViewBuilder
     private var searchIcon: some View {
         Image(systemName: "magnifyingglass")
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(colorScheme == .dark ? .white.opacity(0.8) : .black.opacity(0.7))
     }
-    
+
     @ViewBuilder
     private var searchTextField: some View {
         TextField("Find in page", text: $searchText)
@@ -71,7 +71,7 @@ struct FindView: View {
             .cornerRadius(6)
             .overlay(textFieldBorder)
             .focused($isTextFieldFocused)
-            .onChange(of: searchText) { oldValue, newValue in
+            .onChange(of: searchText) { _, newValue in
                 Task { @MainActor in
                     handleSearchTextChange(newValue)
                 }
@@ -88,24 +88,24 @@ struct FindView: View {
                 return .handled
             }
     }
-    
+
     @ViewBuilder
     private var textFieldBackground: some View {
         Rectangle()
             .fill(theme.mutedBackground)
     }
-    
+
     @ViewBuilder
     private var textFieldBorder: some View {
         RoundedRectangle(cornerRadius: 6, style: .continuous)
             .stroke(
-                isTextFieldFocused 
+                isTextFieldFocused
                     ? theme.foreground.opacity(0.3)
-                    : theme.border, 
+                    : theme.border,
                 lineWidth: 1
             )
     }
-    
+
     @ViewBuilder
     private var matchCounter: some View {
         // Fixed width container to prevent jumping
@@ -127,7 +127,7 @@ struct FindView: View {
         }
         .frame(minWidth: 80) // Fixed minimum width
     }
-    
+
     @ViewBuilder
     private var matchCounterBadge: some View {
         HStack(spacing: 3) {
@@ -147,7 +147,7 @@ struct FindView: View {
         .padding(.vertical, 4)
         .background(Capsule().fill(Color.blue.opacity(0.8)))
     }
-    
+
     @ViewBuilder
     private var noMatchesBadge: some View {
         Text("No matches")
@@ -157,7 +157,7 @@ struct FindView: View {
             .padding(.vertical, 4)
             .background(Capsule().fill(Color.red.opacity(0.7)))
     }
-    
+
     @ViewBuilder
     private var navigationButtons: some View {
         HStack(spacing: 2) {
@@ -167,7 +167,7 @@ struct FindView: View {
         }
         .background(navigationButtonsBackground)
     }
-    
+
     @ViewBuilder
     private var previousButton: some View {
         Button(action: {
@@ -186,7 +186,7 @@ struct FindView: View {
             isEnabled: !(searchText.isEmpty || matchCount == 0)
         ))
     }
-    
+
     @ViewBuilder
     private var nextButton: some View {
         Button(action: {
@@ -205,14 +205,14 @@ struct FindView: View {
             isEnabled: !(searchText.isEmpty || matchCount == 0)
         ))
     }
-    
+
     @ViewBuilder
     private var buttonSeparator: some View {
         Rectangle()
             .fill(Color.gray.opacity(0.3))
             .frame(width: 1, height: 20)
     }
-    
+
     @ViewBuilder
     private var navigationButtonsBackground: some View {
         RoundedRectangle(cornerRadius: 6, style: .continuous)
@@ -222,7 +222,7 @@ struct FindView: View {
                     .stroke(Color.gray.opacity(0.2), lineWidth: 1)
             )
     }
-    
+
     @ViewBuilder
     private var closeButton: some View {
         Button(action: {
@@ -237,7 +237,7 @@ struct FindView: View {
         }
         .buttonStyle(PlainButtonStyle())
     }
-    
+
     @ViewBuilder
     private var backgroundView: some View {
         Rectangle()
@@ -245,26 +245,26 @@ struct FindView: View {
             .overlay(
                 Rectangle()
                     .fill(
-                        colorScheme == .dark 
+                        colorScheme == .dark
                             ? Color.black.opacity(0.3)
                             : Color.white.opacity(0.7)
                     )
             )
     }
-    
+
     @ViewBuilder
     private var borderView: some View {
         RoundedRectangle(cornerRadius: 12, style: .continuous)
             .stroke(
-                colorScheme == .dark 
+                colorScheme == .dark
                     ? Color.white.opacity(0.2)
                     : Color.black.opacity(0.1),
                 lineWidth: 1
             )
     }
-    
+
     // MARK: - Action Handlers
-    
+
     private func handleSearchTextChange(_ newValue: String) {
         if !newValue.isEmpty {
             controller.highlight(newValue)
@@ -275,19 +275,19 @@ struct FindView: View {
             currentMatch = 0
         }
     }
-    
+
     private func handleSearchSubmit() {
         if !searchText.isEmpty {
             controller.nextMatch()
             updateCurrentMatch()
         }
     }
-    
+
     private func handleEscapeKey() {
         controller.clearMatches()
         appState.showFinderIn = nil
     }
-    
+
     private func updateMatchCount() {
         controller.getMatchInfo { current, total in
             DispatchQueue.main.async {
@@ -296,7 +296,7 @@ struct FindView: View {
             }
         }
     }
-    
+
     private func updateCurrentMatch() {
         controller.getMatchInfo { current, total in
             DispatchQueue.main.async {
@@ -311,7 +311,7 @@ struct EnhancedFindButtonStyle: ButtonStyle {
     let colorScheme: ColorScheme
     let isEnabled: Bool
     @State private var isHovering = false
-    
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .foregroundColor(buttonForegroundColor(configuration))
@@ -326,7 +326,7 @@ struct EnhancedFindButtonStyle: ButtonStyle {
                 }
             }
     }
-    
+
     private func buttonForegroundColor(_ configuration: Configuration) -> Color {
         if !isEnabled {
             return colorScheme == .dark ? .white.opacity(0.3) : .black.opacity(0.3)
@@ -338,7 +338,7 @@ struct EnhancedFindButtonStyle: ButtonStyle {
             return colorScheme == .dark ? .white.opacity(0.7) : .black.opacity(0.6)
         }
     }
-    
+
     private func buttonBackgroundColor(_ configuration: Configuration) -> Color {
         if !isEnabled {
             return Color.clear

@@ -4,9 +4,9 @@ import SwiftUI
 struct LocalFavIcon: View {
     let faviconLocalFile: URL?
     let textColor: Color
-    
+
     @State private var image: NSImage?
-    
+
     var body: some View {
         if let image = image {
             Image(nsImage: image)
@@ -23,11 +23,11 @@ struct LocalFavIcon: View {
                 .onAppear(perform: loadFavicon)
         }
     }
-    
+
     private func loadFavicon() {
         guard let localURL = faviconLocalFile,
               FileManager.default.fileExists(atPath: localURL.path) else { return }
-        
+
         // Loading may block briefly, so you can even do it async if needed
         DispatchQueue.global(qos: .utility).async {
             if let loadedImage = NSImage(contentsOfFile: localURL.path) {
@@ -38,16 +38,16 @@ struct LocalFavIcon: View {
         }
     }
 }
-struct FavIcon:  View {
+struct FavIcon: View {
     let isWebViewReady: Bool
     let favicon: URL?
     let faviconLocalFile: URL?
     let textColor: Color
-    
+
     var body: some View {
-        
+
         HStack {
-            if let favicon = favicon, isWebViewReady{
+            if let favicon = favicon, isWebViewReady {
                     AsyncImage(
                         url: favicon
                     ) { image in
@@ -68,7 +68,7 @@ struct FavIcon:  View {
                 )
             }
         }
-        .frame(width:16,height: 16)
+        .frame(width: 16, height: 16)
     }
 }
 
@@ -85,10 +85,10 @@ struct TabItem: View {
     @EnvironmentObject var historyManager: HistoryManager
     @EnvironmentObject var downloadManager: DownloadManager
     let availableContainers: [TabContainer]
-    
+
     @Environment(\.theme) private var theme
     @State private var isHovering = false
-    
+
     var body: some View {
         HStack {
             FavIcon(
@@ -129,7 +129,7 @@ struct TabItem: View {
         .background(backgroundColor)
         .cornerRadius(10)
         .overlay(
-            isDragging ? 
+            isDragging ?
             RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .stroke(
                         theme.invertedSolidWindowBackgroundColor.opacity(0.25),
@@ -154,16 +154,14 @@ struct TabItem: View {
         .contextMenu { contextMenuItems }
         .animation(.spring(response: 0.2, dampingFraction: 0.8), value: isDragging)
     }
-    
-    
-    
+
     private var tabTitle: some View {
         Text(tab.title)
             .font(.system(size: 13))
             .foregroundColor(textColor)
             .lineLimit(1)
     }
-    
+
     private var backgroundColor: Color {
         if isDragging {
             return theme.activeTabBackground.opacity(0.1)
@@ -174,11 +172,11 @@ struct TabItem: View {
         }
         return .clear
     }
-    
+
     private var textColor: Color {
         isSelected ? .white : theme.foreground
     }
-    
+
     @ViewBuilder
     private var actionButton: some View {
         if isHovering && tab.type == .pinned && !tab.isWebViewReady {
@@ -187,7 +185,7 @@ struct TabItem: View {
             ActionButton(icon: "xmark", color: textColor, action: onClose).help("Close Tab")
         }
     }
-    
+
     @ViewBuilder
     private var contextMenuItems: some View {
         Button(action: onPinToggle) {
@@ -195,15 +193,15 @@ struct TabItem: View {
                 tab.type == .pinned ? "Unpin Tab" : "Pin Tab",
                 systemImage: tab.type == .pinned ? "pin.slash" : "pin")
         }
-        
+
         Button(action: onFavoriteToggle) {
             Label(
                 tab.type == .fav ? "Remove from Favorites" : "Add to Favorites",
                 systemImage: tab.type == .fav ? "star.slash" : "star")
         }
-        
+
         Divider()
-        
+
         Menu("Move to Container") {
             ForEach(availableContainers) { container in
                 if tab.container.id != tabManager.activeContainer?.id {
@@ -217,9 +215,9 @@ struct TabItem: View {
                 }
             }
         }
-        
+
         Divider()
-        
+
         Button(role: .destructive, action: onClose) {
             Label("Close Tab", systemImage: "xmark")
         }

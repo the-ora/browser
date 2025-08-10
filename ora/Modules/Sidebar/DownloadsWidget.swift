@@ -4,7 +4,7 @@ struct DownloadsWidget: View {
     @EnvironmentObject var downloadManager: DownloadManager
     @Environment(\.theme) private var theme
     @State private var isHovered = false
-    
+
     var body: some View {
         VStack(spacing: 0) {
             // Active downloads
@@ -18,7 +18,7 @@ struct DownloadsWidget: View {
                 }
                 .padding(.bottom, 8)
             }
-            
+
             // Downloads button
             Button(action: {
                 downloadManager.isDownloadsPopoverOpen.toggle()
@@ -27,13 +27,13 @@ struct DownloadsWidget: View {
                     Image(systemName: "arrow.down")
                         .foregroundColor(downloadButtonColor)
                         .frame(width: 12, height: 12)
-                    
+
                     // Text("Downloads")
                     //     .font(.system(size: 13, weight: .medium))
                     //     .foregroundColor(theme.foreground)
-                    
+
                     // Spacer()
-                    
+
                     // if !downloadManager.recentDownloads.isEmpty {
                     //     Text("\(downloadManager.recentDownloads.count)")
                     //         .font(.system(size: 11, weight: .medium))
@@ -43,7 +43,7 @@ struct DownloadsWidget: View {
                     //         .background(theme.background.opacity(0.6))
                     //         .cornerRadius(8)
                     // }
-                    
+
                     // Image(systemName: downloadManager.isDownloadsPopoverOpen ? "chevron.up" : "chevron.down")
                     //     .foregroundColor(.secondary)
                     //     .frame(width: 12, height: 12)
@@ -64,7 +64,7 @@ struct DownloadsWidget: View {
             }
         }
     }
-    
+
     private var downloadButtonColor: Color {
         if !downloadManager.activeDownloads.isEmpty {
             return .blue
@@ -74,4 +74,4 @@ struct DownloadsWidget: View {
             return .secondary
         }
     }
-} 
+}

@@ -48,7 +48,7 @@ class EmojiViewModel: ObservableObject {
         "Travel, Places & Activities",
         "Objects",
         "Symbols",
-        "Flags",
+        "Flags"
       ]
 
       var result: [EmojiCategory] = []
@@ -63,7 +63,7 @@ class EmojiViewModel: ObservableObject {
           : subcategoryOrder.flatMap { subcat in
             guard let items = subcategories[subcat] as? [[String: Any]] else { return [] }
             return items.compactMap(EmojiItem.init(from:))
-          } as! [EmojiItem]
+          }
 
         result.append(EmojiCategory(category: category, emojis: emojis))
       }
@@ -94,17 +94,17 @@ class EmojiViewModel: ObservableObject {
         "hand-fingers-closed", "hands", "hand-prop", "body-parts",
         "person", "person-gesture", "person-role", "person-fantasy",
         "person-activity", "person-sport", "person-resting",
-        "family", "person-symbol",
+        "family", "person-symbol"
       ]
     case "Animals & Nature":
       return [
         "animal-mammal", "animal-bird", "animal-amphibian", "animal-reptile",
-        "animal-marine", "animal-bug", "plant-flower", "plant-other",
+        "animal-marine", "animal-bug", "plant-flower", "plant-other"
       ]
     case "Food & Drink":
       return [
         "food-fruit", "food-vegetable", "food-prepared", "food-asian",
-        "food-marine", "food-sweet", "drink",
+        "food-marine", "food-sweet", "drink"
       ]
     default:
       return []
@@ -113,7 +113,8 @@ class EmojiViewModel: ObservableObject {
 
   var filteredEmojis: [EmojiItem] {
     guard !searchText.isEmpty else {
-      return selectedCategory
+      return
+        selectedCategory
         .flatMap { category in categories.first(where: { $0.category == category })?.emojis }
         ?? []
     }

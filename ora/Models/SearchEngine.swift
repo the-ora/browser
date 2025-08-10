@@ -8,8 +8,8 @@ struct SearchEngine {
     let searchURL: String
     let isAIChat: Bool
     let foregroundColor: Color?
-    let autoSuggestions: ((String) async ->[String])?
-    
+    let autoSuggestions: ((String) async -> [String])?
+
     init(
         name: String,
         color: Color,
@@ -18,7 +18,7 @@ struct SearchEngine {
         searchURL: String,
         isAIChat: Bool,
         foregroundColor: Color? = nil,
-        autoSuggestions:((String) async ->[String])? = nil
+        autoSuggestions: ((String) async -> [String])? = nil
     ) {
         self.name = name
         self.color = color

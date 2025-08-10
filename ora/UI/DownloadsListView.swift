@@ -3,7 +3,7 @@ import SwiftUI
 struct DownloadsListView: View {
     @EnvironmentObject var downloadManager: DownloadManager
     @Environment(\.theme) private var theme
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header
@@ -11,9 +11,9 @@ struct DownloadsListView: View {
                 Text("Downloads")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(theme.foreground)
-                
+
                 Spacer()
-                
+
                 if !downloadManager.recentDownloads.isEmpty {
                     Button("Clear Completed") {
                         downloadManager.clearCompletedDownloads()
@@ -26,21 +26,21 @@ struct DownloadsListView: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .background(theme.background.opacity(0.5))
-            
+
             Divider()
                 .background(theme.background)
-            
+
             // Downloads list
             if downloadManager.recentDownloads.isEmpty {
                 VStack(spacing: 8) {
                     Image(systemName: "arrow.down.circle")
                         .font(.system(size: 32))
                         .foregroundColor(.secondary)
-                    
+
                     Text("No downloads yet")
                         .font(.system(size: 13))
                         .foregroundColor(.secondary)
-                    
+
                     Text("Files you download will appear here")
                         .font(.system(size: 11))
                         .foregroundColor(.secondary)
@@ -73,34 +73,34 @@ struct DownloadListItem: View {
     let download: Download
     @EnvironmentObject var downloadManager: DownloadManager
     @Environment(\.theme) private var theme
-    
+
     var body: some View {
         HStack(spacing: 12) {
             // File icon
             Image(systemName: fileIcon)
                 .foregroundColor(iconColor)
                 .frame(width: 20, height: 20)
-            
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(download.fileName)
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(theme.foreground)
                     .lineLimit(1)
-                
+
                 HStack {
                     Text(statusText)
                         .font(.system(size: 10))
                         .foregroundColor(.secondary)
-                    
+
                     Spacer()
-                    
+
                     if download.status == .completed {
                         Text(download.formattedFileSize)
                             .font(.system(size: 10))
                             .foregroundColor(.secondary)
                     }
                 }
-                
+
                 if download.status == .downloading {
                     // Progress bar for downloading items
                     GeometryReader { geometry in
@@ -109,7 +109,7 @@ struct DownloadListItem: View {
                                 .fill(theme.background)
                                 .frame(height: 2)
                                 .cornerRadius(1)
-                            
+
                                                     Rectangle()
                             .fill(.blue)
                             .frame(width: geometry.size.width * download.displayProgress, height: 2)
@@ -120,7 +120,7 @@ struct DownloadListItem: View {
                     .frame(height: 2)
                 }
             }
-            
+
             // Action buttons
             HStack(spacing: 4) {
                 if download.status == .downloading {
@@ -154,7 +154,7 @@ struct DownloadListItem: View {
             }
         }
     }
-    
+
     private var fileIcon: String {
         let ext = (download.fileName as NSString).pathExtension.lowercased()
         switch ext {
@@ -174,7 +174,7 @@ struct DownloadListItem: View {
             return "doc.fill"
         }
     }
-    
+
     private var iconColor: Color {
         switch download.status {
         case .downloading:
@@ -189,7 +189,7 @@ struct DownloadListItem: View {
             return .gray
         }
     }
-    
+
     private var statusText: String {
         switch download.status {
         case .downloading:
@@ -208,7 +208,7 @@ struct DownloadListItem: View {
             return "Pending"
         }
     }
-    
+
     private func timeAgoString(from date: Date) -> String {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .abbreviated
@@ -219,14 +219,14 @@ struct DownloadListItem: View {
 struct DownloadContextMenu: View {
     let download: Download
     @EnvironmentObject var downloadManager: DownloadManager
-    
+
     var body: some View {
         Group {
             if download.status == .completed {
                 Button("Show in Finder") {
                     downloadManager.openDownloadInFinder(download)
                 }
-                
+
                 Button("Copy Path") {
                     if let path = download.destinationURL?.path {
                         NSPasteboard.general.clearContents()
@@ -234,18 +234,18 @@ struct DownloadContextMenu: View {
                     }
                 }
             }
-            
+
             if download.status == .downloading {
                 Button("Cancel Download") {
                     downloadManager.cancelDownload(download)
                 }
             }
-            
+
             Divider()
-            
+
             Button("Remove from List") {
                 downloadManager.deleteDownload(download)
             }
         }
     }
-} 
+}

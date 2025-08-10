@@ -7,7 +7,7 @@
 
 import XCTest
 
-final class oraUITestsLaunchTests: XCTestCase {
+final class OraUITestsLaunchTests: XCTestCase {
 
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true

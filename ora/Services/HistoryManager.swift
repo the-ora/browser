@@ -3,12 +3,10 @@ import SwiftData
 
 @MainActor
 class HistoryManager: ObservableObject {
-    
+
     let modelContainer: ModelContainer
     let modelContext: ModelContext
-    
-    
-    
+
     init(modelContainer: ModelContainer, modelContext: ModelContext) {
         self.modelContainer = modelContainer
         self.modelContext = modelContext
@@ -17,11 +15,11 @@ class HistoryManager: ObservableObject {
         title: String,
         url: URL,
         faviconURL: URL? = nil,
-        faviconLocalFile:URL? = nil,
+        faviconLocalFile: URL? = nil,
         container: TabContainer
     ) {
         let urlString = url.absoluteString
-        
+
         // Check if a history record already exists for this URL
         let descriptor = FetchDescriptor<History>(
             predicate: #Predicate {
@@ -29,7 +27,7 @@ class HistoryManager: ObservableObject {
             },
             sortBy: [.init(\.lastAccessedAt, order: .reverse)]
         )
-        
+
         if let existing = try? modelContext.fetch(descriptor).first {
             existing.visitCount += 1
             existing.lastAccessedAt = Date() // update last visited time
@@ -47,13 +45,13 @@ class HistoryManager: ObservableObject {
                 container: container
             ))
         }
-        
+
         try? modelContext.save()
     }
 
-    public func search(_ text: String,activeContainerId: UUID) -> [History] {
+    public func search(_ text: String, activeContainerId: UUID) -> [History] {
         let trimmedText = text.trimmingCharacters(in: .whitespaces)
-        
+
         // Define the predicate for searching
         let predicate: Predicate<History>
         if trimmedText.isEmpty {
@@ -66,13 +64,13 @@ class HistoryManager: ObservableObject {
                  history.title.localizedStandardContains(trimmedText)) && history.container.id == activeContainerId
             }
         }
-        
+
         // Create fetch descriptor with predicate and sorting
         let descriptor = FetchDescriptor<History>(
             predicate: predicate,
             sortBy: [SortDescriptor(\.lastAccessedAt, order: .reverse)]
         )
-        
+
         do {
             // Fetch matching history records
             return try modelContext.fetch(descriptor)

@@ -1,8 +1,8 @@
-//import SwiftUI
-//import WebKit
+// import SwiftUI
+// import WebKit
 //
 //// MARK: - Tab Model
-//class BrowserTab: Identifiable, ObservableObject {
+// class BrowserTab: Identifiable, ObservableObject {
 //    let id = UUID()
 //    @Published var url: URL
 //    @Published var title: String
@@ -81,4 +81,4 @@
 //    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
 //        print("Navigation failed: \(error.localizedDescription)")
 //    }
-//} 
+// } 

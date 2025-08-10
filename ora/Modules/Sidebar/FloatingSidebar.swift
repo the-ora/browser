@@ -5,7 +5,7 @@ struct FloatingSidebar: View {
   @Environment(\.theme) var theme
 
   var body: some View {
-    ZStack(alignment: .leading) { 
+    ZStack(alignment: .leading) {
       SidebarView(isFullscreen: isFullscreen)
         .background(theme.subtleWindowBackgroundColor)
         .background(BlurEffectView(material: .popover, blendingMode: .withinWindow))

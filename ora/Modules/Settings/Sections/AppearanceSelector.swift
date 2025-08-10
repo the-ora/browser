@@ -15,7 +15,7 @@ struct AppearanceSelector: View {
     [
       .init(appearance: .light, imageName: "appearance-light", title: "Light"),
       .init(appearance: .dark, imageName: "appearance-dark", title: "Dark"),
-      .init(appearance: .system, imageName: "appearance-system", title: "Auto"),
+      .init(appearance: .system, imageName: "appearance-system", title: "Auto")
     ]
   }
 

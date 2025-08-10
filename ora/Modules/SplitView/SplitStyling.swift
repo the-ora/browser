@@ -21,7 +21,7 @@ public class SplitStyling: ObservableObject {
     public var hideSplitter: Bool
     /// Whether we are previewing what hiding will look like.
     @Published public var previewHide: Bool
-    
+
     public init(color: Color? = nil, inset: CGFloat? = nil, visibleThickness: CGFloat? = nil, invisibleThickness: CGFloat? = nil, hideSplitter: Bool = false) {
         self.color = color ?? Splitter.defaultColor
         self.inset = inset ?? Splitter.defaultInset
@@ -30,7 +30,7 @@ public class SplitStyling: ObservableObject {
         self.hideSplitter = hideSplitter
         self.previewHide = false        // We never start out previewing
     }
-    
+
     /// As an ObservableObject, when we want to change to a different SplitStyling, we need to just modify the properties of this instance.
     public func reset(from styling: SplitStyling) {
         color = styling.color

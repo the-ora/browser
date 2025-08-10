@@ -139,7 +139,7 @@ extension KeyboardShortcuts {
       .init(category: "App", name: "Quit", display: "⌘Q"),
       .init(category: "App", name: "Hide", display: "⌘H"),
       .init(category: "App", name: "Preferences", display: "⌘,"),
-      .init(category: "App", name: "Toggle Sidebar", display: "⌘S"),
+      .init(category: "App", name: "Toggle Sidebar", display: "⌘S")
     ]
   }
 

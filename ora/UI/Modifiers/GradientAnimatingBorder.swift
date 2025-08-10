@@ -23,7 +23,7 @@ struct GradientAnimatingBorder: ViewModifier {
                     color.opacity(0.0),
                     color.opacity(0.0),
                     color.opacity(0.0),
-                    color.opacity(0.0),
+                    color.opacity(0.0)
                   ]),
                   center: .center,
                   angle: .degrees(isAnimating ? 360 : 0)
@@ -45,7 +45,7 @@ struct GradientAnimatingBorder: ViewModifier {
                     color.opacity(0.1),
                     color.opacity(0.0),
                     color.opacity(0.0),
-                    color.opacity(0.0),
+                    color.opacity(0.0)
                   ]),
                   center: .center,
                   angle: .degrees(isAnimating ? 360 : 0)

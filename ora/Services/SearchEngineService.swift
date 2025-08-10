@@ -7,6 +7,7 @@ enum SearchEngineID: String, CaseIterable {
     case perplexity = "Perplexity"
     case reddit = "Reddit"
     case t3chat = "T3Chat"
+    // swiftlint:disable:next identifier_name
     case x = "X"
 }
 
@@ -23,11 +24,11 @@ struct SuggestResponse: Decodable {
 }
 class SearchEngineService: ObservableObject {
     private var theme: Theme?
-    
+
     func setTheme(_ theme: Theme) {
         self.theme = theme
     }
-    
+
     var searchEngines: [SearchEngine] {
         [
             SearchEngine(
@@ -97,28 +98,28 @@ class SearchEngineService: ObservableObject {
                 searchURL: "https://twitter.com/search?q={query}",
                 isAIChat: false,
                 foregroundColor: theme?.background ?? .black
-            ),
+            )
         ]
     }
-    
+
     func findSearchEngine(for alias: String) -> SearchEngine? {
         let textLowercased = alias.lowercased()
         return searchEngines.first(where: { $0.aliases.contains(textLowercased) })
     }
-    
+
     func getDefaultSearchEngine() -> SearchEngine? {
         return searchEngines.first(where: { $0.name == "Google" })
     }
-    
+
     func getDefaultAIChat() -> SearchEngine? {
         return searchEngines.first(where: { $0.isAIChat && $0.name == "ChatGPT" })
     }
-    
+
     func getSearchEngine(_ engineName: SearchEngineID) -> SearchEngine? {
         return searchEngines.first(where: { $0.name == engineName.rawValue })
     }
-    
-    func getSearchURLForEngine(engineName: SearchEngineID,query: String) -> URL? {
+
+    func getSearchURLForEngine(engineName: SearchEngineID, query: String) -> URL? {
         if let engine = getSearchEngine(engineName) {
             if let url = createSearchURL(
                 for: engine,
@@ -129,19 +130,19 @@ class SearchEngineService: ObservableObject {
         }
         return nil
     }
-    
+
     func createSearchURL(for engine: SearchEngine, query: String) -> URL? {
         let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         let urlString = engine.searchURL.replacingOccurrences(of: "{query}", with: encodedQuery)
         return URL(string: urlString)
     }
-    
+
     func createSearchURL(for match: LauncherMain.Match, query: String) -> URL? {
         let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         let urlString = match.searchURL.replacingOccurrences(of: "{query}", with: encodedQuery)
         return URL(string: urlString)
     }
-    func createSuggestionsURL(urlString:String,query:String)->URL?{
+    func createSuggestionsURL(urlString: String, query: String) -> URL? {
         let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         let urlString = urlString.replacingOccurrences(of: "{query}", with: encodedQuery)
         return URL(string: urlString)
@@ -161,5 +162,5 @@ class SearchEngineService: ObservableObject {
             return []
         }
     }
-    
+
 }

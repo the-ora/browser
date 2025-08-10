@@ -138,7 +138,7 @@ class FindController: NSObject {
             completion(count)
         }
     }
-    
+
     // MARK: - Get Current Match Index
     func getCurrentMatchIndex(completion: @escaping (Int) -> Void) {
         let js = """
@@ -153,7 +153,7 @@ class FindController: NSObject {
             completion(index)
         }
     }
-    
+
     // MARK: - Get Match Info
     func getMatchInfo(completion: @escaping (Int, Int) -> Void) {
         let js = """

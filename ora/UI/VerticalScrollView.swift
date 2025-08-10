@@ -37,7 +37,7 @@ final class BaseVerticalScrollView: NSScrollView {
       // Ensure the document view is never shorter than the visible height
       container.heightAnchor.constraint(
         greaterThanOrEqualTo: self.contentView.heightAnchor
-      ),
+      )
     ])
 
   }

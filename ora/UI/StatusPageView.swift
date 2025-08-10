@@ -1,5 +1,4 @@
-
-import SwiftUI 
+import SwiftUI
 
 // MARK: - StatusPageView
 struct StatusPageView: View {
@@ -8,30 +7,30 @@ struct StatusPageView: View {
     let onRetry: () -> Void
     let onGoBack: (() -> Void)?
     @Environment(\.theme) var theme
-    
+
     var body: some View {
         VStack(spacing: 24) {
             Spacer()
-            
+
             // Error icon
             Image(systemName: errorIcon)
                 .font(.system(size: 64, weight: .ultraLight))
                 .foregroundColor(theme.foreground.opacity(0.4))
-            
+
             VStack(spacing: 12) {
                 // Error title
                 Text(errorTitle)
                     .font(.system(size: 24, weight: .semibold))
                     .foregroundColor(theme.foreground)
                     .multilineTextAlignment(.center)
-                
+
                 // Error description
                 Text(errorDescription)
                     .font(.system(size: 14))
                     .foregroundColor(theme.foreground.opacity(0.7))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)
-                
+
                 // Failed URL (if available)
                 if let url = failedURL {
                     Text(url.absoluteString)
@@ -40,7 +39,7 @@ struct StatusPageView: View {
                         .padding(.top, 8)
                 }
             }
-            
+
             // Action buttons
             HStack(spacing: 16) {
                 Button("Try Again") {
@@ -48,7 +47,7 @@ struct StatusPageView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-                
+
                 if let goBack = onGoBack {
                     Button("Go Back") {
                         goBack()
@@ -58,13 +57,13 @@ struct StatusPageView: View {
                 }
             }
             .padding(.top, 8)
-            
+
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(theme.background)
     }
-    
+
     private var errorIcon: String {
         switch errorType {
         case .network:
@@ -79,7 +78,7 @@ struct StatusPageView: View {
             return "exclamationmark.triangle"
         }
     }
-    
+
     private var errorTitle: String {
         switch errorType {
         case .network:
@@ -94,7 +93,7 @@ struct StatusPageView: View {
             return "Something Went Wrong"
         }
     }
-    
+
     private var errorDescription: String {
         switch errorType {
         case .network:
@@ -109,10 +108,10 @@ struct StatusPageView: View {
             return "An unexpected error occurred while loading this page."
         }
     }
-    
+
     private var errorType: ErrorType {
         let nsError = error as NSError
-        
+
         // Network-related errors
         if nsError.domain == NSURLErrorDomain {
             switch nsError.code {
@@ -133,15 +132,15 @@ struct StatusPageView: View {
                 return .unknown
             }
         }
-        
+
         // WebKit errors
         if nsError.domain == "WebKitErrorDomain" {
             return .notFound
         }
-        
+
         return .unknown
     }
-    
+
     private enum ErrorType {
         case network
         case notFound

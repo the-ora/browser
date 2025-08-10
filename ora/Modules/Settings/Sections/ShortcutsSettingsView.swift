@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 struct ShortcutsSettingsView: View {
-  @State private var editingKey: String? = nil
+  @State private var editingKey: String?
   @State private var capturedDescription: String = ""
 
   private var sections: [(category: String, items: [ShortcutItem])] {

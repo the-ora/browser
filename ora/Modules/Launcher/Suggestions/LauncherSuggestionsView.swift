@@ -10,11 +10,11 @@ struct LauncherSuggestionsView: View {
     @StateObject private var searchEngineService = SearchEngineService()
     @Binding var suggestions: [LauncherSuggestion]
     @Binding var focusedElement: UUID
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             ForEach(suggestions) { suggestion in
-                LauncherSuggestionItem(suggestion: suggestion, defaultAI: searchEngineService.getDefaultAIChat(),focusedElement: $focusedElement)
+                LauncherSuggestionItem(suggestion: suggestion, defaultAI: searchEngineService.getDefaultAIChat(), focusedElement: $focusedElement)
             }
         }
         .frame(maxWidth: .infinity)

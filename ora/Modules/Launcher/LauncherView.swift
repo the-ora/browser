@@ -8,14 +8,14 @@ struct LauncherView: View {
     @EnvironmentObject var downloadManager: DownloadManager
     @Environment(\.theme) private var theme
     @StateObject private var searchEngineService = SearchEngineService()
-    
+
     @State private var input = ""
     @State private var isVisible = false
     @FocusState private var isTextFieldFocused: Bool
-    @State private var match: LauncherMain.Match? = nil
+    @State private var match: LauncherMain.Match?
 
     var clearOverlay: Bool? = false
-    
+
     private func onTabPress() {
         guard !input.isEmpty else { return }
         if let searchEngine = searchEngineService.findSearchEngine(for: input) {
@@ -23,16 +23,15 @@ struct LauncherView: View {
             input = ""
         }
     }
-    
-    private func onSubmit(_ newInput:String? = nil) {
+
+    private func onSubmit(_ newInput: String? = nil) {
         let correctInput = newInput ?? input
         let engineToUse =
         match
-        ?? searchEngineService.getDefaultSearchEngine()?.toLauncherMatch(originalAlias:correctInput)
-        
+        ?? searchEngineService.getDefaultSearchEngine()?.toLauncherMatch(originalAlias: correctInput)
+
         if let engine = engineToUse,
-           let url = searchEngineService.createSearchURL(for: engine, query: correctInput)
-        {
+           let url = searchEngineService.createSearchURL(for: engine, query: correctInput) {
             tabManager
                 .openTab(
                     url: url,
@@ -42,7 +41,7 @@ struct LauncherView: View {
         }
         appState.showLauncher = false
     }
-    
+
     var body: some View {
         ZStack(alignment: .top) {
             Color.black.opacity(clearOverlay! ? 0 : 0.3)
@@ -58,7 +57,7 @@ struct LauncherView: View {
                         }
                     }
                 }
-            
+
             LauncherMain(
                 text: $input,
                 match: $match,
@@ -101,4 +100,3 @@ struct LauncherView: View {
         }
     }
 }
-

@@ -8,7 +8,7 @@ let js = """
     let lastHref = location.href;
     let lastTitle = document.title;
     let faviconURL = null;
-    
+
     function findFavicon(callback) {
         const links = document.getElementsByTagName('link');
         for (let i = 0; i < links.length; i++) {
@@ -20,7 +20,7 @@ let js = """
         }
         callback(`https://www.google.com/s2/favicons?domain=${location.hostname}`);
     }
-    
+
     function notifyChange(force = false) {
         if (force || location.href !== lastHref || document.title !== lastTitle) {
             lastHref = location.href;
@@ -30,11 +30,11 @@ let js = """
             );
         }
     }
-    
+
     const titleObserver = new MutationObserver(() => notifyChange());
     const titleElement = document.querySelector('title');
     if (titleElement) titleObserver.observe(titleElement, { childList: true });
-    
+
     setInterval(() => notifyChange(), 500);
     window.addEventListener('popstate', () => notifyChange(true));
     findFavicon((icon) => { faviconURL = icon; notifyChange(true); });
@@ -46,24 +46,24 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
     var onURLChange: ((URL?) -> Void)?
     var onLoadingChange: ((Bool) -> Void)?
     var onProgressChange: ((Double) -> Void)?
-    var onChange: ((String?, URL?) ->Void)?
-    var onStart: (()->Void)?
+    var onChange: ((String?, URL?) -> Void)?
+    var onStart: (() -> Void)?
     weak var tab: Tab?
     private var downloadDelegates: [UUID: DownloadDelegate] = [:]
-    private var isDownloadNavigation = false 
-    private var originalURL: URL? 
+    private var isDownloadNavigation = false
+    private var originalURL: URL?
 
     // MARK: - Handle cmd+click to open in new tab
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         // Check if command key is pressed (cmd+click)
-        print(navigationAction.modifierFlags,navigationAction.modifierFlags.contains(.command))
+        print(navigationAction.modifierFlags, navigationAction.modifierFlags.contains(.command))
         if navigationAction.modifierFlags.contains(.command),
            let url = navigationAction.request.url,
            let tab = self.tab,
            let tabManager = tab.tabManager,
            let historyManager = tab.historyManager,
            let downloadManager = tab.downloadManager {
-            
+
             // Open link in new tab
             DispatchQueue.main.async {
                tabManager.openTab(
@@ -72,12 +72,12 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
                     downloadManager: downloadManager
                 )
             }
-            
+
             // Cancel the current navigation
             decisionHandler(.cancel)
             return
         }
-        
+
         // Allow normal navigation
         decisionHandler(.allow)
     }
@@ -143,15 +143,15 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
             decisionHandler(.allow)
         } else {
             isDownloadNavigation = true // Mark as download to suppress navigation callbacks
-            
+
             // Revert URL bar back to original URL since this is a download
             if let originalURL = originalURL {
                 onURLChange?(originalURL)
             }
-            
+
             // Set loading to false since navigation won't complete normally for downloads
             onLoadingChange?(false)
-            
+
             decisionHandler(.download)
         }
     }
@@ -176,13 +176,13 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
 
     func takeSnapshotAfterLoad(_ webView: WKWebView) {
         guard !webView.isLoading, webView.bounds.width > 0 else { return }
-        
+
         let configuration = WKSnapshotConfiguration()
         configuration.rect = CGRect(x: 0, y: 0, width: webView.bounds.width, height: 24)
-        
+
         webView.takeSnapshot(with: configuration) { [weak self] image, error in
             guard let self = self, let image = image, error == nil else { return }
-            
+
             if let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) {
                 let color = self.extractDominantColor(from: cgImage)
                 DispatchQueue.main.async {
@@ -197,20 +197,20 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
         let width = cgImage.width
         let height = cgImage.height
         guard width > 0, height > 0 else { return nil }
-        
+
         let colorSpace = CGColorSpaceCreateDeviceRGB()
         let bitmapInfo = CGImageAlphaInfo.premultipliedLast.rawValue
         guard let context = CGContext(data: nil, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4, space: colorSpace, bitmapInfo: bitmapInfo) else { return nil }
-        
+
         context.draw(cgImage, in: CGRect(x: 0, y: 0, width: 1, height: 1))
         guard let data = context.data else { return nil }
-        
+
         let pixels = data.assumingMemoryBound(to: UInt8.self)
         let red = CGFloat(pixels[0]) / 255.0
         let green = CGFloat(pixels[1]) / 255.0
         let blue = CGFloat(pixels[2]) / 255.0
         let alpha = CGFloat(pixels[3]) / 255.0
-        
+
         return NSColor(red: red, green: green, blue: blue, alpha: alpha)
     }
 }
@@ -236,11 +236,11 @@ class DownloadDelegate: NSObject, WKDownloadDelegate {
         let downloadsDir = downloadManager.getDownloadsDirectory()
         let destinationURL = downloadsDir.appendingPathComponent(suggestedFilename)
         let finalURL = downloadManager.createUniqueFilename(for: destinationURL)
-        
+
         Task { @MainActor in
             let expectedSize = (response as? HTTPURLResponse)?.expectedContentLength ?? 0
             self.download = downloadManager.startDownload(from: download, originalURL: originalURL, suggestedFilename: suggestedFilename, expectedSize: expectedSize)
-            
+
             // Start timer to monitor WKDownload progress
             self.progressTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
                 guard let self = self, let download = self.download else { return }

@@ -74,14 +74,12 @@ import SwiftUI
       return controller
     }
 
-    public func updateNSViewController(_ nsViewController: some NSViewController, context: Context)
-    {
+    public func updateNSViewController(_ nsViewController: some NSViewController, context: Context) {
       guard let controller = nsViewController as? NSPageViewContainerController<T, V> else {
         return
       }
 
-      if controller.pageObjects != pageObjects || controller.selectedIndex != selection.wrappedValue
-      {
+      if controller.pageObjects != pageObjects || controller.selectedIndex != selection.wrappedValue {
         let selectionAnimation = selection.transaction.animation
         let contextAnimation = context.transaction.animation
         let animated = selectionAnimation != nil || contextAnimation != nil
@@ -101,8 +99,8 @@ import SwiftUI
 
   /// A NSView to exposure the ``onStartLiveResize`` and ``onEndLiveResize`` event.
   public class ResizeAwareNSView: NSView {
-    public var onEndLiveResize: (() -> Void)? = nil
-    public var onStartLiveResize: (() -> Void)? = nil
+    public var onEndLiveResize: (() -> Void)?
+    public var onStartLiveResize: (() -> Void)?
 
     public override func viewDidEndLiveResize() {
       super.viewDidEndLiveResize()
@@ -119,12 +117,12 @@ import SwiftUI
   where V: View {
     var pageObjects: [T] = []
 
-    var idFromObject: ((T) -> String)? = nil
-    var idToObject: ((String) -> T?)? = nil
-    var objectToView: ((T) -> V)? = nil
+    var idFromObject: ((T) -> String)?
+    var idToObject: ((String) -> T?)?
+    var objectToView: ((T) -> V)?
 
-    var onSelectedIndexChanged: ((Int) -> Void)? = nil
-    var onContentPrepared: ((T) -> Void)? = nil
+    var onSelectedIndexChanged: ((Int) -> Void)?
+    var onContentPrepared: ((T) -> Void)?
     private var previousBoundsSize: CGSize = .zero
 
     override func loadView() {
@@ -149,8 +147,8 @@ import SwiftUI
 
     override func viewDidLayout() {
       super.viewDidLayout()
-      self.view.subviews.forEach { v in
-        v.frame = self.view.bounds
+      self.view.subviews.forEach { view in
+        view.frame = self.view.bounds
       }
 
       // When our container changes size due to SwiftUI layout (e.g., Split resizing),
@@ -172,7 +170,7 @@ import SwiftUI
       logger.log("NSPageView updateSelectedIndex \(index), animated \(animated)")
 
       if animated {
-        NSAnimationContext.runAnimationGroup { context in
+        NSAnimationContext.runAnimationGroup { _ in
           self.animator().selectedIndex = index
         } completionHandler: {
           self.completeTransition()
@@ -187,7 +185,11 @@ import SwiftUI
       _ pageController: NSPageController,
       identifierFor object: Any
     ) -> NSPageController.ObjectIdentifier {
-      return idFromObject?(object as! T) ?? ""
+      guard let typedObject = object as? T else {
+        logger.log("NSPageView identifierFor: unexpected object type")
+        return ""
+      }
+      return idFromObject?(typedObject) ?? ""
     }
 
     func pageController(
@@ -211,17 +213,13 @@ import SwiftUI
   }
 
   class NSPageViewContentController<T, V>: NSViewController where V: View {
-    var content: ((T) -> V)? = nil
-    var object: T? = nil
+    var content: ((T) -> V)?
+    var object: T?
 
-    private var hostingView: NSHostingView<V>? = nil
+    private var hostingView: NSHostingView<V>?
 
     override func loadView() {
       self.view = NSView()
-    }
-
-    override func viewDidLayout() {
-      super.viewDidLayout()
     }
 
     override func viewDidLoad() {
@@ -238,7 +236,7 @@ import SwiftUI
         hostingView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
         hostingView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
         hostingView.topAnchor.constraint(equalTo: self.view.topAnchor),
-        hostingView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
+        hostingView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor)
       ])
       self.hostingView = hostingView
     }

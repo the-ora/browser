@@ -79,8 +79,9 @@ class SettingsStore: ObservableObject {
     blockThirdPartyTrackers = defaults.bool(forKey: trackingThirdPartyKey)
     blockFingerprinting = defaults.bool(forKey: fingerprintingKey)
     adBlocking = defaults.bool(forKey: adBlockingKey)
-    if let raw = defaults.string(forKey: cookiesPolicyKey), let p = CookiesPolicy(rawValue: raw) {
-      cookiesPolicy = p
+    if let raw = defaults.string(forKey: cookiesPolicyKey),
+      let policy = CookiesPolicy(rawValue: raw) {
+      cookiesPolicy = policy
     } else {
       cookiesPolicy = .allowAll
     }
@@ -108,9 +109,8 @@ class SettingsStore: ObservableObject {
 
   func autoClearTabsAfter(for containerId: UUID) -> AutoClearTabsAfter {
     if let raw = defaults.string(forKey: keyForAutoClear(for: containerId)),
-      let v = AutoClearTabsAfter(rawValue: raw)
-    {
-      return v
+      let value = AutoClearTabsAfter(rawValue: raw) {
+      return value
     }
     return .never
   }

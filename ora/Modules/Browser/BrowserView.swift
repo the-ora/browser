@@ -59,7 +59,7 @@ struct BrowserView: View {
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(theme.foreground.opacity(0.3))
                 }
-                .offset(x: -10,y: 120)
+                .offset(x: -10, y: 120)
                 .zIndex(2)
 
                 LauncherView(clearOverlay: true)
@@ -199,7 +199,7 @@ struct BrowserContentContainer<Content: View>: View {
             LinearGradient(
               gradient: Gradient(colors: [
                 Color(hex: "FF5F57").opacity(0.3),
-                Color(hex: "FF5F57").opacity(0.8),
+                Color(hex: "FF5F57").opacity(0.8)
               ]),
               startPoint: .leading,
               endPoint: .trailing

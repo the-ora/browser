@@ -3,7 +3,7 @@ import SwiftUI
 
 struct SpacesSettingsView: View {
   @Query var containers: [TabContainer]
-  
+
   @StateObject private var settings = SettingsStore.shared
   @State private var searchService = SearchEngineService()
   @State private var selectedContainerId: UUID?
@@ -60,8 +60,7 @@ struct SpacesSettingsView: View {
                   set: { settings.setDefaultAIEngineId($0, for: container.id) }
                 )
               ) {
-                ForEach(searchService.searchEngines.filter { $0.isAIChat }, id: \.name) {
-                  engine in
+                ForEach(searchService.searchEngines.filter { $0.isAIChat }, id: \.name) { engine in
                   Text(engine.name).tag(Optional(engine.name)).frame(width: 200)
                 }
               }
@@ -73,8 +72,8 @@ struct SpacesSettingsView: View {
                   set: { settings.setAutoClearTabsAfter($0, for: container.id) }
                 )
               ) {
-                ForEach(AutoClearTabsAfter.allCases) { v in
-                  Text(v.rawValue).tag(v)
+                ForEach(AutoClearTabsAfter.allCases) { value in
+                  Text(value.rawValue).tag(value)
                 }
               }
             }
