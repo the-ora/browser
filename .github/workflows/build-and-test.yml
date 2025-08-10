@@ -65,10 +65,3 @@ jobs:
         with:
           name: test-results
           path: DerivedData/**/Logs/Test/*.xcresult
-
-      - name: Upload code coverage (optional)
-        if: always()
-        uses: codecov/codecov-action@v4
-        with:
-          files: ./DerivedData/**/Logs/Test/*.xcresult
-          fail_ci_if_error: true
