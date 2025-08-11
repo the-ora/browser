@@ -55,7 +55,7 @@ jobs:
     - name: Build project
       run: |
         xcodebuild build \
-          -scheme OraScheme \
+          -scheme ora \
           -destination "platform=macOS" \
           -configuration Debug \
           CODE_SIGN_IDENTITY="" \
