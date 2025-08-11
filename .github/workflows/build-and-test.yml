@@ -62,12 +62,8 @@ jobs:
     
     - name: Build project
       run: |
-        xcodebuild build \
-          -scheme ora \
-          -destination "platform=macOS" \
-          -configuration Debug \
-          CODE_SIGN_IDENTITY="" \
-          CODE_SIGNING_REQUIRED=NO | xcbeautify
+        chmod +x xcbuild-debug.sh
+        ./xcbuild-debug.sh
     
     - name: Run tests
       run: |
