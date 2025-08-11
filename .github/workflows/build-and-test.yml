@@ -12,9 +12,11 @@ jobs:
     
     strategy:
       matrix:
-        xcode: ['15.0']
+        xcode: ['15.4']
     
     steps:
+    - name: Check architecture
+      run: uname -m
     - name: Checkout code
       uses: actions/checkout@v4
     
@@ -38,6 +40,9 @@ jobs:
 
     - name: Run Swiftlint
       run: swiftlint lint
+
+    - name: Clean build folder
+      run: xcodebuild clean -scheme ora -project Ora.xcodeproj
     
     - name: Cache SPM dependencies
       uses: actions/cache@v3
