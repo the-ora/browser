@@ -41,6 +41,9 @@ jobs:
     - name: Run Swiftlint
       run: swiftlint lint
 
+    - name: Install Xcbeautify
+      run: brew install xcbeautify
+
     - name: Clean build folder
       run: xcodebuild clean -scheme ora -project Ora.xcodeproj
     
@@ -64,7 +67,7 @@ jobs:
           -destination "platform=macOS" \
           -configuration Debug \
           CODE_SIGN_IDENTITY="" \
-          CODE_SIGNING_REQUIRED=NO
+          CODE_SIGNING_REQUIRED=NO | xcbeautify
     
     - name: Run tests
       run: |
