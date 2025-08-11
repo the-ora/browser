@@ -12,7 +12,7 @@ jobs:
     
     strategy:
       matrix:
-        xcode: ['15.4']
+        xcode: ['15.0']
     
     steps:
     - name: Check architecture
