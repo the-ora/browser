@@ -63,7 +63,7 @@ class EmojiViewModel: ObservableObject {
           : subcategoryOrder.flatMap { subcat in
             guard let items = subcategories[subcat] as? [[String: Any]] else { return [] }
             return items.compactMap(EmojiItem.init(from:))
-          }
+          } as! [EmojiItem] // swiftlint:disable:this force_cast
 
         result.append(EmojiCategory(category: category, emojis: emojis))
       }
