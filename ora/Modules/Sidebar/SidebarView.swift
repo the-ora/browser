@@ -32,7 +32,7 @@ struct SidebarView: View {
       NSPageView(
         selection: selectedContainerIndex,
         pageObjects: containers,
-        idKeyPath: \.name,
+        idKeyPath: \.name
       ) { container in
         ContainerView(
           container: container,
