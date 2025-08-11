@@ -1,67 +1,134 @@
-name: build-and-test
+name: Build and Test
 
 on:
   push:
-    branches:
-      - main
-      - staging
+    branches: [main, develop]
   pull_request:
-    branches:
-      - main
-      - staging
+    branches: [main, develop]
 
 jobs:
   build-and-test:
     runs-on: macos-latest
+    
+    strategy:
+      matrix:
+        xcode: ['15.0']
+    
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Select Xcode version
+      run: sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode }}.app
+    
+    - name: Show Xcode version
+      run: xcodebuild -version
+    
+    - name: Show Swift version
+      run: swift --version
 
-      # Cache SwiftPM dependencies
-      - name: Cache Swift Package Manager
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.swiftpm
-            .build
-          key: ${{ runner.os }}-swiftpm-${{ hashFiles('**/Package.resolved') }}
+    - name: Install Xcodegen
+      run: brew install xcodegen
 
-      # Cache CocoaPods dependencies (if you use CocoaPods)
-      - name: Cache CocoaPods
-        uses: actions/cache@v3
-        with:
-          path: Pods
-          key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
+    - name: Generate Xcode project
+      run: xcodegen
 
-      - name: Install CocoaPods (if needed)
-        if: ${{ hashFiles('Podfile') != '' }}
-        run: |
-          sudo gem install cocoapods
-          pod install --repo-update
+    - name: Install Swiftlint
+      run: brew install swiftlint
 
-      - name: Install XcodeGen
-        run: |
-          brew install xcodegen
+    - name: Run Swiftlint
+      run: swiftlint lint
+    
+    - name: Cache SPM dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/Library/Caches/org.swift.swiftpm/
+          ~/.swiftpm/
+        key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.swift') }}
+        restore-keys: |
+          ${{ runner.os }}-spm-
+    
+    - name: Resolve dependencies
+      run: xcodebuild -resolvePackageDependencies
+    
+    - name: Build project
+      run: |
+        xcodebuild build \
+          -scheme OraScheme \
+          -destination "platform=macOS" \
+          -configuration Debug \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO
+    
+    - name: Run tests
+      run: |
+        xcodebuild test \
+          -scheme OraScheme \
+          -destination "platform=macOS" \
+          -configuration Debug \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          -enableCodeCoverage YES \
+          -resultBundlePath TestResults
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results
+        path: TestResults.xcresult
+    
+    - name: Generate code coverage report
+      run: |
+        xcrun xccov view --report --json TestResults.xcresult > coverage.json
+        xcrun xccov view --report TestResults.xcresult
+    
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./coverage.json
+        fail_ci_if_error: false
 
-      - name: Generate Xcode project
-        run: xcodegen generate
-
-      - name: Install SwiftLint
-        run: brew install swiftlint
-
-      - name: Run SwiftLint
-        run: swiftlint
-
-      - name: Build and test
-        run: |
-          xcodebuild clean build test \
-          -scheme Ora \
-          -destination 'platform=macOS,arch=x86_64' \
-          -enableCodeCoverage YES
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: DerivedData/**/Logs/Test/*.xcresult
+  # build-release:
+  #   runs-on: macos-latest
+  #   needs: build-and-test
+  #   if: github.ref == 'refs/heads/main'
+    
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
+    
+  #   - name: Select Xcode version
+  #     run: sudo xcode-select -s /Applications/Xcode_15.0.app
+    
+  #   - name: Build for release
+  #     run: |
+  #       xcodebuild archive \
+  #         -scheme OraScheme \
+  #         -destination "platform=macOS" \
+  #         -configuration Release \
+  #         -archivePath build/Ora.xcarchive \
+  #         CODE_SIGN_IDENTITY="" \
+  #         CODE_SIGNING_REQUIRED=NO
+    
+  #   - name: Export app
+  #     run: |
+  #       xcodebuild -exportArchive \
+  #         -archivePath build/Ora.xcarchive \
+  #         -exportPath build/export \
+  #         -exportOptionsPlist ExportOptions.plist
+    
+  #   - name: Create DMG (optional)
+  #     run: |
+  #       # Install create-dmg if you want to create a DMG
+  #       # brew install create-dmg
+  #       # create-dmg --volname "Ora" --window-pos 200 120 \
+  #       #   --window-size 600 300 --icon-size 100 --app-drop-link 425 120 \
+  #       #   "Ora.dmg" "build/export/Ora.app"
+    
+  #   - name: Upload build artifacts
+  #     uses: actions/upload-artifact@v3
+  #     with:
+  #       name: macos-app
+  #       path: build/export/
