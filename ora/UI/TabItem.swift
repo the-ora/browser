@@ -13,6 +13,7 @@ struct LocalFavIcon: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: 16, height: 16)
+                .cornerRadius(4)
                 .grayscale(1.0)
         } else {
             Image(systemName: "globe")

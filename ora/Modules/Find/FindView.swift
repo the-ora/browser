@@ -30,13 +30,12 @@ struct FindView: View {
             navigationButtons
             closeButton
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 14)
         .padding(.vertical, 12)
         .background(backgroundView)
-        .cornerRadius(18)
         .overlay(borderView)
         .shadow(
-            color: colorScheme == .dark ? .black.opacity(0.5) : .black.opacity(0.15),
+            color: .black.opacity(0.15),
             radius: 12,
             x: 0,
             y: 4
@@ -49,6 +48,7 @@ struct FindView: View {
                 isTextFieldFocused = true
             }
         }
+        .zIndex(1000)
     }
 
     @ViewBuilder
@@ -64,11 +64,11 @@ struct FindView: View {
             .textFieldStyle(.plain)
             .font(.system(size: 14, weight: .medium))
             .frame(width: 200)
-            .padding(.horizontal, 12)
+            .padding(.horizontal, 8)
             .padding(.vertical, 8)
             .background(textFieldBackground)
             .foregroundColor(theme.foreground)
-            .cornerRadius(6)
+            .cornerRadius(8)
             .overlay(textFieldBorder)
             .focused($isTextFieldFocused)
             .onChange(of: searchText) { _, newValue in
@@ -97,10 +97,10 @@ struct FindView: View {
 
     @ViewBuilder
     private var textFieldBorder: some View {
-        RoundedRectangle(cornerRadius: 6, style: .continuous)
+        RoundedRectangle(cornerRadius: 8, style: .continuous)
             .stroke(
                 isTextFieldFocused
-                    ? theme.foreground.opacity(0.3)
+                    ? theme.foreground.opacity(0.2)
                     : theme.border,
                 lineWidth: 1
             )
@@ -133,29 +133,37 @@ struct FindView: View {
         HStack(spacing: 3) {
             Text("\(currentMatch)")
                 .font(.system(size: 12, weight: .bold))
-                .foregroundColor(.white)
+                .foregroundColor(theme.foreground)
                 .monospacedDigit() // Prevents width changes when numbers change
             Text("/")
                 .font(.system(size: 11, weight: .medium))
-                .foregroundColor(.white.opacity(0.8))
+                .foregroundColor(theme.foreground.opacity(0.8))
             Text("\(matchCount)")
                 .font(.system(size: 12, weight: .medium))
-                .foregroundColor(.white.opacity(0.9))
+                .foregroundColor(theme.foreground.opacity(0.9))
                 .monospacedDigit() // Prevents width changes when numbers change
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
-        .background(Capsule().fill(Color.blue.opacity(0.8)))
+        .background(BlurEffectView(
+            material: .popover,
+            blendingMode: .withinWindow
+        ))
+        .cornerRadius(6)
     }
 
     @ViewBuilder
     private var noMatchesBadge: some View {
         Text("No matches")
             .font(.system(size: 11, weight: .medium))
-            .foregroundColor(.white)
+            .foregroundColor(theme.foreground)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .background(Capsule().fill(Color.red.opacity(0.7)))
+            .background(BlurEffectView(
+                material: .popover,
+                blendingMode: .withinWindow
+            ))
+            .cornerRadius(6)
     }
 
     @ViewBuilder
@@ -231,36 +239,27 @@ struct FindView: View {
                 appState.showFinderIn = nil
             }
         }) {
-            Image(systemName: "xmark.circle.fill")
+            Image(systemName: "xmark")
                 .font(.system(size: 16, weight: .medium))
-                .foregroundColor(colorScheme == .dark ? .white.opacity(0.7) : .black.opacity(0.6))
+                .foregroundColor(theme.foreground.opacity(0.6))
         }
         .buttonStyle(PlainButtonStyle())
     }
 
     @ViewBuilder
     private var backgroundView: some View {
-        Rectangle()
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
             .fill(.ultraThinMaterial)
             .overlay(
-                Rectangle()
-                    .fill(
-                        colorScheme == .dark
-                            ? Color.black.opacity(0.3)
-                            : Color.white.opacity(0.7)
-                    )
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(theme.background.opacity(0.6))
             )
     }
 
     @ViewBuilder
     private var borderView: some View {
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .stroke(
-                colorScheme == .dark
-                    ? Color.white.opacity(0.2)
-                    : Color.black.opacity(0.1),
-                lineWidth: 1
-            )
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .stroke(theme.border, lineWidth: 1)
     }
 
     // MARK: - Action Handlers
