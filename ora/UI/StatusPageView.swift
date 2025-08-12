@@ -1,6 +1,7 @@
 import SwiftUI
 
 // MARK: - StatusPageView
+
 struct StatusPageView: View {
     let error: Error
     let failedURL: URL?

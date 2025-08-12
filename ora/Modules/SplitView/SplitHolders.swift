@@ -16,20 +16,25 @@ public class LayoutHolder: ObservableObject {
             setter?(value)
         }
     }
+
     public var getter: (() -> SplitLayout)?
     public var setter: ((SplitLayout) -> Void)?
 
     public var isHorizontal: Bool { value == .horizontal }
 
-    public init(_ layout: SplitLayout? = nil, getter: (() -> SplitLayout)? = nil, setter: ((SplitLayout) -> Void)? = nil) {
+    public init(
+        _ layout: SplitLayout? = nil,
+        getter: (() -> SplitLayout)? = nil,
+        setter: ((SplitLayout) -> Void)? = nil
+    ) {
         value = getter?() ?? layout ?? .horizontal
         self.getter = getter
         self.setter = setter
     }
 
     public static func usingUserDefaults(_ layout: SplitLayout? = nil, key: String) -> LayoutHolder {
-            LayoutHolder(
-                layout,
+        LayoutHolder(
+            layout,
             getter: {
                 guard
                     let value = UserDefaults.standard.value(forKey: key) as? String,
@@ -48,7 +53,6 @@ public class LayoutHolder: ObservableObject {
     public func toggle() {
         value = value == .horizontal ? .vertical : .horizontal
     }
-
 }
 
 /// An ObservableObject that `Split` view observes to change what fraction of the width/height the `splitter`
@@ -61,6 +65,7 @@ public class FractionHolder: ObservableObject {
             setter?(value)
         }
     }
+
     public var getter: (() -> CGFloat)?
     public var setter: ((CGFloat) -> Void)?
 
@@ -88,12 +93,14 @@ public class SideHolder: ObservableObject {
             setter?(value)
         }
     }
+
     public var getter: (() -> SplitSide?)?
     public var setter: ((SplitSide?) -> Void)?
     public var side: SplitSide? {
         get { value }
         set { setValue(newValue) }
     }
+
     public var oldSide: SplitSide? { oldValue }
     private var oldValue: SplitSide?
 
@@ -113,7 +120,7 @@ public class SideHolder: ObservableObject {
         setValue(side)
     }
 
-    /// Toggle whether `side` is hidden or not. 
+    /// Toggle whether `side` is hidden or not.
     ///
     /// For example, multiple invocations of `toggle(.primary)` will alternate between the
     /// `.primary`  (or `.left` or `.top`) side being hidden or visible.

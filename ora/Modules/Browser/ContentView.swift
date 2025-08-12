@@ -1,6 +1,6 @@
+import AVKit
 import SwiftUI
 import WebKit
-import AVKit
 
 struct ContentView: View {
     @StateObject private var viewModel = VideoViewModel()
@@ -14,7 +14,9 @@ struct ContentView: View {
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding()
             Button("Enter PiP") {
-                if let url = URL(string: manualURL.isEmpty ? "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4" : manualURL) {
+                if let url = URL(string: manualURL
+                    .isEmpty ? "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4" : manualURL
+                ) {
                     viewModel.videoURL = url
                     viewModel.showPiPWindow()
                 } else {
@@ -62,7 +64,7 @@ class VideoViewModel: ObservableObject {
             })();
             """
             self.webView.evaluateJavaScript(js) { result, error in
-                if let error = error {
+                if let error {
                     print("JS Error: \(error)")
                     return
                 }
@@ -77,7 +79,7 @@ class VideoViewModel: ObservableObject {
     }
 
     func showPiPWindow() {
-        guard let videoURL = videoURL else { return }
+        guard let videoURL else { return }
         let player = AVPlayer(url: videoURL)
         let pipWindow = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 320, height: 180),

@@ -1,6 +1,7 @@
 import SwiftUI
 
 // MARK: - Navigation Button
+
 struct NavigationButton: View {
     let systemName: String
     let isEnabled: Bool
@@ -12,7 +13,9 @@ struct NavigationButton: View {
         Button(action: action) {
             Image(systemName: systemName)
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(isEnabled ? (isHovering ? foregroundColor.opacity(0.8) : foregroundColor) : foregroundColor.opacity(0.5))
+                .foregroundColor(isEnabled ? (isHovering ? foregroundColor.opacity(0.8) : foregroundColor) :
+                    foregroundColor.opacity(0.5)
+                )
                 .frame(width: 32, height: 32)
                 .background(
                     Circle()

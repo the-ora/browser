@@ -55,10 +55,11 @@ enum SpaceItem: Decodable {
 
     init(from decoder: Decoder) throws {
         if let singleValue = try? decoder.singleValueContainer(),
-           let id = try? singleValue.decode(String.self) {
+           let id = try? singleValue.decode(String.self)
+        {
             self = .id(id)
         } else {
-            self = .custom(try CustomInfo(from: decoder))
+            self = try .custom(CustomInfo(from: decoder))
         }
     }
 }
@@ -69,10 +70,11 @@ enum Item: Decodable {
 
     init(from decoder: Decoder) throws {
         if let singleValue = try? decoder.singleValueContainer(),
-           let id = try? singleValue.decode(String.self) {
+           let id = try? singleValue.decode(String.self)
+        {
             self = .id(id)
         } else {
-            self = .object(try ItemObject(from: decoder))
+            self = try .object(ItemObject(from: decoder))
         }
     }
 }
@@ -131,10 +133,11 @@ enum TopAppsContainerID: Decodable {
 
     init(from decoder: Decoder) throws {
         if let singleValue = try? decoder.singleValueContainer(),
-           let id = try? singleValue.decode(String.self) {
+           let id = try? singleValue.decode(String.self)
+        {
             self = .id(id)
         } else {
-            self = .object(try TopAppsObject(from: decoder))
+            self = try .object(TopAppsObject(from: decoder))
         }
     }
 }
@@ -146,7 +149,9 @@ struct TopAppsObject: Decodable {
 
 func getRoot() -> Root? {
 //    let url = URL(fileURLWithPath: "/Users/keni/Library/Application Support/Arc/StorableSidebar.json")
-    let url = URL(fileURLWithPath: NSString(string: "~/Library/Application Support/Arc/StorableSidebar.json").expandingTildeInPath)
+    let url = URL(fileURLWithPath: NSString(string: "~/Library/Application Support/Arc/StorableSidebar.json")
+        .expandingTildeInPath
+    )
 
     do {
         let data = try Data(contentsOf: url)
@@ -157,23 +162,27 @@ func getRoot() -> Root? {
         return nil
     }
 }
+
 struct CleanSpace {
     var emoji: String?
     var title: String?
     var containerIDs: Set<String>  = []
     var container: TabContainer?
 }
+
 struct CleanTab {
     var title: String
     var urlString: String
     var id: String
     var parentID: String
 }
+
 struct Result {
     var cleanSpaces: [CleanSpace]
     var cleanTabs: [CleanTab]
     var favs: Set<String> = []
 }
+
 func inspectItems(_ root: Root) -> Result {
     var cleanSpaces: [CleanSpace] = []
     var cleanTabs: [CleanTab] = []
@@ -188,7 +197,7 @@ func inspectItems(_ root: Root) -> Result {
 //            print("  has \(spaces.count) spaces")
             for item in spaces {
                 switch item {
-                case .custom(let customInfo):
+                case let .custom(customInfo):
                     var cleanSpace = CleanSpace(
                         emoji: customInfo.customInfo.iconType.emoji_v2,
                         title: customInfo.title,
@@ -202,7 +211,7 @@ func inspectItems(_ root: Root) -> Result {
                         .insert(customInfo.id)
 
                     cleanSpaces.append(cleanSpace)
-                case .id(let id):
+                case let .id(id):
                     print("    Space ID: \(id)")
                 }
             }
@@ -218,11 +227,10 @@ func inspectItems(_ root: Root) -> Result {
             for (itemIndex, item) in items.enumerated() {
                 print("    Item \(itemIndex + 1):")
                 switch item {
-                case .id(let id):
+                case let .id(id):
                     idCount += 1
                     print("      ID: \(id)")
-                case .object(let itemObject):
-
+                case let .object(itemObject):
                     objectCount += 1
 //                    print("      Object:")
 //                    print("        ID: \(itemObject.id)")
@@ -249,9 +257,9 @@ func inspectItems(_ root: Root) -> Result {
 //                            print("          Saved Title: \(tab.savedTitle ?? "n/a")")
                         }
 //                        if let easel = data.easel {
-////                            print("        Easel Data:")
-////                            print("          Easel ID: \(easel.easelID ?? "n/a")")
-////                            print("           Title: \(easel.title ?? "n/a")")
+                        ////                            print("        Easel Data:")
+                        ////                            print("          Easel ID: \(easel.easelID ?? "n/a")")
+                        ////                            print("           Title: \(easel.title ?? "n/a")")
 //                        }
                     } else {
 //                        print("        No Data")
@@ -268,10 +276,10 @@ func inspectItems(_ root: Root) -> Result {
 //            print("  has \(topApps.count) topAppsContainerIDs")
             for topApp in topApps {
                 switch topApp {
-                case .id(let id):
+                case let .id(id):
 //                    print("    TopApp ID: \(id)")
                     topIds.append(id)
-                case .object(let obj):
+                case let .object(obj):
                     print("    TopApp Object: id=\(obj.id ?? "n/a")")
                 }
             }

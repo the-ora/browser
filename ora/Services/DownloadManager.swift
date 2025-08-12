@@ -1,6 +1,6 @@
 import Foundation
-import SwiftUI
 import SwiftData
+import SwiftUI
 import WebKit
 
 @MainActor
@@ -36,7 +36,12 @@ class DownloadManager: ObservableObject {
         }
     }
 
-    func startDownload(from downloadTask: WKDownload, originalURL: URL, suggestedFilename: String, expectedSize: Int64 = 0) -> Download {
+    func startDownload(
+        from downloadTask: WKDownload,
+        originalURL: URL,
+        suggestedFilename: String,
+        expectedSize: Int64 = 0
+    ) -> Download {
         let download = Download(
             originalURL: originalURL,
             fileName: suggestedFilename,
@@ -140,7 +145,8 @@ class DownloadManager: ObservableObject {
 
     // Helper to get default downloads directory
     func getDownloadsDirectory() -> URL {
-        return FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first ?? URL(fileURLWithPath: NSHomeDirectory())
+        return FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)
+            .first ?? URL(fileURLWithPath: NSHomeDirectory())
     }
 
     // Helper to create unique filename if file already exists

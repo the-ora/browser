@@ -13,7 +13,8 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard message.name == "listener",
               let jsonString = message.body as? String,
-              let jsonData = jsonString.data(using: .utf8) else {
+              let jsonData = jsonString.data(using: .utf8)
+        else {
             return
         }
 
@@ -28,7 +29,6 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
                         faviconURLDefault: URL(string: update.favicon)
                     )
                 tab.updateHistory()
-
             }
 
         } catch {
@@ -40,7 +40,8 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         // Configure WebView for performance
         let configuration = WKWebViewConfiguration()
         let userAgent = "Mozilla/5.0 (Macintosh; arm64 Mac OS X 14_5) AppleWebKit/616.1.1 (KHTML, like Gecko) Version/18.5 Safari/616.1.1 Ora/1.0"
-//        let userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"
+//        let userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko)
+//        Chrome/133.0.0.0 Safari/537.36"
         configuration.applicationNameForUserAgent = userAgent
 
         // Enable JavaScript

@@ -27,11 +27,12 @@ struct LauncherView: View {
     private func onSubmit(_ newInput: String? = nil) {
         let correctInput = newInput ?? input
         let engineToUse =
-        match
-        ?? searchEngineService.getDefaultSearchEngine()?.toLauncherMatch(originalAlias: correctInput)
+            match
+                ?? searchEngineService.getDefaultSearchEngine()?.toLauncherMatch(originalAlias: correctInput)
 
         if let engine = engineToUse,
-           let url = searchEngineService.createSearchURL(for: engine, query: correctInput) {
+           let url = searchEngineService.createSearchURL(for: engine, query: correctInput)
+        {
             tabManager
                 .openTab(
                     url: url,
@@ -75,8 +76,8 @@ struct LauncherView: View {
             .blur(radius: isVisible ? 0 : 2)
             .animation(
                 isVisible
-                ? .spring(response: 0.15, dampingFraction: 0.5, blendDuration: 0.2)
-                : .easeOut(duration: 0.1),
+                    ? .spring(response: 0.15, dampingFraction: 0.5, blendDuration: 0.2)
+                    : .easeOut(duration: 0.1),
                 value: isVisible
             )
             .onAppear {

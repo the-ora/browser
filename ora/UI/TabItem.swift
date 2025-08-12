@@ -8,7 +8,7 @@ struct LocalFavIcon: View {
     @State private var image: NSImage?
 
     var body: some View {
-        if let image = image {
+        if let image {
             Image(nsImage: image)
                 .resizable()
                 .scaledToFit()
@@ -38,6 +38,7 @@ struct LocalFavIcon: View {
         }
     }
 }
+
 struct FavIcon: View {
     let isWebViewReady: Bool
     let favicon: URL?
@@ -45,22 +46,21 @@ struct FavIcon: View {
     let textColor: Color
 
     var body: some View {
-
         HStack {
-            if let favicon = favicon, isWebViewReady {
-                    AsyncImage(
-                        url: favicon
-                    ) { image in
-                        image
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 16, height: 16)
-                    } placeholder: {
-                        LocalFavIcon(
-                            faviconLocalFile: faviconLocalFile,
-                            textColor: textColor
-                        )
-                    }
+            if let favicon, isWebViewReady {
+                AsyncImage(
+                    url: favicon
+                ) { image in
+                    image
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 16, height: 16)
+                } placeholder: {
+                    LocalFavIcon(
+                        faviconLocalFile: faviconLocalFile,
+                        textColor: textColor
+                    )
+                }
             } else {
                 LocalFavIcon(
                     faviconLocalFile: faviconLocalFile,
@@ -130,11 +130,12 @@ struct TabItem: View {
         .cornerRadius(10)
         .overlay(
             isDragging ?
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .stroke(
-                        theme.invertedSolidWindowBackgroundColor.opacity(0.25),
-                        style: StrokeStyle(lineWidth: 1, dash: [5, 5]))
-            : nil
+                    theme.invertedSolidWindowBackgroundColor.opacity(0.25),
+                    style: StrokeStyle(lineWidth: 1, dash: [5, 5])
+                )
+                : nil
         )
         .onTapGesture {
             onTap()
@@ -179,7 +180,7 @@ struct TabItem: View {
 
     @ViewBuilder
     private var actionButton: some View {
-        if isHovering && tab.type == .pinned && !tab.isWebViewReady {
+        if isHovering, tab.type == .pinned, !tab.isWebViewReady {
             ActionButton(icon: "pin.slash", color: textColor, action: onPinToggle).help("Unpin Tab")
         } else if isHovering {
             ActionButton(icon: "xmark", color: textColor, action: onClose).help("Close Tab")
@@ -191,13 +192,15 @@ struct TabItem: View {
         Button(action: onPinToggle) {
             Label(
                 tab.type == .pinned ? "Unpin Tab" : "Pin Tab",
-                systemImage: tab.type == .pinned ? "pin.slash" : "pin")
+                systemImage: tab.type == .pinned ? "pin.slash" : "pin"
+            )
         }
 
         Button(action: onFavoriteToggle) {
             Label(
                 tab.type == .fav ? "Remove from Favorites" : "Add to Favorites",
-                systemImage: tab.type == .fav ? "star.slash" : "star")
+                systemImage: tab.type == .fav ? "star.slash" : "star"
+            )
         }
 
         Divider()
@@ -225,19 +228,19 @@ struct TabItem: View {
 }
 
 struct ActionButton: View {
-  let icon: String
-  let color: Color
-  let action: () -> Void
-  @State private var isHovering = false
+    let icon: String
+    let color: Color
+    let action: () -> Void
+    @State private var isHovering = false
 
-  var body: some View {
-    Button(action: action) {
-      Image(systemName: icon)
-        .frame(width: 12, height: 12)
-        .foregroundColor(color)
-        .fontWeight(.semibold)
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .frame(width: 12, height: 12)
+                .foregroundColor(color)
+                .fontWeight(.semibold)
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovering = $0 }
     }
-    .buttonStyle(.plain)
-    .onHover { isHovering = $0 }
-  }
 }

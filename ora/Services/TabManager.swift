@@ -1,8 +1,9 @@
+import SwiftData
 import SwiftUI
 import WebKit
-import SwiftData
 
 // MARK: - Tab Manager
+
 @MainActor
 class TabManager: ObservableObject {
     @Published var activeContainer: TabContainer?
@@ -22,7 +23,8 @@ class TabManager: ObservableObject {
         self.modelContext.undoManager = UndoManager()
         initializeActiveContainerAndTab()
     }
-    public func search(_ text: String) -> [Tab] {
+
+    func search(_ text: String) -> [Tab] {
         let activeContainerId = activeContainer?.id ?? UUID()
         let trimmedText = text.trimmingCharacters(in: .whitespaces)
 
@@ -33,7 +35,7 @@ class TabManager: ObservableObject {
             predicate = #Predicate { tab in
                 (
                     tab.urlString.localizedStandardContains(trimmedText) ||
-                    tab.title
+                        tab.title
                         .localizedStandardContains(
                             trimmedText
                         )
@@ -61,11 +63,10 @@ class TabManager: ObservableObject {
     private func combinedScore(for tab: Tab, query: String, now: Date) -> Double {
         let match = scoreMatch(tab, text: query)
 
-        let timeInterval: TimeInterval
-        if let accessedAt = tab.lastAccessedAt {
-            timeInterval = now.timeIntervalSince(accessedAt)
+        let timeInterval: TimeInterval = if let accessedAt = tab.lastAccessedAt {
+            now.timeIntervalSince(accessedAt)
         } else {
-            timeInterval = 1_000_000 // far in the past → lowest recency
+            1_000_000 // far in the past → lowest recency
         }
 
         let recencyBoost = max(0, 1_000_000 - timeInterval)
@@ -87,6 +88,7 @@ class TabManager: ObservableObject {
 
         return max(score(title), score(url))
     }
+
     func openFromEngine(
         engineName: SearchEngineID,
         query: String,
@@ -99,13 +101,14 @@ class TabManager: ObservableObject {
             openTab(url: url, historyManager: historyManager)
         }
     }
-    func isActive(_ tab: Tab) -> Bool {
 
+    func isActive(_ tab: Tab) -> Bool {
         if let activeTab = self.activeTab {
             return activeTab.id == tab.id
         }
         return false
     }
+
     func togglePinTab(_ tab: Tab) {
         if tab.type == .pinned {
             tab.type = .normal
@@ -117,6 +120,7 @@ class TabManager: ObservableObject {
 
         try? modelContext.save()
     }
+
     func toggleFavTab(_ tab: Tab) {
         if tab.type == .fav {
             tab.type = .normal
@@ -132,10 +136,12 @@ class TabManager: ObservableObject {
     func getActiveTab() -> Tab? {
         return self.activeTab
     }
+
     func moveTabToContainer(_ tab: Tab, to: TabContainer) {
         tab.container = to
         try? modelContext.save()
     }
+
     private func initializeActiveContainerAndTab() {
         // Ensure containers are fetched
         let containers = fetchContainers()
@@ -144,7 +150,8 @@ class TabManager: ObservableObject {
         if let lastAccessedContainer = containers.first {
             activeContainer = lastAccessedContainer
             // Get the last accessed tab from the active container
-            //            if let lastAccessedTab = lastAccessedContainer.tabs.sorted(by: { $0.lastAccessedAt ?? Date() > $1.lastAccessedAt ?? Date() }).first {
+            //            if let lastAccessedTab = lastAccessedContainer.tabs.sorted(by: { $0.lastAccessedAt ?? Date() >
+            //            $1.lastAccessedAt ?? Date() }).first {
             //                activeTab = lastAccessedTab
             //            } else {
             //                // No tabs, create one
@@ -211,6 +218,7 @@ class TabManager: ObservableObject {
         try? modelContext.save()
         return newTab
     }
+
     func openTab(
         url: URL,
         historyManager: HistoryManager,
@@ -245,23 +253,25 @@ class TabManager: ObservableObject {
             }
         }
     }
+
     func reorderTabs(from: Tab, to: Tab) {
         from.container.reorderTabs(from: from, to: to)
         try? modelContext.save()
     }
+
     func switchSections(from: Tab, to: Tab) {
         from.switchSections(from: from, to: to)
         try? modelContext.save()
     }
-    func closeTab(tab: Tab) {
 
+    func closeTab(tab: Tab) {
         // If the closed tab was active, select another tab
         if self.activeTab?.id == tab.id {
-
             if let nextTab = tab.container.tabs
                 .filter({ $0.id != tab.id && $0.isWebViewReady })
                 .sorted(by: { $0.lastAccessedAt ?? Date.distantPast > $1.lastAccessedAt ?? Date.distantPast })
-                .first {
+                .first
+            {
                 self.activateTab(nextTab)
 
                 //            } else if let nextContainer = containers.first(where: { $0.id != tab.container.id }) {
@@ -273,7 +283,9 @@ class TabManager: ObservableObject {
         } else {
             self.activeTab = activeTab
         }
-        if activeTab?.isWebViewReady != nil, let historyManager = tab.historyManager, let downloadManager = tab.downloadManager, let tabManager = tab.tabManager {
+        if activeTab?.isWebViewReady != nil, let historyManager = tab.historyManager,
+           let downloadManager = tab.downloadManager, let tabManager = tab.tabManager
+        {
             activeTab?
                 .restoreTransientState(
                     historyManger: historyManager,
@@ -295,23 +307,26 @@ class TabManager: ObservableObject {
         }
         self.activeTab?.maybeIsActive = true
     }
+
     func closeActiveTab() {
         if let tab = activeTab {
             closeTab(tab: tab)
         }
     }
+
     func restoreLastTab() {
         guard let undoManager = modelContext.undoManager else { return }
         undoManager.undo() // Reverts the last deletion
         try? modelContext.save() // Persist the undo operation
-
     }
 
     func activateContainer(_ container: TabContainer) {
         activeContainer = container
         container.lastAccessedAt = Date()
         // Set the most recently accessed tab in the container
-        if let lastAccessedTab = container.tabs.sorted(by: { $0.lastAccessedAt ?? Date() > $1.lastAccessedAt ?? Date() }).first {
+        if let lastAccessedTab = container.tabs
+            .sorted(by: { $0.lastAccessedAt ?? Date() > $1.lastAccessedAt ?? Date() }).first
+        {
             activeTab?.maybeIsActive = false
             activeTab = lastAccessedTab
             activeTab?.maybeIsActive = true
@@ -343,8 +358,8 @@ class TabManager: ObservableObject {
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         if message.name == "listener",
-           let url = message.body as? String {
-
+           let url = message.body as? String
+        {
             // You can update the active tab’s url if needed
             DispatchQueue.main.async {
                 self.activeTab?.url = URL(string: url) ?? self.activeTab?.url ?? URL(string: "about:blank")!

@@ -1,7 +1,8 @@
-import SwiftData
 import Foundation
+import SwiftData
 
 // MARK: - Folder
+
 @Model
 class Folder: ObservableObject, Identifiable {
     var id: UUID
