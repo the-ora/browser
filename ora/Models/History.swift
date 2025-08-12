@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+
 // SwiftData model for a browsing history entry
 @Model
 final class History {

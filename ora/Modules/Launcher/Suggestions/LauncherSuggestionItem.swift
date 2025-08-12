@@ -46,10 +46,11 @@ struct LauncherSuggestionItem: View {
     @EnvironmentObject var appState: AppState
 
     init(suggestion: LauncherSuggestion, defaultAI: SearchEngine?, focusedElement: Binding<UUID>) {
-           self.suggestion = suggestion
-           self.defaultAI = defaultAI
-           self._focusedElement = focusedElement
-       }
+        self.suggestion = suggestion
+        self.defaultAI = defaultAI
+        self._focusedElement = focusedElement
+    }
+
     private var isAIChat: Bool {
         suggestion.type == .aiChat
     }
@@ -59,7 +60,7 @@ struct LauncherSuggestionItem: View {
     }
 
     private var foregroundColor: Color {
-        if (focusedElement == suggestion.id || isHovered) && isAIChat {
+        if focusedElement == suggestion.id || isHovered, isAIChat {
             return defaultAI?.foregroundColor ?? .secondary
         } else if focusedElement == suggestion.id {
             return theme.foreground
@@ -70,20 +71,20 @@ struct LauncherSuggestionItem: View {
     private var backgroundColor: Color {
         if focusedElement != suggestion.id || isHovered { return .clear }
         return isAIChat
-        ? defaultAI?.color ?? .clear
-        : isHovered ? theme.foreground.opacity(0.07) : theme.foreground.opacity(0.1)
+            ? defaultAI?.color ?? .clear
+            : isHovered ? theme.foreground.opacity(0.07) : theme.foreground.opacity(0.1)
     }
 
     private var aiIcon: String {
         guard isAIChat && defaultAI?.icon != nil else { return "" }
         return focusedElement == suggestion.id || isHovered
-        ? defaultAI!.icon
-        : defaultAI!.icon + "-inverted"
+            ? defaultAI!.icon
+            : defaultAI!.icon + "-inverted"
     }
 
     @ViewBuilder
     var icon: some View {
-        if isAIChat && defaultAI?.icon != nil {
+        if isAIChat, defaultAI?.icon != nil {
             Image(
                 aiIcon
             )
@@ -102,7 +103,7 @@ struct LauncherSuggestionItem: View {
                 .frame(width: 14, height: 14)
                 .foregroundStyle(
                     focusedElement == suggestion.id
-                    ? theme.foreground : .secondary)
+                        ? theme.foreground : .secondary)
         }
     }
 
@@ -114,13 +115,13 @@ struct LauncherSuggestionItem: View {
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(
                         focusedElement == suggestion.id || isHovered
-                        ? defaultAI?.foregroundColor ?? .secondary : .secondary)
+                            ? defaultAI?.foregroundColor ?? .secondary : .secondary)
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .background(
                 focusedElement == suggestion.id || isHovered
-                ? defaultAI?.foregroundColor?.opacity(0.10) ?? .clear : theme.foreground.opacity(0.07)
+                    ? defaultAI?.foregroundColor?.opacity(0.10) ?? .clear : theme.foreground.opacity(0.07)
             )
             .cornerRadius(6)
         } else if suggestion.type == .openedTab {
@@ -129,7 +130,7 @@ struct LauncherSuggestionItem: View {
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(
                         focusedElement == suggestion.id || isHovered
-                        ? theme.foreground : .secondary)
+                            ? theme.foreground : .secondary)
 
                 Image(systemName: "arrow.right")
                     .resizable()
@@ -139,13 +140,12 @@ struct LauncherSuggestionItem: View {
                         RoundedRectangle(cornerRadius: 6, style: .continuous)
                             .fill(
                                 focusedElement == suggestion.id || isHovered
-                                ? theme.foreground : theme.foreground.opacity(0.07)
+                                    ? theme.foreground : theme.foreground.opacity(0.07)
                             )
                     )
                     .foregroundStyle(
                         focusedElement == suggestion.id || isHovered
-                        ? theme.background : .secondary)
-
+                            ? theme.background : .secondary)
             }
             // .padding(.horizontal, 8)
             // .padding(.vertical, 4)
@@ -192,4 +192,4 @@ struct LauncherSuggestionItem: View {
         }
 //        .focused($focusedElement, equals: suggestion.id)
     }
- }
+}

@@ -56,7 +56,7 @@ struct DownloadProgressView: View {
 
                     Spacer()
 
-                    if download.displayFileSize > 0 && download.status == .downloading {
+                    if download.displayFileSize > 0, download.status == .downloading {
                         Text("\(Int(download.displayProgress * 100))%")
                             .font(.system(size: 10, weight: .medium))
                             .foregroundColor(.secondary)
@@ -105,22 +105,21 @@ struct DownloadProgressView: View {
     }
 
     private var progressText: String {
-        let text: String
-        switch download.status {
+        let text: String = switch download.status {
         case .downloading:
             if download.displayFileSize > 0 {
-                text = "\(download.formattedDownloadedSize) of \(download.formattedFileSize)"
+                "\(download.formattedDownloadedSize) of \(download.formattedFileSize)"
             } else {
-                text = download.formattedDownloadedSize
+                download.formattedDownloadedSize
             }
         case .completed:
-            text = "Downloaded"
+            "Downloaded"
         case .failed:
-            text = "Failed"
+            "Failed"
         case .cancelled:
-            text = "Cancelled"
+            "Cancelled"
         default:
-            text = "Pending"
+            "Pending"
         }
 
         return text

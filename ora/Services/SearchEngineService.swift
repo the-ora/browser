@@ -1,4 +1,5 @@
 import SwiftUI
+
 enum SearchEngineID: String, CaseIterable {
     case youtube = "YouTube"
     case chatgpt = "ChatGPT"
@@ -22,6 +23,7 @@ struct SuggestResponse: Decodable {
         // Skip the rest (3rd and 4th elements)
     }
 }
+
 class SearchEngineService: ObservableObject {
     private var theme: Theme?
 
@@ -142,6 +144,7 @@ class SearchEngineService: ObservableObject {
         let urlString = match.searchURL.replacingOccurrences(of: "{query}", with: encodedQuery)
         return URL(string: urlString)
     }
+
     func createSuggestionsURL(urlString: String, query: String) -> URL? {
         let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         let urlString = urlString.replacingOccurrences(of: "{query}", with: encodedQuery)
@@ -162,5 +165,4 @@ class SearchEngineService: ObservableObject {
             return []
         }
     }
-
 }

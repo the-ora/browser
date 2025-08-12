@@ -1,7 +1,8 @@
-import SwiftUI
 import AppKit
+import SwiftUI
 
 // MARK: - URLBar
+
 struct URLBar: View {
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var appState: AppState
@@ -119,7 +120,7 @@ struct URLBar: View {
                             }
                             .overlay(
                                 Group {
-                                    if !isEditing && editingURLString.isEmpty {
+                                    if !isEditing, editingURLString.isEmpty {
                                         HStack {
                                             Text(tab.title.isEmpty ? "New Tab" : tab.title)
                                                 .font(.system(size: 14))
@@ -183,7 +184,6 @@ struct URLBar: View {
                     Rectangle()
                         .fill(tab.backgroundColor)
                 )
-
             }
         }
     }

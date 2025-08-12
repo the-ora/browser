@@ -3,7 +3,6 @@ import SwiftData
 
 @MainActor
 class HistoryManager: ObservableObject {
-
     let modelContainer: ModelContainer
     let modelContext: ModelContext
 
@@ -11,7 +10,8 @@ class HistoryManager: ObservableObject {
         self.modelContainer = modelContainer
         self.modelContext = modelContext
     }
-    public func record(
+
+    func record(
         title: String,
         url: URL,
         faviconURL: URL? = nil,
@@ -49,7 +49,7 @@ class HistoryManager: ObservableObject {
         try? modelContext.save()
     }
 
-    public func search(_ text: String, activeContainerId: UUID) -> [History] {
+    func search(_ text: String, activeContainerId: UUID) -> [History] {
         let trimmedText = text.trimmingCharacters(in: .whitespaces)
 
         // Define the predicate for searching
@@ -61,7 +61,7 @@ class HistoryManager: ObservableObject {
             // Case-insensitive substring search on url and title
             predicate = #Predicate { history in
                 (history.urlString.localizedStandardContains(trimmedText) ||
-                 history.title.localizedStandardContains(trimmedText)) && history.container.id == activeContainerId
+                    history.title.localizedStandardContains(trimmedText)) && history.container.id == activeContainerId
             }
         }
 

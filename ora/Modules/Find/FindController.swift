@@ -9,21 +9,24 @@ class FindController: NSObject {
     }
 
     // MARK: - Inject mark.js
+
     func injectMarkJS() {
         guard let jsPath = Bundle.main.path(forResource: "mark", ofType: "js"),
-              let jsCode = try? String(contentsOfFile: jsPath, encoding: .utf8) else {
+              let jsCode = try? String(contentsOfFile: jsPath, encoding: .utf8)
+        else {
             print("mark.js not found or failed to load")
             return
         }
 
         webView.evaluateJavaScript(jsCode) { _, error in
-            if let error = error {
+            if let error {
                 print("Error injecting mark.js: \(error)")
             }
         }
     }
 
     // MARK: - Highlight Text
+
     func highlight(_ searchTerm: String) {
         let escapedTerm = searchTerm.replacingOccurrences(of: "'", with: "\\'")
         let js = """
@@ -76,6 +79,7 @@ class FindController: NSObject {
     }
 
     // MARK: - Next Match
+
     func nextMatch() {
         let js = """
         (function() {
@@ -93,6 +97,7 @@ class FindController: NSObject {
     }
 
     // MARK: - Previous Match
+
     func previousMatch() {
         let js = """
         (function() {
@@ -110,6 +115,7 @@ class FindController: NSObject {
     }
 
     // MARK: - Clear All Matches
+
     func clearMatches() {
         let js = """
         (function() {
@@ -125,6 +131,7 @@ class FindController: NSObject {
     }
 
     // MARK: - Count Matches
+
     func countMatches(completion: @escaping (Int) -> Void) {
         let js = """
         (function() {
@@ -140,6 +147,7 @@ class FindController: NSObject {
     }
 
     // MARK: - Get Current Match Index
+
     func getCurrentMatchIndex(completion: @escaping (Int) -> Void) {
         let js = """
         (function() {
@@ -155,6 +163,7 @@ class FindController: NSObject {
     }
 
     // MARK: - Get Match Info
+
     func getMatchInfo(completion: @escaping (Int, Int) -> Void) {
         let js = """
         (function() {
@@ -170,7 +179,8 @@ class FindController: NSObject {
         webView.evaluateJavaScript(js) { result, _ in
             if let dict = result as? [String: Any],
                let total = dict["total"] as? Int,
-               let current = dict["current"] as? Int {
+               let current = dict["current"] as? Int
+            {
                 completion(current, total)
             } else {
                 completion(0, 0)

@@ -1,6 +1,6 @@
+import AVKit
 import SwiftUI
 import WebKit
-import AVKit
 
 struct ContentView: View {
     @StateObject private var viewModel = VideoViewModel()
@@ -62,7 +62,7 @@ class VideoViewModel: ObservableObject {
             })();
             """
             self.webView.evaluateJavaScript(js) { result, error in
-                if let error = error {
+                if let error {
                     print("JS Error: \(error)")
                     return
                 }
@@ -77,7 +77,7 @@ class VideoViewModel: ObservableObject {
     }
 
     func showPiPWindow() {
-        guard let videoURL = videoURL else { return }
+        guard let videoURL else { return }
         let player = AVPlayer(url: videoURL)
         let pipWindow = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 320, height: 180),

@@ -18,7 +18,7 @@ public struct SplitModifier<S: View>: ViewModifier {
     let secondary: () -> S
 
     public func body(content: Content) -> some View {
-        Split(primary: {content}, secondary: secondary)
+        Split(primary: { content }, secondary: secondary)
             .layout(layout)
     }
 
@@ -38,7 +38,7 @@ public struct HSplitModifier<S: View>: ViewModifier {
     let secondary: () -> S
 
     public func body(content: Content) -> some View {
-        HSplit(left: {content}, right: secondary)
+        HSplit(left: { content }, right: secondary)
     }
 
     public init(@ViewBuilder secondary: @escaping (() -> S)) {
@@ -56,7 +56,7 @@ public struct VSplitModifier<S: View>: ViewModifier {
     let secondary: () -> S
 
     public func body(content: Content) -> some View {
-        VSplit(top: {content}, bottom: secondary)
+        VSplit(top: { content }, bottom: secondary)
     }
 
     public init(@ViewBuilder secondary: @escaping (() -> S)) {
@@ -64,31 +64,29 @@ public struct VSplitModifier<S: View>: ViewModifier {
     }
 }
 
-extension View {
-
+public extension View {
     /// Return an instance of Split in the SplitLayout direction held by `layout`, with a Splitter separating this `primary` View and `secondary`.
-    public func split(_ layout: LayoutHolder, @ViewBuilder secondary: @escaping (() -> some View)) -> some View {
+    func split(_ layout: LayoutHolder, @ViewBuilder secondary: @escaping (() -> some View)) -> some View {
         modifier(SplitModifier(layout, secondary: secondary))
     }
 
     /// Return an instance of Split in `layout` direction, with a Splitter separating this `primary` View and `secondary`.
-    public func split(_ layout: SplitLayout, @ViewBuilder secondary: @escaping (() -> some View)) -> some View {
+    func split(_ layout: SplitLayout, @ViewBuilder secondary: @escaping (() -> some View)) -> some View {
         split(LayoutHolder(layout), secondary: secondary)
     }
 
     /// Return an instance of Split in `.horizontal` direction, with a Splitter separating this `primary` View and `secondary`.
-    public func split(@ViewBuilder secondary: @escaping (() -> some View)) -> some View {
+    func split(@ViewBuilder secondary: @escaping (() -> some View)) -> some View {
         split(LayoutHolder(.horizontal), secondary: secondary)
     }
 
     /// Return an instance of HSplit with a Splitter separating this `primary` View and `secondary`.
-    public func hSplit(@ViewBuilder secondary: @escaping (() -> some View)) -> some View {
+    func hSplit(@ViewBuilder secondary: @escaping (() -> some View)) -> some View {
         modifier(HSplitModifier(secondary: secondary))
     }
 
     /// Return an instance of VSplit with a Splitter separating this `primary` View and `secondary`.
-    public func vSplit(@ViewBuilder secondary: @escaping (() -> some View)) -> some View {
+    func vSplit(@ViewBuilder secondary: @escaping (() -> some View)) -> some View {
         modifier(VSplitModifier(secondary: secondary))
     }
-
 }

@@ -1,6 +1,7 @@
 import SwiftUI
 
 // MARK: - Navigation Button
+
 struct NavigationButton: View {
     let systemName: String
     let isEnabled: Bool

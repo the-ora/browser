@@ -13,7 +13,8 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard message.name == "listener",
               let jsonString = message.body as? String,
-              let jsonData = jsonString.data(using: .utf8) else {
+              let jsonData = jsonString.data(using: .utf8)
+        else {
             return
         }
 
@@ -28,7 +29,6 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
                         faviconURLDefault: URL(string: update.favicon)
                     )
                 tab.updateHistory()
-
             }
 
         } catch {

@@ -1,6 +1,6 @@
-@preconcurrency import WebKit
 import AppKit
 import SwiftUI
+@preconcurrency import WebKit
 
 // JavaScript for monitoring URL, title, and favicon changes
 let js = """
@@ -54,6 +54,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
     private var originalURL: URL?
 
     // MARK: - Handle cmd+click to open in new tab
+
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         // Check if command key is pressed (cmd+click)
         print(navigationAction.modifierFlags, navigationAction.modifierFlags.contains(.command))
@@ -62,11 +63,11 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
            let tab = self.tab,
            let tabManager = tab.tabManager,
            let historyManager = tab.historyManager,
-           let downloadManager = tab.downloadManager {
-
+           let downloadManager = tab.downloadManager
+        {
             // Open link in new tab
             DispatchQueue.main.async {
-               tabManager.openTab(
+                tabManager.openTab(
                     url: url,
                     historyManager: historyManager,
                     downloadManager: downloadManager
@@ -131,7 +132,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
             onLoadingChange?(false)
             tab?.setNavigationError(error, for: webView.url)
             onProgressChange?(100.0)
-    }
+        }
         originalURL = nil // Clear stored URL on navigation failure
     }
 
@@ -145,7 +146,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
             isDownloadNavigation = true // Mark as download to suppress navigation callbacks
 
             // Revert URL bar back to original URL since this is a download
-            if let originalURL = originalURL {
+            if let originalURL {
                 onURLChange?(originalURL)
             }
 
@@ -181,7 +182,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
         configuration.rect = CGRect(x: 0, y: 0, width: webView.bounds.width, height: 24)
 
         webView.takeSnapshot(with: configuration) { [weak self] image, error in
-            guard let self = self, let image = image, error == nil else { return }
+            guard let self, let image, error == nil else { return }
 
             if let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) {
                 let color = self.extractDominantColor(from: cgImage)
@@ -243,7 +244,7 @@ class DownloadDelegate: NSObject, WKDownloadDelegate {
 
             // Start timer to monitor WKDownload progress
             self.progressTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-                guard let self = self, let download = self.download else { return }
+                guard let self, let download = self.download else { return }
                 let completedBytes = self.wkDownload.progress.completedUnitCount
                 let totalBytes = self.wkDownload.progress.totalUnitCount > 0 ? self.wkDownload.progress.totalUnitCount : expectedSize
                 self.downloadManager.updateDownloadProgress(download, downloadedBytes: completedBytes, totalBytes: totalBytes)

@@ -30,37 +30,37 @@ import SwiftUI
  */
 
 final class KeyModifierListener: ObservableObject {
-  @Published var modifierFlags = NSEvent.ModifierFlags([])
+    @Published var modifierFlags = NSEvent.ModifierFlags([])
 
-  init() {
-    NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
-      self?.modifierFlags = event.modifierFlags
-      return event
+    init() {
+        NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
+            self?.modifierFlags = event.modifierFlags
+            return event
+        }
+
+        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self else { return event }
+            if self.handleGlobalKeyDown(event) {
+                return nil
+            }
+            return event
+        }
     }
 
-    NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-      guard let self else { return event }
-      if self.handleGlobalKeyDown(event) {
-        return nil
-      }
-      return event
+    typealias KeyDownHandler = (NSEvent) -> Bool
+
+    private var keyDownHandlers: [KeyDownHandler] = []
+
+    func registerKeyDownHandler(_ handler: @escaping KeyDownHandler) {
+        keyDownHandlers.append(handler)
     }
-  }
 
-  typealias KeyDownHandler = (NSEvent) -> Bool
-
-  private var keyDownHandlers: [KeyDownHandler] = []
-
-  func registerKeyDownHandler(_ handler: @escaping KeyDownHandler) {
-    keyDownHandlers.append(handler)
-  }
-
-  private func handleGlobalKeyDown(_ event: NSEvent) -> Bool {
-    for handler in keyDownHandlers {
-      if handler(event) {
-        return true
-      }
+    private func handleGlobalKeyDown(_ event: NSEvent) -> Bool {
+        for handler in keyDownHandlers {
+            if handler(event) {
+                return true
+            }
+        }
+        return false
     }
-    return false
-  }
 }
