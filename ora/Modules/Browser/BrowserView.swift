@@ -164,6 +164,39 @@ struct BrowserView: View {
                                     .padding(.trailing, 16)
                                     .zIndex(1000)
                             }
+
+                            // Hovered link URL overlay (bottom-left)
+                            if let hovered = tab.hoveredLinkURL, !hovered.isEmpty {
+                                VStack {
+                                    Spacer()
+                                    HStack {
+                                        Text(hovered)
+                                            .font(.system(size: 12, weight: .regular))
+                                            .foregroundStyle(Color.white)
+                                            .padding(.horizontal, 10)
+                                            .padding(.vertical, 6)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                                    .fill(Color.black.opacity(0.3))
+                                            )
+                                            .background(BlurEffectView(
+                                                material: .popover,
+                                                blendingMode: .withinWindow
+                                            ))
+                                            .cornerRadius(8)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                                    .stroke(Color(.separatorColor), lineWidth: 1)
+                                            )
+                                            .padding(.leading, 12)
+                                        Spacer()
+                                    }
+                                    .padding(.bottom, 12)
+                                }
+                                .transition(.opacity)
+                                .animation(.easeOut(duration: 0.1), value: tab.hoveredLinkURL)
+                                .zIndex(900)
+                            }
                         }
                     }
                 } else {

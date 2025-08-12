@@ -11,28 +11,37 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
     var tab: Tab?
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        guard message.name == "listener",
-              let jsonString = message.body as? String,
-              let jsonData = jsonString.data(using: .utf8)
-        else {
-            return
-        }
-
-        do {
-            let update = try JSONDecoder().decode(URLUpdate.self, from: jsonData)
-            DispatchQueue.main.async {
-                guard let tab = self.tab else { return }
-                tab.title = update.title
-                tab.url = URL(string: update.href) ?? tab.url
-                tab
-                    .setFavicon(
-                        faviconURLDefault: URL(string: update.favicon)
-                    )
-                tab.updateHistory()
+        if message.name == "listener" {
+            guard let jsonString = message.body as? String,
+                  let jsonData = jsonString.data(using: .utf8)
+            else {
+                return
             }
 
-        } catch {
-            print("Failed to decode JS message: \(error)")
+            do {
+                let update = try JSONDecoder().decode(URLUpdate.self, from: jsonData)
+                DispatchQueue.main.async {
+                    guard let tab = self.tab else { return }
+                    tab.title = update.title
+                    tab.url = URL(string: update.href) ?? tab.url
+                    tab
+                        .setFavicon(
+                            faviconURLDefault: URL(string: update.favicon)
+                        )
+                    tab.updateHistory()
+                }
+
+            } catch {
+                print("Failed to decode JS message: \(error)")
+            }
+        } else if message.name == "linkHover" {
+            // Expect a String body with the hovered URL or empty string to clear
+            let hovered = message.body as? String
+            DispatchQueue.main.async {
+                guard let tab = self.tab else { return }
+                let trimmed = (hovered ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                tab.hoveredLinkURL = trimmed.isEmpty ? nil : trimmed
+            }
         }
     }
 
@@ -79,6 +88,7 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         // injecting listners
         let contentController = WKUserContentController()
         contentController.add(self, name: "listener")
+        contentController.add(self, name: "linkHover")
         configuration.userContentController = contentController
 
         return configuration

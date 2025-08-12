@@ -38,6 +38,25 @@ let js = """
     setInterval(() => notifyChange(), 500);
     window.addEventListener('popstate', () => notifyChange(true));
     findFavicon((icon) => { faviconURL = icon; notifyChange(true); });
+
+    // Hover link detection: post hovered link URL via linkHover handler
+    function postHover(url) {
+        try { window.webkit.messageHandlers.linkHover.postMessage(url || ""); } catch (e) {}
+    }
+    let hoverTimer = null;
+    function onMouseOver(e) {
+        const a = e.target.closest && e.target.closest('a[href]');
+        const href = a ? a.href : '';
+        postHover(href);
+    }
+    function onMouseOut(e) {
+        const related = e.relatedTarget;
+        if (!related || !e.currentTarget.contains(related)) {
+            postHover("");
+        }
+    }
+    document.addEventListener('mouseover', onMouseOver, true);
+    document.addEventListener('mouseout', onMouseOut, true);
 })();
 """
 

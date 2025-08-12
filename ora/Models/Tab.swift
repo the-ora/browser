@@ -49,6 +49,7 @@ class Tab: ObservableObject, Identifiable {
     @Transient @Published var hasNavigationError: Bool = false
     @Transient @Published var navigationError: Error?
     @Transient @Published var failedURL: URL?
+    @Transient @Published var hoveredLinkURL: String?
 
     @Relationship(inverse: \TabContainer.tabs) var container: TabContainer
 
