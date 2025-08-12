@@ -36,14 +36,17 @@ ensure_formula() {
   fi
 }
 
+ensure_formula Xcodegen xcodegen
 ensure_formula Swiftlint swiftlint
 ensure_formula Swiftformat swiftformat
 
-echo "🔧 Setting up Git hooks..."
 git config core.hooksPath .githooks
 if [ -d .githooks ]; then
   chmod -R +x .githooks || true
 fi
 echo "✅ Git hooks installed!"
+
+xcodegen
+echo "✅ Xcodegen generated successfully!"
 
 echo "🎉 Setup complete."
