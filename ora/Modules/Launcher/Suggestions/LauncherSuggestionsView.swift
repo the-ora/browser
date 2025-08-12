@@ -14,7 +14,11 @@ struct LauncherSuggestionsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             ForEach(suggestions) { suggestion in
-                LauncherSuggestionItem(suggestion: suggestion, defaultAI: searchEngineService.getDefaultAIChat(), focusedElement: $focusedElement)
+                LauncherSuggestionItem(
+                    suggestion: suggestion,
+                    defaultAI: searchEngineService.getDefaultAIChat(),
+                    focusedElement: $focusedElement
+                )
             }
         }
         .frame(maxWidth: .infinity)

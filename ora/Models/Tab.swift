@@ -1,19 +1,22 @@
-import SwiftUI
-import SwiftData
-import WebKit
 import AppKit
+import SwiftData
+import SwiftUI
+import WebKit
 
 enum TabType: String, Codable {
     case pinned
     case fav
     case normal
 }
+
 struct URLUpdate: Codable {
     let href: String
     let title: String
     let favicon: String
 }
+
 // MARK: - Tab
+
 @Model
 class Tab: ObservableObject, Identifiable {
     var id: UUID
@@ -38,7 +41,7 @@ class Tab: ObservableObject, Identifiable {
     @Transient var tabManager: TabManager?
     // Not persisted: in-memory only
     @Transient var webView: WKWebView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
-    @Transient public var navigationDelegate: WebViewNavigationDelegate?
+    @Transient var navigationDelegate: WebViewNavigationDelegate?
     @Transient @Published var isWebViewReady: Bool = false
     @Transient @Published var loadingProgress: Double = 10.0
     @Transient var colorUpdated = false
@@ -46,6 +49,7 @@ class Tab: ObservableObject, Identifiable {
     @Transient @Published var hasNavigationError: Bool = false
     @Transient @Published var navigationError: Error?
     @Transient @Published var failedURL: URL?
+    @Transient @Published var hoveredLinkURL: String?
 
     @Relationship(inverse: \TabContainer.tabs) var container: TabContainer
 
@@ -123,11 +127,11 @@ class Tab: ObservableObject, Identifiable {
         backgroundColorHex = color.toHex() ?? "#000000"
     }
 
-    public func setFavicon(faviconURLDefault: URL? = nil) {
+    func setFavicon(faviconURLDefault: URL? = nil) {
         guard let host = self.url.host else { return }
 
         let faviconURL = faviconURLDefault != nil ? faviconURLDefault! :
-        URL(string: "https://www.google.com/s2/favicons?domain=\(host)")!
+            URL(string: "https://www.google.com/s2/favicons?domain=\(host)")!
         self.favicon = faviconURL
 
         // Infer extension from URL or fallback to png
@@ -147,10 +151,12 @@ class Tab: ObservableObject, Identifiable {
             }
         }
     }
+
     func switchSections(from: Tab, to: Tab) {
         from.type = to.type
     }
-    public func updateHeaderColor() {
+
+    func updateHeaderColor() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
             if let wv = self?.webView {
                 self?.navigationDelegate?
@@ -158,8 +164,8 @@ class Tab: ObservableObject, Identifiable {
             }
         }
     }
-    public func updateHistory() {
 
+    func updateHistory() {
         if let historyManager = self.historyManager {
             Task { @MainActor in
                 historyManager.record(
@@ -172,8 +178,9 @@ class Tab: ObservableObject, Identifiable {
             }
         }
     }
+
     func maintainSnapShots() {
-        if (!self.colorUpdated ||  self.webView.isLoading) && self.maybeIsActive {
+        if !self.colorUpdated ||  self.webView.isLoading, self.maybeIsActive {
             self.updateHeaderColor()
 
             Timer.scheduledTimer(withTimeInterval: 0.25, repeats: false) { [weak self] _ in
@@ -182,6 +189,7 @@ class Tab: ObservableObject, Identifiable {
             }
         }
     }
+
     private func setupNavigationDelegate() {
         let delegate = WebViewNavigationDelegate()
         delegate.tab = self
@@ -191,25 +199,21 @@ class Tab: ObservableObject, Identifiable {
         }
         delegate.onTitleChange = { [weak self] title in
             DispatchQueue.main.async {
-
-                if let title = title, !title.isEmpty {
+                if let title, !title.isEmpty {
                     self?.title = title
                 }
-
             }
         }
         delegate.onURLChange = { [weak self] url in
             DispatchQueue.main.async {
-                if let url = url {
+                if let url {
                     self?.url = url
                     if self?.favicon == nil {
                         self?.setFavicon()
-
                     }
                     self?.updateHistory()
                     self?.updateHeaderColor()
                 }
-
             }
         }
         delegate.onLoadingChange = { [weak self] isLoading in
@@ -226,12 +230,13 @@ class Tab: ObservableObject, Identifiable {
 
         self.navigationDelegate = delegate
         webView.navigationDelegate = delegate
-
     }
+
     func goForward() {
         self.webView.goForward()
         self.updateHeaderColor()
     }
+
     func goBack() {
         self.webView.goBack()
         self.updateHeaderColor()
@@ -240,7 +245,8 @@ class Tab: ObservableObject, Identifiable {
     func restoreTransientState(
         historyManger: HistoryManager,
         downloadManager: DownloadManager,
-        tabManager: TabManager) {
+        tabManager: TabManager
+    ) {
         // Avoid double initialization
         if webView.url != nil { return }
 
@@ -269,7 +275,8 @@ class Tab: ObservableObject, Identifiable {
             self.isWebViewReady = true
         }
     }
-    public func stopMedia(completed: @escaping () -> Void) {
+
+    func stopMedia(completed: @escaping () -> Void) {
         let js = """
         document.querySelectorAll('video, audio').forEach(el => {
             try {
@@ -307,10 +314,12 @@ class Tab: ObservableObject, Identifiable {
         // Navigation failed
     }
 
-    func webView(_ webView: WKWebView,
-                 requestMediaCapturePermissionFor origin: WKSecurityOrigin,
-                 initiatedByFrame frame: WKFrameInfo,
-                 decisionHandler: @escaping (WKPermissionDecision) -> Void) {
+    func webView(
+        _ webView: WKWebView,
+        requestMediaCapturePermissionFor origin: WKSecurityOrigin,
+        initiatedByFrame frame: WKFrameInfo,
+        decisionHandler: @escaping (WKPermissionDecision) -> Void
+    ) {
         // For now, grant all
         decisionHandler(.grant)
     }
@@ -399,7 +408,7 @@ extension NSColor {
         let a = Int(color.alphaComponent * 255)
 
         return a < 255
-        ? String(format: "#%02X%02X%02X%02X", r, g, b, a)
-        : String(format: "#%02X%02X%02X", r, g, b)
+            ? String(format: "#%02X%02X%02X%02X", r, g, b, a)
+            : String(format: "#%02X%02X%02X", r, g, b)
     }
 }

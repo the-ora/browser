@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+
 // SwiftData model for a browsing history entry
 @Model
 final class History {
@@ -14,7 +15,17 @@ final class History {
     var lastAccessedAt: Date
     @Relationship(inverse: \TabContainer.history) var container: TabContainer
 
-    init(id: UUID = UUID(), url: URL, title: String, faviconURL: URL, faviconLocalFile: URL? = nil, createdAt: Date, lastAccessedAt: Date, visitCount: Int, container: TabContainer) {
+    init(
+        id: UUID = UUID(),
+        url: URL,
+        title: String,
+        faviconURL: URL,
+        faviconLocalFile: URL? = nil,
+        createdAt: Date,
+        lastAccessedAt: Date,
+        visitCount: Int,
+        container: TabContainer
+    ) {
         let now = Date()
         self.id = id
         self.url = url

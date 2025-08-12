@@ -12,8 +12,10 @@ struct CursorModifier: ViewModifier {
     func body(content: Content) -> some View {
         content.overlay(
             GeometryReader { proxy in
-                Representable(cursor: cursor,
-                              frame: proxy.frame(in: .global))
+                Representable(
+                    cursor: cursor,
+                    frame: proxy.frame(in: .global)
+                )
             }
         )
     }

@@ -17,16 +17,15 @@
 
 import SwiftUI
 
-extension Splitter {
-
-    /// A Splitter (that responds to changes in layout) that is a line across the full breadth of the view, by default gray and visibleThickness of 1
-    public static func line(color: Color? = nil, visibleThickness: CGFloat? = nil) -> Splitter {
+public extension Splitter {
+    /// A Splitter (that responds to changes in layout) that is a line across the full breadth of the view, by default
+    /// gray and visibleThickness of 1
+    static func line(color: Color? = nil, visibleThickness: CGFloat? = nil) -> Splitter {
         return Splitter(color: color, inset: 0, visibleThickness: visibleThickness ?? 1)
     }
 
     /// An invisible Splitter (that responds to changes in layout) that is a line across the full breadth of the view
-    public static func invisible() -> Splitter {
+    static func invisible() -> Splitter {
         Splitter.line(visibleThickness: 0)
     }
-
 }

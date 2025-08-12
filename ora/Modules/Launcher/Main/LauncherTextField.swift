@@ -70,10 +70,14 @@ struct LauncherTextField: NSViewRepresentable {
                 return true
             } else if selector == #selector(NSResponder.deleteBackward(_:)) {
                 return parent.onDelete()
-            } else if selector == #selector(NSResponder.moveUp(_:)) || selector == #selector(NSResponder.moveToBeginningOfParagraph(_:)) {
+            } else if selector == #selector(NSResponder.moveUp(_:)) || selector ==
+                #selector(NSResponder.moveToBeginningOfParagraph(_:))
+            {
                 parent.onMoveUp()
                 return true
-            } else if selector == #selector(NSResponder.moveDown(_:)) || selector == #selector(NSResponder.moveToEndOfParagraph(_:)) {
+            } else if selector == #selector(NSResponder.moveDown(_:)) || selector ==
+                #selector(NSResponder.moveToEndOfParagraph(_:))
+            {
                 parent.onMoveDown()
                 return true
             }

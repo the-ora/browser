@@ -84,7 +84,10 @@ class Download: ObservableObject, Identifiable {
     }
 
     var formattedFileSize: String {
-        return ByteCountFormatter.string(fromByteCount: displayFileSize > 0 ? displayFileSize : fileSize, countStyle: .file)
+        return ByteCountFormatter.string(
+            fromByteCount: displayFileSize > 0 ? displayFileSize : fileSize,
+            countStyle: .file
+        )
     }
 
     var formattedDownloadedSize: String {

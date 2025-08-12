@@ -1,6 +1,6 @@
-@preconcurrency import WebKit
 import AppKit
 import SwiftUI
+@preconcurrency import WebKit
 
 // JavaScript for monitoring URL, title, and favicon changes
 let js = """
@@ -38,6 +38,25 @@ let js = """
     setInterval(() => notifyChange(), 500);
     window.addEventListener('popstate', () => notifyChange(true));
     findFavicon((icon) => { faviconURL = icon; notifyChange(true); });
+
+    // Hover link detection: post hovered link URL via linkHover handler
+    function postHover(url) {
+        try { window.webkit.messageHandlers.linkHover.postMessage(url || ""); } catch (e) {}
+    }
+    let hoverTimer = null;
+    function onMouseOver(e) {
+        const a = e.target.closest && e.target.closest('a[href]');
+        const href = a ? a.href : '';
+        postHover(href);
+    }
+    function onMouseOut(e) {
+        const related = e.relatedTarget;
+        if (!related || !e.currentTarget.contains(related)) {
+            postHover("");
+        }
+    }
+    document.addEventListener('mouseover', onMouseOver, true);
+    document.addEventListener('mouseout', onMouseOut, true);
 })();
 """
 
@@ -54,7 +73,12 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
     private var originalURL: URL?
 
     // MARK: - Handle cmd+click to open in new tab
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+
+    func webView(
+        _ webView: WKWebView,
+        decidePolicyFor navigationAction: WKNavigationAction,
+        decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+    ) {
         // Check if command key is pressed (cmd+click)
         print(navigationAction.modifierFlags, navigationAction.modifierFlags.contains(.command))
         if navigationAction.modifierFlags.contains(.command),
@@ -62,11 +86,11 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
            let tab = self.tab,
            let tabManager = tab.tabManager,
            let historyManager = tab.historyManager,
-           let downloadManager = tab.downloadManager {
-
+           let downloadManager = tab.downloadManager
+        {
             // Open link in new tab
             DispatchQueue.main.async {
-               tabManager.openTab(
+                tabManager.openTab(
                     url: url,
                     historyManager: historyManager,
                     downloadManager: downloadManager
@@ -131,12 +155,16 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
             onLoadingChange?(false)
             tab?.setNavigationError(error, for: webView.url)
             onProgressChange?(100.0)
-    }
+        }
         originalURL = nil // Clear stored URL on navigation failure
     }
 
     @available(macOS 11.3, *)
-    func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
+    func webView(
+        _ webView: WKWebView,
+        decidePolicyFor navigationResponse: WKNavigationResponse,
+        decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void
+    ) {
         if navigationResponse.canShowMIMEType {
             isDownloadNavigation = false
             originalURL = nil // Clear stored URL for normal navigation
@@ -145,7 +173,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
             isDownloadNavigation = true // Mark as download to suppress navigation callbacks
 
             // Revert URL bar back to original URL since this is a download
-            if let originalURL = originalURL {
+            if let originalURL {
                 onURLChange?(originalURL)
             }
 
@@ -164,7 +192,11 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
     @available(macOS 11.3, *)
     private func handleDownload(_ download: WKDownload, from url: URL?) {
         guard let downloadManager = tab?.downloadManager, let originalURL = url else { return }
-        let downloadDelegate = DownloadDelegate(downloadManager: downloadManager, originalURL: originalURL, wkDownload: download)
+        let downloadDelegate = DownloadDelegate(
+            downloadManager: downloadManager,
+            originalURL: originalURL,
+            wkDownload: download
+        )
         download.delegate = downloadDelegate
         downloadDelegates[downloadDelegate.id] = downloadDelegate
         downloadDelegate.onCompletion = { [weak self] id in
@@ -181,7 +213,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
         configuration.rect = CGRect(x: 0, y: 0, width: webView.bounds.width, height: 24)
 
         webView.takeSnapshot(with: configuration) { [weak self] image, error in
-            guard let self = self, let image = image, error == nil else { return }
+            guard let self, let image, error == nil else { return }
 
             if let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) {
                 let color = self.extractDominantColor(from: cgImage)
@@ -200,7 +232,15 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
 
         let colorSpace = CGColorSpaceCreateDeviceRGB()
         let bitmapInfo = CGImageAlphaInfo.premultipliedLast.rawValue
-        guard let context = CGContext(data: nil, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4, space: colorSpace, bitmapInfo: bitmapInfo) else { return nil }
+        guard let context = CGContext(
+            data: nil,
+            width: 1,
+            height: 1,
+            bitsPerComponent: 8,
+            bytesPerRow: 4,
+            space: colorSpace,
+            bitmapInfo: bitmapInfo
+        ) else { return nil }
 
         context.draw(cgImage, in: CGRect(x: 0, y: 0, width: 1, height: 1))
         guard let data = context.data else { return nil }
@@ -232,27 +272,47 @@ class DownloadDelegate: NSObject, WKDownloadDelegate {
         super.init()
     }
 
-    func download(_ download: WKDownload, decideDestinationUsing response: URLResponse, suggestedFilename: String, completionHandler: @escaping (URL?) -> Void) {
+    func download(
+        _ download: WKDownload,
+        decideDestinationUsing response: URLResponse,
+        suggestedFilename: String,
+        completionHandler: @escaping (URL?) -> Void
+    ) {
         let downloadsDir = downloadManager.getDownloadsDirectory()
         let destinationURL = downloadsDir.appendingPathComponent(suggestedFilename)
         let finalURL = downloadManager.createUniqueFilename(for: destinationURL)
 
         Task { @MainActor in
             let expectedSize = (response as? HTTPURLResponse)?.expectedContentLength ?? 0
-            self.download = downloadManager.startDownload(from: download, originalURL: originalURL, suggestedFilename: suggestedFilename, expectedSize: expectedSize)
+            self.download = downloadManager.startDownload(
+                from: download,
+                originalURL: originalURL,
+                suggestedFilename: suggestedFilename,
+                expectedSize: expectedSize
+            )
 
             // Start timer to monitor WKDownload progress
             self.progressTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-                guard let self = self, let download = self.download else { return }
+                guard let self, let download = self.download else { return }
                 let completedBytes = self.wkDownload.progress.completedUnitCount
-                let totalBytes = self.wkDownload.progress.totalUnitCount > 0 ? self.wkDownload.progress.totalUnitCount : expectedSize
-                self.downloadManager.updateDownloadProgress(download, downloadedBytes: completedBytes, totalBytes: totalBytes)
+                let totalBytes = self.wkDownload.progress.totalUnitCount > 0 ? self.wkDownload.progress
+                    .totalUnitCount : expectedSize
+                self.downloadManager.updateDownloadProgress(
+                    download,
+                    downloadedBytes: completedBytes,
+                    totalBytes: totalBytes
+                )
             }
         }
         completionHandler(finalURL)
     }
 
-    func download(_ download: WKDownload, willPerformHTTPRedirection response: HTTPURLResponse, newRequest: URLRequest, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+    func download(
+        _ download: WKDownload,
+        willPerformHTTPRedirection response: HTTPURLResponse,
+        newRequest: URLRequest,
+        decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+    ) {
         if let newURL = newRequest.url {
             self.originalURL = newURL
             if let download = self.download {
