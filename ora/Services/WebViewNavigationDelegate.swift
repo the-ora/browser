@@ -256,7 +256,6 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
 }
 
 @available(macOS 11.3, *)
-@MainActor
 class DownloadDelegate: NSObject, WKDownloadDelegate {
     let id = UUID()
     let downloadManager: DownloadManager
@@ -265,6 +264,7 @@ class DownloadDelegate: NSObject, WKDownloadDelegate {
     var download: Download?
     var onCompletion: ((UUID) -> Void)?
     private var progressTimer: Timer?
+    private var expectedSize: Int64 = 0
 
     init(downloadManager: DownloadManager, originalURL: URL, wkDownload: WKDownload) {
         self.downloadManager = downloadManager
@@ -284,28 +284,24 @@ class DownloadDelegate: NSObject, WKDownloadDelegate {
         let finalURL = downloadManager.createUniqueFilename(for: destinationURL)
 
         Task { @MainActor in
-            let expectedSize = (response as? HTTPURLResponse)?.expectedContentLength ?? 0
+            self.expectedSize = (response as? HTTPURLResponse)?.expectedContentLength ?? 0
             self.download = downloadManager.startDownload(
                 from: download,
-                originalURL: originalURL,
+                originalURL: self.originalURL,
                 suggestedFilename: suggestedFilename,
-                expectedSize: expectedSize
+                expectedSize: self.expectedSize
             )
 
-            // Start timer to monitor WKDownload progress
-            self.progressTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-                Task { @MainActor in
-                    guard let self, let download = self.download else { return }
-                    let completedBytes = self.wkDownload.progress.completedUnitCount
-                    let totalBytes = self.wkDownload.progress.totalUnitCount > 0 ? self.wkDownload.progress
-                        .totalUnitCount : expectedSize
-                    self.downloadManager.updateDownloadProgress(
-                        download,
-                        downloadedBytes: completedBytes,
-                        totalBytes: totalBytes
-                    )
-                }
-            }
+            // Start timer to monitor WKDownload progress using selector to avoid Sendable capture issues
+            let timer = Timer(
+                timeInterval: 0.1,
+                target: self,
+                selector: #selector(self.handleProgressTimer(_:)),
+                userInfo: nil,
+                repeats: true
+            )
+            self.progressTimer = timer
+            RunLoop.main.add(timer, forMode: .common)
         }
         completionHandler(finalURL)
     }
@@ -317,11 +313,13 @@ class DownloadDelegate: NSObject, WKDownloadDelegate {
         decisionHandler: @escaping (WKDownload.RedirectPolicy) -> Void
     ) {
         if let newURL = newRequest.url {
-            self.originalURL = newURL
-            if let download = self.download {
-                download.originalURL = newURL
-                download.originalURLString = newURL.absoluteString
-                try? downloadManager.modelContext.save()
+            Task { @MainActor in
+                self.originalURL = newURL
+                if let download = self.download {
+                    download.originalURL = newURL
+                    download.originalURLString = newURL.absoluteString
+                    try? self.downloadManager.modelContext.save()
+                }
             }
         }
         decisionHandler(.allow)
@@ -331,23 +329,38 @@ class DownloadDelegate: NSObject, WKDownloadDelegate {
         guard let download = self.download else { return }
         let destinationURL = downloadManager.getDownloadsDirectory().appendingPathComponent(download.fileName)
         Task { @MainActor in
-            downloadManager.completeDownload(download, destinationURL: destinationURL)
+            self.downloadManager.completeDownload(download, destinationURL: destinationURL)
+            self.cleanup()
+            self.onCompletion?(self.id)
         }
-        cleanup()
-        onCompletion?(id)
     }
 
     func download(_ download: WKDownload, didFailWithError error: Error) {
         guard let download = self.download else { return }
         Task { @MainActor in
-            downloadManager.failDownload(download, error: error.localizedDescription)
+            self.downloadManager.failDownload(download, error: error.localizedDescription)
+            self.cleanup()
+            self.onCompletion?(self.id)
         }
-        cleanup()
-        onCompletion?(id)
     }
 
     private func cleanup() {
         progressTimer?.invalidate()
         progressTimer = nil
+    }
+
+    @objc private func handleProgressTimer(_ timer: Timer) {
+        Task { @MainActor in
+            guard let download = self.download else { return }
+            let completedBytes = self.wkDownload.progress.completedUnitCount
+            let totalBytes = self.wkDownload.progress.totalUnitCount > 0
+                ? self.wkDownload.progress.totalUnitCount
+                : self.expectedSize
+            self.downloadManager.updateDownloadProgress(
+                download,
+                downloadedBytes: completedBytes,
+                totalBytes: totalBytes
+            )
+        }
     }
 }
