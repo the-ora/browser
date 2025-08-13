@@ -144,13 +144,13 @@ class DownloadManager: ObservableObject {
     }
 
     // Helper to get default downloads directory
-    func getDownloadsDirectory() -> URL {
+    nonisolated func getDownloadsDirectory() -> URL {
         return FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)
             .first ?? URL(fileURLWithPath: NSHomeDirectory())
     }
 
     // Helper to create unique filename if file already exists
-    func createUniqueFilename(for url: URL) -> URL {
+    nonisolated func createUniqueFilename(for url: URL) -> URL {
         var finalURL = url
         var counter = 1
 

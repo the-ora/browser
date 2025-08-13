@@ -256,6 +256,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
 }
 
 @available(macOS 11.3, *)
+@MainActor
 class DownloadDelegate: NSObject, WKDownloadDelegate {
     let id = UUID()
     let downloadManager: DownloadManager
@@ -293,15 +294,17 @@ class DownloadDelegate: NSObject, WKDownloadDelegate {
 
             // Start timer to monitor WKDownload progress
             self.progressTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-                guard let self, let download = self.download else { return }
-                let completedBytes = self.wkDownload.progress.completedUnitCount
-                let totalBytes = self.wkDownload.progress.totalUnitCount > 0 ? self.wkDownload.progress
-                    .totalUnitCount : expectedSize
-                self.downloadManager.updateDownloadProgress(
-                    download,
-                    downloadedBytes: completedBytes,
-                    totalBytes: totalBytes
-                )
+                Task { @MainActor in
+                    guard let self, let download = self.download else { return }
+                    let completedBytes = self.wkDownload.progress.completedUnitCount
+                    let totalBytes = self.wkDownload.progress.totalUnitCount > 0 ? self.wkDownload.progress
+                        .totalUnitCount : expectedSize
+                    self.downloadManager.updateDownloadProgress(
+                        download,
+                        downloadedBytes: completedBytes,
+                        totalBytes: totalBytes
+                    )
+                }
             }
         }
         completionHandler(finalURL)
@@ -311,7 +314,7 @@ class DownloadDelegate: NSObject, WKDownloadDelegate {
         _ download: WKDownload,
         willPerformHTTPRedirection response: HTTPURLResponse,
         newRequest: URLRequest,
-        decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+        decisionHandler: @escaping (WKDownload.RedirectPolicy) -> Void
     ) {
         if let newURL = newRequest.url {
             self.originalURL = newURL
