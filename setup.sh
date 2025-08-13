@@ -39,6 +39,7 @@ ensure_formula() {
 ensure_formula Xcodegen xcodegen
 ensure_formula Swiftlint swiftlint
 ensure_formula Swiftformat swiftformat
+ensure_formula Xcbeautify xcbeautify
 
 git config core.hooksPath .githooks
 if [ -d .githooks ]; then
