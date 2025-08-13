@@ -60,11 +60,11 @@ cd browser
    ```bash
    ./setup.sh
    ```
-3. Open the generated Xcode project and run:
+3. Open in Xcode and run:
    ```bash
    open Ora.xcodeproj
    ```
-   - Select the `ora` scheme and press Run.
+   - In Xcode: select the `ora` scheme and Run (⌘R). Build (⌘B). Test (⌘U).
 
 ### Command-line build (optional)
 
@@ -77,7 +77,7 @@ cd browser
 ## Project structure
 
 ```
-ora-browser/
+browser/
 ├─ ora/                             # application sources
 │  ├─ Modules/                      # feature modules (Browser, Launcher, Find, Settings, Sidebar, SplitView, EmojiPicker, TabSwitch)
 │  ├─ UI/                           # shared, reusable UI components
