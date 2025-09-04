@@ -149,7 +149,7 @@ cat > appcast.xml << EOF
         <p>This release includes bug fixes and performance improvements. Enjoy browsing with Ora!</p>
       ]]></description>
       <pubDate>$PUB_DATE</pubDate>
-      <enclosure url="https://your-github-repo/releases/download/v$VERSION/Ora-Browser.dmg"
+      <enclosure url="https://github.com/the-ora/browser/releases/download/v$VERSION/Ora-Browser.dmg"
                  sparkle:version="$VERSION"
                  sparkle:shortVersionString="$VERSION"
                  length="33592320"

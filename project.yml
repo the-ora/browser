@@ -28,6 +28,6 @@ targets:
           PRODUCT_NAME: Ora
           PRODUCT_BUNDLE_IDENTIFIER: com.orabrowser.ora
           GENERATE_INFOPLIST_FILE: YES
-          SUFeedURL: "https://raw.githubusercontent.com/the-ora/browser/release/appcast.xml"
+          SUFeedURL: "https://the-ora.github.io/browser/appcast.xml"
           SUPublicEDKey: "rGLm5UFuNdqH9FJei3XL5Sao6GDrGvLYJX0OvpkEFDI"
 
