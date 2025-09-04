@@ -259,17 +259,18 @@ deploy_to_github_pages() {
     git checkout gh-pages
 
     # Copy appcast.xml from the release branch
-    if [ -f "../$current_branch/appcast.xml" ]; then
-        cp "../$current_branch/appcast.xml" .
-        echo "✅ Copied appcast.xml from $current_branch branch"
-    else
-        echo "❌ Could not find appcast.xml in ../$current_branch/"
-        echo "   Current directory: $(pwd)"
-        echo "   Looking for: ../$current_branch/appcast.xml"
-        ls -la "../$current_branch/" | grep appcast || echo "appcast.xml not found"
-        git checkout "$current_branch"
-        return 1
-    fi
+    # Since we're currently on the release branch, appcast.xml is in the current directory
+    # We need to stash it temporarily, switch to gh-pages, then copy it
+    cp appcast.xml /tmp/appcast_backup.xml
+    echo "✅ Backed up appcast.xml temporarily"
+
+    # Switch to gh-pages branch
+    git checkout gh-pages
+
+    # Copy the backed up appcast.xml
+    cp /tmp/appcast_backup.xml appcast.xml
+    rm /tmp/appcast_backup.xml
+    echo "✅ Copied appcast.xml to gh-pages branch"
 
     # Commit and push
     git add -f appcast.xml
