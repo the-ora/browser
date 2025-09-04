@@ -1,6 +1,10 @@
 name: Ora
 options:
   bundleIdPrefix: com.orabrowser
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: 2.6.0
 targets:
    ora:
       type: application
@@ -20,7 +24,7 @@ targets:
           SWIFT_VERSION: 5.9
           CODE_SIGN_STYLE: Automatic
           MARKETING_VERSION: 0.0.21
-          CURRENT_PROJECT_VERSION: 21
+          CURRENT_PROJECT_VERSION: 20
           PRODUCT_NAME: Ora
           PRODUCT_BUNDLE_IDENTIFIER: com.orabrowser.ora
           GENERATE_INFOPLIST_FILE: YES

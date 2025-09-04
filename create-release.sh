@@ -18,6 +18,21 @@ ORIGINAL_DIR="$(pwd)"
 
 echo "🚀 Creating Ora Browser Release v$VERSION..."
 
+# Update project.yml with the release version
+echo "📝 Updating project.yml with version $VERSION..."
+if [ -f "project.yml" ]; then
+    # Update MARKETING_VERSION
+    sed -i.bak "s/MARKETING_VERSION: .*/MARKETING_VERSION: $VERSION/" project.yml
+
+    # Update CURRENT_PROJECT_VERSION (use the numeric part after last dot, or increment)
+    BUILD_VERSION=$(echo $VERSION | awk -F. '{print $NF + 0}')
+    sed -i.bak "s/CURRENT_PROJECT_VERSION: .*/CURRENT_PROJECT_VERSION: $BUILD_VERSION/" project.yml
+
+    echo "✅ Updated project.yml: MARKETING_VERSION=$VERSION, CURRENT_PROJECT_VERSION=$BUILD_VERSION"
+else
+    echo "⚠️  project.yml not found, skipping version update"
+fi
+
 # Clean build directory for fresh build
 echo "🧹 Cleaning build directory..."
 rm -rf build/
@@ -241,10 +256,12 @@ deploy_to_github_pages() {
     fi
 
     local current_branch=$(git branch --show-current)
+    echo "📋 Current branch: $current_branch"
 
-    # Check if gh-pages branch exists
-    if git show-ref --verify --quiet refs/heads/gh-pages; then
-        echo "📋 gh-pages branch exists, updating..."
+    # Check if gh-pages branch exists remotely
+    if git ls-remote --heads origin gh-pages | grep -q gh-pages; then
+        echo "📋 gh-pages branch exists remotely, updating..."
+        git fetch origin gh-pages
     else
         echo "📋 Creating gh-pages branch..."
         git checkout -b gh-pages
@@ -259,33 +276,31 @@ deploy_to_github_pages() {
     git checkout gh-pages
 
     # Copy appcast.xml from the release branch
-    # Since we're currently on the release branch, appcast.xml is in the current directory
-    # We need to stash it temporarily, switch to gh-pages, then copy it
-    cp appcast.xml /tmp/appcast_backup.xml
-    echo "✅ Backed up appcast.xml temporarily"
-
-    # Switch to gh-pages branch
-    git checkout gh-pages
-
-    # Copy the backed up appcast.xml
     cp /tmp/appcast_backup.xml appcast.xml
     rm /tmp/appcast_backup.xml
     echo "✅ Copied appcast.xml to gh-pages branch"
 
+    # Show the version in the appcast
+    echo "📋 Appcast version: $(grep -o 'Version [0-9.]*' appcast.xml | head -1)"
+
     # Commit and push
     git add -f appcast.xml
     if git diff --staged --quiet; then
-        echo "📋 No changes to commit"
+        echo "📋 No changes to commit for appcast v$VERSION"
     else
         git commit -m "Deploy appcast v$VERSION"
         echo "📋 Committed appcast v$VERSION"
     fi
 
-    # Push to remote
-    if git push origin gh-pages 2>/dev/null; then
-        echo "✅ Successfully pushed to gh-pages branch"
+    # Push to remote with error handling
+    echo "📤 Pushing to remote gh-pages branch..."
+    if git push origin gh-pages; then
+        echo "✅ Successfully pushed appcast v$VERSION to gh-pages branch"
+        echo "🔗 Appcast URL: https://raw.githubusercontent.com/the-ora/browser/refs/heads/gh-pages/appcast.xml"
     else
-        echo "⚠️  Could not push to remote (might be a local deployment)"
+        echo "❌ Failed to push to remote gh-pages branch"
+        echo "   Check your git remote and permissions"
+        return 1
     fi
 
     # Switch back to original branch
@@ -309,8 +324,17 @@ echo "   - appcast.xml (automatically deployed to GitHub Pages ✅)"
 echo "   - build/dsa_pub.pem (public key for app)"
 echo "   - build/dsa_priv.pem (private key - keep secure!)"
 echo ""
+# Upload DMG to GitHub releases
+echo "📤 Uploading DMG to GitHub releases..."
+if [ -f "upload-dmg.sh" ]; then
+    chmod +x upload-dmg.sh
+    ./upload-dmg.sh "$VERSION" "build/Ora-Browser.dmg"
+else
+    echo "⚠️  upload-dmg.sh not found, skipping automatic upload"
+fi
+
 echo "🚀 Next steps:"
-echo "1. Upload build/Ora-Browser.dmg to GitHub releases"
+echo "1. ✅ DMG uploaded to GitHub releases"
 echo "2. Enable GitHub Pages in repository settings (if not already enabled)"
 echo "   - Go to Settings → Pages"
 echo "   - Set source to 'Deploy from a branch'"

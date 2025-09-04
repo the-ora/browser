@@ -69,11 +69,9 @@ cat > build/exportOptions.plist << 'EOF'
 </plist>
 EOF
 
-# Generate Xcode project if needed
-if [ ! -f "Ora.xcodeproj" ]; then
-    echo "📋 Generating Xcode project..."
-    xcodegen
-fi
+# Generate Xcode project (always regenerate to ensure latest project.yml)
+echo "📋 Generating Xcode project..."
+xcodegen
 
 # Build the app directly (faster than archiving)
 echo "🔨 Building release version..."
