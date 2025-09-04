@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Ora Browser Changelog</title>
+    <description>Most recent changes with links to updates.</description>
+    <language>en</language>
+    <item>
+      <title>Version 0.0.16</title>
+      <description><![CDATA[
+        <h2>Ora Browser v0.0.16</h2>
+        <p>Latest release of Ora Browser with the following features:</p>
+        <ul>
+          <li>Modern web browsing experience</li>
+          <li>Tabbed interface with sidebar</li>
+          <li>Built-in ad blocking</li>
+          <li>Privacy-focused design</li>
+          <li>Automatic update system</li>
+        </ul>
+        <p>This release includes bug fixes and performance improvements. Enjoy browsing with Ora!</p>
+      ]]></description>
+      <pubDate>Thu, 04 Sep 2025 19:24:27 +0000</pubDate>
+      <enclosure url="https://your-github-repo/releases/download/v0.0.16/Ora-Browser.dmg"
+                 sparkle:version="0.0.16"
+                 sparkle:shortVersionString="0.0.16"
+                 length="40933888"
+                 type="application/octet-stream"
+                 sparkle:dsaSignature="20v3lZY4Rk+mCgn3yhG+zXaOld6SZ/b4IXVMcMDzpgQ9HLwHoWHQ8xVR630HL2uO2xO9wdc5b+hRp+Vjcke4Cg=="/>
+    </item>
+  </channel>
+</rss>
