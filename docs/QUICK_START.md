@@ -2,9 +2,10 @@
 
 ## 🚀 Quick Setup (5 minutes)
 
-### 1. Generate Keys
+### 1. Setup Sparkle Tools
 ```bash
-brew install sparkle
+brew install --cask sparkle
+./setup-sparkle-tools.sh
 ./setup-sparkle.sh
 ```
 

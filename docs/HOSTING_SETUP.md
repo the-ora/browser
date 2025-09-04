@@ -85,15 +85,18 @@ git push origin gh-pages
 
 ### Generate DSA Keys
 ```bash
-# Install Sparkle tools
-brew install sparkle
+# Install Sparkle
+brew install --cask sparkle
+
+# Setup command-line tools
+./setup-sparkle-tools.sh
 
 # Generate keys (run once)
 ./setup-sparkle.sh
 
-# This creates:
-# - dsa_priv.pem (private key - keep secure!)
-# - dsa_pub.pem (public key - safe to share)
+# This creates in build/:
+# - build/dsa_priv.pem (private key - keep secure!)
+# - build/dsa_pub.pem (public key - safe to share)
 ```
 
 ### Sign Your Release

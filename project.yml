@@ -7,26 +7,27 @@ packages:
     from: 2.6.0
 targets:
    ora:
-     type: application
-     platform: macOS
-     deploymentTarget: "14.0"
-     sources:
-       - path: ora
-     resources:
-       - path: ora/Modules/EmojiPicker/emoji-set.json
-       - path: ora/Resources
-         optional: true
-     dependencies:
-       - package: Sparkle
+      type: application
+      platform: "macOS"
+      deploymentTarget: "14.0"
+      sources:
+        - path: ora
+      resources:
+        - path: ora/Modules/EmojiPicker/emoji-set.json
+        - path: ora/Resources
+          optional: true
+      dependencies:
+        - package: Sparkle
 
-     settings:
-       base:
-         SWIFT_VERSION: 5.9
-         CODE_SIGN_STYLE: Automatic
-         MARKETING_VERSION: 0.0.1
-         CURRENT_PROJECT_VERSION: 1
-         PRODUCT_NAME: Ora
-         PRODUCT_BUNDLE_IDENTIFIER: com.orabrowser.ora
-         GENERATE_INFOPLIST_FILE: YES
-         SUFeedURL: https://raw.githubusercontent.com/the-ora/browser/main/appcast.xml
-         SUPublicEDKey: ""  # Will be set after generating keys
+      settings:
+        base:
+          SWIFT_VERSION: 5.9
+          CODE_SIGN_STYLE: Automatic
+          MARKETING_VERSION: 0.0.1
+          CURRENT_PROJECT_VERSION: 1
+          PRODUCT_NAME: Ora
+          PRODUCT_BUNDLE_IDENTIFIER: com.orabrowser.ora
+          GENERATE_INFOPLIST_FILE: YES
+          SUFeedURL: "https://raw.githubusercontent.com/the-ora/browser/release/appcast.xml"
+          SUPublicEDKey: "rGLm5UFuNdqH9FJei3XL5Sao6GDrGvLYJX0OvpkEFDI"
+
