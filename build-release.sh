@@ -9,7 +9,7 @@ echo "🏗️  Building Ora Browser Release..."
 # Clean previous builds
 echo "🧹 Cleaning previous builds..."
 rm -rf build/
-rm -rf Ora.app/
+mkdir -p build
 
 # Generate Xcode project if needed
 if [ ! -f "Ora.xcodeproj" ]; then
@@ -31,7 +31,7 @@ echo "📦 Exporting app..."
 xcodebuild -exportArchive \
     -archivePath "build/Ora.xcarchive" \
     -exportPath "build/" \
-    -exportOptionsPlist "exportOptions.plist"
+    -exportOptionsPlist "build/exportOptions.plist"
 
 # Create DMG if create-dmg is available
 if command -v create-dmg &> /dev/null; then
@@ -42,10 +42,10 @@ if command -v create-dmg &> /dev/null; then
         --window-pos 200 120 \
         --window-size 800 400 \
         --icon-size 100 \
-        --icon "Ora.app" 200 190 \
-        --hide-extension "Ora.app" \
+        --icon "build/Ora.app" 200 190 \
+        --hide-extension "build/Ora.app" \
         --app-drop-link 600 185 \
-        "Ora-Browser.dmg" \
+        "build/Ora-Browser.dmg" \
         "build/Ora.app"
 else
     echo "⚠️  create-dmg not found. Skipping DMG creation."
@@ -53,8 +53,5 @@ else
 fi
 
 echo "✅ Release build complete!"
-echo "📁 Release files:"
+echo "📁 Release files in build/:"
 ls -la build/
-if [ -f "Ora-Browser.dmg" ]; then
-    ls -la Ora-Browser.dmg
-fi

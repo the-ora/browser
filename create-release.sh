@@ -11,7 +11,7 @@ if [ $# -lt 1 ]; then
 fi
 
 VERSION=$1
-PRIVATE_KEY=${2:-"dsa_priv.pem"}
+PRIVATE_KEY=${2:-"build/dsa_priv.pem"}
 
 echo "🚀 Creating Ora Browser Release v$VERSION..."
 
@@ -21,8 +21,8 @@ chmod +x build-release.sh
 ./build-release.sh
 
 # Check if DMG was created
-if [ ! -f "Ora-Browser.dmg" ]; then
-    echo "❌ DMG not found. Build may have failed."
+if [ ! -f "build/Ora-Browser.dmg" ]; then
+    echo "❌ DMG not found in build/ directory. Build may have failed."
     exit 1
 fi
 
@@ -30,7 +30,7 @@ fi
 echo "🔐 Signing release with Sparkle..."
 if [ -f "$PRIVATE_KEY" ]; then
     if command -v sign_update &> /dev/null; then
-        SIGNATURE=$(sign_update -f "Ora-Browser.dmg" -k "$PRIVATE_KEY")
+        SIGNATURE=$(sign_update -f "build/Ora-Browser.dmg" -k "$PRIVATE_KEY")
         echo "✅ Release signed: $SIGNATURE"
     else
         echo "⚠️  sign_update not found. Install Sparkle tools: brew install sparkle"
@@ -43,23 +43,26 @@ fi
 
 # Update appcast.xml
 echo "📝 Updating appcast.xml..."
-sed -i.bak "s/0\.0\.1/$VERSION/g" appcast.xml
-sed -i.bak "s/YOUR_DSA_SIGNATURE_HERE/$SIGNATURE/g" appcast.xml
-sed -i.bak "s/v0\.0\.1/v$VERSION/g" appcast.xml
+sed -i.bak "s/0\.0\.1/$VERSION/g" build/appcast.xml
+sed -i.bak "s/YOUR_DSA_SIGNATURE_HERE/$SIGNATURE/g" build/appcast.xml
+sed -i.bak "s/v0\.0\.1/v$VERSION/g" build/appcast.xml
 
 # Get file size
-FILE_SIZE=$(stat -f%z "Ora-Browser.dmg")
-sed -i.bak "s/length=\"0\"/length=\"$FILE_SIZE\"/g" appcast.xml
+FILE_SIZE=$(stat -f%z "build/Ora-Browser.dmg")
+sed -i.bak "s/length=\"0\"/length=\"$FILE_SIZE\"/g" build/appcast.xml
 
 # Update pubDate
 PUB_DATE=$(date -u +"%a, %d %b %Y %H:%M:%S %z")
-sed -i.bak "s/<pubDate>.*<\/pubDate>/<pubDate>$PUB_DATE<\/pubDate>/g" appcast.xml
+sed -i.bak "s/<pubDate>.*<\/pubDate>/<pubDate>$PUB_DATE<\/pubDate>/g" build/appcast.xml
 
 echo "✅ Release v$VERSION created!"
-echo "📁 Files ready for upload:"
-echo "   - Ora-Browser.dmg (signed)"
-echo "   - appcast.xml (updated)"
+echo "📁 Files ready for upload (in build/ directory):"
+echo "   - build/Ora-Browser.dmg (signed)"
+echo "   - build/appcast.xml (updated)"
+echo "   - build/dsa_pub.pem (public key for app)"
 echo ""
-echo "🚀 Next: Upload Ora-Browser.dmg to GitHub releases"
-echo "🌐 Host appcast.xml at: https://your-domain.com/appcast.xml"
-echo "⚙️  Update SUFeedURL in Info.plist to point to your appcast.xml"
+echo "🚀 Next steps:"
+echo "1. Upload build/Ora-Browser.dmg to GitHub releases"
+echo "2. Host build/appcast.xml at a public URL"
+echo "3. Add build/dsa_pub.pem content to your app's SUPublicEDKey"
+echo "4. Update SUFeedURL in Info.plist to point to your appcast.xml"
