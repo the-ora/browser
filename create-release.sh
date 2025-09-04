@@ -231,16 +231,89 @@ sed -i.bak "s/length=\"33592320\"/length=\"$FILE_SIZE\"/g" appcast.xml
 
 echo "✅ Appcast.xml updated with signature and file size"
 
+# Deploy appcast.xml to GitHub Pages
+echo "🌐 Deploying appcast.xml to GitHub Pages..."
+deploy_to_github_pages() {
+    # Check if we're in a git repository
+    if ! git rev-parse --git-dir > /dev/null 2>&1; then
+        echo "⚠️  Not in a git repository, skipping GitHub Pages deployment"
+        return 1
+    fi
+
+    local current_branch=$(git branch --show-current)
+
+    # Check if gh-pages branch exists
+    if git show-ref --verify --quiet refs/heads/gh-pages; then
+        echo "📋 gh-pages branch exists, updating..."
+    else
+        echo "📋 Creating gh-pages branch..."
+        git checkout -b gh-pages
+        git rm -rf .
+        echo "# Ora Browser Updates" > README.md
+        echo "This branch hosts the appcast.xml for automatic updates." >> README.md
+        git add README.md
+        git commit -m "Initialize gh-pages branch"
+    fi
+
+    # Switch to gh-pages branch
+    git checkout gh-pages
+
+    # Copy appcast.xml from the release branch
+    if [ -f "../$current_branch/appcast.xml" ]; then
+        cp "../$current_branch/appcast.xml" .
+        echo "✅ Copied appcast.xml from $current_branch branch"
+    else
+        echo "❌ Could not find appcast.xml in ../$current_branch/"
+        echo "   Current directory: $(pwd)"
+        echo "   Looking for: ../$current_branch/appcast.xml"
+        ls -la "../$current_branch/" | grep appcast || echo "appcast.xml not found"
+        git checkout "$current_branch"
+        return 1
+    fi
+
+    # Commit and push
+    git add -f appcast.xml
+    if git diff --staged --quiet; then
+        echo "📋 No changes to commit"
+    else
+        git commit -m "Deploy appcast v$VERSION"
+        echo "📋 Committed appcast v$VERSION"
+    fi
+
+    # Push to remote
+    if git push origin gh-pages 2>/dev/null; then
+        echo "✅ Successfully pushed to gh-pages branch"
+    else
+        echo "⚠️  Could not push to remote (might be a local deployment)"
+    fi
+
+    # Switch back to original branch
+    git checkout "$current_branch"
+    echo "✅ Switched back to $current_branch branch"
+}
+
+# Run deployment
+if deploy_to_github_pages; then
+    echo "🎉 Appcast deployed to GitHub Pages!"
+    echo "   URL: https://the-ora.github.io/browser/appcast.xml"
+else
+    echo "⚠️  Appcast deployment failed, but release is still complete"
+    echo "   You can manually deploy appcast.xml to GitHub Pages later"
+fi
+
 echo "✅ Release v$VERSION created!"
 echo "📁 Files ready for upload:"
 echo "   - build/Ora-Browser.dmg (signed)"
-echo "   - appcast.xml (updated - host this publicly)"
+echo "   - appcast.xml (automatically deployed to GitHub Pages ✅)"
 echo "   - build/dsa_pub.pem (public key for app)"
 echo "   - build/dsa_priv.pem (private key - keep secure!)"
 echo ""
 echo "🚀 Next steps:"
 echo "1. Upload build/Ora-Browser.dmg to GitHub releases"
-echo "2. Host appcast.xml at a public URL (e.g., GitHub Pages)"
+echo "2. Enable GitHub Pages in repository settings (if not already enabled)"
+echo "   - Go to Settings → Pages"
+echo "   - Set source to 'Deploy from a branch'"
+echo "   - Set branch to 'gh-pages'"
 echo "3. Add build/dsa_pub.pem content to your app's SUPublicEDKey"
 echo "4. Update SUFeedURL in Info.plist to point to your appcast.xml"
 echo ""
