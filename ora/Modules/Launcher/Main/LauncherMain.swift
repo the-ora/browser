@@ -148,8 +148,8 @@ struct LauncherMain: View {
         guard let candidateURL = URL(string: text) else { return }
         let finalURL: URL? = if candidateURL.scheme != nil {
             candidateURL
-        } else if isValidHostname(text) {
-            URL(string: "https://\(text)")
+        } else if isValidURL(text) {
+            constructURL(from: text)
         } else {
             nil
         }
@@ -388,7 +388,7 @@ struct LauncherMain: View {
         if match != nil {
             return "magnifyingglass"
         }
-        return isDomainOrIP(text) ? "globe" : "magnifyingglass"
+        return isValidURL(text) ? "globe" : "magnifyingglass"
     }
 }
 
