@@ -134,8 +134,10 @@ Ora uses [Sparkle](https://sparkle-project.org/) for automatic updates. All buil
    - Add `https://github.com/sparkle-project/Sparkle` (version 2.6.3+)
    - Add Sparkle to your target
 
-2. **Setup Sparkle keys:**
+2. **Setup Sparkle tools:**
    ```bash
+   brew install --cask sparkle
+   ./setup-sparkle-tools.sh
    ./setup-sparkle.sh
    ```
    This generates DSA keys in `build/` directory.
