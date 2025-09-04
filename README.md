@@ -124,6 +124,43 @@ rm -f "$(getconf DARWIN_USER_DIR 2>/dev/null || echo "$HOME/Library/Application 
   ```
 - Pre-commit hook runs both automatically (installed by `./setup.sh`).
 
+### Releases and Updates
+
+Ora uses [Sparkle](https://sparkle-project.org/) for automatic updates. To set up releases:
+
+1. **Add Sparkle dependency:**
+   - Open `Ora.xcodeproj` in Xcode
+   - Go to File > Add Packages...
+   - Add `https://github.com/sparkle-project/Sparkle` (version 2.6.3+)
+   - Add Sparkle to your target
+
+2. **Setup Sparkle keys:**
+   ```bash
+   ./setup-sparkle.sh
+   ```
+   This generates DSA keys for signing releases.
+
+3. **Configure signing:**
+   - Copy the public key from `dsa_pub.pem` to your `Info.plist` as `SUPublicEDKey`
+   - Keep `dsa_priv.pem` secure for signing releases
+   - Add `SUFeedURL` to Info.plist pointing to your appcast.xml URL
+
+4. **Create a release:**
+   ```bash
+   ./create-release.sh 0.0.2 dsa_priv.pem
+   ```
+   This builds, signs, and prepares the release files.
+
+5. **Host appcast.xml:**
+   - Upload `appcast.xml` to a public URL (e.g., GitHub Pages)
+   - Update `SUFeedURL` in `Info.plist` to point to your appcast.xml
+
+6. **Publish release:**
+   - Upload `Ora-Browser.dmg` to GitHub releases
+   - Users will automatically receive update notifications
+
+The app includes automatic update checking in Settings > General.
+
 ### Regenerating the Xcode project
 
 - Update `project.yml` as needed, then:

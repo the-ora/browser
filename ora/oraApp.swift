@@ -25,6 +25,7 @@ struct OraApp: App {
     @StateObject private var appState = AppState()
     @StateObject private var keyModifierListener = KeyModifierListener()
     @StateObject private var appearanceManager = AppearanceManager()
+    @StateObject private var updateService = UpdateService()
     // Pass it to TabManager
     @StateObject private var tabManager: TabManager
     @StateObject private var historyManager: HistoryManager
@@ -91,6 +92,7 @@ struct OraApp: App {
                 .environmentObject(keyModifierListener)
                 .environmentObject(appearanceManager)
                 .environmentObject(downloadManager)
+                .environmentObject(updateService)
                 .modelContext(tabContext)
                 .modelContext(historyContext)
                 .onAppear {
@@ -106,6 +108,13 @@ struct OraApp: App {
                             }
                         }
                         return false
+                    }
+
+                    // Check for updates in background if auto-update is enabled
+                    if SettingsStore.shared.autoUpdateEnabled {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            updateService.checkForUpdatesInBackground()
+                        }
                     }
                 }
                 .modelContext(downloadContext)
@@ -217,6 +226,7 @@ struct OraApp: App {
             SettingsContentView()
                 .environmentObject(appearanceManager)
                 .environmentObject(historyManager)
+                .environmentObject(updateService)
                 .modelContext(tabContext)
                 .withTheme()
         }

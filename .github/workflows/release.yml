@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+
+    - name: Install dependencies
+      run: |
+        brew install xcodegen create-dmg
+        ./setup.sh
+
+    - name: Build release
+      run: |
+        chmod +x build-release.sh
+        ./build-release.sh
+
+    - name: Sign app (if certificates available)
+      run: |
+        # Note: For proper signing, you'll need to set up code signing certificates
+        # This is a placeholder for the signing step
+        echo "App built successfully"
+
+    - name: Generate appcast signature
+      run: |
+        # This would use your private DSA key to sign the release
+        # For now, we'll skip this step
+        echo "Signature generation would happen here"
+
+    - name: Update appcast.xml
+      run: |
+        # This would update the appcast.xml with the new release info
+        # For now, we'll use the template
+        cp appcast.xml build/
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          build/Ora.app
+          Ora-Browser.dmg
+          build/appcast.xml
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload appcast to GitHub Pages
+      run: |
+        # This would upload the appcast.xml to GitHub Pages
+        # For now, you can manually host it or use GitHub Pages
+        echo "Upload appcast.xml to your hosting location"

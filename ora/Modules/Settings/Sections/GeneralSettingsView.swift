@@ -3,6 +3,7 @@ import SwiftUI
 
 struct GeneralSettingsView: View {
     @EnvironmentObject var appearanceManager: AppearanceManager
+    @EnvironmentObject var updateService: UpdateService
     @StateObject private var settings = SettingsStore.shared
     @Environment(\.theme) var theme
 
@@ -21,7 +22,33 @@ struct GeneralSettingsView: View {
                     .cornerRadius(8)
 
                     AppearanceSelector(selection: $appearanceManager.appearance)
-                    // Toggle("Auto update Ora", isOn: $settings.autoUpdateEnabled)
+
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Updates")
+                            .font(.headline)
+
+                        Toggle("Automatically check for updates", isOn: $settings.autoUpdateEnabled)
+
+                        HStack {
+                            Button("Check for Updates") {
+                                updateService.checkForUpdates()
+                            }
+                            .disabled(!updateService.canCheckForUpdates || updateService.isCheckingForUpdates)
+
+                            if updateService.isCheckingForUpdates {
+                                ProgressView()
+                                    .scaleEffect(0.5)
+                                    .frame(width: 16, height: 16)
+                            }
+
+                            if updateService.updateAvailable {
+                                Text("Update available!")
+                                    .foregroundColor(.green)
+                                    .font(.caption)
+                            }
+                        }
+                    }
+                    .padding(.vertical, 8)
                 }
             }
         }
