@@ -11,6 +11,25 @@ struct GeneralSettingsView: View {
         SettingsContainer(maxContentWidth: 760) {
             Form {
                 VStack(alignment: .leading, spacing: 16) {
+                    // App Version Info
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Ora Browser")
+                                .font(.headline)
+                            Spacer()
+                            Text(getAppVersion())
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+
+                        Text("Fast, secure, and beautiful browser built for macOS")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(12)
+                    .background(theme.solidWindowBackgroundColor)
+                    .cornerRadius(8)
+
                     HStack {
                         Text("Born for your Mac. Make Ora your default browser.")
                         Spacer()
@@ -61,5 +80,11 @@ struct GeneralSettingsView: View {
             )
         else { return }
         NSWorkspace.shared.open(url)
+    }
+
+    private func getAppVersion() -> String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
+        return "v\(version) (\(build))"
     }
 }

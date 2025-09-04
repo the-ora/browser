@@ -1,6 +1,10 @@
 name: Ora
 options:
   bundleIdPrefix: com.orabrowser
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: 2.6.0
 targets:
    ora:
      type: application
@@ -12,6 +16,8 @@ targets:
        - path: ora/Modules/EmojiPicker/emoji-set.json
        - path: ora/Resources
          optional: true
+     dependencies:
+       - package: Sparkle
 
      settings:
        base:
