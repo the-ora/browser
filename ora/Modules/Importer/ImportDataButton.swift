@@ -88,7 +88,7 @@ struct ImportDataButton: View {
     }
 
     var body: some View {
-        Group {
+        Menu("Import Data") {
             Button("Arc") {
                 importArc()
             }
