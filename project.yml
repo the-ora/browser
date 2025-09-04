@@ -23,11 +23,11 @@ targets:
         base:
           SWIFT_VERSION: 5.9
           CODE_SIGN_STYLE: Automatic
-          MARKETING_VERSION: 0.0.1
-          CURRENT_PROJECT_VERSION: 1
+          MARKETING_VERSION: 0.0.18
+          CURRENT_PROJECT_VERSION: 18
           PRODUCT_NAME: Ora
           PRODUCT_BUNDLE_IDENTIFIER: com.orabrowser.ora
           GENERATE_INFOPLIST_FILE: YES
-          SUFeedURL: "https://the-ora.github.io/browser/appcast.xml"
+          SUFeedURL: "https://raw.githubusercontent.com/the-ora/browser/refs/heads/gh-pages/appcast.xml"
           SUPublicEDKey: "rGLm5UFuNdqH9FJei3XL5Sao6GDrGvLYJX0OvpkEFDI"
 
