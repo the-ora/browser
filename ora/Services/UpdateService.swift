@@ -19,6 +19,12 @@ class UpdateService: NSObject, ObservableObject {
 
     private func setupUpdater() {
         print("🔧 UpdateService: Setting up updater")
+
+        // Log app information
+        let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
+        let bundleId = Bundle.main.bundleIdentifier ?? "unknown"
+        print("📱 UpdateService: App Info - Version: \(currentVersion), Bundle ID: \(bundleId)")
+
         let hostBundle = Bundle.main
         let applicationBundle = hostBundle
         let userDriver = SPUStandardUserDriver(hostBundle: hostBundle, delegate: nil)
@@ -32,12 +38,21 @@ class UpdateService: NSObject, ObservableObject {
         self.updater = updater
         self.userDriver = userDriver
 
+        // Log Sparkle configuration
+        print("🔑 UpdateService: Sparkle Config - Feed URL: \(updater.feedURL?.absoluteString ?? "none")")
+        print(
+            "🔑 UpdateService: Sparkle Config - Public Key: \(updater.publicKeys?.ed25519PubKey?.base64EncodedString() ?? "none")"
+        )
+
         // Start the updater
         do {
             try updater.start()
             print("✅ UpdateService: Updater started successfully")
+            print("🔄 UpdateService: Automatic checks enabled: \(updater.automaticallyChecksForUpdates)")
+            print("⏰ UpdateService: Update check interval: \(updater.updateCheckInterval) seconds")
         } catch {
             print("❌ UpdateService: Failed to start updater - Error: \(error.localizedDescription)")
+            print("❌ UpdateService: Error details: \(error)")
         }
 
         self.canCheckForUpdates = true // Force enable for development
@@ -71,6 +86,9 @@ class UpdateService: NSObject, ObservableObject {
         }
 
         print("📡 UpdateService: Calling updater.checkForUpdates()")
+        print("🌐 UpdateService: Network check - Feed URL: \(updater.feedURL?.absoluteString ?? "none")")
+        print("🔑 UpdateService: Security check - Has public key: \(updater.publicKeys?.ed25519PubKey != nil)")
+
         updater.checkForUpdates()
     }
 
@@ -82,12 +100,23 @@ class UpdateService: NSObject, ObservableObject {
 
 extension UpdateService: SPUUpdaterDelegate {
     func feedURLString(for updater: SPUUpdater) -> String? {
-        print("🔗 UpdateService: Providing feed URL: https://the-ora.github.io/browser/appcast.xml")
-        return "https://the-ora.github.io/browser/appcast.xml"
+        let feedURL = "https://the-ora.github.io/browser/appcast.xml"
+        print("🔗 UpdateService: Providing feed URL: \(feedURL)")
+        print("🔗 UpdateService: Feed URL requested by Sparkle updater")
+        return feedURL
     }
 
     func updater(_ updater: SPUUpdater, didFindValidUpdate item: SUAppcastItem) {
-        print("✅ UpdateService: Found valid update - Version: \(item.displayVersionString ?? item.versionString)")
+        print("✅ UpdateService: Found valid update!")
+        print("📦 UpdateService: Update details:")
+        print("   - Version: \(item.displayVersionString ?? item.versionString)")
+        print("   - File URL: \(item.fileURL?.absoluteString ?? "none")")
+        print("   - Info URL: \(item.infoURL?.absoluteString ?? "none")")
+        print("   - Release notes: \(item.itemDescription ?? "none")")
+        print("   - Minimum OS: \(item.minimumSystemVersion ?? "none")")
+        print("   - File size: \(item.contentLength) bytes")
+        print("   - Signature: \(item.edSignature ?? "none")")
+
         DispatchQueue.main.async {
             self.updateAvailable = true
             self.isCheckingForUpdates = false
@@ -97,14 +126,23 @@ extension UpdateService: SPUUpdaterDelegate {
     }
 
     func updaterDidNotFindUpdate(_ updater: SPUUpdater, error: Error) {
-        print("ℹ️ UpdateService: No update found - Error: \(error.localizedDescription)")
-        print(
-            "ℹ️ UpdateService: Current app version: \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown")"
-        )
+        print("ℹ️ UpdateService: No update found")
+        print("❌ UpdateService: Error details: \(error.localizedDescription)")
+        print("🔍 UpdateService: Error code: \((error as NSError).code)")
+        print("🔍 UpdateService: Error domain: \((error as NSError).domain)")
+
+        let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
+        print("📱 UpdateService: Current app version: \(currentVersion)")
+
+        // Log more details about the error
+        if let sparkleError = error as? NSError {
+            print("🔍 UpdateService: Sparkle error userInfo: \(sparkleError.userInfo)")
+        }
+
         DispatchQueue.main.async {
             self.updateAvailable = false
             self.isCheckingForUpdates = false
-            self.lastCheckResult = "No updates available (current: \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"))"
+            self.lastCheckResult = "No updates available (current: \(currentVersion))"
             self.lastCheckDate = Date()
         }
     }
@@ -128,13 +166,57 @@ extension UpdateService: SPUUpdaterDelegate {
     }
 
     func updater(_ updater: SPUUpdater, didFinishLoading appcast: SUAppcast) {
-        print("📄 UpdateService: Appcast loaded successfully - Items: \(appcast.items.count)")
+        print("📄 UpdateService: Appcast loaded successfully")
+        print("📊 UpdateService: Appcast details:")
+        print("   - Total items: \(appcast.items.count)")
+        print("   - User agent: \(appcast.userAgentString ?? "none")")
+
+        // Log details of each item
+        for (index, item) in appcast.items.enumerated() {
+            print("📦 UpdateService: Item \(index + 1):")
+            print("   - Version: \(item.displayVersionString ?? item.versionString)")
+            print("   - File URL: \(item.fileURL?.absoluteString ?? "none")")
+            print("   - Info URL: \(item.infoURL?.absoluteString ?? "none")")
+            print("   - File size: \(item.contentLength) bytes")
+            print("   - Signature: \(item.edSignature ?? "none")")
+            print("   - Minimum OS: \(item.minimumSystemVersion ?? "none")")
+            print("   - Release date: \(item.dateString ?? "none")")
+        }
+    }
+
+    func updater(_ updater: SPUUpdater, failedToLoadAppcastWithError error: Error) {
+        print("❌ UpdateService: Failed to load appcast")
+        print("❌ UpdateService: Error: \(error.localizedDescription)")
+
+        if let nsError = error as NSError {
+            print("🔍 UpdateService: Error code: \(nsError.code)")
+            print("🔍 UpdateService: Error domain: \(nsError.domain)")
+            print("🔍 UpdateService: Error userInfo: \(nsError.userInfo)")
+        }
+
+        DispatchQueue.main.async {
+            self.isCheckingForUpdates = false
+            self.lastCheckResult = "Failed to load appcast: \(error.localizedDescription)"
+            self.lastCheckDate = Date()
+        }
     }
 
     func updater(_ updater: SPUUpdater, failedToDownloadUpdate item: SUAppcastItem, error: Error) {
-        print("❌ UpdateService: Failed to download update - Error: \(error.localizedDescription)")
+        print("❌ UpdateService: Failed to download update")
+        print("❌ UpdateService: Error: \(error.localizedDescription)")
+        print("❌ UpdateService: Item version: \(item.displayVersionString ?? item.versionString)")
+        print("❌ UpdateService: Download URL: \(item.fileURL?.absoluteString ?? "none")")
+
+        if let nsError = error as NSError {
+            print("🔍 UpdateService: Error code: \(nsError.code)")
+            print("🔍 UpdateService: Error domain: \(nsError.domain)")
+            print("🔍 UpdateService: Error userInfo: \(nsError.userInfo)")
+        }
+
         DispatchQueue.main.async {
             self.isCheckingForUpdates = false
+            self.lastCheckResult = "Download failed: \(error.localizedDescription)"
+            self.lastCheckDate = Date()
         }
     }
 }
