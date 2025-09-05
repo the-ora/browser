@@ -68,7 +68,6 @@ struct GeneralSettingsView: View {
                                     .foregroundColor(.secondary)
                             }
                         }
-
                     }
                     .padding(.vertical, 8)
                 }
