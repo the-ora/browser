@@ -18,13 +18,13 @@
         </ul>
         <p>This release includes bug fixes and performance improvements. Enjoy browsing with Ora!</p>
       ]]></description>
-      <pubDate>Fri, 05 Sep 2025 07:03:40 +0000</pubDate>
+      <pubDate>Fri, 05 Sep 2025 07:05:37 +0000</pubDate>
       <enclosure url="https://github.com/the-ora/browser/releases/download/v0.0.25/Ora-Browser.dmg"
                  sparkle:version="0.0.25"
                  sparkle:shortVersionString="0.0.25"
                  length="40933888"
                  type="application/octet-stream"
-                 sparkle:dsaSignature="25fJiDQTLU/BhM7GBSab1K7fzzezChNbatCGvaV0/Tei4V/nCi/ut9hmx6oEqiFKfrJxHBS+F13WpfWeTvj+BQ=="/>
+                 sparkle:dsaSignature="mCWX17Jcqa6LIrlSV0pEbIQG5s5ePvIZFYiSQQAkjWoeu0qyIgsmry0OYwknldH0gSKuERTRjFFS3xr7YeB7DA=="/>
     </item>
   </channel>
 </rss>
