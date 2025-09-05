@@ -117,6 +117,7 @@ mkdir -p build
 # Key management: Public key in root (committed), Private key in .env (not committed)
 PUBLIC_KEY_FILE="ora_public_key.pem"
 PRIVATE_KEY_FILE=".env"
+PRIVATE_KEY_CONTENT=""  # Global variable to store private key content
 
 # Check if public key exists in root directory
 if [ -f "$PUBLIC_KEY_FILE" ]; then
@@ -130,7 +131,7 @@ if [ -f "$PUBLIC_KEY_FILE" ]; then
         PRIVATE_KEY_CONTENT=$(grep "ORA_PRIVATE_KEY=" "$PRIVATE_KEY_FILE" | cut -d'=' -f2-)
         if [ -n "$PRIVATE_KEY_CONTENT" ]; then
             echo "✅ Private key found in .env file"
-            # Create temporary private key file for signing
+            # Store content globally and create temporary private key file for now
             echo "$PRIVATE_KEY_CONTENT" > build/temp_private_key.pem
             PRIVATE_KEY="build/temp_private_key.pem"
         else
@@ -243,6 +244,14 @@ fi
 if [ ! -f "build/Ora-Browser.dmg" ]; then
     echo "❌ DMG not found in build/ directory. Build may have failed."
     exit 1
+fi
+
+# Recreate the private key file (build script may have cleaned it)
+if [ -n "$PRIVATE_KEY_CONTENT" ]; then
+    echo "🔑 Recreating private key file after build..."
+    mkdir -p build
+    echo "$PRIVATE_KEY_CONTENT" > build/temp_private_key.pem
+    PRIVATE_KEY="build/temp_private_key.pem"
 fi
 
 # Sign the release with Sparkle
