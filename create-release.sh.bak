@@ -52,7 +52,11 @@ if [ -f "project.yml" ]; then
     BUILD_VERSION=$(echo $VERSION | awk -F. '{print $NF + 0}')
     sed -i.bak "s/CURRENT_PROJECT_VERSION: .*/CURRENT_PROJECT_VERSION: $BUILD_VERSION/" project.yml
 
+    # Update SUPublicEDKey with the current public key
+    sed -i.bak "s/SUPublicEDKey: .*/SUPublicEDKey: \"$PUBLIC_KEY\"/" project.yml
+
     echo "✅ Updated project.yml: MARKETING_VERSION=$VERSION, CURRENT_PROJECT_VERSION=$BUILD_VERSION"
+    echo "✅ Updated SUPublicEDKey: ${PUBLIC_KEY:0:20}..."
 else
     echo "⚠️  project.yml not found, skipping version update"
 fi
@@ -120,14 +124,6 @@ if [ -f "$PUBLIC_KEY_FILE" ]; then
     echo "🔑 Found existing public key in $PUBLIC_KEY_FILE"
     PUBLIC_KEY=$(cat "$PUBLIC_KEY_FILE")
     echo "✅ Using existing public key: ${PUBLIC_KEY:0:20}..."
-
-    # Update SUPublicEDKey in project.yml now that we have the public key
-    if [ -f "project.yml" ]; then
-        # Escape forward slashes in PUBLIC_KEY for sed
-        ESCAPED_PUBLIC_KEY=$(echo "$PUBLIC_KEY" | sed 's/\//\\\//g')
-        sed -i.bak "s/SUPublicEDKey: .*/SUPublicEDKey: \"$ESCAPED_PUBLIC_KEY\"/" project.yml
-        echo "✅ Updated SUPublicEDKey in project.yml: ${PUBLIC_KEY:0:20}..."
-    fi
 
     # Check if private key exists in .env file
     if [ -f "$PRIVATE_KEY_FILE" ]; then
