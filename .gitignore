@@ -70,6 +70,11 @@ rw.*.Ora-Browser.dmg
 dsa_priv.pem    # CRITICAL: Never commit this file!
 dsa_pub.pem     # Public key (safe to commit if needed)
 
+# Environment files (contains private keys!)
+.env
+.env.local
+.env.*.local
+
 # Archives and temporary files
 *.xcarchive
 *.xctimeline

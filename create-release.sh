@@ -4,9 +4,15 @@ set -e
 # Create Release Script for Ora Browser
 # This script creates a signed release and updates the appcast
 #
-# Usage: $0 [version] [private_key_file]
+# Key Management:
+# - Public key: Stored in ora_public_key.pem (committed to git)
+# - Private key: Stored in .env file (NEVER commit this!)
+# - If keys don't exist, new Ed25519 keys are generated
+# - If private key missing, build fails with clear instructions
+#
+# Usage: $0 [version]
 # If no version is provided, it will auto-increment the patch version from project.yml
-# Example: $0 0.0.2 ../dsa_priv.pem
+# Example: $0 0.0.36
 
 # Handle version argument
 if [ $# -lt 1 ]; then
@@ -28,14 +34,15 @@ if [ $# -lt 1 ]; then
 else
     VERSION=$1
 fi
-PRIVATE_KEY=${2:-"build/dsa_priv.pem"}
+# Private key will be determined by the key management section above
+# PRIVATE_KEY is set dynamically based on available keys
 
 # Save original directory
 ORIGINAL_DIR="$(pwd)"
 
 echo "🚀 Creating Ora Browser Release v$VERSION..."
 
-# Update project.yml with the release version
+# Update project.yml with the release version and public key
 echo "📝 Updating project.yml with version $VERSION..."
 if [ -f "project.yml" ]; then
     # Update MARKETING_VERSION
@@ -45,7 +52,11 @@ if [ -f "project.yml" ]; then
     BUILD_VERSION=$(echo $VERSION | awk -F. '{print $NF + 0}')
     sed -i.bak "s/CURRENT_PROJECT_VERSION: .*/CURRENT_PROJECT_VERSION: $BUILD_VERSION/" project.yml
 
+    # Update SUPublicEDKey with the current public key
+    sed -i.bak "s/SUPublicEDKey: .*/SUPublicEDKey: \"$PUBLIC_KEY\"/" project.yml
+
     echo "✅ Updated project.yml: MARKETING_VERSION=$VERSION, CURRENT_PROJECT_VERSION=$BUILD_VERSION"
+    echo "✅ Updated SUPublicEDKey: ${PUBLIC_KEY:0:20}..."
 else
     echo "⚠️  project.yml not found, skipping version update"
 fi
@@ -103,54 +114,65 @@ echo "✅ Sparkle tools ready!"
 # Ensure build directory exists
 mkdir -p build
 
-# Generate DSA keys (only if they don't already exist)
-if [ ! -f "build/dsa_priv.pem" ] || [ ! -f "build/dsa_pub.pem" ]; then
-    echo "🔑 Generating DSA keys..."
+# Key management: Public key in root (committed), Private key in .env (not committed)
+PUBLIC_KEY_FILE="ora_public_key.pem"
+PRIVATE_KEY_FILE=".env"
 
-    # First check if keys exist in Keychain
-    if generate_keys -p >/dev/null 2>&1; then
-        echo "✅ DSA keys found in Keychain, exporting..."
+# Check if public key exists in root directory
+if [ -f "$PUBLIC_KEY_FILE" ]; then
+    echo "🔑 Found existing public key in $PUBLIC_KEY_FILE"
+    PUBLIC_KEY=$(cat "$PUBLIC_KEY_FILE")
+    echo "✅ Using existing public key: ${PUBLIC_KEY:0:20}..."
 
-        # Export private key from Keychain
-        if generate_keys -x build/dsa_priv.pem 2>/dev/null; then
-            echo "✅ Private key exported to build/dsa_priv.pem"
+    # Check if private key exists in .env file
+    if [ -f "$PRIVATE_KEY_FILE" ]; then
+        echo "🔑 Found private key in $PRIVATE_KEY_FILE"
+        PRIVATE_KEY_CONTENT=$(grep "ORA_PRIVATE_KEY=" "$PRIVATE_KEY_FILE" | cut -d'=' -f2-)
+        if [ -n "$PRIVATE_KEY_CONTENT" ]; then
+            echo "✅ Private key found in .env file"
+            # Create temporary private key file for signing
+            echo "$PRIVATE_KEY_CONTENT" > build/temp_private_key.pem
+            PRIVATE_KEY="build/temp_private_key.pem"
         else
-            echo "❌ Failed to export private key from Keychain"
+            echo "❌ Private key not found in .env file!"
+            echo "   Please add your private key to $PRIVATE_KEY_FILE in this format:"
+            echo "   ORA_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----..."
             exit 1
         fi
-
-        # Get public key and save to file
-        PUBLIC_KEY=$(generate_keys -p)
-        echo "$PUBLIC_KEY" > build/dsa_pub.pem
-        echo "✅ Public key saved to build/dsa_pub.pem"
     else
-        echo "⚠️  No DSA keys found in Keychain. Generating new keys..."
-
-        # Generate new DSA keys
-        if generate_keys; then
-            echo "✅ New DSA keys generated"
-
-            # Export the newly generated keys
-            if generate_keys -x build/dsa_priv.pem 2>/dev/null; then
-                echo "✅ Private key exported to build/dsa_priv.pem"
-            else
-                echo "❌ Failed to export newly generated private key"
-                exit 1
-            fi
-
-            # Get public key and save to file
-            PUBLIC_KEY=$(generate_keys -p)
-            echo "$PUBLIC_KEY" > build/dsa_pub.pem
-            echo "✅ Public key saved to build/dsa_pub.pem"
-        else
-            echo "❌ Failed to generate DSA keys"
-            exit 1
-        fi
+        echo "❌ Private key file (.env) not found!"
+        echo "   Please create a .env file with your private key:"
+        echo "   ORA_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----..."
+        echo "   Or run this script from a machine that has the keys."
+        exit 1
     fi
 else
-    echo "🔑 Using existing DSA keys..."
-    echo "⚠️  IMPORTANT: Reusing existing keys maintains update chain integrity"
-    echo "   Never delete build/dsa_priv.pem or you'll break automatic updates!"
+    echo "🔑 No public key found. Generating new Ed25519 keypair..."
+
+    # Generate new Ed25519 keys
+    if generate_keys --account "ora-browser-ed25519"; then
+        echo "✅ New Ed25519 keys generated"
+
+        # Get public key and save to root directory (will be committed)
+        PUBLIC_KEY=$(generate_keys --account "ora-browser-ed25519" -p)
+        echo "$PUBLIC_KEY" > "$PUBLIC_KEY_FILE"
+        echo "✅ Public key saved to $PUBLIC_KEY_FILE (will be committed to git)"
+
+        # Export private key and save to .env file (will NOT be committed)
+        if generate_keys --account "ora-browser-ed25519" -x build/temp_private_key.pem 2>/dev/null; then
+            PRIVATE_KEY_CONTENT=$(cat build/temp_private_key.pem)
+            echo "ORA_PRIVATE_KEY=$PRIVATE_KEY_CONTENT" > "$PRIVATE_KEY_FILE"
+            echo "✅ Private key saved to $PRIVATE_KEY_FILE (DO NOT commit this file!)"
+            echo "⚠️  IMPORTANT: Add .env to your .gitignore if not already there"
+            PRIVATE_KEY="build/temp_private_key.pem"
+        else
+            echo "❌ Failed to export private key"
+            exit 1
+        fi
+    else
+        echo "❌ Failed to generate Ed25519 keys"
+        exit 1
+    fi
 fi
 
 # Ensure build directory exists before creating appcast
@@ -225,7 +247,7 @@ fi
 
 # Sign the release with Sparkle
 echo "🔐 Signing release with Sparkle..."
-if [ -f "$PRIVATE_KEY" ] && [ -r "$PRIVATE_KEY" ]; then
+if [ -f "$PRIVATE_KEY" ] && [ -r "$PRIVATE_KEY" ] && [ -s "$PRIVATE_KEY" ]; then
     echo "📝 Signing DMG with private key..."
     SIGNATURE_OUTPUT=$(sign_update --ed-key-file "$PRIVATE_KEY" "build/Ora-Browser.dmg" 2>&1)
     echo "Raw signature output: $SIGNATURE_OUTPUT"
@@ -241,13 +263,11 @@ if [ -f "$PRIVATE_KEY" ] && [ -r "$PRIVATE_KEY" ]; then
         echo "❌ Failed to sign release - invalid output"
         echo "Output was: $SIGNATURE_OUTPUT"
         echo "Make sure the private key is valid and the DMG exists"
-        SIGNATURE="SIGNATURE_PLACEHOLDER"
         exit 1
     fi
 else
-    echo "❌ Private key not found or not readable at $PRIVATE_KEY"
-    echo "Make sure to generate keys first with: generate_keys"
-    SIGNATURE="SIGNATURE_PLACEHOLDER"
+    echo "❌ Private key not found, empty, or not readable at $PRIVATE_KEY"
+    echo "Make sure your .env file contains a valid ORA_PRIVATE_KEY"
     exit 1
 fi
 
@@ -347,8 +367,8 @@ echo "✅ Release v$VERSION created!"
 echo "📁 Files ready for upload:"
 echo "   - build/Ora-Browser.dmg (signed)"
 echo "   - appcast.xml (will be deployed after upload)"
-echo "   - build/dsa_pub.pem (public key for app)"
-echo "   - build/dsa_priv.pem (private key - keep secure!)"
+echo "   - $PUBLIC_KEY_FILE (public key - committed to git)"
+echo "   - $PRIVATE_KEY_FILE (private key - DO NOT commit!)"
 echo ""
 # Upload DMG to GitHub releases
 echo "📤 Uploading DMG to GitHub releases..."
@@ -368,23 +388,41 @@ else
     echo "   You can manually deploy appcast.xml to GitHub Pages later"
 fi
 
+# Clean up temporary files
+if [ -f "build/temp_private_key.pem" ]; then
+    rm -f build/temp_private_key.pem
+    echo "🧹 Cleaned up temporary private key file"
+fi
+
 echo "🚀 Next steps:"
 echo "1. ✅ DMG uploaded to GitHub releases"
 echo "2. Enable GitHub Pages in repository settings (if not already enabled)"
 echo "   - Go to Settings → Pages"
 echo "   - Set source to 'Deploy from a branch'"
 echo "   - Set branch to 'gh-pages'"
-echo "3. Add build/dsa_pub.pem content to your app's SUPublicEDKey"
-echo "4. Update SUFeedURL in Info.plist to point to your appcast.xml"
+echo "3. ✅ Public key is already configured in project.yml"
+echo "4. ✅ SUFeedURL is already configured in project.yml"
 echo ""
-# Security check - ensure private key is not committed
-if git ls-files 2>/dev/null | grep -q "dsa_priv.pem"; then
-    echo "❌ SECURITY VIOLATION: Private key is tracked by git!"
-    echo "   This is a serious security issue. Run:"
-    echo "   git rm --cached build/dsa_priv.pem"
-    echo "   Then regenerate keys for a fresh start"
+
+# Security check - ensure sensitive files are not committed
+echo "🔒 Security Check:"
+if git ls-files 2>/dev/null | grep -q "\.env$"; then
+    echo "❌ SECURITY VIOLATION: .env file is tracked by git!"
+    echo "   This contains your private key! Run:"
+    echo "   git rm --cached .env"
+    echo "   git commit -m 'Remove .env from tracking'"
     exit 1
 fi
 
-echo "🔒 IMPORTANT: Keep build/dsa_priv.pem secure and never commit it to version control!"
-echo "   Run './check-security.sh' anytime to verify security status"
+if git ls-files 2>/dev/null | grep -q "temp_private_key.pem"; then
+    echo "❌ SECURITY VIOLATION: Temporary private key file is tracked by git!"
+    echo "   Run: git rm --cached build/temp_private_key.pem"
+    exit 1
+fi
+
+echo "✅ Security check passed - sensitive files not committed"
+echo ""
+echo "🔑 Key Management:"
+echo "   - Public key: $PUBLIC_KEY_FILE (committed to git)"
+echo "   - Private key: $PRIVATE_KEY_FILE (NEVER commit this!)"
+echo "   - Share $PRIVATE_KEY_FILE when setting up new machines"
