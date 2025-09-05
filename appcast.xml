@@ -5,7 +5,7 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
-      <title>Version 0.0.35</title>
+       <title>Version 0.0.36</title>
       <description><![CDATA[
         <h2>Ora Browser v0.0.35</h2>
         <p>Latest release of Ora Browser with the following features:</p>
@@ -19,12 +19,12 @@
         <p>This release includes bug fixes and performance improvements. Enjoy browsing with Ora!</p>
       ]]></description>
       <pubDate>Fri, 05 Sep 2025 09:01:42 +0000</pubDate>
-      <enclosure url="https://github.com/the-ora/browser/releases/download/v0.0.35/Ora-Browser.dmg"
-                 sparkle:version="0.0.35"
-                 sparkle:shortVersionString="0.0.35"
+       <enclosure url="https://github.com/the-ora/browser/releases/download/v0.0.36/Ora-Browser.dmg"
+                  sparkle:version="0.0.36"
+                  sparkle:shortVersionString="0.0.36"
                  length="40933888"
                  type="application/octet-stream"
-                  sparkle:edSignature="z/nfAGP5jpA4iWtt55CBZlWEATnfpX9QGZjMyLqEp1szOkKsDRNhjezMDW477zs8e/iQrD07Pj6HOJnOhp98Ag=="/>
+                 sparkle:edSignature="K5Qhp6WXWcHF40oavxNhzEOweXrwnI+DD8pipHQIrfmYbqQ1w9bI7G3QR0QauPP5R/1wFS23ZNcL5Xu5VjOUCA=="/>
     </item>
   </channel>
 </rss>
