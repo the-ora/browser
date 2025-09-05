@@ -40,7 +40,6 @@ class UpdateService: NSObject, ObservableObject {
 
         // Log Sparkle configuration
         print("🔑 UpdateService: Sparkle Config - Feed URL: \(updater.feedURL?.absoluteString ?? "none")")
-        print("🔑 UpdateService: Sparkle Config - Public key configured: \(updater.publicKeys != nil)")
 
         // Start the updater
         do {
@@ -85,7 +84,6 @@ class UpdateService: NSObject, ObservableObject {
 
         print("📡 UpdateService: Calling updater.checkForUpdates()")
         print("🌐 UpdateService: Network check - Feed URL: \(updater.feedURL?.absoluteString ?? "none")")
-        print("🔑 UpdateService: Security check - Has public key: \(updater.publicKeys != nil)")
 
         updater.checkForUpdates()
     }
@@ -113,7 +111,6 @@ extension UpdateService: SPUUpdaterDelegate {
         print("   - Release notes: \(item.itemDescription ?? "none")")
         print("   - Minimum OS: \(item.minimumSystemVersion ?? "none")")
         print("   - File size: \(item.contentLength) bytes")
-        print("   - Signature: \(item.dsaSignature ?? "none")")
 
         DispatchQueue.main.async {
             self.updateAvailable = true
@@ -174,7 +171,6 @@ extension UpdateService: SPUUpdaterDelegate {
             print("   - File URL: \(item.fileURL?.absoluteString ?? "none")")
             print("   - Info URL: \(item.infoURL?.absoluteString ?? "none")")
             print("   - File size: \(item.contentLength) bytes")
-            print("   - Signature: \(item.dsaSignature ?? "none")")
             print("   - Minimum OS: \(item.minimumSystemVersion ?? "none")")
             print("   - Release date: \(item.dateString ?? "none")")
         }
