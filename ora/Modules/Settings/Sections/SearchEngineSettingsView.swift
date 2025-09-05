@@ -8,7 +8,6 @@ struct SearchEngineSettingsView: View {
     @Environment(\.theme) var theme
 
     @State private var showingAddForm = false
-    @State private var editingEngine: CustomSearchEngine? = nil
     @State private var newEngineName = ""
     @State private var newEngineURL = ""
     @State private var newEngineAliases = ""
@@ -25,8 +24,8 @@ struct SearchEngineSettingsView: View {
                     HStack {
                         Text("Add custom search engines with your own URLs and shortcuts.")
                         Spacer()
-                        Button(showingAddForm || editingEngine != nil ? "Cancel" : "Add Search Engine") {
-                            if showingAddForm || editingEngine != nil {
+                        Button(showingAddForm ? "Cancel" : "Add Search Engine") {
+                            if showingAddForm {
                                 cancelForm()
                             } else {
                                 showingAddForm = true
@@ -38,9 +37,9 @@ struct SearchEngineSettingsView: View {
                     .background(theme.solidWindowBackgroundColor)
                     .cornerRadius(8)
 
-                    if showingAddForm || editingEngine != nil {
+                    if showingAddForm {
                         VStack(alignment: .leading, spacing: 16) {
-                            Text(editingEngine != nil ? "Edit Search Engine" : "Add New Search Engine")
+                            Text("Add New Search Engine")
                                 .foregroundStyle(.secondary)
 
                             VStack(alignment: .leading, spacing: 8) {
@@ -79,7 +78,7 @@ struct SearchEngineSettingsView: View {
 
                                 HStack {
                                     Spacer()
-                                    Button(editingEngine != nil ? "Update" : "Save") {
+                                    Button("Save") {
                                         saveSearchEngine()
                                     }
                                     .disabled(newEngineName.isEmpty || !isValidURL)
@@ -146,10 +145,10 @@ struct SearchEngineSettingsView: View {
                                         settings.globalDefaultSearchEngine = engine.name
                                     },
                                     onEdit: {
-                                        editingEngine = engine
-                                        populateForm(with: engine)
+                                        // Edit is now handled inline in the row
                                     },
-                                    isDefault: settings.globalDefaultSearchEngine == engine.name
+                                    isDefault: settings.globalDefaultSearchEngine == engine.name,
+                                    settings: settings
                                 )
                             }
                         }
@@ -166,7 +165,6 @@ struct SearchEngineSettingsView: View {
         newEngineName = ""
         newEngineURL = ""
         newEngineAliases = ""
-        editingEngine = nil
     }
 
     private func cancelForm() {
@@ -187,24 +185,13 @@ struct SearchEngineSettingsView: View {
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
 
-        if let editingEngine {
-            // Update existing engine
-            let updatedEngine = CustomSearchEngine(
-                id: editingEngine.id,
-                name: newEngineName,
-                searchURL: newEngineURL,
-                aliases: aliasesList
-            )
-            settings.updateCustomSearchEngine(updatedEngine)
-        } else {
-            // Add new engine
-            let engine = CustomSearchEngine(
-                name: newEngineName,
-                searchURL: newEngineURL,
-                aliases: aliasesList
-            )
-            settings.addCustomSearchEngine(engine)
-        }
+        // Add new engine
+        let engine = CustomSearchEngine(
+            name: newEngineName,
+            searchURL: newEngineURL,
+            aliases: aliasesList
+        )
+        settings.addCustomSearchEngine(engine)
 
         clearForm()
         showingAddForm = false
@@ -218,72 +205,191 @@ struct CustomSearchEngineRow: View {
     let onSetAsDefault: () -> Void
     let onEdit: () -> Void
     let isDefault: Bool
+    let settings: SettingsStore
 
     @State private var favicon: NSImage? = nil
+    @State private var isEditing = false
+    @State private var editName = ""
+    @State private var editURL = ""
+    @State private var editAliases = ""
+
+    private var isValidEditURL: Bool {
+        editURL.contains("{query}") && URL(string: editURL.replacingOccurrences(of: "{query}", with: "test")) != nil
+    }
 
     var body: some View {
-        HStack {
-            // Favicon
-            Group {
-                if let favicon {
-                    Image(nsImage: favicon)
-                        .resizable()
-                        .frame(width: 16, height: 16)
-                } else {
-                    AsyncImage(url: faviconURL) { image in
-                        image
-                            .resizable()
-                            .frame(width: 16, height: 16)
-                    } placeholder: {
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(width: 16, height: 16)
+        VStack(spacing: 0) {
+            if isEditing {
+                // Inline edit form
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        // Favicon
+                        Group {
+                            if let favicon {
+                                Image(nsImage: favicon)
+                                    .resizable()
+                                    .frame(width: 16, height: 16)
+                            } else {
+                                AsyncImage(url: faviconURL) { image in
+                                    image
+                                        .resizable()
+                                        .frame(width: 16, height: 16)
+                                } placeholder: {
+                                    RoundedRectangle(cornerRadius: 2)
+                                        .fill(Color.gray.opacity(0.3))
+                                        .frame(width: 16, height: 16)
+                                }
+                            }
+                        }
+
+                        Text("Edit Search Engine")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+
+                        Spacer()
+                    }
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Name:")
+                                .frame(width: 80, alignment: .leading)
+                            TextField("Search Engine Name", text: $editName)
+                        }
+
+                        HStack {
+                            Text("URL:")
+                                .frame(width: 80, alignment: .leading)
+                            VStack(alignment: .leading, spacing: 4) {
+                                TextField("https://example.com/search?q={query}", text: $editURL)
+                                if !editURL.isEmpty, !isValidEditURL {
+                                    Text("URL must contain {query} and be a valid URL")
+                                        .foregroundColor(.red)
+                                        .font(.caption)
+                                }
+                            }
+                        }
+
+                        HStack {
+                            Text("Aliases:")
+                                .frame(width: 80, alignment: .leading)
+                            TextField("e.g., ddg, duck", text: $editAliases)
+                        }
+
+                        HStack {
+                            Spacer()
+                            Button("Cancel") {
+                                cancelEdit()
+                            }
+                            Button("Update") {
+                                saveEdit()
+                            }
+                            .disabled(editName.isEmpty || !isValidEditURL)
+                        }
                     }
                 }
-            }
+                .padding(12)
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(8)
+            } else {
+                // Normal display
+                HStack {
+                    // Favicon
+                    Group {
+                        if let favicon {
+                            Image(nsImage: favicon)
+                                .resizable()
+                                .frame(width: 16, height: 16)
+                        } else {
+                            AsyncImage(url: faviconURL) { image in
+                                image
+                                    .resizable()
+                                    .frame(width: 16, height: 16)
+                            } placeholder: {
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(Color.gray.opacity(0.3))
+                                    .frame(width: 16, height: 16)
+                            }
+                        }
+                    }
 
-            // Name and Default badge
-            HStack(spacing: 8) {
-                Text(engine.name)
-                    .font(.body)
-                if isDefault {
-                    Text("Default")
-                        .font(.caption)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.blue.opacity(0.2))
-                        .foregroundColor(.blue)
-                        .cornerRadius(4)
-                }
-            }
+                    // Name and Default badge
+                    HStack(spacing: 8) {
+                        Text(engine.name)
+                            .font(.body)
+                        if isDefault {
+                            Text("Default")
+                                .font(.caption)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.blue.opacity(0.2))
+                                .foregroundColor(.blue)
+                                .cornerRadius(4)
+                        }
+                    }
 
-            Spacer()
+                    Spacer()
 
-            // Action buttons
-            HStack(spacing: 12) {
-                if !isDefault {
-                    Button("Set as Default") {
-                        onSetAsDefault()
+                    // Action buttons
+                    HStack(spacing: 12) {
+                        if !isDefault {
+                            Button("Set as Default") {
+                                onSetAsDefault()
+                            }
+                        }
+
+                        Button("Edit") {
+                            startEdit()
+                        }
+
+                        Button("Delete") {
+                            onDelete()
+                        }
+                        .foregroundColor(.red)
                     }
                 }
-
-                Button("Edit") {
-                    onEdit()
-                }
-
-                Button("Delete") {
-                    onDelete()
-                }
-                .foregroundColor(.red)
+                .padding(.vertical, 4)
             }
         }
-        .padding(.vertical, 4)
         .onAppear {
             favicon = faviconService.getFavicon(for: engine.searchURL)
+            populateEditFields()
         }
         .onReceive(faviconService.objectWillChange) {
             favicon = faviconService.getFavicon(for: engine.searchURL)
         }
+    }
+
+    private func startEdit() {
+        populateEditFields()
+        isEditing = true
+    }
+
+    private func cancelEdit() {
+        isEditing = false
+        populateEditFields()
+    }
+
+    private func populateEditFields() {
+        editName = engine.name
+        editURL = engine.searchURL
+        editAliases = engine.aliases.joined(separator: ", ")
+    }
+
+    private func saveEdit() {
+        let aliasesList = editAliases
+            .split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+
+        let updatedEngine = CustomSearchEngine(
+            id: engine.id,
+            name: editName,
+            searchURL: editURL,
+            aliases: aliasesList
+        )
+
+        settings.updateCustomSearchEngine(updatedEngine)
+        isEditing = false
     }
 
     private var faviconURL: URL? {
