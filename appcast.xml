@@ -22,9 +22,9 @@
        <enclosure url="https://github.com/the-ora/browser/releases/download/v0.0.36/Ora-Browser.dmg"
                   sparkle:version="0.0.36"
                   sparkle:shortVersionString="0.0.36"
-                 length="40933888"
+                  length="40935424"
                  type="application/octet-stream"
-                 sparkle:edSignature="K5Qhp6WXWcHF40oavxNhzEOweXrwnI+DD8pipHQIrfmYbqQ1w9bI7G3QR0QauPP5R/1wFS23ZNcL5Xu5VjOUCA=="/>
+                 sparkle:edSignature="uNci+P4AnLoQy+Sn8AhQv6I/oYgfAPU9GAXjLPrlYgsOWrUTY4tLq2OMTJbqVcHm8k1bCIqvpRieYRhD/5IFBw=="/>
     </item>
   </channel>
 </rss>
