@@ -1,5 +1,5 @@
-import SwiftUI
 import Sparkle
+import SwiftUI
 
 class UpdateService: NSObject, ObservableObject {
     @Published var canCheckForUpdates = false
@@ -22,7 +22,12 @@ class UpdateService: NSObject, ObservableObject {
         let hostBundle = Bundle.main
         let applicationBundle = hostBundle
         let userDriver = SPUStandardUserDriver(hostBundle: hostBundle, delegate: nil)
-        let updater = SPUUpdater(hostBundle: hostBundle, applicationBundle: applicationBundle, userDriver: userDriver, delegate: self)
+        let updater = SPUUpdater(
+            hostBundle: hostBundle,
+            applicationBundle: applicationBundle,
+            userDriver: userDriver,
+            delegate: self
+        )
 
         self.updater = updater
         self.userDriver = userDriver
@@ -41,8 +46,10 @@ class UpdateService: NSObject, ObservableObject {
 
     func checkForUpdates() {
         print("🔄 UpdateService: checkForUpdates called")
-        guard let updater = updater, canCheckForUpdates else {
-            print("❌ UpdateService: Update checking not available - updater: \(updater != nil), canCheck: \(canCheckForUpdates)")
+        guard let updater, canCheckForUpdates else {
+            print(
+                "❌ UpdateService: Update checking not available - updater: \(updater != nil), canCheck: \(canCheckForUpdates)"
+            )
             lastCheckResult = "Update checking is not available"
             lastCheckDate = Date()
             isCheckingForUpdates = false
@@ -68,7 +75,7 @@ class UpdateService: NSObject, ObservableObject {
     }
 
     func checkForUpdatesInBackground() {
-        guard let updater = updater else { return }
+        guard let updater else { return }
         updater.checkForUpdatesInBackground()
     }
 }
@@ -91,7 +98,9 @@ extension UpdateService: SPUUpdaterDelegate {
 
     func updaterDidNotFindUpdate(_ updater: SPUUpdater, error: Error) {
         print("ℹ️ UpdateService: No update found - Error: \(error.localizedDescription)")
-        print("ℹ️ UpdateService: Current app version: \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown")")
+        print(
+            "ℹ️ UpdateService: Current app version: \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown")"
+        )
         DispatchQueue.main.async {
             self.updateAvailable = false
             self.isCheckingForUpdates = false
