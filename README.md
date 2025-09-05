@@ -3,8 +3,7 @@
 Ora is a fast, secure, and beautiful browser built for macOS. Inspired by Safari and Arc, Ora delivers a clean, native experience that feels at home on macOS — without unnecessary bloat.
 
 > **⚠️ Disclaimer**  
-> Ora is currently in active development and **not yet ready for day-to-day use**.  
-> An alpha version with core features will be released soon. Use at your own discretion.
+> Ora is currently in early stages of development and **not yet ready for day-to-day use**. An alpha version with core functionalities will be released soon.
 
 ## Features
 

@@ -177,20 +177,20 @@ struct BrowserView: View {
                                     HStack {
                                         Text(hovered)
                                             .font(.system(size: 12, weight: .regular))
-                                            .foregroundStyle(Color.white)
+                                            .foregroundStyle(theme.foreground)
                                             .padding(.horizontal, 10)
                                             .padding(.vertical, 6)
                                             .background(
                                                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                                    .fill(Color.black.opacity(0.3))
+                                                    .fill(theme.background)
                                             )
                                             .background(BlurEffectView(
                                                 material: .popover,
                                                 blendingMode: .withinWindow
                                             ))
-                                            .cornerRadius(8)
+                                            .cornerRadius(99)
                                             .overlay(
-                                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                                RoundedRectangle(cornerRadius: 99, style: .continuous)
                                                     .stroke(Color(.separatorColor), lineWidth: 1)
                                             )
                                             .padding(.leading, 12)

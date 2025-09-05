@@ -136,6 +136,8 @@ struct OraApp: App {
                 .keyboardShortcut(
                     KeyboardShortcuts.Tabs.close
                 )
+
+                ImportDataButton()
             }
 
             CommandGroup(after: .pasteboard) {
