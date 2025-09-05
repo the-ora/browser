@@ -40,9 +40,7 @@ class UpdateService: NSObject, ObservableObject {
 
         // Log Sparkle configuration
         print("🔑 UpdateService: Sparkle Config - Feed URL: \(updater.feedURL?.absoluteString ?? "none")")
-        print(
-            "🔑 UpdateService: Sparkle Config - Public Key: \(updater.publicKeys?.ed25519PubKey?.base64EncodedString() ?? "none")"
-        )
+        print("🔑 UpdateService: Sparkle Config - Public key configured: \(updater.publicKeys != nil)")
 
         // Start the updater
         do {
@@ -87,7 +85,7 @@ class UpdateService: NSObject, ObservableObject {
 
         print("📡 UpdateService: Calling updater.checkForUpdates()")
         print("🌐 UpdateService: Network check - Feed URL: \(updater.feedURL?.absoluteString ?? "none")")
-        print("🔑 UpdateService: Security check - Has public key: \(updater.publicKeys?.ed25519PubKey != nil)")
+        print("🔑 UpdateService: Security check - Has public key: \(updater.publicKeys != nil)")
 
         updater.checkForUpdates()
     }
@@ -115,7 +113,7 @@ extension UpdateService: SPUUpdaterDelegate {
         print("   - Release notes: \(item.itemDescription ?? "none")")
         print("   - Minimum OS: \(item.minimumSystemVersion ?? "none")")
         print("   - File size: \(item.contentLength) bytes")
-        print("   - Signature: \(item.edSignature ?? "none")")
+        print("   - Signature: \(item.dsaSignature ?? "none")")
 
         DispatchQueue.main.async {
             self.updateAvailable = true
@@ -135,9 +133,8 @@ extension UpdateService: SPUUpdaterDelegate {
         print("📱 UpdateService: Current app version: \(currentVersion)")
 
         // Log more details about the error
-        if let sparkleError = error as? NSError {
-            print("🔍 UpdateService: Sparkle error userInfo: \(sparkleError.userInfo)")
-        }
+        let nsError = error as NSError
+        print("🔍 UpdateService: Sparkle error userInfo: \(nsError.userInfo)")
 
         DispatchQueue.main.async {
             self.updateAvailable = false
@@ -169,7 +166,6 @@ extension UpdateService: SPUUpdaterDelegate {
         print("📄 UpdateService: Appcast loaded successfully")
         print("📊 UpdateService: Appcast details:")
         print("   - Total items: \(appcast.items.count)")
-        print("   - User agent: \(appcast.userAgentString ?? "none")")
 
         // Log details of each item
         for (index, item) in appcast.items.enumerated() {
@@ -178,7 +174,7 @@ extension UpdateService: SPUUpdaterDelegate {
             print("   - File URL: \(item.fileURL?.absoluteString ?? "none")")
             print("   - Info URL: \(item.infoURL?.absoluteString ?? "none")")
             print("   - File size: \(item.contentLength) bytes")
-            print("   - Signature: \(item.edSignature ?? "none")")
+            print("   - Signature: \(item.dsaSignature ?? "none")")
             print("   - Minimum OS: \(item.minimumSystemVersion ?? "none")")
             print("   - Release date: \(item.dateString ?? "none")")
         }
@@ -188,11 +184,10 @@ extension UpdateService: SPUUpdaterDelegate {
         print("❌ UpdateService: Failed to load appcast")
         print("❌ UpdateService: Error: \(error.localizedDescription)")
 
-        if let nsError = error as NSError {
-            print("🔍 UpdateService: Error code: \(nsError.code)")
-            print("🔍 UpdateService: Error domain: \(nsError.domain)")
-            print("🔍 UpdateService: Error userInfo: \(nsError.userInfo)")
-        }
+        let nsError = error as NSError
+        print("🔍 UpdateService: Error code: \(nsError.code)")
+        print("🔍 UpdateService: Error domain: \(nsError.domain)")
+        print("🔍 UpdateService: Error userInfo: \(nsError.userInfo)")
 
         DispatchQueue.main.async {
             self.isCheckingForUpdates = false
@@ -207,11 +202,10 @@ extension UpdateService: SPUUpdaterDelegate {
         print("❌ UpdateService: Item version: \(item.displayVersionString ?? item.versionString)")
         print("❌ UpdateService: Download URL: \(item.fileURL?.absoluteString ?? "none")")
 
-        if let nsError = error as NSError {
-            print("🔍 UpdateService: Error code: \(nsError.code)")
-            print("🔍 UpdateService: Error domain: \(nsError.domain)")
-            print("🔍 UpdateService: Error userInfo: \(nsError.userInfo)")
-        }
+        let nsError = error as NSError
+        print("🔍 UpdateService: Error code: \(nsError.code)")
+        print("🔍 UpdateService: Error domain: \(nsError.domain)")
+        print("🔍 UpdateService: Error userInfo: \(nsError.userInfo)")
 
         DispatchQueue.main.async {
             self.isCheckingForUpdates = false
