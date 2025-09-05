@@ -27,6 +27,20 @@ enum AutoClearTabsAfter: String, CaseIterable, Identifiable, Codable {
     }
 }
 
+struct CustomSearchEngine: Codable, Identifiable, Hashable {
+    let id: String
+    let name: String
+    let searchURL: String
+    let aliases: [String]
+
+    init(id: String = UUID().uuidString, name: String, searchURL: String, aliases: [String] = []) {
+        self.id = id
+        self.name = name
+        self.searchURL = searchURL
+        self.aliases = aliases
+    }
+}
+
 class SettingsStore: ObservableObject {
     static let shared = SettingsStore()
     private let defaults = UserDefaults.standard
@@ -39,6 +53,8 @@ class SettingsStore: ObservableObject {
     private let adBlockingKey = "settings.tracking.adBlocking"
     private let cookiesPolicyKey = "settings.cookies.policy"
     private let sitePermissionsKey = "settings.permissions.sitePermissions"
+    private let customSearchEnginesKey = "settings.customSearchEngines"
+    private let globalDefaultSearchEngineKey = "settings.globalDefaultSearchEngine"
 
     // MARK: - Per-Container
 
@@ -78,6 +94,14 @@ class SettingsStore: ObservableObject {
         didSet { saveCodable(sitePermissions, forKey: sitePermissionsKey) }
     }
 
+    @Published var customSearchEngines: [CustomSearchEngine] {
+        didSet { saveCodable(customSearchEngines, forKey: customSearchEnginesKey) }
+    }
+
+    @Published var globalDefaultSearchEngine: String? {
+        didSet { defaults.set(globalDefaultSearchEngine, forKey: globalDefaultSearchEngineKey) }
+    }
+
     init() {
         autoUpdateEnabled = defaults.bool(forKey: autoUpdateKey)
         blockThirdPartyTrackers = defaults.bool(forKey: trackingThirdPartyKey)
@@ -93,6 +117,11 @@ class SettingsStore: ObservableObject {
 
         sitePermissions =
             Self.loadCodable([String: SitePermissionSettings].self, key: sitePermissionsKey) ?? [:]
+
+        customSearchEngines =
+            Self.loadCodable([CustomSearchEngine].self, key: customSearchEnginesKey) ?? []
+
+        globalDefaultSearchEngine = defaults.string(forKey: globalDefaultSearchEngineKey)
     }
 
     // MARK: - Per-container helpers
@@ -141,6 +170,26 @@ class SettingsStore: ObservableObject {
         var copy = sitePermissions
         copy.removeValue(forKey: host)
         sitePermissions = copy
+    }
+
+    // MARK: - Custom Search Engines
+
+    func addCustomSearchEngine(_ engine: CustomSearchEngine) {
+        var engines = customSearchEngines
+        engines.append(engine)
+        customSearchEngines = engines
+    }
+
+    func removeCustomSearchEngine(withId id: String) {
+        customSearchEngines = customSearchEngines.filter { $0.id != id }
+    }
+
+    func updateCustomSearchEngine(_ engine: CustomSearchEngine) {
+        var engines = customSearchEngines
+        if let index = engines.firstIndex(where: { $0.id == engine.id }) {
+            engines[index] = engine
+            customSearchEngines = engines
+        }
     }
 
     // MARK: - Codable helpers

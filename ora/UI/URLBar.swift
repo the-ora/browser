@@ -34,6 +34,19 @@ struct URLBar: View {
         return tabManager.activeTab.map { getForegroundColor($0).opacity(0.5) } ?? .gray
     }
 
+    private func shareCurrentPage(tab: Tab, sourceView: NSView, sourceRect: NSRect) {
+        let url = tab.url
+        let title = tab.title.isEmpty ? "Shared from Ora" : tab.title
+        let items: [Any] = [title, url]
+
+        let picker = NSSharingServicePicker(items: items)
+        picker.delegate = nil
+
+        DispatchQueue.main.async {
+            picker.show(relativeTo: sourceRect, of: sourceView, preferredEdge: .minY)
+        }
+    }
+
     var body: some View {
         HStack(spacing: 12) {
             // Navigation buttons
@@ -147,19 +160,22 @@ struct URLBar: View {
 
                     // Action buttons
                     HStack(spacing: 8) {
-                        Button(action: {}) {
-                            Image(systemName: "square.and.arrow.up")
-                                .font(.system(size: 14))
-                                .foregroundColor(.secondary)
-                        }
-                        .buttonStyle(PlainButtonStyle())
+                        ShareButton(
+                            foregroundColor: buttonForegroundColor,
+                            onShare: { sourceView, sourceRect in
+                                if let activeTab = tabManager.activeTab {
+                                    shareCurrentPage(tab: activeTab, sourceView: sourceView, sourceRect: sourceRect)
+                                }
+                            }
+                        )
+                        .frame(width: 32, height: 32)
 
-                        Button(action: {}) {
-                            Image(systemName: "ellipsis")
-                                .font(.system(size: 14))
-                                .foregroundColor(.secondary)
-                        }
-                        .buttonStyle(PlainButtonStyle())
+                        NavigationButton(
+                            systemName: "ellipsis",
+                            isEnabled: true,
+                            foregroundColor: buttonForegroundColor,
+                            action: {}
+                        )
                     }
                 }
                 .padding(.horizontal, 12)
@@ -185,6 +201,43 @@ struct URLBar: View {
                         .fill(tab.backgroundColor)
                 )
             }
+        }
+    }
+}
+
+struct ShareButton: NSViewRepresentable {
+    let foregroundColor: Color
+    let onShare: (NSView, NSRect) -> Void
+
+    func makeNSView(context: Context) -> NSButton {
+        let button = NSButton()
+        button.image = NSImage(systemSymbolName: "square.and.arrow.up", accessibilityDescription: "Share")
+        button.isBordered = false
+        button.bezelStyle = .regularSquare
+        button.imagePosition = .imageOnly
+        button.target = context.coordinator
+        button.action = #selector(Coordinator.buttonTapped)
+        return button
+    }
+
+    func updateNSView(_ nsView: NSButton, context: Context) {
+        context.coordinator.onShare = onShare
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onShare: onShare)
+    }
+
+    class Coordinator: NSObject {
+        var onShare: (NSView, NSRect) -> Void
+
+        init(onShare: @escaping (NSView, NSRect) -> Void) {
+            self.onShare = onShare
+        }
+
+        @objc func buttonTapped(_ sender: NSButton) {
+            let rect = sender.bounds
+            onShare(sender, rect)
         }
     }
 }

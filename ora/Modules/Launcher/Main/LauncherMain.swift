@@ -51,36 +51,13 @@ struct LauncherMain: View {
     @State private var suggestions: [LauncherSuggestion] = [
     ]
     func defaultSuggestions() -> [LauncherSuggestion] {
+        let containerId = tabManager.activeContainer?.id
+        let searchEngine = SearchEngineService().getDefaultSearchEngine(for: containerId)
+        let engineName = searchEngine?.name ?? "Google"
         return [
             LauncherSuggestion(
-                type: .suggestedQuery, title: "Search on Google",
+                type: .suggestedQuery, title: "Search on \(engineName)",
                 action: { onSubmit(nil) }
-            ),
-            LauncherSuggestion(
-                type: .aiChat,
-                title: "Grok",
-                name: "Grok",
-                action: {
-                    tabManager
-                        .openFromEngine(
-                            engineName: .grok,
-                            query: text,
-                            historyManager: historyManager
-                        )
-                }
-            ),
-            LauncherSuggestion(
-                type: .aiChat,
-                title: "ChatGPT",
-                name: "ChatGPT",
-                action: {
-                    tabManager
-                        .openFromEngine(
-                            engineName: .chatgpt,
-                            query: text,
-                            historyManager: historyManager
-                        )
-                }
             )
         ]
     }
@@ -107,7 +84,7 @@ struct LauncherMain: View {
         var itemsCount = 0
         appendOpenTabs(tabs, itemsCount: &itemsCount)
         appendOpenURLSuggestionIfNeeded(text)
-        appendSearchWithGoogleSuggestion(text)
+        appendSearchWithDefaultEngineSuggestion(text)
 
         let insertIndex = suggestions.count
         requestAutoSuggestions(text, insertAt: insertIndex)
@@ -170,19 +147,23 @@ struct LauncherMain: View {
         )
     }
 
-    private func appendSearchWithGoogleSuggestion(_ text: String) {
+    private func appendSearchWithDefaultEngineSuggestion(_ text: String) {
+        let containerId = tabManager.activeContainer?.id
+        let searchEngine = SearchEngineService().getDefaultSearchEngine(for: containerId)
+        let engineName = searchEngine?.name ?? "Google"
         suggestions.append(
             LauncherSuggestion(
                 type: .suggestedQuery,
-                title: "\(text) - Search with google",
+                title: "\(text) - Search with \(engineName)",
                 action: { onSubmit(nil) }
             )
         )
     }
 
     private func requestAutoSuggestions(_ text: String, insertAt: Int) {
+        let containerId = tabManager.activeContainer?.id
         debouncer.run {
-            let searchEngine = SearchEngineService().getDefaultSearchEngine()
+            let searchEngine = SearchEngineService().getDefaultSearchEngine(for: containerId)
             if let autoSuggestions = searchEngine?.autoSuggestions {
                 let searchSuggestions = await autoSuggestions(text)
                 await MainActor.run {
@@ -230,35 +211,7 @@ struct LauncherMain: View {
     }
 
     private func appendAISuggestionsIfNeeded(_ text: String) {
-        guard isAISuitableQuery(text) else { return }
-        suggestions.append(
-            LauncherSuggestion(
-                type: .aiChat,
-                title: text,
-                name: "Grok",
-                action: {
-                    tabManager.openFromEngine(
-                        engineName: .grok,
-                        query: text,
-                        historyManager: historyManager
-                    )
-                }
-            )
-        )
-        suggestions.append(
-            LauncherSuggestion(
-                type: .aiChat,
-                title: text,
-                name: "ChatGPT",
-                action: {
-                    tabManager.openFromEngine(
-                        engineName: .chatgpt,
-                        query: text,
-                        historyManager: historyManager
-                    )
-                }
-            )
-        )
+        // AI suggestions removed - only Google search engine is supported
     }
 
     func executeCommand() {

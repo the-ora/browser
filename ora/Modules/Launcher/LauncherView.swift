@@ -28,7 +28,8 @@ struct LauncherView: View {
         let correctInput = newInput ?? input
         let engineToUse =
             match
-                ?? searchEngineService.getDefaultSearchEngine()?.toLauncherMatch(originalAlias: correctInput)
+                ?? searchEngineService.getDefaultSearchEngine(for: tabManager.activeContainer?.id)?
+                .toLauncherMatch(originalAlias: correctInput)
 
         if let engine = engineToUse,
            let url = searchEngineService.createSearchURL(for: engine, query: correctInput)

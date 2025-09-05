@@ -39,7 +39,7 @@ struct SpacesSettingsView: View {
                                 selection: Binding(
                                     get: {
                                         settings.defaultSearchEngineId(for: container.id)
-                                            ?? searchService.getDefaultSearchEngine()?.name
+                                            ?? searchService.getDefaultSearchEngine(for: container.id)?.name
                                     },
                                     set: { settings.setDefaultSearchEngineId($0, for: container.id) }
                                 )
@@ -55,7 +55,7 @@ struct SpacesSettingsView: View {
                                 selection: Binding(
                                     get: {
                                         settings.defaultAIEngineId(for: container.id)
-                                            ?? searchService.getDefaultAIChat()?.name
+                                            ?? searchService.getDefaultAIChat(for: container.id)?.name
                                     },
                                     set: { settings.setDefaultAIEngineId($0, for: container.id) }
                                 )
