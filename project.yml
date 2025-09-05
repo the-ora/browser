@@ -29,6 +29,6 @@ targets:
           PRODUCT_BUNDLE_IDENTIFIER: com.orabrowser.ora
           GENERATE_INFOPLIST_FILE: YES
           SUFeedURL: "https://the-ora.github.io/browser/appcast.xml"
-          SUPublicEDKey: "rGLm5UFuNdqH9FJei3XL5Sao6GDrGvLYJX0OvpkEFDI"
+           SUPublicEDKey: "Ozj+rezzbJAD76RfajtfQ7rFojJbpFSCl/0DcFSBCTI="
           SUEnableAutomaticChecks: YES
 
