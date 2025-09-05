@@ -5,9 +5,9 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
-      <title>Version 0.0.23</title>
+      <title>Version 0.0.25</title>
       <description><![CDATA[
-        <h2>Ora Browser v0.0.23</h2>
+        <h2>Ora Browser v0.0.25</h2>
         <p>Latest release of Ora Browser with the following features:</p>
         <ul>
           <li>Modern web browsing experience</li>
@@ -18,13 +18,13 @@
         </ul>
         <p>This release includes bug fixes and performance improvements. Enjoy browsing with Ora!</p>
       ]]></description>
-      <pubDate>Fri, 05 Sep 2025 06:48:03 +0000</pubDate>
-      <enclosure url="https://github.com/the-ora/browser/releases/download/v0.0.23/Ora-Browser.dmg"
-                 sparkle:version="0.0.23"
-                 sparkle:shortVersionString="0.0.23"
+      <pubDate>Fri, 05 Sep 2025 07:05:37 +0000</pubDate>
+      <enclosure url="https://github.com/the-ora/browser/releases/download/v0.0.25/Ora-Browser.dmg"
+                 sparkle:version="0.0.25"
+                 sparkle:shortVersionString="0.0.25"
                  length="40933888"
                  type="application/octet-stream"
-                 sparkle:dsaSignature="Guwb3PvGYXKCM/OLwMqoGPsmW8ff5SEJEL/s93O9NkKczwmYmin9eWgWT/bg+OUF2sDd9WVBQ/JjP1IEq86pDQ=="/>
+                 sparkle:dsaSignature="mCWX17Jcqa6LIrlSV0pEbIQG5s5ePvIZFYiSQQAkjWoeu0qyIgsmry0OYwknldH0gSKuERTRjFFS3xr7YeB7DA=="/>
     </item>
   </channel>
 </rss>
