@@ -58,6 +58,32 @@ struct LauncherMain: View {
             LauncherSuggestion(
                 type: .suggestedQuery, title: "Search on \(engineName)",
                 action: { onSubmit(nil) }
+            ),
+            LauncherSuggestion(
+                type: .aiChat,
+                title: "Grok",
+                name: "Grok",
+                action: {
+                    tabManager
+                        .openFromEngine(
+                            engineName: .grok,
+                            query: text,
+                            historyManager: historyManager
+                        )
+                }
+            ),
+            LauncherSuggestion(
+                type: .aiChat,
+                title: "ChatGPT",
+                name: "ChatGPT",
+                action: {
+                    tabManager
+                        .openFromEngine(
+                            engineName: .chatgpt,
+                            query: text,
+                            historyManager: historyManager
+                        )
+                }
             )
         ]
     }
@@ -211,7 +237,35 @@ struct LauncherMain: View {
     }
 
     private func appendAISuggestionsIfNeeded(_ text: String) {
-        // AI suggestions removed - only Google search engine is supported
+        guard isAISuitableQuery(text) else { return }
+        suggestions.append(
+            LauncherSuggestion(
+                type: .aiChat,
+                title: text,
+                name: "Grok",
+                action: {
+                    tabManager.openFromEngine(
+                        engineName: .grok,
+                        query: text,
+                        historyManager: historyManager
+                    )
+                }
+            )
+        )
+        suggestions.append(
+            LauncherSuggestion(
+                type: .aiChat,
+                title: text,
+                name: "ChatGPT",
+                action: {
+                    tabManager.openFromEngine(
+                        engineName: .chatgpt,
+                        query: text,
+                        historyManager: historyManager
+                    )
+                }
+            )
+        )
     }
 
     func executeCommand() {
