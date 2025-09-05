@@ -124,7 +124,6 @@ struct SearchEngineSettingsView: View {
                                 Button("Set as Default") {
                                     settings.globalDefaultSearchEngine = nil
                                 }
-                                .buttonStyle(PlainButtonStyle())
                             }
                         }
                         .padding(.vertical, 4)
@@ -266,19 +265,16 @@ struct CustomSearchEngineRow: View {
                     Button("Set as Default") {
                         onSetAsDefault()
                     }
-                    .buttonStyle(PlainButtonStyle())
                 }
 
                 Button("Edit") {
                     onEdit()
                 }
-                .buttonStyle(PlainButtonStyle())
 
                 Button("Delete") {
                     onDelete()
                 }
                 .foregroundColor(.red)
-                .buttonStyle(PlainButtonStyle())
             }
         }
         .padding(.vertical, 4)
