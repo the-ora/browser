@@ -19,7 +19,7 @@ This directory contains documentation for Ora Browser development, deployment, a
 
 ### 🏗️ Build & Release
 - **[../build-release.sh](../build-release.sh)** - Release build script
-- **[../create-release.sh](../create-release.sh)** - Complete release creation script
+- **[../create-release.sh](../create-release.sh)** - Complete release creation script (auto-increments versions)
 - **[../setup-sparkle.sh](../setup-sparkle.sh)** - Sparkle key generation setup
 
 ## 🎯 Key Files for Updates
@@ -36,7 +36,7 @@ This directory contains documentation for Ora Browser development, deployment, a
 
 ## 🔄 Update Flow
 
-1. **Build:** `./build-release.sh` or `./create-release.sh`
+1. **Build:** `./create-release.sh` (auto-increments version) or `./create-release.sh 1.0.0` (manual version)
 2. **Sign:** Use `dsa_priv.pem` to sign DMG
 3. **Host:** Upload `appcast.xml` to public web server
 4. **Release:** Upload DMG to GitHub Releases

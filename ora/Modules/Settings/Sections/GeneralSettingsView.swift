@@ -48,24 +48,46 @@ struct GeneralSettingsView: View {
 
                         Toggle("Automatically check for updates", isOn: $settings.autoUpdateEnabled)
 
-                        HStack {
-                            Button("Check for Updates") {
-                                updateService.checkForUpdates()
-                            }
-                            .disabled(!updateService.canCheckForUpdates || updateService.isCheckingForUpdates)
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Button("Check for Updates") {
+                                    updateService.checkForUpdates()
+                                }
 
-                            if updateService.isCheckingForUpdates {
-                                ProgressView()
-                                    .scaleEffect(0.5)
-                                    .frame(width: 16, height: 16)
+                                if updateService.isCheckingForUpdates {
+                                    ProgressView()
+                                        .scaleEffect(0.5)
+                                        .frame(width: 16, height: 16)
+                                }
+
+                                if updateService.updateAvailable {
+                                    Text("Update available!")
+                                        .foregroundColor(.green)
+                                        .font(.caption)
+                                }
                             }
 
-                            if updateService.updateAvailable {
-                                Text("Update available!")
-                                    .foregroundColor(.green)
+                            if let result = updateService.lastCheckResult {
+                                Text(result)
                                     .font(.caption)
+                                    .foregroundColor(updateService.updateAvailable ? .green : .secondary)
+                            }
+
+                            // Show current app version
+                            if let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
+                                Text("Current version: \(appVersion)")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
+
+                            // Show last check time
+                            if let lastCheck = updateService.lastCheckDate {
+                                Text("Last checked: \(lastCheck.formatted(date: .abbreviated, time: .shortened))")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
                             }
                         }
+
                     }
                     .padding(.vertical, 8)
                 }

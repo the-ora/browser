@@ -52,8 +52,8 @@ git push origin gh-pages
 5. Click **Save**
 
 #### Step 3: Get Your URLs
-- **Appcast URL:** `https://your-username.github.io/repository-name/appcast.xml`
-- **DMG URL:** `https://github.com/your-username/repository-name/releases/download/v0.0.1/Ora-Browser.dmg`
+- **Appcast URL:** `https://the-ora.github.io/browser/appcast.xml`
+- **DMG URL:** `https://github.com/the-ora/browser/releases/download/v0.0.1/Ora-Browser.dmg`
 
 ### Option B: Your Own Web Server
 
@@ -78,8 +78,8 @@ git push origin gh-pages
 2. Use raw GitHub URLs for both files
 
 #### URLs
-- **Appcast URL:** `https://raw.githubusercontent.com/your-username/repository-name/main/appcast.xml`
-- **DMG URL:** `https://github.com/your-username/repository-name/releases/download/v0.0.1/Ora-Browser.dmg`
+- **Appcast URL:** `https://raw.githubusercontent.com/the-ora/browser/main/appcast.xml`
+- **DMG URL:** `https://github.com/the-ora/browser/releases/download/v0.0.1/Ora-Browser.dmg`
 
 ## Digital Signature Setup
 
@@ -123,7 +123,7 @@ Add these keys to your `Info.plist` or `project.yml`:
 
 ```xml
 <key>SUFeedURL</key>
-<string>https://your-username.github.io/repository-name/appcast.xml</string>
+<string>https://the-ora.github.io/browser/appcast.xml</string>
 
 <key>SUPublicEDKey</key>
 <string>YOUR_PUBLIC_KEY_HERE</string>
@@ -134,7 +134,7 @@ If using XcodeGen, update `project.yml`:
 ```yaml
 settings:
   base:
-    SUFeedURL: https://your-username.github.io/repository-name/appcast.xml
+    SUFeedURL: https://the-ora.github.io/browser/appcast.xml
     SUPublicEDKey: YOUR_PUBLIC_KEY_HERE
 ```
 
@@ -145,8 +145,8 @@ settings:
 # Build and package the app
 ./build-release.sh
 
-# Or use the comprehensive release script
-./create-release.sh 0.0.1 dsa_priv.pem
+# Or use the comprehensive release script (auto-increments version)
+./create-release.sh
 ```
 
 ### Step 2: Sign Release
@@ -267,7 +267,7 @@ For issues with:
                 ]]>
             </description>
             <pubDate>Thu, 04 Sep 2025 14:51:08 +0000</pubDate>
-            <enclosure url="https://github.com/your-username/browser/releases/download/v0.0.1/Ora-Browser.dmg"
+            <enclosure url="https://github.com/the-ora/browser/releases/download/v0.0.1/Ora-Browser.dmg"
                        sparkle:version="1"
                        sparkle:shortVersionString="0.0.1"
                        length="26254848"
