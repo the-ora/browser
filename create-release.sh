@@ -246,6 +246,9 @@ sed -i.bak "s/length=\"33592320\"/length=\"$FILE_SIZE\"/g" appcast.xml
 
 echo "✅ Appcast.xml updated with signature and file size"
 
+# Backup appcast.xml before deployment
+cp appcast.xml /tmp/appcast_backup.xml
+
 # Deploy appcast.xml to GitHub Pages
 echo "🌐 Deploying appcast.xml to GitHub Pages..."
 deploy_to_github_pages() {
