@@ -2,6 +2,8 @@
 
 ## 🚀 Quick Setup (5 minutes)
 
+**Note:** The release script now auto-increments version numbers. Just run `./create-release.sh` without arguments for patch releases.
+
 ### 1. Setup Sparkle Tools
 ```bash
 brew install --cask sparkle
@@ -11,7 +13,11 @@ brew install --cask sparkle
 
 ### 2. Build & Sign Release
 ```bash
-./create-release.sh 0.0.1 dsa_priv.pem
+# Auto-increment version (recommended)
+./create-release.sh
+
+# Or specify version manually
+./create-release.sh 0.0.1
 ```
 
 ### 3. Host Files
@@ -38,7 +44,7 @@ Edit `project.yml`:
 ```yaml
 settings:
   base:
-    SUFeedURL: https://your-username.github.io/browser/appcast.xml
+    SUFeedURL: https://the-ora.github.io/browser/appcast.xml
     SUPublicEDKey: YOUR_PUBLIC_KEY_HERE
 ```
 
@@ -59,8 +65,8 @@ xcodegen
 
 ## 🔗 URLs You'll Need
 
-- **Appcast:** `https://your-username.github.io/browser/appcast.xml`
-- **DMG:** `https://github.com/your-username/browser/releases/download/v0.0.1/Ora-Browser.dmg`
+- **Appcast:** `https://the-ora.github.io/browser/appcast.xml`
+- **DMG:** `https://github.com/the-ora/browser/releases/download/v{VERSION}/Ora-Browser.dmg`
 - **Public Key:** Copy from `dsa_pub.pem`
 
 ## ✅ Checklist

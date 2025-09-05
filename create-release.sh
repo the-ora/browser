@@ -3,14 +3,31 @@ set -e
 
 # Create Release Script for Ora Browser
 # This script creates a signed release and updates the appcast
+#
+# Usage: $0 [version] [private_key_file]
+# If no version is provided, it will auto-increment the patch version from project.yml
+# Example: $0 0.0.2 ../dsa_priv.pem
 
+# Handle version argument
 if [ $# -lt 1 ]; then
-    echo "Usage: $0 <version> [private_key_file]"
-    echo "Example: $0 0.0.2 ../dsa_priv.pem"
-    exit 1
+    # Auto-increment version
+    if [ -f "project.yml" ]; then
+        CURRENT_VERSION=$(grep "MARKETING_VERSION:" project.yml | sed 's/.*MARKETING_VERSION: //' | tr -d ' ')
+        if [ -n "$CURRENT_VERSION" ]; then
+            # Increment the last number
+            VERSION=$(echo "$CURRENT_VERSION" | awk -F. '{print $1"."$2"."($3+1)}')
+            echo "Auto-incrementing version from $CURRENT_VERSION to $VERSION"
+        else
+            echo "Could not find MARKETING_VERSION in project.yml"
+            exit 1
+        fi
+    else
+        echo "project.yml not found for auto-increment"
+        exit 1
+    fi
+else
+    VERSION=$1
 fi
-
-VERSION=$1
 PRIVATE_KEY=${2:-"build/dsa_priv.pem"}
 
 # Save original directory
@@ -169,7 +186,7 @@ cat > appcast.xml << EOF
                  sparkle:shortVersionString="$VERSION"
                  length="33592320"
                  type="application/octet-stream"
-                 sparkle:dsaSignature="YOUR_DSA_SIGNATURE_HERE"/>
+                  sparkle:edSignature="YOUR_DSA_SIGNATURE_HERE"/>
     </item>
   </channel>
 </rss>
@@ -208,26 +225,30 @@ fi
 
 # Sign the release with Sparkle
 echo "🔐 Signing release with Sparkle..."
-if [ -f "$PRIVATE_KEY" ]; then
+if [ -f "$PRIVATE_KEY" ] && [ -r "$PRIVATE_KEY" ]; then
     echo "📝 Signing DMG with private key..."
     SIGNATURE_OUTPUT=$(sign_update --ed-key-file "$PRIVATE_KEY" "build/Ora-Browser.dmg" 2>&1)
     echo "Raw signature output: $SIGNATURE_OUTPUT"
 
-    # Extract signature from output (format: sparkle:edSignature="..." length="...")
+    # Check if signing was successful
     if echo "$SIGNATURE_OUTPUT" | grep -q "sparkle:edSignature="; then
         SIGNATURE=$(echo "$SIGNATURE_OUTPUT" | sed 's/.*sparkle:edSignature="\([^"]*\)".*/\1/')
-        echo "✅ Release signed: $SIGNATURE"
+        echo "✅ Release signed successfully: $SIGNATURE"
     elif echo "$SIGNATURE_OUTPUT" | grep -q "edSignature="; then
         SIGNATURE=$(echo "$SIGNATURE_OUTPUT" | sed 's/.*edSignature="\([^"]*\)".*/\1/')
-        echo "✅ Release signed: $SIGNATURE"
+        echo "✅ Release signed successfully: $SIGNATURE"
     else
-        echo "❌ Failed to extract signature from output"
+        echo "❌ Failed to sign release - invalid output"
         echo "Output was: $SIGNATURE_OUTPUT"
+        echo "Make sure the private key is valid and the DMG exists"
         SIGNATURE="SIGNATURE_PLACEHOLDER"
+        exit 1
     fi
 else
-    echo "❌ Private key not found at $PRIVATE_KEY"
+    echo "❌ Private key not found or not readable at $PRIVATE_KEY"
+    echo "Make sure to generate keys first with: generate_keys"
     SIGNATURE="SIGNATURE_PLACEHOLDER"
+    exit 1
 fi
 
 # Update appcast.xml with signature and file size
@@ -245,6 +266,11 @@ sed -i.bak "s/YOUR_DSA_SIGNATURE_HERE/$ESCAPED_SIGNATURE/g" appcast.xml
 sed -i.bak "s/length=\"33592320\"/length=\"$FILE_SIZE\"/g" appcast.xml
 
 echo "✅ Appcast.xml updated with signature and file size"
+
+# Commit changes before deployment
+echo "📝 Committing changes for v$VERSION..."
+git add project.yml appcast.xml
+git commit -m "Update to v$VERSION"
 
 # Backup appcast.xml before deployment
 cp appcast.xml /tmp/appcast_backup.xml
@@ -274,6 +300,9 @@ deploy_to_github_pages() {
         git add README.md
         git commit -m "Initialize gh-pages branch"
     fi
+
+    # Stash any uncommitted changes before switching
+    git stash push -m "Stash before deploying appcast v$VERSION"
 
     # Switch to gh-pages branch
     git checkout gh-pages
@@ -309,21 +338,15 @@ deploy_to_github_pages() {
     # Switch back to original branch
     git checkout "$current_branch"
     echo "✅ Switched back to $current_branch branch"
-}
 
-# Run deployment
-if deploy_to_github_pages; then
-    echo "🎉 Appcast deployed to GitHub Pages!"
-    echo "   URL: https://the-ora.github.io/browser/appcast.xml"
-else
-    echo "⚠️  Appcast deployment failed, but release is still complete"
-    echo "   You can manually deploy appcast.xml to GitHub Pages later"
-fi
+    # Restore stashed changes
+    git stash pop
+}
 
 echo "✅ Release v$VERSION created!"
 echo "📁 Files ready for upload:"
 echo "   - build/Ora-Browser.dmg (signed)"
-echo "   - appcast.xml (automatically deployed to GitHub Pages ✅)"
+echo "   - appcast.xml (will be deployed after upload)"
 echo "   - build/dsa_pub.pem (public key for app)"
 echo "   - build/dsa_priv.pem (private key - keep secure!)"
 echo ""
@@ -334,6 +357,15 @@ if [ -f "upload-dmg.sh" ]; then
     ./upload-dmg.sh "$VERSION" "build/Ora-Browser.dmg"
 else
     echo "⚠️  upload-dmg.sh not found, skipping automatic upload"
+fi
+
+# Run deployment after upload
+if deploy_to_github_pages; then
+    echo "🎉 Appcast deployed to GitHub Pages!"
+    echo "   URL: https://the-ora.github.io/browser/appcast.xml"
+else
+    echo "⚠️  Appcast deployment failed, but release is still complete"
+    echo "   You can manually deploy appcast.xml to GitHub Pages later"
 fi
 
 echo "🚀 Next steps:"
