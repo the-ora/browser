@@ -48,6 +48,10 @@ fi
 # Clean up any leftover DMG files
 rm -f *.dmg
 
+# Get version from project.yml
+VERSION=$(grep "MARKETING_VERSION:" project.yml | sed 's/.*MARKETING_VERSION: //' | tr -d ' ')
+DMG_NAME="Ora-Browser-${VERSION}.dmg"
+
 # Create export options plist
 echo "⚙️  Creating export options..."
 cat > build/exportOptions.plist << 'EOF'
@@ -97,7 +101,7 @@ if command -v create-dmg &> /dev/null; then
     if [ -d "build/Ora.app" ]; then
         echo "💿 Creating DMG..."
         # Remove any existing DMG first
-        rm -f "build/Ora-Browser.dmg"
+        rm -f "build/${DMG_NAME}"
         # Use simpler create-dmg command to avoid parsing issues
         create-dmg \
             --volname "OraBrowser" \
@@ -106,19 +110,19 @@ if command -v create-dmg &> /dev/null; then
             --icon-size 100 \
             --icon "build/Ora.app" 200 190 \
             --hide-extension "build/Ora.app" \
-            --app-drop-link 600 185 \
-            "build/Ora-Browser.dmg" \
+            --link "/Applications" 600 185 \
+            "build/${DMG_NAME}" \
             "build/Ora.app" 2>/dev/null || {
                 echo "⚠️  create-dmg had warnings but continuing..."
             }
         # Rename DMG if it was created with temporary name
-        TEMP_DMG=$(ls build/rw.*.Ora-Browser.dmg 2>/dev/null | head -1)
+        TEMP_DMG=$(ls build/rw.*.${DMG_NAME} 2>/dev/null | head -1)
         if [ -n "$TEMP_DMG" ]; then
-            mv "$TEMP_DMG" "build/Ora-Browser.dmg"
+            mv "$TEMP_DMG" "build/${DMG_NAME}"
         fi
 
         # Verify DMG was created
-        if [ -f "build/Ora-Browser.dmg" ]; then
+        if [ -f "build/${DMG_NAME}" ]; then
             echo "✅ DMG created successfully!"
         else
             echo "❌ DMG creation failed!"
@@ -134,13 +138,13 @@ else
 fi
 
 # Verify DMG creation
-if [ -f "build/Ora-Browser.dmg" ]; then
+if [ -f "build/${DMG_NAME}" ]; then
     echo "✅ Release build complete!"
     echo "📁 Release files in build/:"
     ls -la build/
     echo ""
     echo "🚀 Ready for distribution:"
-    echo "   - build/Ora-Browser.dmg ($(du -h build/Ora-Browser.dmg | cut -f1))"
+    echo "   - build/${DMG_NAME} ($(du -h build/${DMG_NAME} | cut -f1))"
     echo "   - build/Ora.app (macOS application)"
 else
     echo "❌ DMG creation failed!"

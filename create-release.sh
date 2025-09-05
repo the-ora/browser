@@ -208,7 +208,7 @@ cat > appcast.xml << EOF
         <p>This release includes bug fixes and performance improvements. Enjoy browsing with Ora!</p>
       ]]></description>
       <pubDate>$PUB_DATE</pubDate>
-      <enclosure url="https://github.com/the-ora/browser/releases/download/v$VERSION/Ora-Browser.dmg"
+      <enclosure url="https://github.com/the-ora/browser/releases/download/v$VERSION/Ora-Browser-$VERSION.dmg"
                  sparkle:version="$VERSION"
                  sparkle:shortVersionString="$VERSION"
                  length="33592320"
@@ -245,8 +245,9 @@ else
 fi
 
 # Check if DMG was created
-if [ ! -f "build/Ora-Browser.dmg" ]; then
-    echo "❌ DMG not found in build/ directory. Build may have failed."
+DMG_FILE="build/Ora-Browser-${VERSION}.dmg"
+if [ ! -f "$DMG_FILE" ]; then
+    echo "❌ DMG not found at $DMG_FILE. Build may have failed."
     exit 1
 fi
 
@@ -262,7 +263,7 @@ fi
 echo "🔐 Signing release with Sparkle..."
 if [ -f "$PRIVATE_KEY" ] && [ -r "$PRIVATE_KEY" ] && [ -s "$PRIVATE_KEY" ]; then
     echo "📝 Signing DMG with private key..."
-    SIGNATURE_OUTPUT=$(sign_update --ed-key-file "$PRIVATE_KEY" "build/Ora-Browser.dmg" 2>&1)
+    SIGNATURE_OUTPUT=$(sign_update --ed-key-file "$PRIVATE_KEY" "$DMG_FILE" 2>&1)
     echo "Raw signature output: $SIGNATURE_OUTPUT"
 
     # Check if signing was successful
@@ -288,7 +289,7 @@ fi
 echo "📝 Updating appcast.xml..."
 
 # Get file size
-FILE_SIZE=$(stat -f%z "build/Ora-Browser.dmg")
+FILE_SIZE=$(stat -f%z "$DMG_FILE")
 echo "📏 DMG file size: $FILE_SIZE bytes"
 
 # Update the signature (escape special characters in signature)
@@ -378,7 +379,7 @@ deploy_to_github_pages() {
 
 echo "✅ Release v$VERSION created!"
 echo "📁 Files ready for upload:"
-echo "   - build/Ora-Browser.dmg (signed)"
+echo "   - $DMG_FILE (signed)"
 echo "   - appcast.xml (will be deployed after upload)"
 echo "   - $PUBLIC_KEY_FILE (public key - committed to git)"
 echo "   - $PRIVATE_KEY_FILE (private key - DO NOT commit!)"
@@ -387,7 +388,7 @@ echo ""
 echo "📤 Uploading DMG to GitHub releases..."
 if [ -f "upload-dmg.sh" ]; then
     chmod +x upload-dmg.sh
-    ./upload-dmg.sh "$VERSION" "build/Ora-Browser.dmg"
+    ./upload-dmg.sh "$VERSION" "$DMG_FILE"
 else
     echo "⚠️  upload-dmg.sh not found, skipping automatic upload"
 fi
