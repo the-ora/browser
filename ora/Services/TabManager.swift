@@ -12,10 +12,6 @@ class TabManager {
     let modelContainer: ModelContainer
     let modelContext: ModelContext
 
-    var containers: [TabContainer] {
-        fetchContainers()
-    }
-
     init(
         modelContainer: ModelContainer,
         modelContext: ModelContext
@@ -154,7 +150,7 @@ class TabManager {
             activeContainer = lastAccessedContainer
             // Get the last accessed tab from the active container
             //            if let lastAccessedTab = lastAccessedContainer.tabs.sorted(by: { $0.lastAccessedAt ?? Date() >
-            //            $1.lastAccessedAt ?? Date() }).first {
+            //            $1.lastAccessedAt ?? Date() }).ficrst {
             //                activeTab = lastAccessedTab
             //            } else {
             //                // No tabs, create one
