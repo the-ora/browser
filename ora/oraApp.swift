@@ -30,7 +30,7 @@ struct OraApp: App {
     // Pass it to TabManager
     @StateObject private var tabManager: TabManager
     @StateObject private var historyManager: HistoryManager
-    @StateObject private var downloadManager: DownloadManager
+    @State private var downloadManager: DownloadManager
 
     let tabContext: ModelContext
     let historyContext: ModelContext
@@ -76,11 +76,9 @@ struct OraApp: App {
             )
         )
 
-        _downloadManager = StateObject(
-            wrappedValue: DownloadManager(
-                modelContainer: container,
-                modelContext: modelContext
-            )
+        downloadManager = DownloadManager(
+            modelContainer: container,
+            modelContext: modelContext
         )
     }
 
@@ -92,7 +90,7 @@ struct OraApp: App {
                 .environmentObject(historyManager)
                 .environmentObject(keyModifierListener)
                 .environment(appearanceManager)
-                .environmentObject(downloadManager)
+                .environment(downloadManager)
                 .environmentObject(updateService)
                 .modelContext(tabContext)
                 .modelContext(historyContext)

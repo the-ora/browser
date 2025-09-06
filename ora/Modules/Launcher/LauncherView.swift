@@ -5,7 +5,7 @@ struct LauncherView: View {
     @Environment(AppState.self) private var appState: AppState
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var historyManager: HistoryManager
-    @EnvironmentObject var downloadManager: DownloadManager
+    @Environment(DownloadManager.self) private var downloadManager
     @Environment(\.theme) private var theme
     @StateObject private var searchEngineService = SearchEngineService()
 

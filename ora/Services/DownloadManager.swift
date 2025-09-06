@@ -4,10 +4,11 @@ import SwiftUI
 import WebKit
 
 @MainActor
-class DownloadManager: ObservableObject {
-    @Published var activeDownloads: [Download] = []
-    @Published var recentDownloads: [Download] = []
-    @Published var isDownloadsPopoverOpen = false
+@Observable
+class DownloadManager {
+    var activeDownloads: [Download] = []
+    var recentDownloads: [Download] = []
+    var isDownloadsPopoverOpen = false
 
     let modelContainer: ModelContainer
     let modelContext: ModelContext
@@ -69,11 +70,6 @@ class DownloadManager: ObservableObject {
         download.updateProgress(downloadedBytes: downloadedBytes, totalBytes: totalBytes)
 
         try? modelContext.save()
-
-        // Trigger UI updates
-        DispatchQueue.main.async {
-            self.objectWillChange.send()
-        }
     }
 
     func completeDownload(_ download: Download, destinationURL: URL) {

@@ -43,7 +43,7 @@ struct LauncherMain: View {
 
     @Environment(\.theme) private var theme
     @EnvironmentObject var historyManager: HistoryManager
-    @EnvironmentObject var downloadManager: DownloadManager
+    @Environment(DownloadManager.self) private var downloadManager
     @EnvironmentObject var tabManager: TabManager
     @Environment(AppState.self) private var appState: AppState
     @State var focusedElement: UUID = .init()

@@ -6,7 +6,7 @@ struct SidebarView: View {
     @Environment(\.theme) private var theme
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var historyManger: HistoryManager
-    @EnvironmentObject var downloadManager: DownloadManager
+    @Environment(DownloadManager.self) private var downloadManager
     @Environment(AppState.self) private var appState: AppState
     @Query var containers: [TabContainer]
     @Query(filter: nil, sort: [.init(\History.lastAccessedAt, order: .reverse)]) var histories:
@@ -42,7 +42,7 @@ struct SidebarView: View {
                 .padding(.horizontal, 10)
                 .environmentObject(tabManager)
                 .environmentObject(historyManger)
-                .environmentObject(downloadManager)
+                .environment(downloadManager)
                 .environment(appState)
             }
 

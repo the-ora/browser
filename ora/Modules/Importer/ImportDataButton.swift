@@ -3,7 +3,7 @@ import SwiftUI
 struct ImportDataButton: View {
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var historyManger: HistoryManager
-    @EnvironmentObject var downloadManager: DownloadManager
+    @Environment(DownloadManager.self) private var downloadManager
 
     func importArc() {
         if let root = getRoot() {
