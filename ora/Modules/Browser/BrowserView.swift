@@ -95,9 +95,11 @@ struct BrowserView: View {
             .background(
                 WindowAccessor(
                     isSidebarHidden: hide.side == .primary,
-                    isFloatingSidebar: showFloatingSidebar,
+                    isFloatingSidebar: $showFloatingSidebar,
                     isFullscreen: $isFullscreen
                 )
+                .id("showFloatingSidebar = \(showFloatingSidebar)") // Forces WindowAccessor to update (for Traffic
+                // Lights)
             )
             .overlay {
                 if appState.showLauncher, tabManager.activeTab != nil {
@@ -194,25 +196,25 @@ struct BrowserView: View {
                                                     .stroke(Color(.separatorColor), lineWidth: 1)
                                             )
                                             .padding(.leading, 12)
-                                         Spacer()
+                                        Spacer()
 
-                                         // Version indicator (bottom-right)
-                                         Text(getAppVersion())
-                                             .font(.system(size: 10, weight: .regular))
-                                             .foregroundStyle(Color.white.opacity(0.6))
-                                             .padding(.horizontal, 8)
-                                             .padding(.vertical, 4)
-                                             .background(
-                                                 RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                                     .fill(Color.black.opacity(0.2))
-                                             )
-                                             .padding(.trailing, 12)
-                                     }
-                                     .padding(.bottom, 12)
-                                 }
-                                 .transition(.opacity)
-                                 .animation(.easeOut(duration: 0.1), value: tab.hoveredLinkURL)
-                                 .zIndex(900)
+                                        // Version indicator (bottom-right)
+                                        Text(getAppVersion())
+                                            .font(.system(size: 10, weight: .regular))
+                                            .foregroundStyle(Color.white.opacity(0.6))
+                                            .padding(.horizontal, 8)
+                                            .padding(.vertical, 4)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                                    .fill(Color.black.opacity(0.2))
+                                            )
+                                            .padding(.trailing, 12)
+                                    }
+                                    .padding(.bottom, 12)
+                                }
+                                .transition(.opacity)
+                                .animation(.easeOut(duration: 0.1), value: tab.hoveredLinkURL)
+                                .zIndex(900)
                             }
                         }
                     }
