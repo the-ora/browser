@@ -30,8 +30,8 @@ targets:
         base:
            SWIFT_VERSION: 5.9
            CODE_SIGN_STYLE: Automatic
-           MARKETING_VERSION: 0.0.64
-           CURRENT_PROJECT_VERSION: 64
+           MARKETING_VERSION: 0.0.67
+           CURRENT_PROJECT_VERSION: 67
            PRODUCT_NAME: Ora
            PRODUCT_BUNDLE_IDENTIFIER: com.orabrowser.ora
            GENERATE_INFOPLIST_FILE: YES
