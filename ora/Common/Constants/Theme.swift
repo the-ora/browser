@@ -5,6 +5,11 @@ extension Notification.Name {
     static let colorThemeChanged = Notification.Name("colorThemeChanged")
 }
 
+struct ThemeConstants {
+    static let colorTransitionDuration: Double = 0.3
+    static let colorThemeUserDefaultsKey = "ColorTheme"
+}
+
 enum ColorTheme: String, CaseIterable, Identifiable {
     case orange = "Orange"
     case blue = "Blue"
@@ -186,7 +191,7 @@ struct ThemeProvider: ViewModifier {
     @Environment(\.colorScheme) private var colorScheme
     @State private var colorTheme: ColorTheme = {
         // Load initial value synchronously
-        let saved = UserDefaults.standard.string(forKey: "ColorTheme")
+        let saved = UserDefaults.standard.string(forKey: ThemeConstants.colorThemeUserDefaultsKey)
         return ColorTheme(rawValue: saved ?? "") ?? .orange
     }()
 
@@ -195,7 +200,7 @@ struct ThemeProvider: ViewModifier {
             .environment(\.theme, Theme(colorScheme: colorScheme, colorTheme: colorTheme))
             .onReceive(NotificationCenter.default.publisher(for: .colorThemeChanged)) { notification in
                 if let newTheme = notification.object as? ColorTheme {
-                    withAnimation(.easeInOut(duration: 0.3)) {
+                    withAnimation(.easeInOut(duration: ThemeConstants.colorTransitionDuration)) {
                         colorTheme = newTheme
                     }
                 }

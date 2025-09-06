@@ -18,7 +18,7 @@ class AppearanceManager: ObservableObject {
 
     @Published var colorTheme: ColorTheme {
         didSet {
-            UserDefaults.standard.set(colorTheme.rawValue, forKey: "ColorTheme")
+            UserDefaults.standard.set(colorTheme.rawValue, forKey: ThemeConstants.colorThemeUserDefaultsKey)
             NotificationCenter.default.post(name: .colorThemeChanged, object: colorTheme)
         }
     }
@@ -27,7 +27,7 @@ class AppearanceManager: ObservableObject {
         let saved = UserDefaults.standard.string(forKey: "AppAppearance")
         self.appearance = AppAppearance(rawValue: saved ?? "") ?? .system
 
-        let savedColorTheme = UserDefaults.standard.string(forKey: "ColorTheme")
+        let savedColorTheme = UserDefaults.standard.string(forKey: ThemeConstants.colorThemeUserDefaultsKey)
         self.colorTheme = ColorTheme(rawValue: savedColorTheme ?? "") ?? .orange
 
         updateAppearance()

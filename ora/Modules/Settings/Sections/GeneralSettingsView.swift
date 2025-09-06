@@ -51,7 +51,7 @@ struct GeneralSettingsView: View {
                                 let isSelected = appearanceManager.colorTheme == colorTheme
 
                                 Button {
-                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                    withAnimation(.easeInOut(duration: ThemeConstants.colorTransitionDuration)) {
                                         appearanceManager.colorTheme = colorTheme
                                     }
                                 } label: {
