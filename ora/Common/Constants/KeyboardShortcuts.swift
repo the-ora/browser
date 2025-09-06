@@ -15,6 +15,8 @@ enum KeyboardShortcuts {
         static let reopenClosed = KeyboardShortcut("t", modifiers: [.command, .shift])
         static let next = KeyboardShortcut(.tab, modifiers: [.control])
         static let previous = KeyboardShortcut(.tab, modifiers: [.control, .shift])
+        static let nextAlt = KeyboardShortcut("]", modifiers: [.command, .shift])
+        static let previousAlt = KeyboardShortcut("[", modifiers: [.command, .shift])
         static let moveRight = KeyboardShortcut(.rightArrow, modifiers: [.option, .command])
         static let moveLeft = KeyboardShortcut(.leftArrow, modifiers: [.option, .command])
         static let pin = KeyboardShortcut("d", modifiers: [.command])
@@ -89,6 +91,8 @@ extension KeyboardShortcuts {
             .init(category: "Tabs", name: "Reopen Closed", display: "⇧⌘T"),
             .init(category: "Tabs", name: "Next Tab", display: "^⇥"),
             .init(category: "Tabs", name: "Previous Tab", display: "^⇧⇥"),
+            .init(category: "Tabs", name: "Next Tab (Alt)", display: "⇧⌘]"),
+            .init(category: "Tabs", name: "Previous Tab (Alt)", display: "⇧⌘["),
             .init(category: "Tabs", name: "Move Tab Right", display: "⌥⌘→"),
             .init(category: "Tabs", name: "Move Tab Left", display: "⌥⌘←"),
             .init(category: "Tabs", name: "Pin Tab", display: "⌘D"),

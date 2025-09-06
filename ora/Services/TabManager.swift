@@ -346,6 +346,48 @@ class TabManager: ObservableObject {
         try? modelContext.save()
     }
 
+    func switchToNextTab() {
+        guard let container = activeContainer else { return }
+
+        // Get all available tabs, preferring ready ones but falling back to all
+        let readyTabs = container.tabs.filter(\.isWebViewReady)
+        let tabs = readyTabs.isEmpty ? Array(container.tabs) : readyTabs
+
+        guard tabs.count > 1, let currentTab = activeTab else { return }
+
+        // Sort by order for consistent navigation
+        let sortedTabs = tabs.sorted { $0.order < $1.order }
+
+        if let currentIndex = sortedTabs.firstIndex(where: { $0.id == currentTab.id }) {
+            let nextIndex = (currentIndex + 1) % sortedTabs.count
+            activateTab(sortedTabs[nextIndex])
+        } else {
+            // Current tab not found, activate first tab
+            activateTab(sortedTabs[0])
+        }
+    }
+
+    func switchToPreviousTab() {
+        guard let container = activeContainer else { return }
+
+        // Get all available tabs, preferring ready ones but falling back to all
+        let readyTabs = container.tabs.filter(\.isWebViewReady)
+        let tabs = readyTabs.isEmpty ? Array(container.tabs) : readyTabs
+
+        guard tabs.count > 1, let currentTab = activeTab else { return }
+
+        // Sort by order for consistent navigation
+        let sortedTabs = tabs.sorted { $0.order < $1.order }
+
+        if let currentIndex = sortedTabs.firstIndex(where: { $0.id == currentTab.id }) {
+            let previousIndex = (currentIndex - 1 + sortedTabs.count) % sortedTabs.count
+            activateTab(sortedTabs[previousIndex])
+        } else {
+            // Current tab not found, activate last tab
+            activateTab(sortedTabs[sortedTabs.count - 1])
+        }
+    }
+
     private func fetchContainers() -> [TabContainer] {
         do {
             let descriptor = FetchDescriptor<TabContainer>(sortBy: [SortDescriptor(\.lastAccessedAt, order: .reverse)])

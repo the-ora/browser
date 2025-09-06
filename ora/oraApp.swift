@@ -101,8 +101,32 @@ struct OraApp: App {
 
                         if event.keyCode == 48 {  // Tab key
                             if event.modifierFlags.contains(.control) {
+                                if event.modifierFlags.contains(.shift) {
+                                    // Ctrl+Shift+Tab - Previous tab
+                                    DispatchQueue.main.async {
+                                        tabManager.switchToPreviousTab()
+                                    }
+                                } else {
+                                    // Ctrl+Tab - Next tab
+                                    DispatchQueue.main.async {
+                                        tabManager.switchToNextTab()
+                                    }
+                                }
+                                return true
+                            }
+                        } else if event.keyCode == 33 {  // ] key
+                            if event.modifierFlags.contains([.command, .shift]) {
+                                // Cmd+Shift+] - Next tab
                                 DispatchQueue.main.async {
-                                    appState.isFloatingTabSwitchVisible = true
+                                    tabManager.switchToNextTab()
+                                }
+                                return true
+                            }
+                        } else if event.keyCode == 30 {  // [ key
+                            if event.modifierFlags.contains([.command, .shift]) {
+                                // Cmd+Shift+[ - Previous tab
+                                DispatchQueue.main.async {
+                                    tabManager.switchToPreviousTab()
                                 }
                                 return true
                             }
@@ -222,12 +246,14 @@ struct OraApp: App {
                 Divider()
 
                 Button("Next Tab") {
-                    appState.isFloatingTabSwitchVisible = true
+                    tabManager.switchToNextTab()
                 }
+                .keyboardShortcut(KeyboardShortcuts.Tabs.next)
 
                 Button("Previous Tab") {
-                    appState.isFloatingTabSwitchVisible = true
+                    tabManager.switchToPreviousTab()
                 }
+                .keyboardShortcut(KeyboardShortcuts.Tabs.previous)
             }
         }
         Settings {
