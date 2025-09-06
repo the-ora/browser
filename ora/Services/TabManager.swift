@@ -150,7 +150,7 @@ class TabManager {
             activeContainer = lastAccessedContainer
             // Get the last accessed tab from the active container
             //            if let lastAccessedTab = lastAccessedContainer.tabs.sorted(by: { $0.lastAccessedAt ?? Date() >
-            //            $1.lastAccessedAt ?? Date() }).ficrst {
+            //            $1.lastAccessedAt ?? Date() }).first {
             //                activeTab = lastAccessedTab
             //            } else {
             //                // No tabs, create one
