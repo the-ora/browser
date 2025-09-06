@@ -4,7 +4,7 @@ import SwiftUI
 struct GeneralSettingsView: View {
     @EnvironmentObject var appearanceManager: AppearanceManager
     @EnvironmentObject var updateService: UpdateService
-    @StateObject private var settings = SettingsStore.shared
+    @State private var settings = SettingsStore.shared
     @Environment(\.theme) var theme
 
     var body: some View {
