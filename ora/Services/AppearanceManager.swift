@@ -8,9 +8,8 @@ enum AppAppearance: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
-@Observable
-class AppearanceManager {
-    var appearance: AppAppearance {
+class AppearanceManager: ObservableObject {
+    @Published var appearance: AppAppearance {
         didSet {
             updateAppearance()
             UserDefaults.standard.set(appearance.rawValue, forKey: "AppAppearance")
