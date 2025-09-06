@@ -120,7 +120,6 @@ struct URLBar: View {
                             }
                             .onKeyPress(.escape) {
                                 isEditing = false
-                                editingURLString = tab.url.absoluteString
                                 return .handled
                             }
                             .overlay(
@@ -150,7 +149,6 @@ struct URLBar: View {
                     .overlay(
                         // Hidden button for keyboard shortcut
                         Button("") {
-                            editingURLString = tab.url.absoluteString
                             isEditing = true
                         }
                         .keyboardShortcut(KeyboardShortcuts.Address.focus)
