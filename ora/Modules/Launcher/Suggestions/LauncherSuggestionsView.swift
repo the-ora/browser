@@ -7,7 +7,7 @@ enum SuggestionFocus: Hashable {
 struct LauncherSuggestionsView: View {
     @Environment(\.theme) private var theme
     @Binding var text: String
-    @StateObject private var searchEngineService = SearchEngineService()
+    @State private var searchEngineService = SearchEngineService()
     @Binding var suggestions: [LauncherSuggestion]
     @Binding var focusedElement: UUID
 

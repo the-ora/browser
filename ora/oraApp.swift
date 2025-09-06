@@ -24,7 +24,7 @@ class AppState {
 @main
 struct OraApp: App {
     @State private var appState = AppState()
-    @StateObject private var keyModifierListener = KeyModifierListener()
+    @State private var keyModifierListener = KeyModifierListener()
     @State private var appearanceManager = AppearanceManager()
     @State private var updateService = UpdateService()
     // Pass it to TabManager
@@ -83,7 +83,7 @@ struct OraApp: App {
                 .environment(appState)
                 .environment(tabManager)
                 .environment(historyManager)
-                .environmentObject(keyModifierListener)
+                .environment(keyModifierListener)
                 .environment(appearanceManager)
                 .environment(downloadManager)
                 .environment(updateService)

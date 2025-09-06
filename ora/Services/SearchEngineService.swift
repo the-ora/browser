@@ -24,7 +24,8 @@ struct SuggestResponse: Decodable {
     }
 }
 
-class SearchEngineService: ObservableObject {
+@Observable
+class SearchEngineService {
     private var theme: Theme?
 
     func setTheme(_ theme: Theme) {
