@@ -4,7 +4,7 @@ import SwiftData
 // MARK: - Folder
 
 @Model
-class Folder: ObservableObject, Identifiable {
+class Folder: Identifiable {
     var id: UUID
     var name: String
     var isOpened: Bool

@@ -4,7 +4,7 @@ import SwiftData
 // MARK: - TabContainer
 
 @Model
-class TabContainer: ObservableObject, Identifiable {
+class TabContainer: Identifiable {
     var id: UUID
     var name: String
     var emoji: String
