@@ -8,7 +8,7 @@ struct TabSnapshot {
 }
 
 struct FloatingTabSwitcher: View {
-    @EnvironmentObject var tabManager: TabManager
+    @Environment(TabManager.self) private var tabManager
     @Environment(AppState.self) private var appState: AppState
     @EnvironmentObject var keyModifierListener: KeyModifierListener
     @Environment(\.theme) var theme

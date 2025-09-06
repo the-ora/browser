@@ -5,7 +5,7 @@ struct ContainerSwitcher: View {
     let onContainerSelected: (TabContainer) -> Void
 
     @Environment(\.theme) private var theme
-    @EnvironmentObject var tabManager: TabManager
+    @Environment(TabManager.self) private var tabManager
     @Query var containers: [TabContainer]
 
     @State private var hoveredContainer: UUID?

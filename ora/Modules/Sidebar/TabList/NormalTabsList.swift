@@ -16,7 +16,7 @@ struct NormalTabsList: View {
         ) -> Void
     let onAddNewTab: () -> Void
     @Query var containers: [TabContainer]
-    @EnvironmentObject var tabManager: TabManager
+    @Environment(TabManager.self) private var tabManager
 
     var body: some View {
         Section {

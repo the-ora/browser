@@ -5,13 +5,15 @@ import WebKit
 // MARK: - Tab Manager
 
 @MainActor
-class TabManager: ObservableObject {
-    @Published var activeContainer: TabContainer?
-    @Published var activeTab: Tab?
+@Observable
+class TabManager {
+    var activeContainer: TabContainer?
+    var activeTab: Tab?
     let modelContainer: ModelContainer
     let modelContext: ModelContext
 
-    @Query(sort: \TabContainer.lastAccessedAt, order: .reverse) var containers: [TabContainer]
+    // Removed @Query due to conflict with @Observable macro
+    // Use fetchContainers() method instead
 
     init(
         modelContainer: ModelContainer,
@@ -147,7 +149,7 @@ class TabManager: ObservableObject {
         let containers = fetchContainers()
 
         // Get the last accessed container
-        if let lastAccessedContainer = containers.first {
+        if let lastAccessedContainer = fetchContainers().first {
             activeContainer = lastAccessedContainer
             // Get the last accessed tab from the active container
             //            if let lastAccessedTab = lastAccessedContainer.tabs.sorted(by: { $0.lastAccessedAt ?? Date() >

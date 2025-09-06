@@ -6,7 +6,7 @@ struct ContainerView: View {
     let containers: [TabContainer]
 
     @Environment(AppState.self) private var appState: AppState
-    @EnvironmentObject var tabManager: TabManager
+    @Environment(TabManager.self) private var tabManager
     @State private var draggedItem: UUID?
 
     var body: some View {

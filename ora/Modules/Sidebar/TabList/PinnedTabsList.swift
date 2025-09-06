@@ -11,7 +11,7 @@ struct PinnedTabsList: View {
     let onClose: (Tab) -> Void
     let onMoveToContainer: (Tab, TabContainer) -> Void
     let containers: [TabContainer]
-    @EnvironmentObject var tabManager: TabManager
+    @Environment(TabManager.self) private var tabManager
     @Environment(\.theme) var theme
 
     var body: some View {

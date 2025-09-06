@@ -28,7 +28,7 @@ struct OraApp: App {
     @State private var appearanceManager = AppearanceManager()
     @StateObject private var updateService = UpdateService()
     // Pass it to TabManager
-    @StateObject private var tabManager: TabManager
+    @State private var tabManager: TabManager
     @StateObject private var historyManager: HistoryManager
     @State private var downloadManager: DownloadManager
 
@@ -69,11 +69,9 @@ struct OraApp: App {
             )
         )
         _historyManager = historyManagerObj
-        _tabManager = StateObject(
-            wrappedValue: TabManager(
-                modelContainer: container,
-                modelContext: modelContext
-            )
+        tabManager = TabManager(
+            modelContainer: container,
+            modelContext: modelContext
         )
 
         downloadManager = DownloadManager(
@@ -86,7 +84,7 @@ struct OraApp: App {
         WindowGroup {
             BrowserView()
                 .environment(appState)
-                .environmentObject(tabManager)
+                .environment(tabManager)
                 .environmentObject(historyManager)
                 .environmentObject(keyModifierListener)
                 .environment(appearanceManager)
@@ -138,6 +136,7 @@ struct OraApp: App {
 
                 ImportDataButton()
                     .environment(downloadManager)
+                    .environment(tabManager)
             }
 
             CommandGroup(after: .pasteboard) {

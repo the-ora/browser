@@ -4,7 +4,7 @@ import SwiftUI
 // MARK: - URLBar
 
 struct URLBar: View {
-    @EnvironmentObject var tabManager: TabManager
+    @Environment(TabManager.self) private var tabManager
     @Environment(AppState.self) private var appState: AppState
 
     @State private var editingURLString: String = ""

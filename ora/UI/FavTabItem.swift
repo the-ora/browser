@@ -13,7 +13,7 @@ struct FavTabItem: View {
 
     @Environment(\.theme) private var theme
     @Query var containers: [TabContainer]
-    @EnvironmentObject var tabManager: TabManager
+    @Environment(TabManager.self) private var tabManager
     @EnvironmentObject var historyManager: HistoryManager
     @Environment(DownloadManager.self) private var downloadManager
 

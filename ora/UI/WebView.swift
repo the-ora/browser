@@ -4,7 +4,7 @@ import WebKit
 
 struct WebView: NSViewRepresentable {
     let webView: WKWebView
-    @EnvironmentObject var tabManager: TabManager
+    @Environment(TabManager.self) private var tabManager
     @EnvironmentObject var historyManager: HistoryManager
     @Environment(DownloadManager.self) private var downloadManager
 

@@ -4,7 +4,7 @@ import SwiftUI
 
 struct SidebarView: View {
     @Environment(\.theme) private var theme
-    @EnvironmentObject var tabManager: TabManager
+    @Environment(TabManager.self) private var tabManager
     @EnvironmentObject var historyManger: HistoryManager
     @Environment(DownloadManager.self) private var downloadManager
     @Environment(AppState.self) private var appState: AppState
@@ -40,7 +40,7 @@ struct SidebarView: View {
                     containers: containers
                 )
                 .padding(.horizontal, 10)
-                .environmentObject(tabManager)
+                .environment(tabManager)
                 .environmentObject(historyManger)
                 .environment(downloadManager)
                 .environment(appState)

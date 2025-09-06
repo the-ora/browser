@@ -3,7 +3,7 @@ import SwiftUI
 
 struct LauncherView: View {
     @Environment(AppState.self) private var appState: AppState
-    @EnvironmentObject var tabManager: TabManager
+    @Environment(TabManager.self) private var tabManager
     @EnvironmentObject var historyManager: HistoryManager
     @Environment(DownloadManager.self) private var downloadManager
     @Environment(\.theme) private var theme

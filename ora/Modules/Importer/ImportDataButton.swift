@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ImportDataButton: View {
-    @EnvironmentObject var tabManager: TabManager
+    @Environment(TabManager.self) private var tabManager
     @EnvironmentObject var historyManger: HistoryManager
     @Environment(DownloadManager.self) private var downloadManager
 

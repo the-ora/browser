@@ -4,7 +4,7 @@ import SwiftUI
 // MARK: - BrowserView
 
 struct BrowserView: View {
-    @EnvironmentObject var tabManager: TabManager
+    @Environment(TabManager.self) private var tabManager
     @Environment(\.theme) var theme
     @Environment(AppState.self) private var appState: AppState
     @State private var isFullscreen = false
@@ -231,7 +231,7 @@ struct BrowserView: View {
 }
 
 struct BrowserContentContainer<Content: View>: View {
-    @EnvironmentObject var tabManager: TabManager
+    @Environment(TabManager.self) private var tabManager
     let content: () -> Content
     let isFullscreen: Bool
     let hideState: SideHolder
