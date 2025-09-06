@@ -137,6 +137,7 @@ struct OraApp: App {
                 )
 
                 ImportDataButton()
+                    .environment(downloadManager)
             }
 
             CommandGroup(after: .pasteboard) {
