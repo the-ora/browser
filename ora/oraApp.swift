@@ -254,6 +254,19 @@ struct OraApp: App {
                     tabManager.switchToPreviousTab()
                 }
                 .keyboardShortcut(KeyboardShortcuts.Tabs.previous)
+
+                // Alternative shortcuts for tab switching
+                Button("") {
+                    tabManager.switchToNextTab()
+                }
+                .keyboardShortcut(KeyboardShortcuts.Tabs.nextAlt)
+                .hidden()
+
+                Button("") {
+                    tabManager.switchToPreviousTab()
+                }
+                .keyboardShortcut(KeyboardShortcuts.Tabs.previousAlt)
+                .hidden()
             }
         }
         Settings {
