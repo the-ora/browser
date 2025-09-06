@@ -25,10 +25,16 @@
       ],
       "layers" : [
         {
+          "image-name" : "momento 4.svg",
+          "name" : "momento 4",
+          "opacity" : 0.5
+        },
+        {
           "image-name" : "OraLogo.svg",
           "name" : "OraLogo",
+          "opacity" : 1,
           "position" : {
-            "scale" : 0.92,
+            "scale" : 0.93,
             "translation-in-points" : [
               0,
               0
@@ -41,7 +47,7 @@
           },
           "image-name" : "Grid.png",
           "name" : "Grid",
-          "opacity" : 0.5,
+          "opacity" : 0.4,
           "position" : {
             "scale" : 0.5,
             "translation-in-points" : [
