@@ -44,5 +44,45 @@ Temporary Items
 .vscode/
 .idea/
 
-# App specific
+# Build directory (allow directory but ignore contents)
+build/*
+!build/
+!build/.gitkeep
+
+# Build artifacts and releases
 *.app
+*.dmg
+*.pkg
+*.zip
+*.tar.gz
+appcast.xml
+appcast.xml.bak
+dsa_priv.pem
+dsa_pub.pem
+exportOptions.plist
+Ora-Browser.dmg
+rw.*.Ora-Browser.dmg
+
+# Sparkle and signing (SECURITY: Never commit private keys!)
+*_private.pem
+*_public.pem
+*.pem
+dsa_priv.pem    # CRITICAL: Never commit this file!
+dsa_pub.pem     # Public key (safe to commit if needed)
+
+# Environment files (contains private keys!)
+.env
+.env.local
+.env.*.local
+
+# Archives and temporary files
+*.xcarchive
+*.xctimeline
+*.trace
+*.log
+
+# Release artifacts (keep in build/ folder)
+# Uncomment these if you want to commit release artifacts:
+# !build/*.dmg
+# !build/appcast.xml
+# !build/dsa_pub.pem

@@ -1,0 +1,32 @@
+name: Deploy Appcast
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy'
+        required: true
+        type: string
+
+jobs:
+  deploy-appcast:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download appcast from release
+      run: |
+        # Download the appcast.xml from the latest release
+        curl -L -o appcast.xml "https://raw.githubusercontent.com/${{ github.repository }}/release/appcast.xml"
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: .
+        publish_branch: gh-pages
+        keep_files: true
+        exclude_assets: 'build/**,*.sh,*.yml,*.md,*.json,*.xcodeproj/**,ora/**,docs/**,SECURITY.md,check-security.sh,.github/**,.gitignore,README.md,LICENSE.md'
+        destination_dir: .

@@ -25,6 +25,7 @@ struct OraApp: App {
     @StateObject private var appState = AppState()
     @StateObject private var keyModifierListener = KeyModifierListener()
     @StateObject private var appearanceManager = AppearanceManager()
+    @StateObject private var updateService = UpdateService()
     // Pass it to TabManager
     @StateObject private var tabManager: TabManager
     @StateObject private var historyManager: HistoryManager
@@ -91,6 +92,7 @@ struct OraApp: App {
                 .environmentObject(keyModifierListener)
                 .environmentObject(appearanceManager)
                 .environmentObject(downloadManager)
+                .environmentObject(updateService)
                 .modelContext(tabContext)
                 .modelContext(historyContext)
                 .onAppear {
@@ -106,6 +108,13 @@ struct OraApp: App {
                             }
                         }
                         return false
+                    }
+
+                    // Check for updates in background if auto-update is enabled
+                    if SettingsStore.shared.autoUpdateEnabled {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            updateService.checkForUpdatesInBackground()
+                        }
                     }
                 }
                 .modelContext(downloadContext)
@@ -153,6 +162,12 @@ struct OraApp: App {
                     ForEach(AppAppearance.allCases) { mode in
                         Text(mode.rawValue).tag(mode)
                     }
+                }
+            }
+
+            CommandGroup(replacing: .appInfo) {
+                Button("About Ora") {
+                    showAboutWindow()
                 }
             }
 
@@ -219,8 +234,30 @@ struct OraApp: App {
             SettingsContentView()
                 .environmentObject(appearanceManager)
                 .environmentObject(historyManager)
+                .environmentObject(updateService)
                 .modelContext(tabContext)
                 .withTheme()
         }
+    }
+
+    private func showAboutWindow() {
+        let alert = NSAlert()
+        alert.messageText = "Ora Browser"
+        alert.informativeText = """
+        Version \(getAppVersion())
+
+        Fast, secure, and beautiful browser built for macOS.
+
+        © 2025 Ora Browser
+        """
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "OK")
+        alert.runModal()
+    }
+
+    private func getAppVersion() -> String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
+        return "\(version) (\(build))"
     }
 }
