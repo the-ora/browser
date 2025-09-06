@@ -4,25 +4,7 @@
   },
   "groups" : [
     {
-      "layers" : [
-
-      ],
-      "shadow" : {
-        "kind" : "neutral",
-        "opacity" : 0.5
-      },
-      "translucency" : {
-        "enabled" : true,
-        "value" : 0.5
-      }
-    },
-    {
-      "blur-material-specializations" : [
-        {
-          "appearance" : "tinted",
-          "value" : 1
-        }
-      ],
+      "blur-material" : 0.5,
       "layers" : [
         {
           "image-name" : "momento.svg",
@@ -47,14 +29,32 @@
               0
             ]
           }
-        },
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    },
+    {
+      "blur-material-specializations" : [
+        {
+          "appearance" : "tinted",
+          "value" : 1
+        }
+      ],
+      "layers" : [
         {
           "fill" : {
             "solid" : "srgb:1.00000,1.00000,1.00000,1.00000"
           },
           "image-name" : "Grid.png",
           "name" : "Grid",
-          "opacity" : 0.4,
+          "opacity" : 0.6,
           "position" : {
             "scale" : 0.5,
             "translation-in-points" : [
