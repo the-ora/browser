@@ -2,12 +2,13 @@ import AppKit
 import SwiftUI
 
 struct GeneralSettingsView: View {
-    @EnvironmentObject var appearanceManager: AppearanceManager
+    @Environment(AppearanceManager.self) private var appearanceManager
     @EnvironmentObject var updateService: UpdateService
     @State private var settings = SettingsStore.shared
     @Environment(\.theme) var theme
 
     var body: some View {
+        @Bindable var bindableAppearanceManager = appearanceManager
         SettingsContainer(maxContentWidth: 760) {
             Form {
                 VStack(alignment: .leading, spacing: 16) {
@@ -40,7 +41,7 @@ struct GeneralSettingsView: View {
                     .background(theme.solidWindowBackgroundColor)
                     .cornerRadius(8)
 
-                    AppearanceSelector(selection: $appearanceManager.appearance)
+                    AppearanceSelector(selection: $bindableAppearanceManager.appearance)
 
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Updates")

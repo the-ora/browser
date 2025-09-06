@@ -1,7 +1,8 @@
 import SwiftUI
 
-final class ToastManager: ObservableObject {
-    @Published var toasts: [Toast] = []
+@Observable
+final class ToastManager {
+    var toasts: [Toast] = []
 
     @discardableResult
     func show(message: String, systemImage: String? = "checkmark.circle.fill") -> String {
