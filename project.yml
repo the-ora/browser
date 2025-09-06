@@ -18,6 +18,17 @@ targets:
           optional: true
       dependencies:
         - package: Sparkle
+      
+      preBuildScripts:
+        - name: "Copy Icon Bundle"
+          script: |
+            if [ "$CONFIGURATION" = "Debug" ]; then
+                echo "Using OraIconDev.icon for Debug build"
+                cp -R "$SRCROOT/Icons/OraIconDev.icon" "$BUILT_PRODUCTS_DIR/$PRODUCT_NAME.app/Contents/Resources/"
+            else
+                echo "Using OraIcon.icon for Release build" 
+                cp -R "$SRCROOT/Icons/OraIcon.icon" "$BUILT_PRODUCTS_DIR/$PRODUCT_NAME.app/Contents/Resources/"
+            fi
 
       settings:
         base:

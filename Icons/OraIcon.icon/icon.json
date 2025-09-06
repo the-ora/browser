@@ -2,6 +2,7 @@
   "fill" : "system-light",
   "groups" : [
     {
+      "blur-material" : null,
       "layers" : [
         {
           "fill-specializations" : [
@@ -25,6 +26,12 @@
           ],
           "image-name" : "OraLogo.svg",
           "name" : "OraLogo",
+          "opacity-specializations" : [
+            {
+              "appearance" : "tinted",
+              "value" : 1
+            }
+          ],
           "position" : {
             "scale" : 0.88,
             "translation-in-points" : [
@@ -47,12 +54,36 @@
       "blur-material" : null,
       "layers" : [
         {
-          "fill" : {
-            "solid" : "srgb:0.00000,0.00000,0.00000,1.00000"
-          },
+          "fill-specializations" : [
+            {
+              "value" : {
+                "solid" : "srgb:0.00000,0.00000,0.00000,1.00000"
+              }
+            },
+            {
+              "appearance" : "dark",
+              "value" : {
+                "solid" : "srgb:1.00000,1.00000,1.00000,1.00000"
+              }
+            },
+            {
+              "appearance" : "tinted",
+              "value" : {
+                "solid" : "srgb:1.00000,1.00000,1.00000,1.00000"
+              }
+            }
+          ],
           "image-name" : "momento.svg",
           "name" : "momento",
-          "opacity" : 0.2,
+          "opacity-specializations" : [
+            {
+              "value" : 0.2
+            },
+            {
+              "appearance" : "dark",
+              "value" : 0.05
+            }
+          ],
           "position" : {
             "scale" : 0.93,
             "translation-in-points" : [
