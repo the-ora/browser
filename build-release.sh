@@ -103,14 +103,14 @@ if command -v create-dmg &> /dev/null; then
         # Remove any existing DMG first
         rm -f "build/${DMG_NAME}"
         # Use simpler create-dmg command to avoid parsing issues
+            # --window-pos 200 120 \
+            # --icon-size 100 \
+            # --icon "build/Ora.app" 200 190 \
+            # --volname "Ora Browser" \
+            # --hide-extension "build/Ora.app" \
         create-dmg \
-            --volname "OraBrowser" \
-            --window-pos 200 120 \
+            --app-drop-link 600 185 \
             --window-size 800 400 \
-            --icon-size 100 \
-            --icon "build/Ora.app" 200 190 \
-            --hide-extension "build/Ora.app" \
-            --link "/Applications" 600 185 \
             "build/${DMG_NAME}" \
             "build/Ora.app" 2>/dev/null || {
                 echo "⚠️  create-dmg had warnings but continuing..."
