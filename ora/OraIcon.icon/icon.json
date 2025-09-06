@@ -23,8 +23,8 @@
               }
             }
           ],
-          "image-name" : "MainLogo.png",
-          "name" : "MainLogo",
+          "image-name" : "OraLogo.svg",
+          "name" : "OraLogo",
           "position" : {
             "scale" : 0.92,
             "translation-in-points" : [

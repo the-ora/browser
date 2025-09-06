@@ -25,8 +25,8 @@
       ],
       "layers" : [
         {
-          "image-name" : "MainLogo.png",
-          "name" : "MainLogo",
+          "image-name" : "OraLogo.svg",
+          "name" : "OraLogo",
           "position" : {
             "scale" : 0.92,
             "translation-in-points" : [
@@ -39,7 +39,7 @@
           "fill" : {
             "solid" : "srgb:1.00000,1.00000,1.00000,1.00000"
           },
-          "image-name" : "Grid",
+          "image-name" : "Grid.png",
           "name" : "Grid",
           "opacity" : 0.5,
           "position" : {
