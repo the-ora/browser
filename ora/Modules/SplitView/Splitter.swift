@@ -23,7 +23,7 @@ public protocol SplitDivider: View {
 @MainActor
 public struct Splitter: SplitDivider {
     @Environment(LayoutHolder.self) var layout
-    @ObservedObject public var styling: SplitStyling
+    public var styling: SplitStyling
     @State private var dividerColor: Color  // Changes based on styling.previewHide
     private var color: Color { privateColor ?? styling.color }
     private var inset: CGFloat { privateInset ?? styling.inset }
