@@ -26,6 +26,34 @@
           "image-name" : "OraLogo.svg",
           "name" : "OraLogo",
           "position" : {
+            "scale" : 0.88,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    },
+    {
+      "blur-material" : null,
+      "layers" : [
+        {
+          "fill" : {
+            "solid" : "srgb:0.00000,0.00000,0.00000,1.00000"
+          },
+          "image-name" : "momento.svg",
+          "name" : "momento",
+          "opacity" : 0.2,
+          "position" : {
             "scale" : 0.93,
             "translation-in-points" : [
               0,
@@ -38,6 +66,7 @@
         "kind" : "neutral",
         "opacity" : 0.5
       },
+      "specular" : true,
       "translucency" : {
         "enabled" : true,
         "value" : 0.5
