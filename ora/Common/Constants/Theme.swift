@@ -1,16 +1,65 @@
 import AppKit
 import SwiftUI
 
-// swiftlint:disable identifier_name
-struct Theme: Equatable {
-    let colorScheme: ColorScheme
+extension Notification.Name {
+    static let colorThemeChanged = Notification.Name("colorThemeChanged")
+}
 
-    var primary: Color {
-        Color(hex: "f3e5d6")
+struct ThemeConstants {
+    static let colorTransitionDuration: Double = 0.3
+    static let colorThemeUserDefaultsKey = "ColorTheme"
+}
+
+enum ColorTheme: String, CaseIterable, Identifiable {
+    case orange = "Orange"
+    case blue = "Blue"
+    case green = "Green"
+    case purple = "Purple"
+    case red = "Red"
+    case teal = "Teal"
+    case pink = "Pink"
+    case gray = "Gray"
+
+    var id: String { rawValue }
+
+    var primaryLight: Color {
+        switch self {
+        case .orange: return Color(hex: "f3e5d6")
+        case .blue: return Color(hex: "d6e5f3")
+        case .green: return Color(hex: "d6f3e5")
+        case .purple: return Color(hex: "e5d6f3")
+        case .red: return Color(hex: "f3d6d6")
+        case .teal: return Color(hex: "d6f3f0")
+        case .pink: return Color(hex: "f3d6e8")
+        case .gray: return Color(hex: "e5e5e5")
+        }
     }
 
     var primaryDark: Color {
-        Color(hex: "63411D")
+        switch self {
+        case .orange: return Color(hex: "63411D")
+        case .blue: return Color(hex: "1D4163")
+        case .green: return Color(hex: "1D6341")
+        case .purple: return Color(hex: "411D63")
+        case .red: return Color(hex: "631D1D")
+        case .teal: return Color(hex: "1D6360")
+        case .pink: return Color(hex: "631D48")
+        case .gray: return Color(hex: "414141")
+        }
+    }
+}
+
+// swiftlint:disable:next identifier_name
+struct Theme: Equatable {
+    let colorScheme: ColorScheme
+    let colorTheme: ColorTheme
+
+    var primary: Color {
+        colorTheme.primaryLight
+    }
+
+    var primaryDark: Color {
+        colorTheme.primaryDark
     }
 
     var accent: Color {
@@ -128,7 +177,7 @@ struct Theme: Equatable {
 }
 
 private struct ThemeKey: EnvironmentKey {
-    static let defaultValue = Theme(colorScheme: .light)  // fallback
+    static let defaultValue = Theme(colorScheme: .light, colorTheme: .orange)  // fallback
 }
 
 extension EnvironmentValues {
@@ -140,8 +189,21 @@ extension EnvironmentValues {
 
 struct ThemeProvider: ViewModifier {
     @Environment(\.colorScheme) private var colorScheme
+    @State private var colorTheme: ColorTheme = {
+        // Load initial value synchronously
+        let saved = UserDefaults.standard.string(forKey: ThemeConstants.colorThemeUserDefaultsKey)
+        return ColorTheme(rawValue: saved ?? "") ?? .orange
+    }()
 
     func body(content: Content) -> some View {
-        content.environment(\.theme, Theme(colorScheme: colorScheme))
+        content
+            .environment(\.theme, Theme(colorScheme: colorScheme, colorTheme: colorTheme))
+            .onReceive(NotificationCenter.default.publisher(for: .colorThemeChanged)) { notification in
+                if let newTheme = notification.object as? ColorTheme {
+                    withAnimation(.easeInOut(duration: ThemeConstants.colorTransitionDuration)) {
+                        colorTheme = newTheme
+                    }
+                }
+            }
     }
 }

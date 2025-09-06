@@ -86,6 +86,9 @@ struct OraApp: App {
     var body: some Scene {
         WindowGroup {
             BrowserView()
+                .modelContext(tabContext)
+                .modelContext(historyContext)
+                .modelContext(downloadContext)
                 .environmentObject(appState)
                 .environmentObject(tabManager)
                 .environmentObject(historyManager)
@@ -93,8 +96,7 @@ struct OraApp: App {
                 .environmentObject(appearanceManager)
                 .environmentObject(downloadManager)
                 .environmentObject(updateService)
-                .modelContext(tabContext)
-                .modelContext(historyContext)
+                .withTheme()
                 .onAppear {
                     keyModifierListener.registerKeyDownHandler { event in
                         guard !appState.isFloatingTabSwitchVisible else { return false }
@@ -117,8 +119,6 @@ struct OraApp: App {
                         }
                     }
                 }
-                .modelContext(downloadContext)
-                .withTheme()
         }
         .defaultSize(width: 1440, height: 900)
         .windowStyle(.hiddenTitleBar)
