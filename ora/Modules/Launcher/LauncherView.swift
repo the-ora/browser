@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 struct LauncherView: View {
-    @EnvironmentObject var appState: AppState
+    @Environment(AppState.self) private var appState: AppState
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var historyManager: HistoryManager
     @EnvironmentObject var downloadManager: DownloadManager

@@ -5,7 +5,7 @@ struct ContainerView: View {
     let selectedContainer: String
     let containers: [TabContainer]
 
-    @EnvironmentObject var appState: AppState
+    @Environment(AppState.self) private var appState: AppState
     @EnvironmentObject var tabManager: TabManager
     @State private var draggedItem: UUID?
 

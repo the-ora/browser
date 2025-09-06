@@ -13,16 +13,17 @@ func deleteSwiftDataStore(_ loc: String) {
     try? fileManager.removeItem(at: walURL)
 }
 
-class AppState: ObservableObject {
-    @Published var showLauncher: Bool = false
-    @Published var launcherSearchText: String = ""
-    @Published var showFinderIn: UUID?
-    @Published var isFloatingTabSwitchVisible: Bool = false
+@Observable
+class AppState {
+    var showLauncher: Bool = false
+    var launcherSearchText: String = ""
+    var showFinderIn: UUID?
+    var isFloatingTabSwitchVisible: Bool = false
 }
 
 @main
 struct OraApp: App {
-    @StateObject private var appState = AppState()
+    @State private var appState = AppState()
     @StateObject private var keyModifierListener = KeyModifierListener()
     @StateObject private var appearanceManager = AppearanceManager()
     @StateObject private var updateService = UpdateService()
@@ -86,7 +87,7 @@ struct OraApp: App {
     var body: some Scene {
         WindowGroup {
             BrowserView()
-                .environmentObject(appState)
+                .environment(appState)
                 .environmentObject(tabManager)
                 .environmentObject(historyManager)
                 .environmentObject(keyModifierListener)

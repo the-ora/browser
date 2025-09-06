@@ -6,7 +6,7 @@ import SwiftUI
 struct BrowserView: View {
     @EnvironmentObject var tabManager: TabManager
     @Environment(\.theme) var theme
-    @EnvironmentObject private var appState: AppState
+    @Environment(AppState.self) private var appState: AppState
     @State private var isFullscreen = false
     @State private var showFloatingSidebar = false
 

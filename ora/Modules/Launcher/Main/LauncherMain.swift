@@ -45,7 +45,7 @@ struct LauncherMain: View {
     @EnvironmentObject var historyManager: HistoryManager
     @EnvironmentObject var downloadManager: DownloadManager
     @EnvironmentObject var tabManager: TabManager
-    @EnvironmentObject var appState: AppState
+    @Environment(AppState.self) private var appState: AppState
     @State var focusedElement: UUID = .init()
 
     @State private var suggestions: [LauncherSuggestion] = [

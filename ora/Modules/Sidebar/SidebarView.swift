@@ -7,7 +7,7 @@ struct SidebarView: View {
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var historyManger: HistoryManager
     @EnvironmentObject var downloadManager: DownloadManager
-    @EnvironmentObject var appState: AppState
+    @Environment(AppState.self) private var appState: AppState
     @Query var containers: [TabContainer]
     @Query(filter: nil, sort: [.init(\History.lastAccessedAt, order: .reverse)]) var histories:
         [History]
@@ -43,7 +43,7 @@ struct SidebarView: View {
                 .environmentObject(tabManager)
                 .environmentObject(historyManger)
                 .environmentObject(downloadManager)
-                .environmentObject(appState)
+                .environment(appState)
             }
 
             HStack {
