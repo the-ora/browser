@@ -184,20 +184,21 @@ extension EnvironmentValues {
 
 struct ThemeProvider: ViewModifier {
     @Environment(\.colorScheme) private var colorScheme
-    @State private var colorTheme: ColorTheme = .orange
+    @State private var colorTheme: ColorTheme = {
+        // Load initial value synchronously
+        let saved = UserDefaults.standard.string(forKey: "ColorTheme")
+        return ColorTheme(rawValue: saved ?? "") ?? .orange
+    }()
 
     func body(content: Content) -> some View {
         content
             .environment(\.theme, Theme(colorScheme: colorScheme, colorTheme: colorTheme))
             .onReceive(NotificationCenter.default.publisher(for: .colorThemeChanged)) { notification in
                 if let newTheme = notification.object as? ColorTheme {
-                    colorTheme = newTheme
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        colorTheme = newTheme
+                    }
                 }
-            }
-            .onAppear {
-                // Load saved color theme
-                let saved = UserDefaults.standard.string(forKey: "ColorTheme")
-                colorTheme = ColorTheme(rawValue: saved ?? "") ?? .orange
             }
     }
 }
