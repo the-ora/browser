@@ -2,6 +2,13 @@ import SwiftData
 import SwiftUI
 import WebKit
 
+// MARK: - Container Query Helper
+// This isn't the greatest solution and I'll test whats best, since @Query does not work in @Observable
+@MainActor
+class ContainersQuery: ObservableObject {
+    @Query(sort: \TabContainer.lastAccessedAt, order: .reverse) var containers: [TabContainer]
+}
+
 // MARK: - Tab Manager
 
 @MainActor
@@ -11,9 +18,12 @@ class TabManager {
     var activeTab: Tab?
     let modelContainer: ModelContainer
     let modelContext: ModelContext
-
-    // Removed @Query due to conflict with @Observable macro
-    // Use fetchContainers() method instead
+    
+    private let containersQuery = ContainersQuery()
+    
+    var containers: [TabContainer] {
+        containersQuery.containers
+    }
 
     init(
         modelContainer: ModelContainer,
@@ -149,7 +159,7 @@ class TabManager {
         let containers = fetchContainers()
 
         // Get the last accessed container
-        if let lastAccessedContainer = fetchContainers().first {
+        if let lastAccessedContainer = containers.first {
             activeContainer = lastAccessedContainer
             // Get the last accessed tab from the active container
             //            if let lastAccessedTab = lastAccessedContainer.tabs.sorted(by: { $0.lastAccessedAt ?? Date() >
