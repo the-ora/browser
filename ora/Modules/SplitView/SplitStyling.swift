@@ -11,15 +11,15 @@ import SwiftUI
 @Observable
 public class SplitStyling {
     /// Color of the visible part of the default Splitter.
-    @ObservationIgnored public var color: Color
+    public var color: Color
     /// The inset for the visible part of the default Splitter from the ends it reaches to.
-    @ObservationIgnored public var inset: CGFloat
+    public var inset: CGFloat
     /// The visible thickness of the default Splitter and the `spacing` between the `primary` and `secondary` views.
-    @ObservationIgnored public var visibleThickness: CGFloat
+    public var visibleThickness: CGFloat
     /// The thickness across which the dragging will be detected.
-    @ObservationIgnored public var invisibleThickness: CGFloat
+    public var invisibleThickness: CGFloat
     /// Whether to hide the splitter along with the side when SplitSide is set.
-    @ObservationIgnored public var hideSplitter: Bool
+    public var hideSplitter: Bool
     /// Whether we are previewing what hiding will look like.
     public var previewHide: Bool
 
