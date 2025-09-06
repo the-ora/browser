@@ -10,7 +10,7 @@ enum DownloadStatus: String, Codable {
 }
 
 @Model
-class Download: ObservableObject, Identifiable {
+class Download: Identifiable {
     var id: UUID
     var originalURL: URL
     var originalURLString: String

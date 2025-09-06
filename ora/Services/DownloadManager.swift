@@ -73,7 +73,6 @@ class DownloadManager: ObservableObject {
         // Trigger UI updates
         DispatchQueue.main.async {
             self.objectWillChange.send()
-            download.objectWillChange.send()
         }
     }
 
