@@ -142,6 +142,15 @@ struct URLBar: View {
                                     .stroke(isEditing ? getUrlFieldColor(tab).opacity(0.5) : Color.clear, lineWidth: 1)
                             )
                     )
+                    .overlay(
+                        // Hidden button for keyboard shortcut
+                        Button("") {
+                            editingURLString = tab.url.absoluteString
+                            isEditing = true
+                        }
+                        .keyboardShortcut(KeyboardShortcuts.Address.focus)
+                        .opacity(0)
+                    )
 
                     Spacer()
 
