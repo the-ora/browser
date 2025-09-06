@@ -103,6 +103,7 @@ extension UpdateService: SPUUpdaterDelegate {
     }
 
     func updater(_ updater: SPUUpdater, didFindValidUpdate item: SUAppcastItem) {
+        
         print("✅ UpdateService: Found valid update!")
         print("📦 UpdateService: Update details:")
         print("   - Version: \(item.displayVersionString ?? item.versionString)")

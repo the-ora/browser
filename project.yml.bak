@@ -19,16 +19,23 @@ targets:
       dependencies:
         - package: Sparkle
 
+      info:
+        path: ora/Info.plist
+        properties:
+          SUFeedURL: "https://the-ora.github.io/browser/appcast.xml"
+          SUPublicEDKey: "Ozj+rezzbJAD76RfajtfQ7rFojJbpFSCl/0DcFSBCTI="
+          SUEnableAutomaticChecks: YES
+
       settings:
         base:
-           SWIFT_VERSION: 5.9
-           CODE_SIGN_STYLE: Automatic
-           MARKETING_VERSION: 0.0.62
-           CURRENT_PROJECT_VERSION: 62
-           PRODUCT_NAME: Ora
-           PRODUCT_BUNDLE_IDENTIFIER: com.orabrowser.ora
-           GENERATE_INFOPLIST_FILE: YES
-           SUFeedURL: "https://the-ora.github.io/browser/appcast.xml"
-           SUPublicEDKey: "Ozj+rezzbJAD76RfajtfQ7rFojJbpFSCl/0DcFSBCTI="
-           SUEnableAutomaticChecks: YES
+          SWIFT_VERSION: 5.9
+          CODE_SIGN_STYLE: Automatic
+          MARKETING_VERSION: 0.1.6
+          CURRENT_PROJECT_VERSION: 76
+          PRODUCT_NAME: Ora
+          PRODUCT_BUNDLE_IDENTIFIER: com.orabrowser.ora
+          GENERATE_INFOPLIST_FILE: YES
+          SUFeedURL: "https://the-ora.github.io/browser/appcast.xml"
+          SUPublicEDKey: "Ozj+rezzbJAD76RfajtfQ7rFojJbpFSCl/0DcFSBCTI="
+          SUEnableAutomaticChecks: YES
 
