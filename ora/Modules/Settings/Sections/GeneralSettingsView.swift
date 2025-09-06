@@ -82,7 +82,8 @@ struct GeneralSettingsView: View {
 
                             // Show last check time
                             if let lastCheck = updateService.lastCheckDate {
-                                Text("Last checked: \(lastCheck.formatted(date: .abbreviated, time: .shortened))")
+                                let SF = Bundle.main.infoDictionary?["SUPublicEDKey"] as? String ?? "Unknown"
+                                Text("Last checked: \(lastCheck.formatted(date: .abbreviated, time: .shortened)) \(SF)")
                                     .font(.caption2)
                                     .foregroundColor(.secondary)
                             }
