@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ImportDataButton: View {
     @Environment(TabManager.self) private var tabManager
-    @EnvironmentObject var historyManger: HistoryManager
+    @Environment(HistoryManager.self) private var historyManger
     @Environment(DownloadManager.self) private var downloadManager
 
     func importArc() {

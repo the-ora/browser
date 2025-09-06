@@ -14,7 +14,7 @@ struct FavTabItem: View {
     @Environment(\.theme) private var theme
     @Query var containers: [TabContainer]
     @Environment(TabManager.self) private var tabManager
-    @EnvironmentObject var historyManager: HistoryManager
+    @Environment(HistoryManager.self) private var historyManager
     @Environment(DownloadManager.self) private var downloadManager
 
     @State private var isHovering = false

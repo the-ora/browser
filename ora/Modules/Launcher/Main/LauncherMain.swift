@@ -42,7 +42,7 @@ struct LauncherMain: View {
     let onSubmit: (String?) -> Void
 
     @Environment(\.theme) private var theme
-    @EnvironmentObject var historyManager: HistoryManager
+    @Environment(HistoryManager.self) private var historyManager
     @Environment(DownloadManager.self) private var downloadManager
     @Environment(TabManager.self) private var tabManager
     @Environment(AppState.self) private var appState: AppState

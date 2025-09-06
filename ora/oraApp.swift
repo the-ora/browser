@@ -26,10 +26,10 @@ struct OraApp: App {
     @State private var appState = AppState()
     @StateObject private var keyModifierListener = KeyModifierListener()
     @State private var appearanceManager = AppearanceManager()
-    @StateObject private var updateService = UpdateService()
+    @State private var updateService = UpdateService()
     // Pass it to TabManager
     @State private var tabManager: TabManager
-    @StateObject private var historyManager: HistoryManager
+    @State private var historyManager: HistoryManager
     @State private var downloadManager: DownloadManager
 
     let tabContext: ModelContext
@@ -62,13 +62,10 @@ struct OraApp: App {
         self.tabContext = modelContext
         self.downloadContext = modelContext
         self.historyContext = modelContext
-        let historyManagerObj = StateObject(
-            wrappedValue: HistoryManager(
-                modelContainer: container,
-                modelContext: modelContext
-            )
+        historyManager = HistoryManager(
+            modelContainer: container,
+            modelContext: modelContext
         )
-        _historyManager = historyManagerObj
         tabManager = TabManager(
             modelContainer: container,
             modelContext: modelContext
@@ -85,11 +82,11 @@ struct OraApp: App {
             BrowserView()
                 .environment(appState)
                 .environment(tabManager)
-                .environmentObject(historyManager)
+                .environment(historyManager)
                 .environmentObject(keyModifierListener)
                 .environment(appearanceManager)
                 .environment(downloadManager)
-                .environmentObject(updateService)
+                .environment(updateService)
                 .modelContext(tabContext)
                 .modelContext(historyContext)
                 .onAppear {
@@ -137,6 +134,7 @@ struct OraApp: App {
                 ImportDataButton()
                     .environment(downloadManager)
                     .environment(tabManager)
+                    .environment(historyManager)
             }
 
             CommandGroup(after: .pasteboard) {
@@ -232,8 +230,8 @@ struct OraApp: App {
         Settings {
             SettingsContentView()
                 .environment(appearanceManager)
-                .environmentObject(historyManager)
-                .environmentObject(updateService)
+                .environment(historyManager)
+                .environment(updateService)
                 .modelContext(tabContext)
                 .withTheme()
         }

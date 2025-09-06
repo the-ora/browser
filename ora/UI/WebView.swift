@@ -5,7 +5,7 @@ import WebKit
 struct WebView: NSViewRepresentable {
     let webView: WKWebView
     @Environment(TabManager.self) private var tabManager
-    @EnvironmentObject var historyManager: HistoryManager
+    @Environment(HistoryManager.self) private var historyManager
     @Environment(DownloadManager.self) private var downloadManager
 
     func makeCoordinator() -> Coordinator {

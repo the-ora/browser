@@ -83,7 +83,7 @@ struct TabItem: View {
     let onClose: () -> Void
     let onMoveToContainer: (TabContainer) -> Void
     @Environment(TabManager.self) private var tabManager
-    @EnvironmentObject var historyManager: HistoryManager
+    @Environment(HistoryManager.self) private var historyManager
     @Environment(DownloadManager.self) private var downloadManager
     let availableContainers: [TabContainer]
 

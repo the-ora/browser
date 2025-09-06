@@ -4,7 +4,7 @@ import SwiftUI
 struct LauncherView: View {
     @Environment(AppState.self) private var appState: AppState
     @Environment(TabManager.self) private var tabManager
-    @EnvironmentObject var historyManager: HistoryManager
+    @Environment(HistoryManager.self) private var historyManager
     @Environment(DownloadManager.self) private var downloadManager
     @Environment(\.theme) private var theme
     @StateObject private var searchEngineService = SearchEngineService()

@@ -1,13 +1,14 @@
 import Sparkle
 import SwiftUI
 
-class UpdateService: NSObject, ObservableObject {
-    @Published var canCheckForUpdates = false
-    @Published var updateProgress: Double = 0.0
-    @Published var isCheckingForUpdates = false
-    @Published var updateAvailable = false
-    @Published var lastCheckResult: String?
-    @Published var lastCheckDate: Date?
+@Observable
+class UpdateService: NSObject {
+    var canCheckForUpdates = false
+    var updateProgress: Double = 0.0
+    var isCheckingForUpdates = false
+    var updateAvailable = false
+    var lastCheckResult: String?
+    var lastCheckDate: Date?
 
     private var updater: SPUUpdater?
     private var userDriver: SPUStandardUserDriver?

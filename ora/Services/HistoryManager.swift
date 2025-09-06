@@ -2,7 +2,8 @@ import Foundation
 import SwiftData
 
 @MainActor
-class HistoryManager: ObservableObject {
+@Observable
+class HistoryManager {
     let modelContainer: ModelContainer
     let modelContext: ModelContext
 
