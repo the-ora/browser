@@ -3,6 +3,7 @@ import SwiftUI
 import WebKit
 
 // MARK: - Container Query Helper
+
 // This isn't the greatest solution and I'll test whats best, since @Query does not work in @Observable
 @MainActor
 class ContainersQuery: ObservableObject {
@@ -18,9 +19,9 @@ class TabManager {
     var activeTab: Tab?
     let modelContainer: ModelContainer
     let modelContext: ModelContext
-    
+
     private let containersQuery = ContainersQuery()
-    
+
     var containers: [TabContainer] {
         containersQuery.containers
     }
