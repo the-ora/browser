@@ -41,6 +41,52 @@ struct GeneralSettingsView: View {
                     .cornerRadius(8)
 
                     AppearanceSelector(selection: $appearanceManager.appearance)
+                    
+                    // Color Scheme Selector
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Color Scheme").foregroundStyle(.secondary)
+
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 4), spacing: 12) {
+                            ForEach(ColorTheme.allCases) { colorTheme in
+                                let isSelected = appearanceManager.colorTheme == colorTheme
+
+                                Button {
+                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                        appearanceManager.colorTheme = colorTheme
+                                    }
+                                } label: {
+                                    VStack(spacing: 6) {
+                                        ZStack {
+                                            Circle()
+                                                .fill(
+                                                    LinearGradient(
+                                                        colors: [
+                                                            colorTheme.primaryLight,
+                                                            colorTheme.primaryDark
+                                                        ],
+                                                        startPoint: .topLeading,
+                                                        endPoint: .bottomTrailing
+                                                    )
+                                                )
+                                                .frame(width: 32, height: 32)
+
+                                            if isSelected {
+                                                Circle()
+                                                    .stroke(theme.foreground, lineWidth: 2)
+                                                    .frame(width: 38, height: 38)
+                                            }
+                                        }
+
+                                        Text(colorTheme.rawValue)
+                                            .font(.caption)
+                                            .fontWeight(isSelected ? .semibold : .regular)
+                                            .foregroundColor(isSelected ? theme.foreground : .secondary)
+                                    }
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
 
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Updates")
