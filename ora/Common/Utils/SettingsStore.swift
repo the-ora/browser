@@ -34,7 +34,6 @@ class SettingsStore {
 
     // MARK: - Global keys
 
-    // Private storage keys for UserDefaults. These are not observable properties.
     private let autoUpdateKey = "settings.autoUpdateEnabled"
     private let trackingThirdPartyKey = "settings.tracking.blockThirdParty"
     private let fingerprintingKey = "settings.tracking.blockFingerprinting"

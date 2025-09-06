@@ -80,8 +80,6 @@ class DownloadManager {
         activeDownloadTasks.removeValue(forKey: download.id)
         activeDownloads.removeAll { $0.id == download.id }
         refreshRecentDownloads()
-
-        // Show notification or update UI
     }
 
     func failDownload(_ download: Download, error: String) {

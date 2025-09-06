@@ -98,8 +98,8 @@ public class SideHolder {
         }
     }
 
-    public var getter: (() -> SplitSide?)?
-    public var setter: ((SplitSide?) -> Void)?
+    @ObservationIgnored public var getter: (() -> SplitSide?)?
+    @ObservationIgnored public var setter: ((SplitSide?) -> Void)?
     public var side: SplitSide? {
         get { value }
         set { setValue(newValue) }
