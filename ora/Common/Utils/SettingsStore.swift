@@ -34,7 +34,7 @@ class SettingsStore {
 
     // MARK: - Global keys
 
-    // Let constants are not tracked for @Observable
+    // @Observable does not track `let` constants because they are immutable by definition
     private let autoUpdateKey = "settings.autoUpdateEnabled"
     private let trackingThirdPartyKey = "settings.tracking.blockThirdParty"
     private let fingerprintingKey = "settings.tracking.blockFingerprinting"
