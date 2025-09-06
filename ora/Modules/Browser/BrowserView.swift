@@ -10,7 +10,7 @@ struct BrowserView: View {
     @State private var isFullscreen = false
     @State private var showFloatingSidebar = false
 
-    @StateObject var hide = SideHolder()
+    @State var hide = SideHolder()
 
     private func getAppVersion() -> String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"

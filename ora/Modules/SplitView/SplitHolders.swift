@@ -87,11 +87,12 @@ public class FractionHolder {
     }
 }
 
-/// An ObservableObject that `Split` view observes to change whether  one of the `SplitSide`s is hidden.
+/// An Observable that `Split` view observes to change whether  one of the `SplitSide`s is hidden.
 ///
 /// Use the static `usingUserDefaults` method to save state automatically in `UserDefaults.standard`.
-public class SideHolder: ObservableObject {
-    @Published private var value: SplitSide? {
+@Observable
+public class SideHolder {
+    private var value: SplitSide? {
         didSet {
             setter?(value)
         }

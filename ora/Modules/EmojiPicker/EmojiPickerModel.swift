@@ -15,12 +15,13 @@ struct EmojiItem: Codable, Identifiable {
     let code: [String]?
 }
 
-class EmojiViewModel: ObservableObject {
-    @Published var categories: [EmojiCategory] = []
-    @Published var searchText: String = ""
-    @Published var selectedCategory: String?
-    @Published var isLoading: Bool = true
-    @Published var error: String?
+@Observable
+class EmojiViewModel {
+    var categories: [EmojiCategory] = []
+    var searchText: String = ""
+    var selectedCategory: String?
+    var isLoading: Bool = true
+    var error: String?
 
     init() {
         loadEmojis()

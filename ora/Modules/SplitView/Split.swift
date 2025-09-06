@@ -41,7 +41,7 @@ public struct Split<P: View, D: SplitDivider, S: View>: View {
     private var fraction: FractionHolder
     /// Use to hide/show `secondary` independent of dragging. When value is `false`, will restore to
     /// `constrainedFraction`.
-    @ObservedObject private var hide: SideHolder
+    private var hide: SideHolder
     /// Fraction that tracks the `splitter` position across full width/height, where minPFraction <= constrainedFraction
     /// <= (1-minSFraction)
     @State private var constrainedFraction: CGFloat
