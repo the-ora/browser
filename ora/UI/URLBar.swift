@@ -118,6 +118,11 @@ struct URLBar: View {
                             .onTapGesture {
                                 editingURLString = tab.url.absoluteString
                             }
+                            .onKeyPress(.escape) {
+                                isEditing = false
+                                editingURLString = tab.url.absoluteString
+                                return .handled
+                            }
                             .overlay(
                                 Group {
                                     if !isEditing, editingURLString.isEmpty {
