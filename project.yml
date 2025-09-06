@@ -22,12 +22,15 @@ targets:
       preBuildScripts:
         - name: "Copy Icon Bundle"
           script: |
+            ICON_SRC_DEV="$SRCROOT/Icons/OraIconDev.icon"
+            ICON_SRC_RELEASE="$SRCROOT/Icons/OraIcon.icon"
+            ICON_DST="$BUILT_PRODUCTS_DIR/$PRODUCT_NAME.app/Contents/Resources/"
             if [ "$CONFIGURATION" = "Debug" ]; then
                 echo "Using OraIconDev.icon for Debug build"
-                cp -R "$SRCROOT/Icons/OraIconDev.icon" "$BUILT_PRODUCTS_DIR/$PRODUCT_NAME.app/Contents/Resources/"
+                cp -R "$ICON_SRC_DEV" "$ICON_DST"
             else
-                echo "Using OraIcon.icon for Release build" 
-                cp -R "$SRCROOT/Icons/OraIcon.icon" "$BUILT_PRODUCTS_DIR/$PRODUCT_NAME.app/Contents/Resources/"
+                echo "Using OraIcon.icon for Release build"
+                cp -R "$ICON_SRC_RELEASE" "$ICON_DST"
             fi
 
       settings:
