@@ -38,7 +38,7 @@ public struct Split<P: View, D: SplitDivider, S: View>: View {
     private var layout: LayoutHolder
     /// Only affects the initial layout, but updated to `constrainedFraction` after dragging ends.
     /// In this way, Split users can save the `FractionHolder` state to reflect slider position for restarts.
-    @ObservedObject private var fraction: FractionHolder
+    private var fraction: FractionHolder
     /// Use to hide/show `secondary` independent of dragging. When value is `false`, will restore to
     /// `constrainedFraction`.
     @ObservedObject private var hide: SideHolder

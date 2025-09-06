@@ -8,7 +8,7 @@
 import Foundation
 import Observation
 
-/// An ObservableObject that `Split` view observes to change what its `layout` is.
+/// An Observable that `Split` view observes to change what its `layout` is.
 ///
 /// Use the static `usingUserDefaults` method to save state automatically in `UserDefaults.standard`.
 @Observable
@@ -57,19 +57,20 @@ public class LayoutHolder {
     }
 }
 
-/// An ObservableObject that `Split` view observes to change what fraction of the width/height the `splitter`
+/// An Observable that `Split` view observes to change what fraction of the width/height the `splitter`
 /// will be positioned at upon open.
 ///
 /// Use the static `usingUserDefaults` method to save state automatically in `UserDefaults.standard`.
-public class FractionHolder: ObservableObject {
-    @Published public var value: CGFloat {
+@Observable
+public class FractionHolder {
+    public var value: CGFloat {
         didSet {
             setter?(value)
         }
     }
 
-    public var getter: (() -> CGFloat)?
-    public var setter: ((CGFloat) -> Void)?
+    @ObservationIgnored public var getter: (() -> CGFloat)?
+    @ObservationIgnored public var setter: ((CGFloat) -> Void)?
 
     public init(_ fraction: CGFloat? = nil, getter: (() -> CGFloat)? = nil, setter: ((CGFloat) -> Void)? = nil) {
         value = getter?() ?? fraction ?? 0.5
