@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 struct GeneralSettingsView: View {
-    @EnvironmentObject var appearanceManager: AppearanceManager
+    @Environment(AppearanceManager.self) var appearanceManager
     @EnvironmentObject var updateService: UpdateService
     @State private var settings = SettingsStore.shared
     @Environment(\.theme) var theme
@@ -40,6 +40,7 @@ struct GeneralSettingsView: View {
                     .background(theme.solidWindowBackgroundColor)
                     .cornerRadius(8)
 
+                    @Bindable var appearanceManager = appearanceManager
                     AppearanceSelector(selection: $appearanceManager.appearance)
 
                     VStack(alignment: .leading, spacing: 12) {
