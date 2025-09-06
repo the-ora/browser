@@ -35,7 +35,7 @@ public struct Split<P: View, D: SplitDivider, S: View>: View {
     /// Whether `secondary` can be hidden by dragging beyond half of `minSFraction`
     private let dragToHideS: Bool
     /// Used to change the SplitLayout of a Split
-    @ObservedObject private var layout: LayoutHolder
+    private var layout: LayoutHolder
     /// Only affects the initial layout, but updated to `constrainedFraction` after dragging ends.
     /// In this way, Split users can save the `FractionHolder` state to reflect slider position for restarts.
     @ObservedObject private var fraction: FractionHolder
@@ -108,7 +108,7 @@ public struct Split<P: View, D: SplitDivider, S: View>: View {
                 setConstrainedFraction(in: geometry.size)
             }
             .clipped()  // Can cause problems in some List styles if not clipped
-            .environmentObject(layout)
+            .environment(layout)
             // .onChange(of: fraction.value) { _, new in constrainedFraction = new }
         }
     }

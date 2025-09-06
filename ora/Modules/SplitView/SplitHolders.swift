@@ -6,19 +6,21 @@
 //
 
 import Foundation
+import Observation
 
 /// An ObservableObject that `Split` view observes to change what its `layout` is.
 ///
 /// Use the static `usingUserDefaults` method to save state automatically in `UserDefaults.standard`.
-public class LayoutHolder: ObservableObject {
-    @Published public var value: SplitLayout {
+@Observable
+public class LayoutHolder {
+    public var value: SplitLayout {
         didSet {
             setter?(value)
         }
     }
 
-    public var getter: (() -> SplitLayout)?
-    public var setter: ((SplitLayout) -> Void)?
+    @ObservationIgnored public var getter: (() -> SplitLayout)?
+    @ObservationIgnored public var setter: ((SplitLayout) -> Void)?
 
     public var isHorizontal: Bool { value == .horizontal }
 
