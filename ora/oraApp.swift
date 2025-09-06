@@ -119,9 +119,11 @@ struct OraApp: App {
                 }
                 .modelContext(downloadContext)
                 .withTheme()
+                .frame(minWidth: 500, minHeight: 360)
         }
         .defaultSize(width: 1440, height: 900)
         .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentMinSize)
         .commands {
             CommandGroup(after: .newItem) {
                 Button("New Tab") {
