@@ -32,7 +32,7 @@
         }
       ],
       "position" : {
-        "scale" : 0.9,
+        "scale" : 1,
         "translation-in-points" : [
           0,
           0
@@ -78,7 +78,7 @@
         }
       ],
       "position" : {
-        "scale" : 0.9,
+        "scale" : 1,
         "translation-in-points" : [
           0,
           0
