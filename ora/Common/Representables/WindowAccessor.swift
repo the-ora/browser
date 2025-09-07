@@ -13,51 +13,65 @@ struct WindowAccessor: NSViewRepresentable {
         Coordinator(self)
     }
 
+    @MainActor
     class Coordinator {
         var parent: WindowAccessor
-        var observers: [Any] = []
+        var observationTasks: [Task<Void, Never>] = []
 
         init(_ parent: WindowAccessor) {
             self.parent = parent
         }
 
-        @objc func didEnterFullScreen(_ notification: Notification) {
+        func didEnterFullScreen(_ notification: Notification) {
             guard let window = notification.object as? NSWindow else { return }
             parent.isFullscreen = true
             parent.updateTrafficLights(for: window)
         }
 
-        @objc func didExitFullScreen(_ notification: Notification) {
+        func didExitFullScreen(_ notification: Notification) {
             guard let window = notification.object as? NSWindow else { return }
             parent.isFullscreen = false
             parent.updateTrafficLights(for: window)
         }
     }
 
-    func makeNSView(context: Context) -> NSView {
-        let view = NSView()
+    final class WindowView: NSView {
+        var onMoveToWindow: ((NSWindow) -> Void)?
 
-        DispatchQueue.main.async {
-            guard let window = view.window else { return }
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            if let window {
+                onMoveToWindow?(window)
+            }
+        }
+    }
+
+    func makeNSView(context: Context) -> NSView {
+        let view = WindowView()
+        view.onMoveToWindow = { window in
             isFullscreen = window.styleMask.contains(.fullScreen)
 
             let coordinator = context.coordinator
 
-            let enterObserver = NotificationCenter.default.addObserver(
-                forName: NSWindow.didEnterFullScreenNotification,
-                object: window,
-                queue: nil,
-                using: coordinator.didEnterFullScreen
-            )
+            let didEnterFullScreenNotificationTask = Task {
+                for await notification in NotificationCenter.default.notifications(
+                    named: NSWindow.didEnterFullScreenNotification,
+                    object: window
+                ) {
+                    coordinator.didEnterFullScreen(notification)
+                }
+            }
 
-            let exitObserver = NotificationCenter.default.addObserver(
-                forName: NSWindow.didExitFullScreenNotification,
-                object: window,
-                queue: nil,
-                using: coordinator.didExitFullScreen
-            )
+            let didExitFullScreenNotificationTask = Task {
+                for await notification in NotificationCenter.default.notifications(
+                    named: NSWindow.didExitFullScreenNotification,
+                    object: window
+                ) {
+                    coordinator.didExitFullScreen(notification)
+                }
+            }
 
-            coordinator.observers = [enterObserver, exitObserver]
+            coordinator.observationTasks = [didEnterFullScreenNotificationTask, didExitFullScreenNotificationTask]
             updateTrafficLights(for: window)
         }
 
@@ -70,8 +84,8 @@ struct WindowAccessor: NSViewRepresentable {
     }
 
     func dismantleNSView(_ nsView: NSView, coordinator: Coordinator) {
-        for observer in coordinator.observers {
-            NotificationCenter.default.removeObserver(observer)
+        for task in coordinator.observationTasks {
+            task.cancel()
         }
     }
 
