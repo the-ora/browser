@@ -33,35 +33,55 @@ struct SpacesSettingsView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     if let container = selectedContainer {
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Defaults").foregroundStyle(.secondary)
-                            Picker(
-                                "Search engine",
-                                selection: Binding(
-                                    get: {
-                                        settings.defaultSearchEngineId(for: container.id)
-                                            ?? searchService.getDefaultSearchEngine(for: container.id)?.name
-                                    },
-                                    set: { settings.setDefaultSearchEngineId($0, for: container.id) }
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Space-Specific Defaults")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                Text("Override global defaults for this space only. Leave empty to use global settings."
                                 )
-                            ) {
-                                ForEach(searchService.searchEngines.filter { !$0.isAIChat }, id: \.name) {
-                                    engine in
-                                    Text(engine.name).tag(Optional(engine.name)).frame(width: 200)
-                                }.frame(width: 200)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                             }
 
-                            Picker(
-                                "AI Chat",
-                                selection: Binding(
-                                    get: {
-                                        settings.defaultAIEngineId(for: container.id)
-                                            ?? searchService.getDefaultAIChat(for: container.id)?.name
-                                    },
-                                    set: { settings.setDefaultAIEngineId($0, for: container.id) }
-                                )
-                            ) {
-                                ForEach(searchService.searchEngines.filter(\.isAIChat), id: \.name) { engine in
-                                    Text(engine.name).tag(Optional(engine.name)).frame(width: 200)
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Search Engine Override")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                Picker(
+                                    "Search engine",
+                                    selection: Binding(
+                                        get: {
+                                            settings.defaultSearchEngineId(for: container.id)
+                                        },
+                                        set: { settings.setDefaultSearchEngineId($0, for: container.id) }
+                                    )
+                                ) {
+                                    Text("Use Global Default").tag(nil as String?)
+                                    Divider()
+                                    ForEach(searchService.searchEngines.filter { !$0.isAIChat }, id: \.name) { engine in
+                                        Text(engine.name).tag(Optional(engine.name))
+                                    }
+                                }
+                            }
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("AI Chat Override")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                Picker(
+                                    "AI Chat",
+                                    selection: Binding(
+                                        get: {
+                                            settings.defaultAIEngineId(for: container.id)
+                                        },
+                                        set: { settings.setDefaultAIEngineId($0, for: container.id) }
+                                    )
+                                ) {
+                                    Text("Use Global Default").tag(nil as String?)
+                                    Divider()
+                                    ForEach(searchService.searchEngines.filter(\.isAIChat), id: \.name) { engine in
+                                        Text(engine.name).tag(Optional(engine.name))
+                                    }
                                 }
                             }
 

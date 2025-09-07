@@ -33,6 +33,8 @@ struct LauncherMain: View {
         let icon: String
         let originalAlias: String
         let searchURL: String
+        let favicon: NSImage?
+        let faviconBackgroundColor: Color?
     }
 
     @Binding var text: String
@@ -299,7 +301,9 @@ struct LauncherMain: View {
                         text: match?.text ?? "",
                         color: match?.color ?? .blue,
                         foregroundColor: match?.foregroundColor ?? .white,
-                        icon: match?.icon ?? ""
+                        icon: match?.icon ?? "",
+                        favicon: match?.favicon,
+                        faviconBackgroundColor: match?.faviconBackgroundColor
                     )
                 }
                 LauncherTextField(
@@ -323,7 +327,7 @@ struct LauncherMain: View {
                     onMoveDown: {
                         moveFocusedElement(.down)
                     },
-                    cursorColor: match?.color ?? (theme.foreground),
+                    cursorColor: match?.faviconBackgroundColor ?? match?.color ?? (theme.foreground),
                     placeholder: getPlaceholder(match: match)
                 )
                 .onChange(of: text) { _, _ in
@@ -354,7 +358,7 @@ struct LauncherMain: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .inset(by: 0.25)
                 .stroke(
-                    Color(match?.color ?? theme.foreground).opacity(0.15),
+                    Color(match?.faviconBackgroundColor ?? match?.color ?? theme.foreground).opacity(0.15),
                     lineWidth: 0.5
                 )
         )

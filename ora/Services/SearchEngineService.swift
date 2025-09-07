@@ -32,6 +32,10 @@ class SearchEngineService: ObservableObject {
         self.theme = theme
     }
 
+    var settings: SettingsStore {
+        return settingsStore
+    }
+
     var builtInSearchEngines: [SearchEngine] {
         [
             SearchEngine(
@@ -111,7 +115,7 @@ class SearchEngineService: ObservableObject {
         let customEngines = settingsStore.customSearchEngines.map { custom in
             SearchEngine(
                 name: custom.name,
-                color: .blue,
+                color: custom.faviconBackgroundColor ?? .blue,
                 icon: "",
                 aliases: custom.aliases,
                 searchURL: custom.searchURL,
@@ -132,15 +136,13 @@ class SearchEngineService: ObservableObject {
         // First check per-container setting
         if let containerId,
            let defaultId = settingsStore.defaultSearchEngineId(for: containerId),
-           let engine = searchEngines.first(where: { $0.name == defaultId })
-        {
+           let engine = searchEngines.first(where: { $0.name == defaultId }) {
             return engine
         }
 
         // Then check global default setting
         if let globalDefaultId = settingsStore.globalDefaultSearchEngine,
-           let engine = searchEngines.first(where: { $0.name == globalDefaultId })
-        {
+           let engine = searchEngines.first(where: { $0.name == globalDefaultId }) {
             return engine
         }
 
@@ -151,8 +153,7 @@ class SearchEngineService: ObservableObject {
     func getDefaultAIChat(for containerId: UUID? = nil) -> SearchEngine? {
         if let containerId,
            let defaultId = settingsStore.defaultAIEngineId(for: containerId),
-           let engine = searchEngines.first(where: { $0.name == defaultId && $0.isAIChat })
-        {
+           let engine = searchEngines.first(where: { $0.name == defaultId && $0.isAIChat }) {
             return engine
         }
 

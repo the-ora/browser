@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import SwiftUI
 
@@ -32,12 +33,95 @@ struct CustomSearchEngine: Codable, Identifiable, Hashable {
     let name: String
     let searchURL: String
     let aliases: [String]
+    let faviconData: Data?
+    let faviconBackgroundColorData: Data?
 
-    init(id: String = UUID().uuidString, name: String, searchURL: String, aliases: [String] = []) {
+    init(
+        id: String = UUID().uuidString,
+        name: String,
+        searchURL: String,
+        aliases: [String] = [],
+        faviconData: Data? = nil,
+        faviconBackgroundColorData: Data? = nil
+    ) {
         self.id = id
         self.name = name
         self.searchURL = searchURL
         self.aliases = aliases
+        self.faviconData = faviconData
+        self.faviconBackgroundColorData = faviconBackgroundColorData
+    }
+
+    var favicon: NSImage? {
+        guard let data = faviconData else { return nil }
+        return NSImage(data: data)
+    }
+
+    var faviconBackgroundColor: Color? {
+        guard let data = faviconBackgroundColorData else { return nil }
+        do {
+            let nsColor = try NSKeyedUnarchiver.unarchivedObject(ofClass: NSColor.self, from: data)
+            return nsColor.map(Color.init)
+        } catch {
+            return nil
+        }
+    }
+
+    static func createWithFavicon(
+        id: String = UUID().uuidString,
+        name: String,
+        searchURL: String,
+        aliases: [String] = [],
+        completion: @escaping (CustomSearchEngine) -> Void
+    ) {
+        let faviconService = FaviconService()
+
+        // Try to fetch favicon synchronously first (from cache)
+        if let favicon = faviconService.getFavicon(for: searchURL) {
+            let faviconData = favicon.tiffRepresentation
+            let backgroundColor = Color(favicon.averageColor())
+            let colorData = try? NSKeyedArchiver.archivedData(
+                withRootObject: NSColor(backgroundColor),
+                requiringSecureCoding: false
+            )
+
+            let engine = CustomSearchEngine(
+                id: id,
+                name: name,
+                searchURL: searchURL,
+                aliases: aliases,
+                faviconData: faviconData,
+                faviconBackgroundColorData: colorData
+            )
+            completion(engine)
+        } else {
+            // Fetch async and update
+            faviconService.fetchFaviconSync(for: searchURL) { favicon in
+                DispatchQueue.main.async {
+                    var faviconData: Data?
+                    var colorData: Data?
+
+                    if let favicon {
+                        faviconData = favicon.tiffRepresentation
+                        let backgroundColor = Color(favicon.averageColor())
+                        colorData = try? NSKeyedArchiver.archivedData(
+                            withRootObject: NSColor(backgroundColor),
+                            requiringSecureCoding: false
+                        )
+                    }
+
+                    let engine = CustomSearchEngine(
+                        id: id,
+                        name: name,
+                        searchURL: searchURL,
+                        aliases: aliases,
+                        faviconData: faviconData,
+                        faviconBackgroundColorData: colorData
+                    )
+                    completion(engine)
+                }
+            }
+        }
     }
 }
 

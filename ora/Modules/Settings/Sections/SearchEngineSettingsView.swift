@@ -21,14 +21,24 @@ struct SearchEngineSettingsView: View {
         SettingsContainer(maxContentWidth: 760) {
             Form {
                 VStack(alignment: .leading, spacing: 16) {
-                    HStack {
-                        Text("Add custom search engines with your own URLs and shortcuts.")
-                        Spacer()
-                        Button(showingAddForm ? "Cancel" : "Add Search Engine") {
-                            if showingAddForm {
-                                cancelForm()
-                            } else {
-                                showingAddForm = true
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Search Engine Library")
+                                    .font(.headline)
+                                Text(
+                                    "Manage available search engines and set global defaults. Individual spaces can override these in the Spaces tab."
+                                )
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Button(showingAddForm ? "Cancel" : "Add Custom Engine") {
+                                if showingAddForm {
+                                    cancelForm()
+                                } else {
+                                    showingAddForm = true
+                                }
                             }
                         }
                     }
@@ -90,66 +100,65 @@ struct SearchEngineSettingsView: View {
                         .cornerRadius(8)
                     }
 
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Default Search Engine").foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            AsyncImage(url: faviconService.faviconURL(for: "google.com")) { image in
-                                image
-                                    .resizable()
-                                    .frame(width: 16, height: 16)
-                            } placeholder: {
-                                RoundedRectangle(cornerRadius: 2)
-                                    .fill(Color.gray.opacity(0.3))
-                                    .frame(width: 16, height: 16)
-                            }
-
-                            Text("Google")
-                                .font(.body)
-
-                            if settings.globalDefaultSearchEngine == nil {
-                                Text("Default")
-                                    .font(.caption)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(Color.blue.opacity(0.2))
-                                    .foregroundColor(.blue)
-                                    .cornerRadius(4)
-                            }
-
+                            Text("Global Default Engines")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
                             Spacer()
-
-                            if settings.globalDefaultSearchEngine != nil {
-                                Button("Set as Default") {
-                                    settings.globalDefaultSearchEngine = nil
-                                }
-                            }
+                            Text("Individual spaces can override these defaults")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
-                        .padding(.vertical, 4)
-                    }
 
-                    if !settings.customSearchEngines.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Custom Search Engines").foregroundStyle(.secondary)
-                            ForEach(settings.customSearchEngines) { engine in
-                                CustomSearchEngineRow(
-                                    engine: engine,
-                                    faviconService: faviconService,
-                                    onDelete: {
-                                        if settings.globalDefaultSearchEngine == engine.name {
-                                            settings.globalDefaultSearchEngine = nil
-                                        }
-                                        settings.removeCustomSearchEngine(withId: engine.id)
-                                    },
-                                    onSetAsDefault: {
+                        Text("Choose which search engines to use by default across all spaces:")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        // Built-in search engines
+                        ForEach(searchEngineService.builtInSearchEngines, id: \.name) { engine in
+                            BuiltInSearchEngineRow(
+                                engine: engine,
+                                isDefault: settings.globalDefaultSearchEngine == engine
+                                    .name || (settings.globalDefaultSearchEngine == nil && engine.name == "Google"),
+                                onSetAsDefault: {
+                                    if engine.name == "Google" {
+                                        settings.globalDefaultSearchEngine = nil
+                                    } else {
                                         settings.globalDefaultSearchEngine = engine.name
-                                    },
-                                    onEdit: {
-                                        // Edit is now handled inline in the row
-                                    },
-                                    isDefault: settings.globalDefaultSearchEngine == engine.name,
-                                    settings: settings
-                                )
-                            }
+                                    }
+                                }
+                            )
+                        }
+
+                        if !settings.customSearchEngines.isEmpty {
+                            Divider()
+
+                            Text("Custom Search Engines")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .padding(.top, 8)
+                        }
+
+                        // Custom search engines
+                        ForEach(settings.customSearchEngines) { engine in
+                            CustomSearchEngineRow(
+                                engine: engine,
+                                onDelete: {
+                                    if settings.globalDefaultSearchEngine == engine.name {
+                                        settings.globalDefaultSearchEngine = nil
+                                    }
+                                    settings.removeCustomSearchEngine(withId: engine.id)
+                                },
+                                onSetAsDefault: {
+                                    settings.globalDefaultSearchEngine = engine.name
+                                },
+                                onEdit: {
+                                    // Edit is now handled inline in the row
+                                },
+                                isDefault: settings.globalDefaultSearchEngine == engine.name,
+                                settings: settings
+                            )
                         }
                     }
                 }
@@ -184,29 +193,93 @@ struct SearchEngineSettingsView: View {
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
 
-        // Add new engine
-        let engine = CustomSearchEngine(
+        // Create engine with favicon fetched upfront
+        CustomSearchEngine.createWithFavicon(
             name: newEngineName,
             searchURL: newEngineURL,
             aliases: aliasesList
-        )
-        settings.addCustomSearchEngine(engine)
+        ) { [weak settings] engine in
+            settings?.addCustomSearchEngine(engine)
+        }
 
         clearForm()
         showingAddForm = false
     }
 }
 
+struct BuiltInSearchEngineRow: View {
+    let engine: SearchEngine
+    let isDefault: Bool
+    let onSetAsDefault: () -> Void
+
+    var body: some View {
+        HStack {
+            // Favicon or icon
+            Group {
+                if !engine.icon.isEmpty {
+                    Image(engine.icon)
+                        .resizable()
+                        .frame(width: 16, height: 16)
+                } else {
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(engine.color.opacity(0.8))
+                        .frame(width: 16, height: 16)
+                        .overlay(
+                            Text(String(engine.name.first ?? "S"))
+                                .font(.caption2)
+                                .fontWeight(.medium)
+                                .foregroundColor(.white)
+                        )
+                }
+            }
+
+            // Name and badges
+            HStack(spacing: 8) {
+                Text(engine.name)
+                    .font(.body)
+
+                if engine.isAIChat {
+                    Text("AI")
+                        .font(.caption)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.purple.opacity(0.2))
+                        .foregroundColor(.purple)
+                        .cornerRadius(4)
+                }
+
+                if isDefault {
+                    Text("Default")
+                        .font(.caption)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.blue.opacity(0.2))
+                        .foregroundColor(.blue)
+                        .cornerRadius(4)
+                }
+            }
+
+            Spacer()
+
+            // Set as default button
+            if !isDefault {
+                Button("Set as Default") {
+                    onSetAsDefault()
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
+
 struct CustomSearchEngineRow: View {
     let engine: CustomSearchEngine
-    let faviconService: FaviconService
     let onDelete: () -> Void
     let onSetAsDefault: () -> Void
     let onEdit: () -> Void
     let isDefault: Bool
     let settings: SettingsStore
 
-    @State private var favicon: NSImage? = nil
     @State private var isEditing = false
     @State private var editName = ""
     @State private var editURL = ""
@@ -224,20 +297,14 @@ struct CustomSearchEngineRow: View {
                     HStack {
                         // Favicon
                         Group {
-                            if let favicon {
+                            if let favicon = engine.favicon {
                                 Image(nsImage: favicon)
                                     .resizable()
                                     .frame(width: 16, height: 16)
                             } else {
-                                AsyncImage(url: faviconURL) { image in
-                                    image
-                                        .resizable()
-                                        .frame(width: 16, height: 16)
-                                } placeholder: {
-                                    RoundedRectangle(cornerRadius: 2)
-                                        .fill(Color.gray.opacity(0.3))
-                                        .frame(width: 16, height: 16)
-                                }
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(Color.gray.opacity(0.3))
+                                    .frame(width: 16, height: 16)
                             }
                         }
 
@@ -294,20 +361,14 @@ struct CustomSearchEngineRow: View {
                 HStack {
                     // Favicon
                     Group {
-                        if let favicon {
+                        if let favicon = engine.favicon {
                             Image(nsImage: favicon)
                                 .resizable()
                                 .frame(width: 16, height: 16)
                         } else {
-                            AsyncImage(url: faviconURL) { image in
-                                image
-                                    .resizable()
-                                    .frame(width: 16, height: 16)
-                            } placeholder: {
-                                RoundedRectangle(cornerRadius: 2)
-                                    .fill(Color.gray.opacity(0.3))
-                                    .frame(width: 16, height: 16)
-                            }
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(Color.gray.opacity(0.3))
+                                .frame(width: 16, height: 16)
                         }
                     }
 
@@ -350,11 +411,7 @@ struct CustomSearchEngineRow: View {
             }
         }
         .onAppear {
-            favicon = faviconService.getFavicon(for: engine.searchURL)
             populateEditFields()
-        }
-        .onReceive(faviconService.objectWillChange) {
-            favicon = faviconService.getFavicon(for: engine.searchURL)
         }
     }
 
@@ -380,19 +437,30 @@ struct CustomSearchEngineRow: View {
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
 
-        let updatedEngine = CustomSearchEngine(
-            id: engine.id,
-            name: editName,
-            searchURL: editURL,
-            aliases: aliasesList
-        )
+        // Create updated engine with favicon if URL changed, otherwise keep existing favicon
+        if editURL != engine.searchURL {
+            // URL changed, fetch new favicon
+            CustomSearchEngine.createWithFavicon(
+                id: engine.id,
+                name: editName,
+                searchURL: editURL,
+                aliases: aliasesList
+            ) { [weak settings] updatedEngine in
+                settings?.updateCustomSearchEngine(updatedEngine)
+            }
+        } else {
+            // URL unchanged, keep existing favicon
+            let updatedEngine = CustomSearchEngine(
+                id: engine.id,
+                name: editName,
+                searchURL: editURL,
+                aliases: aliasesList,
+                faviconData: engine.faviconData,
+                faviconBackgroundColorData: engine.faviconBackgroundColorData
+            )
+            settings.updateCustomSearchEngine(updatedEngine)
+        }
 
-        settings.updateCustomSearchEngine(updatedEngine)
         isEditing = false
-    }
-
-    private var faviconURL: URL? {
-        guard let domain = URL(string: engine.searchURL)?.host else { return nil }
-        return URL(string: "https://www.google.com/s2/favicons?domain=\(domain)&sz=16")
     }
 }
