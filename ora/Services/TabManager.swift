@@ -358,7 +358,7 @@ class TabManager: ObservableObject {
 
             if let histMgr = finalHistoryManager, let dlMgr = finalDownloadManager {
                 tab.restoreTransientState(
-                    historyManger: histMgr,
+                    historyManager: histMgr,
                     downloadManager: dlMgr,
                     tabManager: self
                 )
