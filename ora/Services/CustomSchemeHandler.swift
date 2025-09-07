@@ -121,3 +121,23 @@ struct AppleIntelligenceSchemeHandler: CustomSchemeHandler {
         return "sparkles"
     }
 }
+
+// MARK: - Custom Scheme Errors
+
+enum CustomSchemeError: LocalizedError {
+    case unknownScheme(String)
+
+    var errorDescription: String? {
+        switch self {
+        case let .unknownScheme(scheme):
+            return "Unknown scheme: \(scheme)"
+        }
+    }
+
+    var recoverySuggestion: String? {
+        switch self {
+        case .unknownScheme:
+            return "Available schemes: apple-intelligence"
+        }
+    }
+}
