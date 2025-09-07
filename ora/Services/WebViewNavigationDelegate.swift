@@ -145,10 +145,10 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
         if !isDownloadNavigation {
             onLoadingChange?(false)
             let nsError = error as NSError
-            if nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled {
+            if nsError.domain == NSURLErrorDomain, nsError.code == NSURLErrorCancelled {
                 return
             }
-            
+
             tab?.setNavigationError(error, for: webView.url)
         }
         originalURL = nil // Clear stored URL on navigation failure
@@ -159,10 +159,10 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
         if !isDownloadNavigation {
             onLoadingChange?(false)
             let nsError = error as NSError
-            if nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled {
+            if nsError.domain == NSURLErrorDomain, nsError.code == NSURLErrorCancelled {
                 return
             }
-            
+
             tab?.setNavigationError(error, for: webView.url)
             onProgressChange?(100.0)
         }

@@ -10,6 +10,7 @@ struct URLBar: View {
     @State private var editingURLString: String = ""
     @FocusState private var isEditing: Bool
     @Environment(\.colorScheme) var colorScheme
+    @State private var showFullURL: Bool = false
 
     let onSidebarToggle: () -> Void
 
@@ -32,6 +33,14 @@ struct URLBar: View {
 
     var buttonForegroundColor: Color {
         return tabManager.activeTab.map { getForegroundColor($0).opacity(0.5) } ?? .gray
+    }
+
+    private func getDisplayURL(_ tab: Tab) -> String {
+        if showFullURL {
+            return tab.url.absoluteString
+        } else {
+            return tab.url.host ?? tab.url.absoluteString
+        }
     }
 
     var body: some View {
@@ -117,6 +126,7 @@ struct URLBar: View {
                             }
                             .onTapGesture {
                                 editingURLString = tab.url.absoluteString
+                                isEditing = true
                             }
                             .onKeyPress(.escape) {
                                 isEditing = false
@@ -182,20 +192,45 @@ struct URLBar: View {
                 //                }
                 //            }
                 .onAppear {
-                    editingURLString = tab.url.absoluteString
+                    editingURLString = getDisplayURL(tab)
                     DispatchQueue.main.async {
                         isEditing = false
                     }
                 }
-                .onChange(of: tab.url) { _, newValue in
+                .onChange(of: tab.url) { _, _ in
                     if !isEditing {
-                        editingURLString = newValue.absoluteString
+                        editingURLString = getDisplayURL(tab)
+                    }
+                }
+                .onChange(of: showFullURL) { _, _ in
+                    if !isEditing, let tab = tabManager.activeTab {
+                        editingURLString = getDisplayURL(tab)
+                    }
+                }
+                .onChange(of: tabManager.activeTab?.id) { _, _ in
+                    if !isEditing, let tab = tabManager.activeTab {
+                        editingURLString = getDisplayURL(tab)
                     }
                 }
                 .background(
                     Rectangle()
                         .fill(tab.backgroundColor)
                 )
+                .contextMenu {
+                    if showFullURL {
+                        Button(action: {
+                            showFullURL = false
+                        }) {
+                            Label("Hide Full URL", systemImage: "eye.slash")
+                        }
+                    } else {
+                        Button(action: {
+                            showFullURL = true
+                        }) {
+                            Label("Show Full URL", systemImage: "eye")
+                        }
+                    }
+                }
             }
         }
     }
