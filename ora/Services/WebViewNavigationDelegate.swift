@@ -87,7 +87,6 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
         // Store the URL being navigated to for error handling
         if let url = navigationAction.request.url {
             originalURL = url
-            print("🔄 NavigationDelegate: Storing navigation URL: \(url.absoluteString)")
         }
 
         // Check if command key is pressed (cmd+click)
@@ -125,8 +124,6 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
 
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
         if !isDownloadNavigation {
-            print("🔄 NavigationDelegate: Started navigation to: \(originalURL?.absoluteString ?? "nil")")
-
             // Clear any existing navigation errors when starting new navigation
             tab?.clearNavigationError()
 
@@ -189,13 +186,8 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
                url.scheme == "ora",
                CustomSchemeRegistry.shared.shouldHandle(url)
             {
-                print("🚫 NavigationDelegate: Ignoring navigation error for valid custom scheme: \(url)")
                 return
             }
-
-            print(
-                "🔍 NavigationDelegate: Setting error for URL - webView.url: \(webView.url?.absoluteString ?? "nil"), originalURL: \(originalURL?.absoluteString ?? "nil")"
-            )
             tab?.setNavigationError(error, for: originalURL ?? webView.url)
             onProgressChange?(100.0)
         }

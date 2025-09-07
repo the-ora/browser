@@ -119,14 +119,8 @@ struct StatusPageView: View {
     private var errorType: ErrorType {
         // Check if this is an invalid custom scheme (ora:// that failed to load)
         if let url = failedURL, url.scheme == "ora" {
-            print("🔍 StatusPage: Detected invalid custom scheme: \(url)")
             return .customScheme
         }
-
-        print(
-            "🔍 StatusPage: Error type detection - failedURL: \(failedURL?.absoluteString ?? "nil"), scheme: \(failedURL?.scheme ?? "nil")"
-        )
-
         let nsError = error as NSError
 
         // Network-related errors

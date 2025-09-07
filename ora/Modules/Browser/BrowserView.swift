@@ -178,14 +178,7 @@ struct BrowserView: View {
                                     // Fallback to web view if custom handler fails
                                     WebView(webView: tab.webView)
                                         .id(tab.id)
-                                        .onAppear {
-                                            print("❌ BrowserView: Failed to create custom view, falling back to WebView"
-                                            )
-                                        }
                                 }
-                            }
-                            .onAppear {
-                                print("🌐 BrowserView: Rendering custom scheme view for: \(tab.url)")
                             }
                         } else {
                             // Show normal web view
