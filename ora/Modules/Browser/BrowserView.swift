@@ -144,20 +144,28 @@ struct BrowserView: View {
             if let tab = tabManager.activeTab {
                 if tab.isWebViewReady {
                     if tab.hasNavigationError, let error = tab.navigationError {
-                        // Show status page for navigation errors
-                        StatusPageView(
-                            error: error,
-                            failedURL: tab.failedURL,
-                            onRetry: {
-                                tab.retryNavigation()
-                            },
-                            onGoBack: tab.webView.canGoBack
-                                ? {
-                                    tab.webView.goBack()
-                                    tab.clearNavigationError()
-                                } : nil
-                        )
-                        .id(tab.id)
+                        // Show status page for navigation errors (but not for valid custom schemes)
+                        if !CustomSchemeRegistry.shared.shouldHandle(tab.url) {
+                            StatusPageView(
+                                error: error,
+                                failedURL: tab.failedURL,
+                                onRetry: {
+                                    tab.retryNavigation()
+                                },
+                                onGoBack: tab.webView.canGoBack
+                                    ? {
+                                        tab.webView.goBack()
+                                        tab.clearNavigationError()
+                                    } : nil
+                            )
+                            .id(tab.id)
+                        } else {
+                            // For valid custom schemes, show the custom view instead of error page
+                            if let customView = CustomSchemeRegistry.shared.createView(for: tab.url) {
+                                customView
+                                    .id(tab.id)
+                            }
+                        }
                     } else {
                         // Check if this is a custom scheme URL
                         if CustomSchemeRegistry.shared.shouldHandle(tab.url) {

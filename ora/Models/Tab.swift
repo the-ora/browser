@@ -113,13 +113,9 @@ class Tab: ObservableObject, Identifiable {
             self.setupNavigationDelegate()
             self.syncBackgroundColorFromHex()
 
-            // Don't load custom scheme URLs in WebView
-            if !CustomSchemeRegistry.shared.shouldHandle(url) {
-                print("📱 Tab: Loading regular URL in WebView: \(url)")
-                self.webView.load(URLRequest(url: url))
-            } else {
-                print("📱 Tab: Skipping WebView load for custom scheme: \(url)")
-            }
+            // Load all URLs in WebView - custom schemes will fail and be handled in error handler
+            print("📱 Tab: Loading URL in WebView: \(url)")
+            self.webView.load(URLRequest(url: url))
 
             self.isWebViewReady = true
         }
