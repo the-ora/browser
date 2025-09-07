@@ -180,6 +180,18 @@ struct OraApp: App {
                     NotificationCenter.default.post(name: .toggleSidebar, object: nil)
                 }
                 .keyboardShortcut(KeyboardShortcuts.App.toggleSidebar)
+
+                Divider()
+
+                if appState.showFullURL {
+                    Button("Hide Full URL") {
+                        appState.showFullURL = false
+                    }
+                } else {
+                    Button("Show Full URL") {
+                        appState.showFullURL = true
+                    }
+                }
             }
 
             CommandGroup(replacing: .appInfo) {
