@@ -93,8 +93,7 @@ struct SearchEngineSettingsView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Default Search Engine").foregroundStyle(.secondary)
                         HStack {
-                            AsyncImage(url: URL(string: "https://www.google.com/s2/favicons?domain=google.com&sz=16"
-                            )) { image in
+                            AsyncImage(url: faviconService.faviconURL(for: "google.com")) { image in
                                 image
                                     .resizable()
                                     .frame(width: 16, height: 16)
