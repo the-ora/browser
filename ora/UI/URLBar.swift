@@ -205,9 +205,12 @@ struct URLBar: View {
                         Button(action: {}) {
                             Image(systemName: "square.and.arrow.up")
                                 .font(.system(size: 14))
-                                .foregroundColor(.secondary)
+                                .foregroundColor(CustomSchemeRegistry.shared.shouldHandle(tab.url) ? .gray
+                                    .opacity(0.3) : .secondary
+                                )
                         }
                         .buttonStyle(PlainButtonStyle())
+                        .disabled(CustomSchemeRegistry.shared.shouldHandle(tab.url))
 
                         Button(action: {}) {
                             Image(systemName: "ellipsis")
