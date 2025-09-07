@@ -84,6 +84,12 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
     ) {
         // Let all URLs (including custom schemes) attempt navigation - we'll handle custom schemes in error handler
 
+        // Store the URL being navigated to for error handling
+        if let url = navigationAction.request.url {
+            originalURL = url
+            print("🔄 NavigationDelegate: Storing navigation URL: \(url.absoluteString)")
+        }
+
         // Check if command key is pressed (cmd+click)
         logger
             .debug(
@@ -119,8 +125,11 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
 
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
         if !isDownloadNavigation {
-            // Store original URL before navigation
-            originalURL = tab?.url
+            print("🔄 NavigationDelegate: Started navigation to: \(originalURL?.absoluteString ?? "nil")")
+
+            // Clear any existing navigation errors when starting new navigation
+            tab?.clearNavigationError()
+
             onLoadingChange?(true)
             onProgressChange?(10.0)
             onURLChange?(webView.url)
@@ -184,7 +193,10 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
                 return
             }
 
-            tab?.setNavigationError(error, for: webView.url)
+            print(
+                "🔍 NavigationDelegate: Setting error for URL - webView.url: \(webView.url?.absoluteString ?? "nil"), originalURL: \(originalURL?.absoluteString ?? "nil")"
+            )
+            tab?.setNavigationError(error, for: originalURL ?? webView.url)
             onProgressChange?(100.0)
         }
         originalURL = nil // Clear stored URL on navigation failure

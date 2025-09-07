@@ -146,37 +146,19 @@ struct BrowserView: View {
                     if tab.hasNavigationError, let error = tab.navigationError {
                         // Show status page for navigation errors (but not for valid custom schemes)
                         if !CustomSchemeRegistry.shared.shouldHandle(tab.url) {
-                            // Check if this is an invalid custom scheme for custom error message
-                            if tab.url.scheme == "ora" {
-                                StatusPageView(
-                                    error: CustomSchemeError.unknownScheme(tab.url.host ?? "unknown"),
-                                    failedURL: tab.failedURL,
-                                    onRetry: {
-                                        tab.retryNavigation()
-                                    },
-                                    onGoBack: tab.webView.canGoBack
-                                        ? {
-                                            tab.webView.goBack()
-                                            tab.clearNavigationError()
-                                        } : nil
-                                )
-                                .id(tab.id)
-                            } else {
-                                // Regular web error
-                                StatusPageView(
-                                    error: error,
-                                    failedURL: tab.failedURL,
-                                    onRetry: {
-                                        tab.retryNavigation()
-                                    },
-                                    onGoBack: tab.webView.canGoBack
-                                        ? {
-                                            tab.webView.goBack()
-                                            tab.clearNavigationError()
-                                        } : nil
-                                )
-                                .id(tab.id)
-                            }
+                            StatusPageView(
+                                error: error,
+                                failedURL: tab.failedURL,
+                                onRetry: {
+                                    tab.retryNavigation()
+                                },
+                                onGoBack: tab.webView.canGoBack
+                                    ? {
+                                        tab.webView.goBack()
+                                        tab.clearNavigationError()
+                                    } : nil
+                            )
+                            .id(tab.id)
                         } else {
                             // For valid custom schemes, show the custom view instead of error page
                             if let customView = CustomSchemeRegistry.shared.createView(for: tab.url) {

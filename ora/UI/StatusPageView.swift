@@ -75,6 +75,8 @@ struct StatusPageView: View {
             return "lock.slash"
         case .timeout:
             return "clock.badge.exclamationmark"
+        case .customScheme:
+            return "link.badge.plus"
         case .unknown:
             return "exclamationmark.triangle"
         }
@@ -90,6 +92,8 @@ struct StatusPageView: View {
             return "Connection Not Secure"
         case .timeout:
             return "Request Timed Out"
+        case .customScheme:
+            return "Invalid Scheme"
         case .unknown:
             return "Something Went Wrong"
         }
@@ -105,12 +109,24 @@ struct StatusPageView: View {
             return "The connection to this site is not secure."
         case .timeout:
             return "The page took too long to load. Try again or check your connection."
+        case .customScheme:
+            return "The scheme you entered is not recognized."
         case .unknown:
             return "An unexpected error occurred while loading this page."
         }
     }
 
     private var errorType: ErrorType {
+        // Check if this is an invalid custom scheme (ora:// that failed to load)
+        if let url = failedURL, url.scheme == "ora" {
+            print("🔍 StatusPage: Detected invalid custom scheme: \(url)")
+            return .customScheme
+        }
+
+        print(
+            "🔍 StatusPage: Error type detection - failedURL: \(failedURL?.absoluteString ?? "nil"), scheme: \(failedURL?.scheme ?? "nil")"
+        )
+
         let nsError = error as NSError
 
         // Network-related errors
@@ -147,6 +163,7 @@ struct StatusPageView: View {
         case notFound
         case security
         case timeout
+        case customScheme
         case unknown
     }
 }
