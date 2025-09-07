@@ -151,7 +151,6 @@ struct TopAppsObject: Decodable {
 }
 
 func getRoot() -> Root? {
-//    let url = URL(fileURLWithPath: "/Users/keni/Library/Application Support/Arc/StorableSidebar.json")
     let url = URL(fileURLWithPath: NSString(string: "~/Library/Application Support/Arc/StorableSidebar.json")
         .expandingTildeInPath
     )
@@ -190,14 +189,9 @@ func inspectItems(_ root: Root) -> Result {
     var cleanSpaces: [CleanSpace] = []
     var cleanTabs: [CleanTab] = []
     var topIds: [String] = []
-//    print("==================")
-    for (_, container) in root.sidebar.containers.enumerated() {
-//        print("Container \(index):")
 
-        // Inspect spaces
-
+    for container in root.sidebar.containers {
         if let spaces = container.spaces {
-//            print("  has \(spaces.count) spaces")
             for item in spaces {
                 switch item {
                 case let .custom(customInfo):
@@ -219,12 +213,11 @@ func inspectItems(_ root: Root) -> Result {
                 }
             }
         } else {
-//            print("  no spaces")
+            logger.debug("No spaces")
         }
 
         // Inspect items with detailed output
         if let items = container.items {
-//            print("  has \(items.count) items")
             var idCount = 0
             var objectCount = 0
             for (itemIndex, item) in items.enumerated() {
@@ -235,14 +228,7 @@ func inspectItems(_ root: Root) -> Result {
                     logger.debug("ID: \(id)")
                 case let .object(itemObject):
                     objectCount += 1
-//                    print("      Object:")
-//                    print("        ID: \(itemObject.id)")
-//                    print("        Title: \(itemObject.title ?? "n/a")")
-//                    print("        Originating Device: \(itemObject.originatingDevice ?? "n/a")")
-//                    print("        Created At: \(itemObject.createdAt ?? 0)")
-//                    print("        Is Unread: \(itemObject.isUnread)")
-//                    print("        Parent ID: \(itemObject.parentID ?? "n/a")")
-//                    print("        Children IDs: \(itemObject.childrenIds)")
+
                     if let data = itemObject.data {
                         if let tab = data.tab {
                             if let parentID = itemObject.parentID, let urlString = tab.savedURL {
@@ -255,39 +241,23 @@ func inspectItems(_ root: Root) -> Result {
                                     )
                                 )
                             }
-//                            print("        Tab Data:")
-//                            print("          Saved URL: \(tab.savedURL ?? "n/a")")
-//                            print("          Saved Title: \(tab.savedTitle ?? "n/a")")
                         }
-//                        if let easel = data.easel {
-                        ////                            print("        Easel Data:")
-                        ////                            print("          Easel ID: \(easel.easelID ?? "n/a")")
-                        ////                            print("           Title: \(easel.title ?? "n/a")")
-//                        }
-                    } else {
-//                        print("        No Data")
                     }
                 }
             }
-//            print("    Total: \(idCount) IDs, \(objectCount) objects")
-        } else {
-//            print("  no items")
+            logger.debug("    Total: \(idCount) IDs, \(objectCount) objects")
         }
 
         // Inspect topAppsContainerIDs
         if let topApps = container.topAppsContainerIDs {
-//            print("  has \(topApps.count) topAppsContainerIDs")
             for topApp in topApps {
                 switch topApp {
                 case let .id(id):
-//                    print("    TopApp ID: \(id)")
                     topIds.append(id)
                 case let .object(obj):
                     logger.debug("TopApp Object: id=\(obj.id ?? "n/a")")
                 }
             }
-        } else {
-//            print("  no topAppsContainerIDs")
         }
     }
     var result = Result(
@@ -297,7 +267,6 @@ func inspectItems(_ root: Root) -> Result {
     for tid in topIds {
         result.favs.insert(tid)
     }
-//    return []
 
     return result
 }

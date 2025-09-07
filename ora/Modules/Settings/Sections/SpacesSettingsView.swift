@@ -44,8 +44,7 @@ struct SpacesSettingsView: View {
                                     set: { settings.setDefaultSearchEngineId($0, for: container.id) }
                                 )
                             ) {
-                                ForEach(searchService.searchEngines.filter { !$0.isAIChat }, id: \.name) {
-                                    engine in
+                                ForEach(searchService.searchEngines.filter { !$0.isAIChat }, id: \.name) { engine in
                                     Text(engine.name).tag(Optional(engine.name)).frame(width: 200)
                                 }.frame(width: 200)
                             }
