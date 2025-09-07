@@ -127,8 +127,7 @@ struct TabItem: View {
         }
         .padding(8)
         .opacity(isDragging ? 0.0 : 1.0)
-        .background(backgroundColor)
-        .cornerRadius(10)
+        .background(backgroundColor, in: .rect(cornerRadius: 10))
         .overlay(
             isDragging ?
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -138,6 +137,8 @@ struct TabItem: View {
                 )
                 : nil
         )
+        .contentShape(.rect(cornerRadius: 10))
+        .geometryGroup()
         .onTapGesture {
             onTap()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
