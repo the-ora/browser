@@ -159,62 +159,75 @@ struct BrowserView: View {
                         )
                         .id(tab.id)
                     } else {
-                        // Show normal web view
-                        ZStack(alignment: .topTrailing) {
-                            WebView(webView: tab.webView)
-                                .id(tab.id)
-
-                            // Floating find view overlay
-                            if appState.showFinderIn == tab.id {
-                                FindView(webView: tab.webView)
-                                    .padding(.top, 16)
-                                    .padding(.trailing, 16)
-                                    .zIndex(1000)
+                        // Check if this is a custom scheme URL
+                        if CustomSchemeRegistry.shared.shouldHandle(tab.url) {
+                            // Show custom scheme view
+                            if let customView = CustomSchemeRegistry.shared.createView(for: tab.url) {
+                                customView
+                                    .id(tab.id)
+                            } else {
+                                // Fallback to web view if custom handler fails
+                                WebView(webView: tab.webView)
+                                    .id(tab.id)
                             }
+                        } else {
+                            // Show normal web view
+                            ZStack(alignment: .topTrailing) {
+                                WebView(webView: tab.webView)
+                                    .id(tab.id)
 
-                            // Hovered link URL overlay (bottom-left)
-                            if let hovered = tab.hoveredLinkURL, !hovered.isEmpty {
-                                VStack {
-                                    Spacer()
-                                    HStack {
-                                        Text(hovered)
-                                            .font(.system(size: 12, weight: .regular))
-                                            .foregroundStyle(theme.foreground)
-                                            .padding(.horizontal, 10)
-                                            .padding(.vertical, 6)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                                    .fill(theme.background)
-                                            )
-                                            .background(BlurEffectView(
-                                                material: .popover,
-                                                blendingMode: .withinWindow
-                                            ))
-                                            .cornerRadius(99)
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 99, style: .continuous)
-                                                    .stroke(Color(.separatorColor), lineWidth: 1)
-                                            )
-                                            .padding(.leading, 12)
-                                        Spacer()
-
-                                        // Version indicator (bottom-right)
-                                        Text(getAppVersion())
-                                            .font(.system(size: 10, weight: .regular))
-                                            .foregroundStyle(Color.white.opacity(0.6))
-                                            .padding(.horizontal, 8)
-                                            .padding(.vertical, 4)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                                    .fill(Color.black.opacity(0.2))
-                                            )
-                                            .padding(.trailing, 12)
-                                    }
-                                    .padding(.bottom, 12)
+                                // Floating find view overlay
+                                if appState.showFinderIn == tab.id {
+                                    FindView(webView: tab.webView)
+                                        .padding(.top, 16)
+                                        .padding(.trailing, 16)
+                                        .zIndex(1000)
                                 }
-                                .transition(.opacity)
-                                .animation(.easeOut(duration: 0.1), value: tab.hoveredLinkURL)
-                                .zIndex(900)
+
+                                // Hovered link URL overlay (bottom-left)
+                                if let hovered = tab.hoveredLinkURL, !hovered.isEmpty {
+                                    VStack {
+                                        Spacer()
+                                        HStack {
+                                            Text(hovered)
+                                                .font(.system(size: 12, weight: .regular))
+                                                .foregroundStyle(theme.foreground)
+                                                .padding(.horizontal, 10)
+                                                .padding(.vertical, 6)
+                                                .background(
+                                                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                                        .fill(theme.background)
+                                                )
+                                                .background(BlurEffectView(
+                                                    material: .popover,
+                                                    blendingMode: .withinWindow
+                                                ))
+                                                .cornerRadius(99)
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 99, style: .continuous)
+                                                        .stroke(Color(.separatorColor), lineWidth: 1)
+                                                )
+                                                .padding(.leading, 12)
+                                            Spacer()
+
+                                            // Version indicator (bottom-right)
+                                            Text(getAppVersion())
+                                                .font(.system(size: 10, weight: .regular))
+                                                .foregroundStyle(Color.white.opacity(0.6))
+                                                .padding(.horizontal, 8)
+                                                .padding(.vertical, 4)
+                                                .background(
+                                                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                                        .fill(Color.black.opacity(0.2))
+                                                )
+                                                .padding(.trailing, 12)
+                                        }
+                                        .padding(.bottom, 12)
+                                    }
+                                    .transition(.opacity)
+                                    .animation(.easeOut(duration: 0.1), value: tab.hoveredLinkURL)
+                                    .zIndex(900)
+                                }
                             }
                         }
                     }

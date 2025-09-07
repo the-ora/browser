@@ -2,11 +2,17 @@ import SwiftUI
 
 @available(macOS 26.0, *)
 struct AIChatView: View {
-    @StateObject private var conversationManager = AIConversationManager()
+    @State private var conversationManager = AIConversationManager()
     @State private var inputText = ""
     @State private var aiService: AppleIntelligenceService?
 
+    private let initialQuery: String?
+
     @Environment(\.theme) private var theme
+
+    init(initialQuery: String? = nil) {
+        self.initialQuery = initialQuery
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -20,6 +26,7 @@ struct AIChatView: View {
         .onAppear {
             initializeAIService()
             ensureActiveConversation()
+            handleInitialQuery()
         }
     }
 
@@ -174,6 +181,17 @@ struct AIChatView: View {
     private func ensureActiveConversation() {
         if conversationManager.activeConversation == nil {
             conversationManager.createNewConversation()
+        }
+    }
+
+    private func handleInitialQuery() {
+        if let query = initialQuery, !query.isEmpty {
+            inputText = query
+            // Automatically send the initial query after a short delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                sendMessage(query)
+                inputText = ""
+            }
         }
     }
 

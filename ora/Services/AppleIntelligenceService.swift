@@ -6,9 +6,10 @@ import SwiftUI
 /// Only available on macOS 26 and later
 @available(macOS 26.0, *)
 @MainActor
-class AppleIntelligenceService: ObservableObject {
-    @Published var isGenerating: Bool = false
-    @Published var lastError: String?
+@Observable
+class AppleIntelligenceService {
+    var isGenerating: Bool = false
+    var lastError: String?
 
     private var model = SystemLanguageModel.default
     private var session: LanguageModelSession?
@@ -184,9 +185,10 @@ struct AIConversation: Codable, Identifiable {
 // MARK: - Conversation Manager
 
 @MainActor
-class AIConversationManager: ObservableObject {
-    @Published var conversations: [AIConversation] = []
-    @Published var activeConversation: AIConversation?
+@Observable
+class AIConversationManager {
+    var conversations: [AIConversation] = []
+    var activeConversation: AIConversation?
 
     private let userDefaults = UserDefaults.standard
     private let conversationsKey = "ai_conversations"

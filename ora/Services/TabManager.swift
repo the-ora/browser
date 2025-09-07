@@ -228,7 +228,30 @@ class TabManager: ObservableObject {
         downloadManager: DownloadManager? = nil
     ) {
         if let container = activeContainer {
-            if let host = url.host {
+            // Handle custom schemes
+            if CustomSchemeRegistry.shared.shouldHandle(url) {
+                let title = CustomSchemeRegistry.shared.title(for: url) ?? "Custom Tab"
+                let newTab = Tab(
+                    url: url,
+                    title: title,
+                    favicon: nil, // Custom schemes can define their own icons
+                    container: container,
+                    type: .normal,
+                    isPlayingMedia: false,
+                    order: container.tabs.count + 1,
+                    historyManager: historyManager,
+                    downloadManager: downloadManager,
+                    tabManager: self
+                )
+                modelContext.insert(newTab)
+                container.tabs.append(newTab)
+                activeTab?.maybeIsActive = false
+                activeTab = newTab
+                activeTab?.maybeIsActive = true
+                newTab.lastAccessedAt = Date()
+                container.lastAccessedAt = Date()
+                try? modelContext.save()
+            } else if let host = url.host {
                 let faviconURL = URL(string: "https://www.google.com/s2/favicons?domain=\(host)")
 
                 let cleanHost = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host

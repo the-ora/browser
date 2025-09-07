@@ -51,11 +51,31 @@ struct LauncherMain: View {
     @State private var suggestions: [LauncherSuggestion] = [
     ]
     func defaultSuggestions() -> [LauncherSuggestion] {
-        return [
+        var suggestions = [
             LauncherSuggestion(
                 type: .suggestedQuery, title: "Search on Google",
                 action: { onSubmit(nil) }
-            ),
+            )
+        ]
+
+        // Add Apple Intelligence if available (macOS 26+ only)
+        if #available(macOS 26.0, *) {
+            suggestions.append(LauncherSuggestion(
+                type: .aiChat,
+                title: "Apple Intelligence",
+                name: "Apple Intelligence",
+                action: {
+                    tabManager
+                        .openFromEngine(
+                            engineName: .appleIntelligence,
+                            query: text,
+                            historyManager: historyManager
+                        )
+                }
+            ))
+        }
+
+        suggestions.append(contentsOf: [
             LauncherSuggestion(
                 type: .aiChat,
                 title: "Grok",
@@ -95,7 +115,9 @@ struct LauncherMain: View {
                         )
                 }
             )
-        ]
+        ])
+
+        return suggestions
     }
 
     private func isValidHostname(_ input: String) -> Bool {
@@ -244,6 +266,25 @@ struct LauncherMain: View {
 
     private func appendAISuggestionsIfNeeded(_ text: String) {
         guard isAISuitableQuery(text) else { return }
+
+        // Add Apple Intelligence first if available (macOS 26+ only)
+        if #available(macOS 26.0, *) {
+            suggestions.append(
+                LauncherSuggestion(
+                    type: .aiChat,
+                    title: text,
+                    name: "Apple Intelligence",
+                    action: {
+                        tabManager.openFromEngine(
+                            engineName: .appleIntelligence,
+                            query: text,
+                            historyManager: historyManager
+                        )
+                    }
+                )
+            )
+        }
+
         suggestions.append(
             LauncherSuggestion(
                 type: .aiChat,
@@ -396,6 +437,8 @@ struct LauncherMain: View {
             return "Search on Youtube"
         case "Google":
             return "Search on Google"
+        case "Apple Intelligence":
+            return "Ask Apple Intelligence"
         case "ChatGPT":
             return "Ask ChatGPT"
         case "Claude":
