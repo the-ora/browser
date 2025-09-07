@@ -50,11 +50,7 @@ class AppleIntelligenceService {
             return session
         }
 
-        let instructions = """
-        You are Apple Intelligence, a helpful AI assistant running locally on the user's Mac.
-        You should be helpful, harmless, and honest. Keep responses concise but informative.
-        Respond with "I can't help with that" if asked to do something dangerous or inappropriate.
-        """
+        let instructions = ""
         let newSession = LanguageModelSession(instructions: instructions)
         session = newSession
         return newSession
