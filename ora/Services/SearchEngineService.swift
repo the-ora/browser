@@ -6,6 +6,7 @@ private let logger = Logger(subsystem: "com.orabrowser.ora", category: "SearchEn
 enum SearchEngineID: String, CaseIterable {
     case youtube = "YouTube"
     case chatgpt = "ChatGPT"
+    case claude = "Claude"
     case google = "Google"
     case grok = "Grok"
     case perplexity = "Perplexity"
@@ -52,6 +53,14 @@ class SearchEngineService: ObservableObject {
                 searchURL: "https://chatgpt.com?q={query}",
                 isAIChat: true,
                 foregroundColor: theme?.background ?? .black
+            ),
+            SearchEngine(
+                name: "Claude",
+                color: Color(hex: "#CC785C"),
+                icon: "",
+                aliases: ["claude", "anthropic", "cl", "cla"],
+                searchURL: "https://claude.ai/new?q={query}",
+                isAIChat: true
             ),
             SearchEngine(
                 name: "Google",
