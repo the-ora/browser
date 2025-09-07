@@ -112,7 +112,15 @@ class Tab: ObservableObject, Identifiable {
         DispatchQueue.main.async {
             self.setupNavigationDelegate()
             self.syncBackgroundColorFromHex()
-            self.webView.load(URLRequest(url: url))
+
+            // Don't load custom scheme URLs in WebView
+            if !CustomSchemeRegistry.shared.shouldHandle(url) {
+                print("📱 Tab: Loading regular URL in WebView: \(url)")
+                self.webView.load(URLRequest(url: url))
+            } else {
+                print("📱 Tab: Skipping WebView load for custom scheme: \(url)")
+            }
+
             self.isWebViewReady = true
         }
     }
@@ -353,8 +361,11 @@ class Tab: ObservableObject, Identifiable {
         // Don't clear error state immediately - let onStart callback handle it
         // This prevents showing white background before navigation begins
         if let url = failedURL {
-            let request = URLRequest(url: url)
-            webView.load(request)
+            // Don't retry loading custom scheme URLs in WebView
+            if !CustomSchemeRegistry.shared.shouldHandle(url) {
+                let request = URLRequest(url: url)
+                webView.load(request)
+            }
         }
     }
 }

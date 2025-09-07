@@ -23,7 +23,6 @@ protocol CustomSchemeHandler {
 
 // MARK: - Custom Scheme Registry
 
-@MainActor
 @Observable
 class CustomSchemeRegistry {
     static let shared = CustomSchemeRegistry()
@@ -42,8 +41,13 @@ class CustomSchemeRegistry {
 
     /// Check if a URL should be handled by a custom scheme
     func shouldHandle(_ url: URL) -> Bool {
-        guard url.scheme == "ora", let host = url.host else { return false }
-        return handlers[host] != nil
+        guard url.scheme == "ora", let host = url.host else {
+            print("🔧 CustomScheme: URL not ora scheme or no host: \(url)")
+            return false
+        }
+        let hasHandler = handlers[host] != nil
+        print("🔧 CustomScheme: URL \(url) - hasHandler: \(hasHandler)")
+        return hasHandler
     }
 
     /// Get the handler for a URL
@@ -54,8 +58,12 @@ class CustomSchemeRegistry {
 
     /// Create a view for a custom scheme URL
     func createView(for url: URL) -> AnyView? {
-        guard let handler = handler(for: url) else { return nil }
+        guard let handler = handler(for: url) else {
+            print("🔧 CustomScheme: No handler found for URL: \(url)")
+            return nil
+        }
         let query = extractQuery(from: url)
+        print("🔧 CustomScheme: Creating view for URL: \(url) with query: \(query ?? "nil")")
         return handler.createView(for: url, query: query)
     }
 
@@ -83,7 +91,10 @@ class CustomSchemeRegistry {
     private func registerDefaultHandlers() {
         // Register Apple Intelligence handler if available
         if #available(macOS 26.0, *) {
+            print("🔧 CustomScheme: Registering Apple Intelligence handler")
             register(AppleIntelligenceSchemeHandler())
+        } else {
+            print("🔧 CustomScheme: macOS 26+ not available, skipping Apple Intelligence handler")
         }
     }
 }
@@ -106,6 +117,7 @@ struct AppleIntelligenceSchemeHandler: CustomSchemeHandler {
     }
 
     func icon(for url: URL) -> String {
-        return "apple.intelligence"
+        // Use sparkles icon as fallback since apple.intelligence might not be available
+        return "sparkles"
     }
 }

@@ -82,6 +82,15 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
         decidePolicyFor navigationAction: WKNavigationAction,
         decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
     ) {
+        // Check if this is a custom scheme URL that should not be loaded in WebView
+        if let url = navigationAction.request.url,
+           CustomSchemeRegistry.shared.shouldHandle(url)
+        {
+            print("🚫 NavigationDelegate: Cancelling navigation to custom scheme: \(url)")
+            decisionHandler(.cancel)
+            return
+        }
+
         // Check if command key is pressed (cmd+click)
         logger
             .debug(
@@ -169,6 +178,12 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
             onLoadingChange?(false)
             let nsError = error as NSError
             if nsError.domain == NSURLErrorDomain, nsError.code == NSURLErrorCancelled {
+                return
+            }
+
+            // Don't set navigation errors for custom scheme URLs - they're handled by custom views
+            if let url = webView.url, CustomSchemeRegistry.shared.shouldHandle(url) {
+                print("🚫 NavigationDelegate: Ignoring navigation error for custom scheme: \(url)")
                 return
             }
 

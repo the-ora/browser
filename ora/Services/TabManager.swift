@@ -230,6 +230,7 @@ class TabManager: ObservableObject {
         if let container = activeContainer {
             // Handle custom schemes
             if CustomSchemeRegistry.shared.shouldHandle(url) {
+                print("📝 TabManager: Opening custom scheme tab for: \(url)")
                 let title = CustomSchemeRegistry.shared.title(for: url) ?? "Custom Tab"
                 let newTab = Tab(
                     url: url,

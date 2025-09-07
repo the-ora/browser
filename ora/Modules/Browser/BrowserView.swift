@@ -161,14 +161,23 @@ struct BrowserView: View {
                     } else {
                         // Check if this is a custom scheme URL
                         if CustomSchemeRegistry.shared.shouldHandle(tab.url) {
-                            // Show custom scheme view
-                            if let customView = CustomSchemeRegistry.shared.createView(for: tab.url) {
-                                customView
-                                    .id(tab.id)
-                            } else {
-                                // Fallback to web view if custom handler fails
-                                WebView(webView: tab.webView)
-                                    .id(tab.id)
+                            Group {
+                                // Show custom scheme view
+                                if let customView = CustomSchemeRegistry.shared.createView(for: tab.url) {
+                                    customView
+                                        .id(tab.id)
+                                } else {
+                                    // Fallback to web view if custom handler fails
+                                    WebView(webView: tab.webView)
+                                        .id(tab.id)
+                                        .onAppear {
+                                            print("❌ BrowserView: Failed to create custom view, falling back to WebView"
+                                            )
+                                        }
+                                }
+                            }
+                            .onAppear {
+                                print("🌐 BrowserView: Rendering custom scheme view for: \(tab.url)")
                             }
                         } else {
                             // Show normal web view
