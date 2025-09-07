@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct AppearanceSelector: View {
-    @Binding var selection: AppAppearance
-    @Environment(\.theme) var theme
+    @Environment(AppearanceManager.self) private var appearanceManager
+    @Environment(\.theme) private var theme
 
     private struct Option: Identifiable {
         let id = UUID()
@@ -24,9 +24,9 @@ struct AppearanceSelector: View {
             Text("Appearance").foregroundStyle(.secondary)
             HStack(spacing: 16) {
                 ForEach(options) { opt in
-                    let isSelected = selection == opt.appearance
+                    let isSelected = appearanceManager.appearance == opt.appearance
                     Button {
-                        selection = opt.appearance
+                        appearanceManager.appearance = opt.appearance
                     } label: {
                         VStack(alignment: .leading, spacing: 8) {
                             Image(opt.imageName)
