@@ -233,7 +233,7 @@ struct OraApp: App {
                 }
             }
 
-            CommandMenu("View") {
+            CommandGroup(replacing: .toolbar) {
                 if appState.isToolbarHidden {
                     Button("Show Toolbar") {
                         appState.isToolbarHidden = false
