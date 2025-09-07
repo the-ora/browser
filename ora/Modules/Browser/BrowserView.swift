@@ -98,6 +98,8 @@ struct BrowserView: View {
                     isFloatingSidebar: showFloatingSidebar,
                     isFullscreen: $isFullscreen
                 )
+                .id("showFloatingSidebar = \(showFloatingSidebar)") // Forces WindowAccessor to update (for Traffic
+                // Lights)
             )
             .overlay {
                 if appState.showLauncher, tabManager.activeTab != nil {
