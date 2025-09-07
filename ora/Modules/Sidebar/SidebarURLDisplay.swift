@@ -63,11 +63,17 @@ struct SidebarURLDisplay: View {
                             }
                         }
                     }
+                    .allowsHitTesting(false)
                 )
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 10)
         .frame(maxWidth: .infinity)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            isEditing = true
+            editingURLString = tab.url.absoluteString
+        }
         .background(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(theme.mutedBackground)
@@ -105,24 +111,26 @@ struct SidebarURLDisplay: View {
             }
         }
         .onAppear {
-            editingURLString = getDisplayURL()
+            // Keep field empty when not editing so overlay shows current URL/host
+            editingURLString = ""
             DispatchQueue.main.async {
                 isEditing = false
             }
         }
         .onChange(of: tab.url) { _, _ in
-            if !isEditing {
-                editingURLString = getDisplayURL()
-            }
+            // When the tab's URL changes and we're not editing, keep the field empty
+            if !isEditing { editingURLString = "" }
         }
         .onChange(of: appState.showFullURL) { _, _ in
-            if !isEditing {
-                editingURLString = getDisplayURL()
-            }
+            // Reflect toggle immediately via overlay; keep field empty
+            if !isEditing { editingURLString = "" }
         }
-        .onChange(of: tabManager.activeTab?.id) { _, _ in
-            if !isEditing {
-                editingURLString = getDisplayURL()
+        .onChange(of: isEditing) { _, newValue in
+            // Populate field when entering edit mode, clear when exiting
+            if newValue {
+                editingURLString = tab.url.absoluteString
+            } else {
+                editingURLString = ""
             }
         }
     }
