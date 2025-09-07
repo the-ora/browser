@@ -9,14 +9,10 @@ struct WindowAccessor: NSViewRepresentable {
     // Store original button frames to restore them later
     private static var originalButtonFrames: [NSWindow.ButtonType: NSRect] = [:]
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-
-    class Coordinator: NSView {
+    class WindowAccessorView: NSView {
         var parent: WindowAccessor
 
-        init(_ parent: WindowAccessor) {
+        init(parent: WindowAccessor) {
             self.parent = parent
             super.init(frame: .zero)
         }
@@ -63,7 +59,7 @@ struct WindowAccessor: NSViewRepresentable {
     }
 
     func makeNSView(context: Context) -> NSView {
-        return context.coordinator
+        return WindowAccessorView(parent: self)
     }
 
     func updateNSView(_ nsView: NSView, context: Context) {
