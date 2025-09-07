@@ -3,7 +3,7 @@
 Ora is a fast, secure, and beautiful browser built for macOS. Inspired by Safari and Arc, Ora delivers a clean, native experience that feels at home on macOS — without unnecessary bloat.
 
 > **⚠️ Disclaimer**  
-Ora is currently in early stages of development and **not yet ready for day-to-day use**. An alpha version with core functionalities will be released soon.
+Ora is currently in early stages of development and **not yet ready for day-to-day use**. An beta version with core functionalities will be released soon.
 
 If you would like to support the project, please consider donating via [Buy Me A Coffee](https://buymeacoffee.com/orabrowser).
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/orabrowser)
