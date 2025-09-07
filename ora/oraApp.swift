@@ -24,8 +24,8 @@ class AppState: ObservableObject {
 struct OraApp: App {
     @StateObject private var appState = AppState()
     @StateObject private var keyModifierListener = KeyModifierListener()
-    @StateObject private var updateService = UpdateService()
     @State private var appearanceManager = AppearanceManager()
+    @State private var updateService = UpdateService()
     // Pass it to TabManager
     @StateObject private var tabManager: TabManager
     @StateObject private var historyManager: HistoryManager
@@ -92,7 +92,7 @@ struct OraApp: App {
                 .environmentObject(keyModifierListener)
                 .environment(appearanceManager)
                 .environmentObject(downloadManager)
-                .environmentObject(updateService)
+                .environment(updateService)
                 .modelContext(tabContext)
                 .modelContext(historyContext)
                 .onAppear {
@@ -237,7 +237,7 @@ struct OraApp: App {
             SettingsContentView()
                 .environment(appearanceManager)
                 .environmentObject(historyManager)
-                .environmentObject(updateService)
+                .environment(updateService)
                 .modelContext(tabContext)
                 .withTheme()
         }
