@@ -64,9 +64,10 @@ struct WebView: NSViewRepresentable {
 
             // Monitor for other mouse button events (buttons 4 and 5)
             mouseEventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.otherMouseDown]) { [weak self] event in
-                guard let self = self,
+                guard let self,
                       let webView = self.webView,
-                      self.isEventInWebView(event, webView: webView) else {
+                      self.isEventInWebView(event, webView: webView)
+                else {
                     return event
                 }
 

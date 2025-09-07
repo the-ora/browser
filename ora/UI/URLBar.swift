@@ -7,6 +7,8 @@ struct URLBar: View {
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var appState: AppState
 
+    @State private var showCopiedAnimation = false
+    @State private var startWheelAnimation = false
     @State private var editingURLString: String = ""
     @FocusState private var isEditing: Bool
     @Environment(\.colorScheme) var colorScheme
@@ -28,6 +30,12 @@ struct URLBar: View {
 
     private func getUrlFieldColor(_ tab: Tab) -> Color {
         return tabManager.activeTab.map { getForegroundColor($0).opacity(isEditing ? 1.0 : 0.5) } ?? .gray
+    }
+
+    private func copyToClipboard(_ text: String) {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
     }
 
     var buttonForegroundColor: Color {
@@ -106,35 +114,70 @@ struct URLBar: View {
                             .frame(width: 16, height: 16)
                         }
 
-                        TextField("", text: $editingURLString)
-                            .font(.system(size: 14))
-                            .textFieldStyle(PlainTextFieldStyle())
-                            .foregroundColor(getUrlFieldColor(tab))
-                            .focused($isEditing)
-                            .onSubmit {
-                                tab.loadURL(editingURLString)
-                                isEditing = false
+                        ZStack(alignment: .leading) {
+                            TextField("", text: $editingURLString)
+                                .textFieldStyle(PlainTextFieldStyle())
+                                .focused($isEditing)
+                                .onSubmit {
+                                    tab.loadURL(editingURLString)
+                                    isEditing = false
+                                }
+                                .opacity(showCopiedAnimation ? 0 : 1)
+                                .offset(y: showCopiedAnimation ? (startWheelAnimation ? -12 : 12) : 0)
+                                .animation(.easeInOut(duration: 0.3), value: showCopiedAnimation)
+                                .animation(.easeInOut(duration: 0.3), value: startWheelAnimation)
+
+                            HStack {
+                                Image(systemName: "link")
+
+                                Text("Copied Current URL")
                             }
-                            .onTapGesture {
-                                editingURLString = tab.url.absoluteString
-                            }
-                            .onKeyPress(.escape) {
-                                isEditing = false
-                                return .handled
-                            }
-                            .overlay(
-                                Group {
-                                    if !isEditing, editingURLString.isEmpty {
-                                        HStack {
-                                            Text(tab.title.isEmpty ? "New Tab" : tab.title)
-                                                .font(.system(size: 14))
-                                                .foregroundColor(getUrlFieldColor(tab))
-                                                .lineLimit(1)
-                                            Spacer()
-                                        }
+                            .opacity(showCopiedAnimation ? 1 : 0)
+                            .offset(y: showCopiedAnimation ? 0 : (startWheelAnimation ? -12 : 12))
+                            .animation(.easeInOut(duration: 0.3), value: showCopiedAnimation)
+                            .animation(.easeInOut(duration: 0.3), value: startWheelAnimation)
+                        }
+                        .font(.system(size: 14))
+                        .foregroundColor(getUrlFieldColor(tab))
+                        .onTapGesture {
+                            editingURLString = tab.url.absoluteString
+                        }
+                        .onKeyPress(.escape) {
+                            isEditing = false
+                            return .handled
+                        }
+                        // Overlay the placeholder when not editing
+                        .overlay(
+                            Group {
+                                if !isEditing, editingURLString.isEmpty {
+                                    HStack {
+                                        Text(tab.title.isEmpty ? "New Tab" : tab.title)
+                                            .font(.system(size: 14))
+                                            .foregroundColor(getUrlFieldColor(tab))
+                                            .lineLimit(1)
+                                        Spacer()
                                     }
                                 }
-                            )
+                            }
+                        )
+                        // Hidden button for copy shortcut
+                        .overlay(
+                            Button("") {
+                                copyToClipboard(editingURLString)
+                                withAnimation {
+                                    showCopiedAnimation = true
+                                    startWheelAnimation = true
+                                }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                    withAnimation {
+                                        showCopiedAnimation = false
+                                        startWheelAnimation = false
+                                    }
+                                }
+                            }
+                            .keyboardShortcut(KeyboardShortcuts.Address.copyURL)
+                            .opacity(0)
+                        )
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
