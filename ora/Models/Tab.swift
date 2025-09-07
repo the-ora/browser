@@ -51,6 +51,7 @@ class Tab: ObservableObject, Identifiable {
     @Transient @Published var failedURL: URL?
     @Transient @Published var hoveredLinkURL: String?
     @Transient var customSchemeView: AnyView?
+    @Transient var customSchemeViewURL: URL?
 
     @Relationship(inverse: \TabContainer.tabs) var container: TabContainer
 
@@ -368,27 +369,35 @@ class Tab: ObservableObject, Identifiable {
     }
 
     func getCustomSchemeView() -> AnyView? {
-        // If we already have a custom view for this URL, return it
+        // If we already have a custom view for this exact URL, return it
         if let existingView = customSchemeView,
+           let existingURL = customSchemeViewURL,
+           existingURL == url,
            CustomSchemeRegistry.shared.shouldHandle(url)
         {
+            print("DEBUG: Returning existing custom view for \(url)")
             return existingView
         }
 
         // Create new custom view if needed
         if CustomSchemeRegistry.shared.shouldHandle(url) {
+            print("DEBUG: Creating new custom view for \(url)")
             let newView = CustomSchemeRegistry.shared.createView(for: url)
             customSchemeView = newView
+            customSchemeViewURL = url
             return newView
         }
 
         // Clear any existing custom view if URL no longer needs custom handling
         customSchemeView = nil
+        customSchemeViewURL = nil
         return nil
     }
 
     func clearCustomSchemeView() {
+        print("DEBUG: Clearing custom scheme view")
         customSchemeView = nil
+        customSchemeViewURL = nil
     }
 }
 
