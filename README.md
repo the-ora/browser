@@ -225,6 +225,8 @@ Contributions are welcome! To propose changes:
 4. Push the branch: `git push origin feature/my-feature`
 5. Open a Pull Request
 
+*N.B* - each PR must only solve one issue/bug or feature at a time. This help us on reviews. Thank you for your contributions.
+
 ## Troubleshooting
 
 - XcodeGen, SwiftFormat, or SwiftLint not found
