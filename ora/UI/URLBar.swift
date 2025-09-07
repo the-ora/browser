@@ -163,7 +163,7 @@ struct URLBar: View {
                         // Hidden button for copy shortcut
                         .overlay(
                             Button("") {
-                                copyToClipboard(editingURLString)
+                                copyToClipboard(tab.url.absoluteString)
                                 withAnimation {
                                     showCopiedAnimation = true
                                     startWheelAnimation = true
