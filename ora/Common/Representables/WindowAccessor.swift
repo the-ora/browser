@@ -3,7 +3,7 @@ import SwiftUI
 
 struct WindowAccessor: NSViewRepresentable {
     let isSidebarHidden: Bool
-    let isFloatingSidebar: Bool
+    @Binding var isFloatingSidebar: Bool
     @Binding var isFullscreen: Bool
 
     // Store original button frames to restore them later
@@ -76,33 +76,32 @@ struct WindowAccessor: NSViewRepresentable {
     }
 
     private func updateTrafficLights(for window: NSWindow) {
-        for buttonType in [NSWindow.ButtonType.closeButton, .miniaturizeButton, .zoomButton] {
-            guard let button = window.standardWindowButton(buttonType) else { continue }
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.25
+            context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
 
-            // Store original frame if we haven't already
-            if WindowAccessor.originalButtonFrames[buttonType] == nil {
-                WindowAccessor.originalButtonFrames[buttonType] = button.frame
-            }
+            for buttonType in [NSWindow.ButtonType.closeButton, .miniaturizeButton, .zoomButton] {
+                guard let button = window.standardWindowButton(buttonType) else { continue }
 
-            if isFloatingSidebar, !isFullscreen {
+                // Store original frame if we haven't already
+                if WindowAccessor.originalButtonFrames[buttonType] == nil {
+                    WindowAccessor.originalButtonFrames[buttonType] = button.frame
+                }
+
                 if let originalFrame = WindowAccessor.originalButtonFrames[buttonType] {
-                    var newFrame = originalFrame
-                    newFrame.origin.y -= 12
-                    newFrame.origin.x += 16
-                    button.frame = newFrame
-                }
-                button.isHidden = false
-            } else {
-                // Restore original position
-                if let originalFrame = WindowAccessor.originalButtonFrames[buttonType] {
-                    button.frame = originalFrame
+                    if isSidebarHidden, !isFullscreen {
+                        // Always offset when sidebar is hidden
+                        var newFrame = originalFrame
+                        newFrame.origin.x += 8
+                        newFrame.origin.y -= 8
+                        button.animator().setFrameOrigin(newFrame.origin)
+                    } else {
+                        // Restore to original frame when visible
+                        button.animator().setFrameOrigin(originalFrame.origin)
+                    }
                 }
 
-                if isFullscreen || (!isSidebarHidden && !isFullscreen) {
-                    button.isHidden = false
-                } else {
-                    button.isHidden = true
-                }
+                button.animator().isHidden = (isSidebarHidden && !isFloatingSidebar && !isFullscreen)
             }
         }
     }

@@ -157,6 +157,7 @@ struct OraApp: App {
                 .keyboardShortcut(
                     KeyboardShortcuts.Tabs.restore
                 )
+
                 Button("Find") {
                     if let activeTab = tabManager.activeTab {
                         appState.showFinderIn = activeTab.id

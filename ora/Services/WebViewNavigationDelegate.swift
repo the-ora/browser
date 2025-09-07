@@ -86,8 +86,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
            let tab = self.tab,
            let tabManager = tab.tabManager,
            let historyManager = tab.historyManager,
-           let downloadManager = tab.downloadManager
-        {
+           let downloadManager = tab.downloadManager {
             // Open link in new tab
             DispatchQueue.main.async {
                 tabManager.openTab(

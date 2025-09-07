@@ -96,9 +96,11 @@ struct BrowserView: View {
             .background(
                 WindowAccessor(
                     isSidebarHidden: hide.side == .primary,
-                    isFloatingSidebar: showFloatingSidebar,
+                    isFloatingSidebar: $showFloatingSidebar,
                     isFullscreen: $isFullscreen
                 )
+                .id("showFloatingSidebar = \(showFloatingSidebar)") // Forces WindowAccessor to update (for Traffic
+                // Lights)
             )
             .overlay {
                 if appState.showLauncher, tabManager.activeTab != nil {
