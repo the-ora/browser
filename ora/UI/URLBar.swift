@@ -55,7 +55,6 @@ struct URLBar: View {
                         foregroundColor: buttonForegroundColor,
                         action: onSidebarToggle
                     )
-                    .keyboardShortcut(KeyboardShortcuts.App.toggleSidebar)
 
                     // Back button
                     NavigationButton(

@@ -17,6 +17,12 @@ struct BrowserView: View {
         return "Ora \(version)"
     }
 
+    private func toggleSidebar() {
+        withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
+            hide.toggle(.primary)
+        }
+    }
+
     var body: some View {
         ZStack(alignment: .leading) {
             HSplit(
@@ -45,13 +51,8 @@ struct BrowserView: View {
                                     systemName: "sidebar.left",
                                     isEnabled: true,
                                     foregroundColor: theme.foreground.opacity(0.3),
-                                    action: {
-                                        withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
-                                            hide.toggle(.primary)
-                                        }
-                                    }
+                                    action: { toggleSidebar() }
                                 )
-                                .keyboardShortcut(KeyboardShortcuts.App.toggleSidebar)
                                 .position(x: 24, y: 24)
                                 .zIndex(3)
 
@@ -127,6 +128,9 @@ struct BrowserView: View {
         }
         .edgesIgnoringSafeArea(.all)
         .animation(.spring(response: 0.25, dampingFraction: 0.9), value: showFloatingSidebar)
+        .onReceive(NotificationCenter.default.publisher(for: .toggleSidebar)) { _ in
+            toggleSidebar()
+        }
     }
 
     @ViewBuilder
@@ -134,11 +138,7 @@ struct BrowserView: View {
         VStack(alignment: .leading, spacing: 0) {
             if !appState.isToolbarHidden {
                 URLBar(
-                    onSidebarToggle: {
-                        withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
-                            hide.toggle(.primary)  // Toggle sidebar with Cmd+S
-                        }
-                    }
+                    onSidebarToggle: { toggleSidebar() }
                 )
             }
             if let tab = tabManager.activeTab {

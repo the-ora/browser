@@ -2,6 +2,10 @@ import Foundation
 import SwiftData
 import SwiftUI
 
+extension Notification.Name {
+    static let toggleSidebar = Notification.Name("ToggleSidebar")
+}
+
 func deleteSwiftDataStore(_ loc: String) {
     let fileManager = FileManager.default
     let storeURL = URL.applicationSupportDirectory.appending(path: loc)
@@ -166,6 +170,13 @@ struct OraApp: App {
                         Text(mode.rawValue).tag(mode)
                     }
                 }
+            }
+
+            CommandGroup(after: .sidebar) {
+                Button("Toggle Sidebar") {
+                    NotificationCenter.default.post(name: .toggleSidebar, object: nil)
+                }
+                .keyboardShortcut(KeyboardShortcuts.App.toggleSidebar)
             }
 
             CommandGroup(replacing: .appInfo) {
