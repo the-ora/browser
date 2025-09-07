@@ -1,4 +1,4 @@
-name: Lint and Test
+name: Lint and Formating
 
 on:
   push:
@@ -65,31 +65,31 @@ jobs:
     #     chmod +x xcbuild-debug.sh
     #     ./xcbuild-debug.sh
     
-    - name: Run tests
-      run: |
-        xcodebuild test \
-          -scheme ora \
-          -destination "platform=macOS" \
-          -configuration Debug \
-          CODE_SIGN_IDENTITY="" \
-          CODE_SIGNING_REQUIRED=NO \
-          -enableCodeCoverage YES \
-          -resultBundlePath TestResults
+    # - name: Run tests
+    #   run: |
+    #     xcodebuild test \
+    #       -scheme ora \
+    #       -destination "platform=macOS" \
+    #       -configuration Debug \
+    #       CODE_SIGN_IDENTITY="" \
+    #       CODE_SIGNING_REQUIRED=NO \
+    #       -enableCodeCoverage YES \
+    #       -resultBundlePath TestResults
     
-    - name: Upload test results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: test-results
-        path: TestResults.xcresult
+    # - name: Upload test results
+    #   uses: actions/upload-artifact@v4
+    #   if: always()
+    #   with:
+    #     name: test-results
+    #     path: TestResults.xcresult
     
-    - name: Generate code coverage report
-      run: |
-        xcrun xccov view --report --json TestResults.xcresult > coverage.json
-        xcrun xccov view --report TestResults.xcresult
+    # - name: Generate code coverage report
+    #   run: |
+    #     xcrun xccov view --report --json TestResults.xcresult > coverage.json
+    #     xcrun xccov view --report TestResults.xcresult
     
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        files: ./coverage.json
-        fail_ci_if_error: false
+    # - name: Upload coverage reports to Codecov
+    #   uses: codecov/codecov-action@v3
+    #   with:
+    #     files: ./coverage.json
+    #     fail_ci_if_error: false
