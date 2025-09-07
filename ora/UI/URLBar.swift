@@ -230,6 +230,22 @@ struct URLBar: View {
                             Label("Show Full URL", systemImage: "eye")
                         }
                     }
+
+                    Divider()
+
+                    if appState.isToolbarHidden {
+                        Button(action: {
+                            appState.isToolbarHidden = false
+                        }) {
+                            Label("Show Toolbar", systemImage: "eye")
+                        }
+                    } else {
+                        Button(action: {
+                            appState.isToolbarHidden = true
+                        }) {
+                            Label("Hide Toolbar", systemImage: "eye.slash")
+                        }
+                    }
                 }
             }
         }

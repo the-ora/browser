@@ -132,13 +132,15 @@ struct BrowserView: View {
     @ViewBuilder
     private var webView: some View {
         VStack(alignment: .leading, spacing: 0) {
-            URLBar(
-                onSidebarToggle: {
-                    withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
-                        hide.toggle(.primary)  // Toggle sidebar with Cmd+S
+            if !appState.isToolbarHidden {
+                URLBar(
+                    onSidebarToggle: {
+                        withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
+                            hide.toggle(.primary)  // Toggle sidebar with Cmd+S
+                        }
                     }
-                }
-            )
+                )
+            }
             if let tab = tabManager.activeTab {
                 if tab.isWebViewReady {
                     if tab.hasNavigationError, let error = tab.navigationError {

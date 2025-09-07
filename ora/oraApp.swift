@@ -18,6 +18,7 @@ class AppState: ObservableObject {
     @Published var launcherSearchText: String = ""
     @Published var showFinderIn: UUID?
     @Published var isFloatingTabSwitchVisible: Bool = false
+    @Published var isToolbarHidden: Bool = false
 }
 
 @main
@@ -229,6 +230,20 @@ struct OraApp: App {
 
                 Button("Previous Tab") {
                     appState.isFloatingTabSwitchVisible = true
+                }
+            }
+
+            CommandMenu("View") {
+                if appState.isToolbarHidden {
+                    Button("Show Toolbar") {
+                        appState.isToolbarHidden = false
+                    }
+                    .keyboardShortcut("d", modifiers: [.command, .shift])
+                } else {
+                    Button("Hide Toolbar") {
+                        appState.isToolbarHidden = true
+                    }
+                    .keyboardShortcut("d", modifiers: [.command, .shift])
                 }
             }
         }
