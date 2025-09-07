@@ -22,7 +22,7 @@ struct ContainerView: View {
                 onMoveToContainer: moveTab
             )
 
-            VerticalScrollView {
+            ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     PinnedTabsList(
                         tabs: pinnedTabs,
