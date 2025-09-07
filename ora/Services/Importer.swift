@@ -55,8 +55,7 @@ enum SpaceItem: Decodable {
 
     init(from decoder: Decoder) throws {
         if let singleValue = try? decoder.singleValueContainer(),
-           let id = try? singleValue.decode(String.self)
-        {
+           let id = try? singleValue.decode(String.self) {
             self = .id(id)
         } else {
             self = try .custom(CustomInfo(from: decoder))
@@ -70,8 +69,7 @@ enum Item: Decodable {
 
     init(from decoder: Decoder) throws {
         if let singleValue = try? decoder.singleValueContainer(),
-           let id = try? singleValue.decode(String.self)
-        {
+           let id = try? singleValue.decode(String.self) {
             self = .id(id)
         } else {
             self = try .object(ItemObject(from: decoder))
@@ -133,8 +131,7 @@ enum TopAppsContainerID: Decodable {
 
     init(from decoder: Decoder) throws {
         if let singleValue = try? decoder.singleValueContainer(),
-           let id = try? singleValue.decode(String.self)
-        {
+           let id = try? singleValue.decode(String.self) {
             self = .id(id)
         } else {
             self = try .object(TopAppsObject(from: decoder))

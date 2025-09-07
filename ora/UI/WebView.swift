@@ -19,11 +19,21 @@ struct WebView: NSViewRepresentable {
         webView.layer?.isOpaque = true
         webView.layer?.drawsAsynchronously = true
 
+        // Add mouse event handling for back/forward buttons
+        setupMouseEventHandling(for: webView, coordinator: context.coordinator)
+
         return webView
     }
 
     func updateNSView(_ nsView: WKWebView, context: Context) {
         // No update logic needed
+    }
+
+    // MARK: - Mouse Event Handling
+
+    private func setupMouseEventHandling(for webView: WKWebView, coordinator: Coordinator) {
+        // Store the coordinator reference for mouse event handling
+        coordinator.setupMouseEventMonitoring(for: webView)
     }
 
     // MARK: - Coordinator for WKUIDelegate
@@ -32,11 +42,66 @@ struct WebView: NSViewRepresentable {
         weak var tabManager: TabManager?
         weak var historyManager: HistoryManager?
         weak var downloadManager: DownloadManager?
+        private var mouseEventMonitor: Any?
+        private weak var webView: WKWebView?
 
         init(tabManager: TabManager?, historyManager: HistoryManager?, downloadManager: DownloadManager?) {
             self.tabManager = tabManager
             self.historyManager = historyManager
             self.downloadManager = downloadManager
+        }
+
+        deinit {
+            if let monitor = mouseEventMonitor {
+                NSEvent.removeMonitor(monitor)
+            }
+        }
+
+        // MARK: - Mouse Event Handling
+
+        func setupMouseEventMonitoring(for webView: WKWebView) {
+            self.webView = webView
+
+            // Monitor for other mouse button events (buttons 4 and 5)
+            mouseEventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.otherMouseDown]) { [weak self] event in
+                guard let self,
+                      let webView = self.webView,
+                      self.isEventInWebView(event, webView: webView)
+                else {
+                    return event
+                }
+
+                // Handle mouse button events for back/forward navigation
+                switch event.buttonNumber {
+                case 3: // Mouse button 4 (back)
+                    if webView.canGoBack {
+                        DispatchQueue.main.async {
+                            webView.goBack()
+                        }
+                    }
+                    return nil // Consume the event
+                case 4: // Mouse button 5 (forward)
+                    if webView.canGoForward {
+                        DispatchQueue.main.async {
+                            webView.goForward()
+                        }
+                    }
+                    return nil // Consume the event
+                default:
+                    return event // Let other events pass through
+                }
+            }
+        }
+
+        private func isEventInWebView(_ event: NSEvent, webView: WKWebView) -> Bool {
+            guard let window = webView.window else { return false }
+
+            // Convert the event location to the web view's coordinate system
+            let locationInWindow = event.locationInWindow
+            let locationInWebView = webView.convert(locationInWindow, from: nil)
+
+            // Check if the event occurred within the web view's bounds
+            return webView.bounds.contains(locationInWebView)
         }
 
         func webView(

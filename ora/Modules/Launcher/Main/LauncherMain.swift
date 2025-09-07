@@ -271,8 +271,7 @@ struct LauncherMain: View {
     func executeCommand() {
         if let suggestion =
             suggestions
-                .first(where: { $0.id == focusedElement })
-        {
+                .first(where: { $0.id == focusedElement }) {
             suggestion.action()
             appState.showLauncher = false
         }

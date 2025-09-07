@@ -259,8 +259,7 @@ struct FloatingTabSwitcher: View {
         guard !newFlags.contains(.control) else { return }
 
         if let focusedTabId = focusedTab,
-           let tab = recentTabs.first(where: { $0.id == focusedTabId })
-        {
+           let tab = recentTabs.first(where: { $0.id == focusedTabId }) {
             tabManager.activateTab(tab)
         }
         closeFloatingTabSwitch()
@@ -287,8 +286,7 @@ struct FloatingTabSwitcher: View {
             let currentURL = tab.webView.url?.absoluteString ?? ""
 
             if let existingSnapshot = tabSnapshots[tab],
-               existingSnapshot.url == currentURL
-            {
+               existingSnapshot.url == currentURL {
                 continue
             }
 

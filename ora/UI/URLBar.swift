@@ -131,6 +131,10 @@ struct URLBar: View {
                             .onTapGesture {
                                 editingURLString = tab.url.absoluteString
                             }
+                            .onKeyPress(.escape) {
+                                isEditing = false
+                                return .handled
+                            }
                             .overlay(
                                 Group {
                                     if !isEditing, editingURLString.isEmpty {
@@ -154,6 +158,14 @@ struct URLBar: View {
                                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                                     .stroke(isEditing ? getUrlFieldColor(tab).opacity(0.5) : Color.clear, lineWidth: 1)
                             )
+                    )
+                    .overlay(
+                        // Hidden button for keyboard shortcut
+                        Button("") {
+                            isEditing = true
+                        }
+                        .keyboardShortcut(KeyboardShortcuts.Address.focus)
+                        .opacity(0)
                     )
 
                     Spacer()

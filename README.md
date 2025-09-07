@@ -3,7 +3,10 @@
 Ora is a fast, secure, and beautiful browser built for macOS. Inspired by Safari and Arc, Ora delivers a clean, native experience that feels at home on macOS — without unnecessary bloat.
 
 > **⚠️ Disclaimer**  
-> Ora is currently in early stages of development and **not yet ready for day-to-day use**. An alpha version with core functionalities will be released soon.
+Ora is currently in early stages of development and **not yet ready for day-to-day use**. An alpha version with core functionalities will be released soon.
+
+If you would like to support the project, please consider donating via [Buy Me A Coffee](https://buymeacoffee.com/orabrowser).
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/orabrowser)
 
 ## Features
 
@@ -45,6 +48,33 @@ Ora is a fast, secure, and beautiful browser built for macOS. Inspired by Safari
 - Homebrew (for developer tooling)
 - Tools: `xcodegen`, `swiftlint`, `swiftformat` (installed by the setup script)
 - Optional: `xcbeautify` (for prettier CLI build output)
+
+## Key Management for Updates
+
+Ora Browser uses Ed25519 cryptographic keys to sign and verify app updates for security:
+
+### Public Key (Committed to Git)
+- **File**: `ora_public_key.pem`
+- **Purpose**: Verifies update signatures in the app
+- **Status**: Committed to git repository
+- **Safety**: Public keys are safe to share
+
+### Private Key (Never Commit!)
+- **File**: `.env` (contains `ORA_PRIVATE_KEY`)
+- **Purpose**: Signs app updates during release
+- **Status**: Never committed to git
+- **Safety**: Keep secure and private
+
+### Setup Process
+1. **First machine**: Keys auto-generated and saved appropriately
+2. **Additional machines**: Copy `.env` file from first machine
+3. **Release process**: `./create-release.sh` handles key management automatically
+
+### Security Notes
+- `.env` is in `.gitignore` - it will never be committed
+- Public key is committed - this is safe and required
+- Never share your private key with anyone
+- If private key is lost, you'll need to regenerate keys (breaks update chain)
 
 ## Installation
 
@@ -123,6 +153,45 @@ rm -f "$(getconf DARWIN_USER_DIR 2>/dev/null || echo "$HOME/Library/Application 
   ```
 - Pre-commit hook runs both automatically (installed by `./setup.sh`).
 
+### Releases and Updates
+
+Ora uses [Sparkle](https://sparkle-project.org/) for automatic updates. All build artifacts are organized in the `build/` directory.
+
+1. **Add Sparkle dependency:**
+   - Open `Ora.xcodeproj` in Xcode
+   - Go to File → Add Packages...
+   - Add `https://github.com/sparkle-project/Sparkle` (version 2.6.3+)
+   - Add Sparkle to your target
+
+2. **Setup Sparkle tools:**
+   ```bash
+   brew install --cask sparkle
+   ./setup-sparkle-tools.sh
+   ./setup-sparkle.sh
+   ```
+   This generates DSA keys in `build/` directory.
+
+3. **Configure signing:**
+   - Copy the public key from `build/dsa_pub.pem` to your `Info.plist` as `SUPublicEDKey`
+   - Keep `build/dsa_priv.pem` secure for signing releases
+   - Add `SUFeedURL` to Info.plist pointing to your appcast.xml URL
+
+4. **Create a release:**
+   ```bash
+   ./create-release.sh 0.0.2 build/dsa_priv.pem
+   ```
+   This builds, signs, and prepares release files in `build/`.
+
+5. **Host appcast.xml:**
+   - Upload `build/appcast.xml` to a public URL (e.g., GitHub Pages)
+   - Update `SUFeedURL` in `Info.plist` to point to your appcast.xml
+
+6. **Publish release:**
+   - Upload `build/Ora-Browser.dmg` to GitHub releases
+   - Users will automatically receive update notifications
+
+The app includes automatic update checking in Settings > General.
+
 ### Regenerating the Xcode project
 
 - Update `project.yml` as needed, then:
@@ -139,6 +208,12 @@ rm -f "$(getconf DARWIN_USER_DIR 2>/dev/null || echo "$HOME/Library/Application 
   ```
 
 Keyboard shortcuts: see `ora/Common/Constants/KeyboardShortcuts.swift`.
+
+## Documentation
+
+- **[Quick Start Guide](docs/QUICK_START.md)** - 5-minute setup for hosting and updates
+- **[Hosting Setup Guide](docs/HOSTING_SETUP.md)** - Complete guide for update hosting and deployment
+- **[Documentation Index](docs/README.md)** - All documentation organized by topic
 
 ## Contributing
 

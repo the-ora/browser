@@ -103,8 +103,8 @@ extension KeyboardShortcuts {
             .init(category: "Tabs", name: "Tab 9", display: "⌘9"),
 
             // Navigation
-            .init(category: "Navigation", name: "Back", display: "⌘["),
-            .init(category: "Navigation", name: "Forward", display: "⌘]"),
+            .init(category: "Navigation", name: "Back", display: "⌘[ or Mouse Button 4"),
+            .init(category: "Navigation", name: "Forward", display: "⌘] or Mouse Button 5"),
             .init(category: "Navigation", name: "Reload", display: "⌘R"),
             .init(category: "Navigation", name: "Hard Reload", display: "⇧⌘R"),
 
