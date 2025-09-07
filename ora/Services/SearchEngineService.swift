@@ -7,6 +7,7 @@ enum SearchEngineID: String, CaseIterable {
     case youtube = "YouTube"
     case chatgpt = "ChatGPT"
     case claude = "Claude"
+    case appleIntelligence = "Apple Intelligence"
     case google = "Google"
     case grok = "Grok"
     case perplexity = "Perplexity"
@@ -36,7 +37,7 @@ class SearchEngineService: ObservableObject {
     }
 
     var searchEngines: [SearchEngine] {
-        [
+        var engines: [SearchEngine] = [
             SearchEngine(
                 name: "YouTube",
                 color: Color(hex: "#FC0D1B"),
@@ -114,6 +115,21 @@ class SearchEngineService: ObservableObject {
                 foregroundColor: theme?.background ?? .black
             )
         ]
+
+        // Add Apple Intelligence if available (macOS 26+ only)
+        if #available(macOS 26.0, *) {
+            engines.insert(SearchEngine(
+                name: "Apple Intelligence",
+                color: Color.accentColor,
+                icon: "apple.intelligence",
+                aliases: ["ai", "apple", "intelligence"],
+                searchURL: "ora://apple-intelligence?q={query}",
+                isAIChat: true,
+                isLocal: true
+            ), at: 1) // Insert after YouTube, before other AI services
+        }
+
+        return engines
     }
 
     func findSearchEngine(for alias: String) -> SearchEngine? {

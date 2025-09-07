@@ -7,6 +7,7 @@ struct SearchEngine {
     let aliases: [String]
     let searchURL: String
     let isAIChat: Bool
+    let isLocal: Bool
     let foregroundColor: Color?
     let autoSuggestions: ((String) async -> [String])?
 
@@ -17,6 +18,7 @@ struct SearchEngine {
         aliases: [String],
         searchURL: String,
         isAIChat: Bool,
+        isLocal: Bool = false,
         foregroundColor: Color? = nil,
         autoSuggestions: ((String) async -> [String])? = nil
     ) {
@@ -26,6 +28,7 @@ struct SearchEngine {
         self.aliases = aliases
         self.searchURL = searchURL
         self.isAIChat = isAIChat
+        self.isLocal = isLocal
         self.foregroundColor = foregroundColor
         self.autoSuggestions = autoSuggestions
     }
