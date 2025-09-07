@@ -4,6 +4,7 @@ import SwiftUI
 
 extension Notification.Name {
     static let toggleSidebar = Notification.Name("ToggleSidebar")
+    static let copyAddressURL = Notification.Name("CopyAddressURL")
 }
 
 func deleteSwiftDataStore(_ loc: String) {
@@ -166,6 +167,13 @@ struct OraApp: App {
                 .keyboardShortcut(
                     KeyboardShortcuts.Address.find
                 )
+
+                Divider()
+
+                Button("Copy Address Bar URL") {
+                    NotificationCenter.default.post(name: .copyAddressURL, object: nil)
+                }
+                .keyboardShortcut(KeyboardShortcuts.Address.copyURL)
             }
 
             CommandGroup(replacing: .sidebar) {

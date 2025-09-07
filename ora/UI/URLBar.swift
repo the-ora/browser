@@ -38,6 +38,22 @@ struct URLBar: View {
         pasteboard.setString(text, forType: .string)
     }
 
+    private func triggerCopy(_ text: String) {
+        // Prevent double-trigger if both Command and view shortcut fire
+        if showCopiedAnimation { return }
+        copyToClipboard(text)
+        withAnimation {
+            showCopiedAnimation = true
+            startWheelAnimation = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            withAnimation {
+                showCopiedAnimation = false
+                startWheelAnimation = false
+            }
+        }
+    }
+
     var buttonForegroundColor: Color {
         return tabManager.activeTab.map { getForegroundColor($0).opacity(0.5) } ?? .gray
     }
@@ -136,15 +152,11 @@ struct URLBar: View {
                                 .animation(.easeInOut(duration: 0.3), value: showCopiedAnimation)
                                 .animation(.easeInOut(duration: 0.3), value: startWheelAnimation)
 
-                            HStack {
-                                Image(systemName: "link")
-
-                                Text("Copied Current URL")
-                            }
-                            .opacity(showCopiedAnimation ? 1 : 0)
-                            .offset(y: showCopiedAnimation ? 0 : (startWheelAnimation ? -12 : 12))
-                            .animation(.easeInOut(duration: 0.3), value: showCopiedAnimation)
-                            .animation(.easeInOut(duration: 0.3), value: startWheelAnimation)
+                            CopiedURLOverlay(
+                                foregroundColor: getUrlFieldColor(tab),
+                                showCopiedAnimation: $showCopiedAnimation,
+                                startWheelAnimation: $startWheelAnimation
+                            )
                         }
                         .font(.system(size: 14))
                         .foregroundColor(getUrlFieldColor(tab))
@@ -174,17 +186,7 @@ struct URLBar: View {
                         // Hidden button for copy shortcut (⇧⌘C)
                         .overlay(
                             Button("") {
-                                copyToClipboard(tab.url.absoluteString)
-                                withAnimation {
-                                    showCopiedAnimation = true
-                                    startWheelAnimation = true
-                                }
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                                    withAnimation {
-                                        showCopiedAnimation = false
-                                        startWheelAnimation = false
-                                    }
-                                }
+                                triggerCopy(tab.url.absoluteString)
                             }
                             .keyboardShortcut(KeyboardShortcuts.Address.copyURL)
                             .opacity(0)
@@ -260,6 +262,11 @@ struct URLBar: View {
                     if !newValue, let tab = tabManager.activeTab {
                         // Restore the field to the current URL/host when focus leaves the field
                         editingURLString = getDisplayURL(tab)
+                    }
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .copyAddressURL)) { _ in
+                    if let activeTab = tabManager.activeTab {
+                        triggerCopy(activeTab.url.absoluteString)
                     }
                 }
                 .background(

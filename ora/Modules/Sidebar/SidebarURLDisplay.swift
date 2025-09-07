@@ -10,10 +10,34 @@ struct SidebarURLDisplay: View {
     let tab: Tab
     @Binding var editingURLString: String
     @FocusState private var isEditing: Bool
+    @State private var showCopiedAnimation = false
+    @State private var startWheelAnimation = false
 
     init(tab: Tab, editingURLString: Binding<String>) {
         self.tab = tab
         self._editingURLString = editingURLString
+    }
+
+    private func copyToClipboard(_ text: String) {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+    }
+
+    private func triggerCopy(_ text: String) {
+        // Prevent double-trigger if both Command and view shortcut fire
+        if showCopiedAnimation { return }
+        copyToClipboard(text)
+        withAnimation {
+            showCopiedAnimation = true
+            startWheelAnimation = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            withAnimation {
+                showCopiedAnimation = false
+                startWheelAnimation = false
+            }
+        }
     }
 
     var body: some View {
@@ -32,39 +56,61 @@ struct SidebarURLDisplay: View {
             }
             .frame(width: 16, height: 16)
 
-            // URL input field
-            TextField("", text: $editingURLString)
-                .font(.system(size: 14))
-                .textFieldStyle(PlainTextFieldStyle())
-                .foregroundColor(theme.foreground)
-                .focused($isEditing)
-                .onSubmit {
-                    tab.loadURL(editingURLString)
-                    isEditing = false
-                }
-                .onTapGesture {
-                    editingURLString = tab.url.absoluteString
-                    isEditing = true
-                }
-                .onKeyPress(.escape) {
-                    isEditing = false
-                    return .handled
-                }
-                .overlay(
-                    Group {
-                        if !isEditing, editingURLString.isEmpty {
-                            HStack {
-                                Text(getDisplayURL())
-                                    .font(.system(size: 14))
-                                    .foregroundColor(theme.foreground)
-                                    .lineLimit(1)
-                                    .truncationMode(.middle)
-                                Spacer()
-                            }
+            // URL input field + copied overlay
+            ZStack(alignment: .leading) {
+                TextField("", text: $editingURLString)
+                    .font(.system(size: 14))
+                    .textFieldStyle(PlainTextFieldStyle())
+                    .foregroundColor(theme.foreground)
+                    .focused($isEditing)
+                    .onSubmit {
+                        tab.loadURL(editingURLString)
+                        isEditing = false
+                    }
+                    .onTapGesture {
+                        editingURLString = tab.url.absoluteString
+                        isEditing = true
+                    }
+                    .onKeyPress(.escape) {
+                        isEditing = false
+                        return .handled
+                    }
+                    .opacity(showCopiedAnimation ? 0 : 1)
+                    .offset(y: showCopiedAnimation ? (startWheelAnimation ? -12 : 12) : 0)
+                    .animation(.easeInOut(duration: 0.3), value: showCopiedAnimation)
+                    .animation(.easeInOut(duration: 0.3), value: startWheelAnimation)
+
+                CopiedURLOverlay(
+                    foregroundColor: theme.foreground,
+                    showCopiedAnimation: $showCopiedAnimation,
+                    startWheelAnimation: $startWheelAnimation
+                )
+            }
+            .font(.system(size: 14))
+            .foregroundColor(theme.foreground)
+            .overlay(
+                Group {
+                    if !isEditing, editingURLString.isEmpty, !showCopiedAnimation {
+                        HStack {
+                            Text(getDisplayURL())
+                                .font(.system(size: 14))
+                                .foregroundColor(theme.foreground)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                            Spacer()
                         }
                     }
-                    .allowsHitTesting(false)
-                )
+                }
+                .allowsHitTesting(false)
+            )
+            // Hidden button for copy shortcut (⇧⌘C)
+            .overlay(
+                Button("") {
+                    triggerCopy(tab.url.absoluteString)
+                }
+                .keyboardShortcut(KeyboardShortcuts.Address.copyURL)
+                .opacity(0)
+            )
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 10)
@@ -132,6 +178,9 @@ struct SidebarURLDisplay: View {
             } else {
                 editingURLString = ""
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .copyAddressURL)) { _ in
+            triggerCopy(tab.url.absoluteString)
         }
     }
 
