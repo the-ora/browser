@@ -73,8 +73,10 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         configuration.processPool = processPool
         // video shit
         configuration.preferences.isElementFullscreenEnabled = true
-        if #available(macOS 10.12, *) {
-//            configuration.allowsPictureInPictureMediaPlayback = true
+        if #unavailable(macOS 10.12) {
+            // Picture in picture not available on older macOS versions
+        } else {
+//            configuration.allowsPictureInPictureMediaPlaybook = true
         }
 
         // Enable media playback without user interaction

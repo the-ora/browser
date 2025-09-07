@@ -6,7 +6,7 @@ import SwiftUI
 private let logger = Logger(subsystem: "com.orabrowser.ora", category: "WebViewNavigationDelegate")
 
 // JavaScript for monitoring URL, title, and favicon changes
-let js = """
+let navigationScript = """
 (function () {
     let lastHref = location.href;
     let lastTitle = document.title;
@@ -85,7 +85,8 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
         // Check if command key is pressed (cmd+click)
         logger
             .debug(
-                "Navigation action - modifier flags: \(navigationAction.modifierFlags.rawValue), contains command: \(navigationAction.modifierFlags.contains(.command))"
+                "Navigation action - modifier flags: \(navigationAction.modifierFlags.rawValue), " +
+                    "contains command: \(navigationAction.modifierFlags.contains(.command))"
             )
         if navigationAction.modifierFlags.contains(.command),
            let url = navigationAction.request.url,
@@ -137,7 +138,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
             onURLChange?(webView.url)
             onChange?(webView.title, webView.url)
             onProgressChange?(webView.estimatedProgress * 100.0)
-            webView.evaluateJavaScript(js, completionHandler: nil)
+            webView.evaluateJavaScript(navigationScript, completionHandler: nil)
             takeSnapshotAfterLoad(webView)
             originalURL = nil // Clear stored URL after successful navigation
         }
