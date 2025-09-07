@@ -17,6 +17,7 @@ if ! command -v swiftlint >/dev/null 2>&1; then
     exit 1
 fi
 swiftlint --quiet
+swiftlint lint --fix --strict
 if [ $? -ne 0 ]; then
     echo "❌ SwiftLint failed."
     exit 1

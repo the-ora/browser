@@ -179,8 +179,7 @@ class FindController: NSObject {
         webView.evaluateJavaScript(js) { result, _ in
             if let dict = result as? [String: Any],
                let total = dict["total"] as? Int,
-               let current = dict["current"] as? Int
-            {
+               let current = dict["current"] as? Int {
                 completion(current, total)
             } else {
                 completion(0, 0)
