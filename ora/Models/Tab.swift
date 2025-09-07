@@ -50,6 +50,7 @@ class Tab: ObservableObject, Identifiable {
     @Transient @Published var navigationError: Error?
     @Transient @Published var failedURL: URL?
     @Transient @Published var hoveredLinkURL: String?
+    @Transient var customSchemeView: AnyView?
 
     @Relationship(inverse: \TabContainer.tabs) var container: TabContainer
 
@@ -216,6 +217,8 @@ class Tab: ObservableObject, Identifiable {
                     }
                     self?.updateHistory()
                     self?.updateHeaderColor()
+                    // Clear custom scheme view when URL changes
+                    self?.clearCustomSchemeView()
                 }
             }
         }
@@ -362,6 +365,30 @@ class Tab: ObservableObject, Identifiable {
                 webView.load(request)
             }
         }
+    }
+
+    func getCustomSchemeView() -> AnyView? {
+        // If we already have a custom view for this URL, return it
+        if let existingView = customSchemeView,
+           CustomSchemeRegistry.shared.shouldHandle(url)
+        {
+            return existingView
+        }
+
+        // Create new custom view if needed
+        if CustomSchemeRegistry.shared.shouldHandle(url) {
+            let newView = CustomSchemeRegistry.shared.createView(for: url)
+            customSchemeView = newView
+            return newView
+        }
+
+        // Clear any existing custom view if URL no longer needs custom handling
+        customSchemeView = nil
+        return nil
+    }
+
+    func clearCustomSchemeView() {
+        customSchemeView = nil
     }
 }
 

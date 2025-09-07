@@ -161,7 +161,7 @@ struct BrowserView: View {
                             .id(tab.id)
                         } else {
                             // For valid custom schemes, show the custom view instead of error page
-                            if let customView = CustomSchemeRegistry.shared.createView(for: tab.url) {
+                            if let customView = tab.getCustomSchemeView() {
                                 customView
                                     .id(tab.id)
                             }
@@ -171,7 +171,7 @@ struct BrowserView: View {
                         if CustomSchemeRegistry.shared.shouldHandle(tab.url) {
                             Group {
                                 // Show custom scheme view
-                                if let customView = CustomSchemeRegistry.shared.createView(for: tab.url) {
+                                if let customView = tab.getCustomSchemeView() {
                                     customView
                                         .id(tab.id)
                                 } else {
