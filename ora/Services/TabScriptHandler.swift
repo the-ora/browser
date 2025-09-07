@@ -12,6 +12,145 @@ private let logger = Logger(subsystem: "com.orabrowser.ora", category: "TabScrip
 class TabScriptHandler: NSObject, WKScriptMessageHandler {
     var onChange: ((String) -> Void)?
     var tab: Tab?
+    // Tracks which frames within the page are currently reporting active media playback.
+    // We aggregate across frames to avoid false negatives when one iframe pauses while another continues.
+    private var playingFrameIds = Set<String>()
+
+    // Large JS moved out of defaultWKConfig() to keep function body under SwiftLint limits.
+    private static let mediaDetectionScript: String = """
+    (function() {
+        // Stable per-frame identifier so native side can aggregate state across frames
+        const FRAME_ID = (function() {
+            try {
+                if (typeof window.__oraFrameId === 'string') return window.__oraFrameId;
+                const prefix = (window.top === window) ? 'main' : 'frame';
+                const id = prefix + '-' + Math.random().toString(36).slice(2) + '-' + Date.now();
+                window.__oraFrameId = id;
+                return id;
+            } catch (e) {
+                return 'frame-' + Math.random().toString(36).slice(2);
+            }
+        })();
+
+        let lastMediaState = false;
+        let debounceTimer = null;
+
+        function isElementAudible(el) {
+            // Consider readyState to filter out elements that aren't actually playing yet
+            const hasData = (typeof el.readyState === 'number') ? (el.readyState >= 2) : true;
+            return !el.paused && el.currentTime > 0 && !el.muted && el.volume > 0 && hasData && !el.seeking;
+        }
+
+        function updateMediaState() {
+            const mediaElements = document.querySelectorAll('video, audio');
+            let isPlaying = false;
+
+            for (const media of mediaElements) {
+                if (isElementAudible(media)) {
+                    isPlaying = true;
+                    break;
+                }
+            }
+
+            if (isPlaying !== lastMediaState) {
+                lastMediaState = isPlaying;
+                try {
+                    window.webkit.messageHandlers.mediaState.postMessage({ frameId: FRAME_ID, isPlaying });
+                } catch (e) {
+                    // no-op
+                }
+            }
+        }
+
+        function debouncedUpdateMediaState() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(updateMediaState, 100);
+        }
+
+        function setupMediaListeners() {
+            const mediaElements = document.querySelectorAll('video, audio');
+            mediaElements.forEach(media => {
+                media.addEventListener('play', debouncedUpdateMediaState);
+                media.addEventListener('playing', debouncedUpdateMediaState);
+                media.addEventListener('pause', debouncedUpdateMediaState);
+                media.addEventListener('ended', debouncedUpdateMediaState);
+                media.addEventListener('volumechange', debouncedUpdateMediaState);
+                media.addEventListener('loadeddata', debouncedUpdateMediaState);
+                media.addEventListener('timeupdate', debouncedUpdateMediaState);
+                media.addEventListener('seeking', debouncedUpdateMediaState);
+                media.addEventListener('seeked', debouncedUpdateMediaState);
+                media.addEventListener('ratechange', debouncedUpdateMediaState);
+            });
+        }
+
+        // Initial check and setup
+        setTimeout(updateMediaState, 500);
+        setupMediaListeners();
+
+        // Monitor for dynamically added media elements
+        const observer = new MutationObserver((mutations) => {
+            let hasNewMedia = false;
+            for (const mutation of mutations) {
+                for (const node of mutation.addedNodes) {
+                    if (node && node.nodeType === Node.ELEMENT_NODE) {
+                        const element = node;
+                        if (element.tagName === 'VIDEO' || element.tagName === 'AUDIO') {
+                            hasNewMedia = true;
+                            element.addEventListener('play', debouncedUpdateMediaState);
+                            element.addEventListener('playing', debouncedUpdateMediaState);
+                            element.addEventListener('pause', debouncedUpdateMediaState);
+                            element.addEventListener('ended', debouncedUpdateMediaState);
+                            element.addEventListener('volumechange', debouncedUpdateMediaState);
+                            element.addEventListener('loadeddata', debouncedUpdateMediaState);
+                            element.addEventListener('timeupdate', debouncedUpdateMediaState);
+                            element.addEventListener('seeking', debouncedUpdateMediaState);
+                            element.addEventListener('seeked', debouncedUpdateMediaState);
+                            element.addEventListener('ratechange', debouncedUpdateMediaState);
+                        }
+                        const mediaElements = element.querySelectorAll && element.querySelectorAll('video, audio');
+                        if (mediaElements && mediaElements.length > 0) {
+                            hasNewMedia = true;
+                            mediaElements.forEach(media => {
+                                media.addEventListener('play', debouncedUpdateMediaState);
+                                media.addEventListener('playing', debouncedUpdateMediaState);
+                                media.addEventListener('pause', debouncedUpdateMediaState);
+                                media.addEventListener('ended', debouncedUpdateMediaState);
+                                media.addEventListener('volumechange', debouncedUpdateMediaState);
+                                media.addEventListener('loadeddata', debouncedUpdateMediaState);
+                                media.addEventListener('timeupdate', debouncedUpdateMediaState);
+                                media.addEventListener('seeking', debouncedUpdateMediaState);
+                                media.addEventListener('seeked', debouncedUpdateMediaState);
+                                media.addEventListener('ratechange', debouncedUpdateMediaState);
+                            });
+                        }
+                    }
+                }
+            }
+            if (hasNewMedia) {
+                setTimeout(updateMediaState, 200);
+            }
+        });
+
+        if (document.body) {
+            observer.observe(document.body, { childList: true, subtree: true });
+        } else {
+            document.addEventListener('DOMContentLoaded', function onReady() {
+                document.removeEventListener('DOMContentLoaded', onReady);
+                observer.observe(document.body, { childList: true, subtree: true });
+            });
+        }
+
+        // Fallback periodic check
+        setInterval(updateMediaState, 3000);
+
+        // Ensure we clear state when this frame is being unloaded
+        const sendSilence = () => {
+            try { window.webkit.messageHandlers.mediaState.postMessage({ frameId: FRAME_ID, isPlaying: false }); } catch (e) {}
+        };
+        window.addEventListener('pagehide', sendSilence);
+        window.addEventListener('unload', sendSilence);
+    })();
+    """
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         if message.name == "listener" {
@@ -44,6 +183,31 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
                 guard let tab = self.tab else { return }
                 let trimmed = (hovered ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
                 tab.hoveredLinkURL = trimmed.isEmpty ? nil : trimmed
+            }
+        } else if message.name == "mediaState" {
+            // Handle media play/pause state changes (aggregated across frames)
+            if let payload = message.body as? [String: Any],
+               let frameId = payload["frameId"] as? String,
+               let isPlaying = payload["isPlaying"] as? Bool
+            {
+                if isPlaying {
+                    playingFrameIds.insert(frameId)
+                } else {
+                    playingFrameIds.remove(frameId)
+                }
+                let aggregated = !playingFrameIds.isEmpty
+                DispatchQueue.main.async {
+                    guard let tab = self.tab else { return }
+                    if tab.isPlayingMedia != aggregated {
+                        tab.isPlayingMedia = aggregated
+                    }
+                }
+            } else if let isPlaying = message.body as? Bool {
+                // Backward compatibility with older script that sent a bare Bool
+                DispatchQueue.main.async {
+                    guard let tab = self.tab else { return }
+                    tab.isPlayingMedia = isPlaying
+                }
             }
         }
     }
@@ -91,10 +255,20 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         preferences.allowsContentJavaScript = true
         configuration.defaultWebpagePreferences = preferences
 
-        // injecting listners
+        // injecting listeners
         let contentController = WKUserContentController()
         contentController.add(self, name: "listener")
         contentController.add(self, name: "linkHover")
+        contentController.add(self, name: "mediaState")
+
+        // Inject media detection JavaScript
+        let mediaScript = WKUserScript(
+            source: TabScriptHandler.mediaDetectionScript,
+            injectionTime: .atDocumentEnd,
+            forMainFrameOnly: false
+        )
+        contentController.addUserScript(mediaScript)
+
         configuration.userContentController = contentController
 
         return configuration

@@ -27,7 +27,7 @@ class Tab: ObservableObject, Identifiable {
     var favicon: URL? // Add favicon property
     var createdAt: Date
     var lastAccessedAt: Date?
-    var isPlayingMedia: Bool
+    @Transient @Published var isPlayingMedia: Bool = false
     var isLoading: Bool = false
     var type: TabType
     var order: Int

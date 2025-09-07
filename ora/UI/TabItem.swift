@@ -98,6 +98,14 @@ struct TabItem: View {
                 faviconLocalFile: tab.faviconLocalFile,
                 textColor: textColor
             )
+
+            // Audio indicator
+            if tab.isPlayingMedia {
+                Image(systemName: "speaker.wave.3")
+                    .font(.system(size: 12))
+                    .foregroundColor(.secondary)
+            }
+
             tabTitle
             Spacer()
             actionButton

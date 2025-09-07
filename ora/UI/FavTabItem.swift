@@ -41,6 +41,19 @@ struct FavTabItem: View {
                     textColor: Color(.white)
                 )
             }
+
+            if tab.isPlayingMedia {
+                VStack {
+                    HStack {
+                        Image(systemName: "speaker.wave.3")
+                            .font(.system(size: 10))
+                            .foregroundColor(.secondary)
+                        Spacer()
+                    }
+                    Spacer()
+                }
+                .padding(4)
+            }
         }
         .onTapGesture {
             onTap()
