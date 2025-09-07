@@ -72,11 +72,24 @@ class CustomSchemeRegistry {
     }
 
     private func extractQuery(from url: URL) -> String? {
+        // Validate URL structure first
+        guard url.scheme == "ora",
+              let host = url.host,
+              !host.isEmpty,
+              host
+              .rangeOfCharacter(from: CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-")).inverted) == nil
+        else { return nil }
+
+        // Extract and validate query
         guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
               let queryItems = components.queryItems,
-              let qItem = queryItems.first(where: { $0.name == "q" })
+              let qItem = queryItems.first(where: { $0.name == "q" }),
+              let value = qItem.value,
+              value.count <= 10000 // Reasonable length limit
         else { return nil }
-        return qItem.value
+
+        // Remove control characters for safety
+        return value.components(separatedBy: .controlCharacters).joined()
     }
 
     private func registerDefaultHandlers() {
