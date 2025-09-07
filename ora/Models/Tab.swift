@@ -114,7 +114,6 @@ class Tab: ObservableObject, Identifiable {
             self.syncBackgroundColorFromHex()
 
             // Load all URLs in WebView - custom schemes will fail and be handled in error handler
-            print("📱 Tab: Loading URL in WebView: \(url)")
             self.webView.load(URLRequest(url: url))
 
             self.isWebViewReady = true
