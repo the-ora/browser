@@ -134,10 +134,11 @@ struct URLBar: View {
                                 Group {
                                     if !isEditing, editingURLString.isEmpty {
                                         HStack {
-                                            Text(tab.title.isEmpty ? "New Tab" : tab.title)
+                                            Text(getDisplayURL(tab))
                                                 .font(.system(size: 14))
                                                 .foregroundColor(getUrlFieldColor(tab))
                                                 .lineLimit(1)
+                                                .truncationMode(.middle)
                                             Spacer()
                                         }
                                     }
@@ -207,6 +208,12 @@ struct URLBar: View {
                 }
                 .onChange(of: tabManager.activeTab?.id) { _, _ in
                     if !isEditing, let tab = tabManager.activeTab {
+                        editingURLString = getDisplayURL(tab)
+                    }
+                }
+                .onChange(of: isEditing) { _, newValue in
+                    if !newValue, let tab = tabManager.activeTab {
+                        // Restore the field to the current URL/host when focus leaves the field
                         editingURLString = getDisplayURL(tab)
                     }
                 }
