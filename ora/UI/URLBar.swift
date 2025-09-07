@@ -10,7 +10,6 @@ struct URLBar: View {
     @State private var editingURLString: String = ""
     @FocusState private var isEditing: Bool
     @Environment(\.colorScheme) var colorScheme
-    @State private var showFullURL: Bool = false
 
     let onSidebarToggle: () -> Void
 
@@ -36,7 +35,7 @@ struct URLBar: View {
     }
 
     private func getDisplayURL(_ tab: Tab) -> String {
-        if showFullURL {
+        if appState.showFullURL {
             return tab.url.absoluteString
         } else {
             return tab.url.host ?? tab.url.absoluteString
@@ -201,7 +200,7 @@ struct URLBar: View {
                         editingURLString = getDisplayURL(tab)
                     }
                 }
-                .onChange(of: showFullURL) { _, _ in
+                .onChange(of: appState.showFullURL) { _, _ in
                     if !isEditing, let tab = tabManager.activeTab {
                         editingURLString = getDisplayURL(tab)
                     }
@@ -216,15 +215,15 @@ struct URLBar: View {
                         .fill(tab.backgroundColor)
                 )
                 .contextMenu {
-                    if showFullURL {
+                    if appState.showFullURL {
                         Button(action: {
-                            showFullURL = false
+                            appState.showFullURL = false
                         }) {
                             Label("Hide Full URL", systemImage: "eye.slash")
                         }
                     } else {
                         Button(action: {
-                            showFullURL = true
+                            appState.showFullURL = true
                         }) {
                             Label("Show Full URL", systemImage: "eye")
                         }

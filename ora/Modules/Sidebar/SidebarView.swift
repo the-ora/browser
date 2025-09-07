@@ -14,7 +14,6 @@ struct SidebarView: View {
     private let columns = Array(repeating: GridItem(spacing: 10), count: 3)
     let isFullscreen: Bool
 
-    @State private var showFullURL: Bool = false
     @State private var editingURLString: String = ""
 
     private var selectedContainerIndex: Binding<Int> {
@@ -36,8 +35,7 @@ struct SidebarView: View {
             if appState.isToolbarHidden, let tab = tabManager.activeTab {
                 SidebarURLDisplay(
                     tab: tab,
-                    editingURLString: $editingURLString,
-                    showFullURL: $showFullURL
+                    editingURLString: $editingURLString
                 )
             }
 
@@ -81,14 +79,6 @@ struct SidebarView: View {
     private func onContainerSelected(container: TabContainer) {
         withAnimation(.easeOut(duration: 0.1)) {
             tabManager.activateContainer(container)
-        }
-    }
-
-    private func getDisplayURL(_ tab: Tab) -> String {
-        if showFullURL {
-            return tab.url.absoluteString
-        } else {
-            return tab.url.host ?? tab.url.absoluteString
         }
     }
 }
