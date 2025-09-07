@@ -230,55 +230,46 @@ struct OraApp: App {
                 }
 
                 Button("Tab 1") {
-                    print("🔍 DEBUG: CMD+1 button triggered")
                     tabManager.switchToTabAtIndex(1)
                 }
                 .keyboardShortcut(KeyboardShortcuts.Tabs.tab1)
 
                 Button("Tab 2") {
-                    print("🔍 DEBUG: CMD+2 button triggered")
                     tabManager.switchToTabAtIndex(2)
                 }
                 .keyboardShortcut(KeyboardShortcuts.Tabs.tab2)
 
                 Button("Tab 3") {
-                    print("🔍 DEBUG: CMD+3 button triggered")
                     tabManager.switchToTabAtIndex(3)
                 }
                 .keyboardShortcut(KeyboardShortcuts.Tabs.tab3)
 
                 Button("Tab 4") {
-                    print("🔍 DEBUG: CMD+4 button triggered")
                     tabManager.switchToTabAtIndex(4)
                 }
                 .keyboardShortcut(KeyboardShortcuts.Tabs.tab4)
 
                 Button("Tab 5") {
-                    print("🔍 DEBUG: CMD+5 button triggered")
                     tabManager.switchToTabAtIndex(5)
                 }
                 .keyboardShortcut(KeyboardShortcuts.Tabs.tab5)
 
                 Button("Tab 6") {
-                    print("🔍 DEBUG: CMD+6 button triggered")
                     tabManager.switchToTabAtIndex(6)
                 }
                 .keyboardShortcut(KeyboardShortcuts.Tabs.tab6)
 
                 Button("Tab 7") {
-                    print("🔍 DEBUG: CMD+7 button triggered")
                     tabManager.switchToTabAtIndex(7)
                 }
                 .keyboardShortcut(KeyboardShortcuts.Tabs.tab7)
 
                 Button("Tab 8") {
-                    print("🔍 DEBUG: CMD+8 button triggered")
                     tabManager.switchToTabAtIndex(8)
                 }
                 .keyboardShortcut(KeyboardShortcuts.Tabs.tab8)
 
                 Button("Tab 9") {
-                    print("🔍 DEBUG: CMD+9 button triggered")
                     tabManager.switchToTabAtIndex(9)
                 }
                 .keyboardShortcut(KeyboardShortcuts.Tabs.tab9)
