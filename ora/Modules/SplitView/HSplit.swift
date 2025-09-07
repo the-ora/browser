@@ -28,7 +28,8 @@ public struct HSplit<P: View, D: SplitDivider, S: View>: View {
     }
 
     public init(@ViewBuilder left: @escaping () -> P, @ViewBuilder right: @escaping () -> S)
-        where D == Splitter {
+        where D == Splitter
+    {
         let fraction = FractionHolder()
         let hide = SideHolder()
         let constraints = SplitConstraints()
@@ -63,7 +64,8 @@ public struct HSplit<P: View, D: SplitDivider, S: View>: View {
 
     /// Return a new HSplit with the `splitter` set to the `splitter` passed-in.
     public func splitter<T>(@ViewBuilder _ splitter: @escaping () -> T) -> HSplit<P, T, S>
-        where T: View {
+        where T: View
+    {
         return HSplit<P, T, S>(
             fraction: fraction, hide: hide, constraints: constraints, onDrag: onDrag,
             primary: { primary }, splitter: splitter, secondary: { secondary }

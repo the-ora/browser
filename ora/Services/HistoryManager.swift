@@ -1,5 +1,8 @@
 import Foundation
+import os.log
 import SwiftData
+
+private let logger = Logger(subsystem: "com.orabrowser.ora", category: "HistoryManager")
 
 @MainActor
 class HistoryManager: ObservableObject {
@@ -77,7 +80,7 @@ class HistoryManager: ObservableObject {
             // Fetch matching history records
             return try modelContext.fetch(descriptor)
         } catch {
-            print("Error fetching history: \(error)")
+            logger.error("Error fetching history: \(error.localizedDescription)")
             return []
         }
     }

@@ -270,7 +270,8 @@ class TabManager: ObservableObject {
             if let nextTab = tab.container.tabs
                 .filter({ $0.id != tab.id && $0.isWebViewReady })
                 .sorted(by: { $0.lastAccessedAt ?? Date.distantPast > $1.lastAccessedAt ?? Date.distantPast })
-                .first {
+                .first
+            {
                 self.activateTab(nextTab)
 
                 //            } else if let nextContainer = containers.first(where: { $0.id != tab.container.id }) {
@@ -283,7 +284,8 @@ class TabManager: ObservableObject {
             self.activeTab = activeTab
         }
         if activeTab?.isWebViewReady != nil, let historyManager = tab.historyManager,
-           let downloadManager = tab.downloadManager, let tabManager = tab.tabManager {
+           let downloadManager = tab.downloadManager, let tabManager = tab.tabManager
+        {
             activeTab?
                 .restoreTransientState(
                     historyManger: historyManager,
@@ -323,7 +325,8 @@ class TabManager: ObservableObject {
         container.lastAccessedAt = Date()
         // Set the most recently accessed tab in the container
         if let lastAccessedTab = container.tabs
-            .sorted(by: { $0.lastAccessedAt ?? Date() > $1.lastAccessedAt ?? Date() }).first {
+            .sorted(by: { $0.lastAccessedAt ?? Date() > $1.lastAccessedAt ?? Date() }).first
+        {
             activeTab?.maybeIsActive = false
             activeTab = lastAccessedTab
             activeTab?.maybeIsActive = true
@@ -355,7 +358,8 @@ class TabManager: ObservableObject {
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         if message.name == "listener",
-           let url = message.body as? String {
+           let url = message.body as? String
+        {
             // You can update the active tab’s url if needed
             DispatchQueue.main.async {
                 self.activeTab?.url = URL(string: url) ?? self.activeTab?.url ?? URL(string: "about:blank")!
