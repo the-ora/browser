@@ -86,8 +86,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
            let tab = self.tab,
            let tabManager = tab.tabManager,
            let historyManager = tab.historyManager,
-           let downloadManager = tab.downloadManager
-        {
+           let downloadManager = tab.downloadManager {
             // Open link in new tab
             DispatchQueue.main.async {
                 tabManager.openTab(
@@ -145,10 +144,10 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
         if !isDownloadNavigation {
             onLoadingChange?(false)
             let nsError = error as NSError
-            if nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled {
+            if nsError.domain == NSURLErrorDomain, nsError.code == NSURLErrorCancelled {
                 return
             }
-            
+
             tab?.setNavigationError(error, for: webView.url)
         }
         originalURL = nil // Clear stored URL on navigation failure
@@ -159,10 +158,10 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
         if !isDownloadNavigation {
             onLoadingChange?(false)
             let nsError = error as NSError
-            if nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled {
+            if nsError.domain == NSURLErrorDomain, nsError.code == NSURLErrorCancelled {
                 return
             }
-            
+
             tab?.setNavigationError(error, for: webView.url)
             onProgressChange?(100.0)
         }
