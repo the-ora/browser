@@ -154,7 +154,6 @@ struct TabItem: View {
 //        .onTapGesture(perform: onTap)
         .onHover { isHovering = $0 }
         .contextMenu { contextMenuItems }
-        .animation(.spring(response: 0.2, dampingFraction: 0.8), value: isDragging)
     }
 
     private var tabTitle: some View {
