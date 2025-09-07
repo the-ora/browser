@@ -60,10 +60,10 @@ jobs:
     - name: Resolve dependencies
       run: xcodebuild -resolvePackageDependencies
     
-    - name: Build project
-      run: |
-        chmod +x xcbuild-debug.sh
-        ./xcbuild-debug.sh
+    # - name: Build project
+    #   run: |
+    #     chmod +x xcbuild-debug.sh
+    #     ./xcbuild-debug.sh
     
     - name: Run tests
       run: |
@@ -93,46 +93,3 @@ jobs:
       with:
         files: ./coverage.json
         fail_ci_if_error: false
-
-  # build-release:
-  #   runs-on: macos-latest
-  #   needs: build-and-test
-  #   if: github.ref == 'refs/heads/main'
-    
-  #   steps:
-  #   - name: Checkout code
-  #     uses: actions/checkout@v4
-    
-  #   - name: Select Xcode version
-  #     run: sudo xcode-select -s /Applications/Xcode_15.0.app
-    
-  #   - name: Build for release
-  #     run: |
-  #       xcodebuild archive \
-  #         -scheme ora \
-  #         -destination "platform=macOS" \
-  #         -configuration Release \
-  #         -archivePath build/Ora.xcarchive \
-  #         CODE_SIGN_IDENTITY="" \
-  #         CODE_SIGNING_REQUIRED=NO
-    
-  #   - name: Export app
-  #     run: |
-  #       xcodebuild -exportArchive \
-  #         -archivePath build/Ora.xcarchive \
-  #         -exportPath build/export \
-  #         -exportOptionsPlist ExportOptions.plist
-    
-  #   - name: Create DMG (optional)
-  #     run: |
-  #       # Install create-dmg if you want to create a DMG
-  #       # brew install create-dmg
-  #       # create-dmg --volname "Ora" --window-pos 200 120 \
-  #       #   --window-size 600 300 --icon-size 100 --app-drop-link 425 120 \
-  #       #   "Ora.dmg" "build/export/Ora.app"
-    
-  #   - name: Upload build artifacts
-  #     uses: actions/upload-artifact@v3
-  #     with:
-  #       name: macos-app
-  #       path: build/export/
