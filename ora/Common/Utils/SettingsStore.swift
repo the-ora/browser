@@ -27,7 +27,8 @@ enum AutoClearTabsAfter: String, CaseIterable, Identifiable, Codable {
     }
 }
 
-class SettingsStore: ObservableObject {
+@Observable
+class SettingsStore {
     static let shared = SettingsStore()
     private let defaults = UserDefaults.standard
 
@@ -54,27 +55,27 @@ class SettingsStore: ObservableObject {
         "settings.container.\(containerId.uuidString).autoClearTabsAfter"
     }
 
-    @Published var autoUpdateEnabled: Bool {
+    var autoUpdateEnabled: Bool {
         didSet { defaults.set(autoUpdateEnabled, forKey: autoUpdateKey) }
     }
 
-    @Published var blockThirdPartyTrackers: Bool {
+    var blockThirdPartyTrackers: Bool {
         didSet { defaults.set(blockThirdPartyTrackers, forKey: trackingThirdPartyKey) }
     }
 
-    @Published var blockFingerprinting: Bool {
+    var blockFingerprinting: Bool {
         didSet { defaults.set(blockFingerprinting, forKey: fingerprintingKey) }
     }
 
-    @Published var adBlocking: Bool {
+    var adBlocking: Bool {
         didSet { defaults.set(adBlocking, forKey: adBlockingKey) }
     }
 
-    @Published var cookiesPolicy: CookiesPolicy {
+    var cookiesPolicy: CookiesPolicy {
         didSet { defaults.set(cookiesPolicy.rawValue, forKey: cookiesPolicyKey) }
     }
 
-    @Published var sitePermissions: [String: SitePermissionSettings] {
+    var sitePermissions: [String: SitePermissionSettings] {
         didSet { saveCodable(sitePermissions, forKey: sitePermissionsKey) }
     }
 
@@ -102,7 +103,6 @@ class SettingsStore: ObservableObject {
 
     func setDefaultSearchEngineId(_ id: String?, for containerId: UUID) {
         defaults.set(id, forKey: keyForDefaultSearch(for: containerId))
-        objectWillChange.send()
     }
 
     func defaultAIEngineId(for containerId: UUID) -> String? {
@@ -111,7 +111,6 @@ class SettingsStore: ObservableObject {
 
     func setDefaultAIEngineId(_ id: String?, for containerId: UUID) {
         defaults.set(id, forKey: keyForDefaultAI(for: containerId))
-        objectWillChange.send()
     }
 
     func autoClearTabsAfter(for containerId: UUID) -> AutoClearTabsAfter {
@@ -124,7 +123,6 @@ class SettingsStore: ObservableObject {
 
     func setAutoClearTabsAfter(_ value: AutoClearTabsAfter, for containerId: UUID) {
         defaults.set(value.rawValue, forKey: keyForAutoClear(for: containerId))
-        objectWillChange.send()
     }
 
     // MARK: - Permissions

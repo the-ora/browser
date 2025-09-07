@@ -5,13 +5,12 @@ import WebKit
 // MARK: - Tab Manager
 
 @MainActor
-class TabManager: ObservableObject {
-    @Published var activeContainer: TabContainer?
-    @Published var activeTab: Tab?
+@Observable
+class TabManager {
+    var activeContainer: TabContainer?
+    var activeTab: Tab?
     let modelContainer: ModelContainer
     let modelContext: ModelContext
-
-    @Query(sort: \TabContainer.lastAccessedAt, order: .reverse) var containers: [TabContainer]
 
     init(
         modelContainer: ModelContainer,

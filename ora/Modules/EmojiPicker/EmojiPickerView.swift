@@ -3,7 +3,7 @@ import SwiftUI
 struct EmojiPickerView: View {
     let onSelect: (String) -> Void
 
-    @StateObject private var viewModel = EmojiViewModel()
+    @State private var viewModel = EmojiViewModel()
     @State private var hoveredEmoji: String?
 
     var body: some View {

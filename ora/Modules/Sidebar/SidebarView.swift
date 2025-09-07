@@ -4,10 +4,10 @@ import SwiftUI
 
 struct SidebarView: View {
     @Environment(\.theme) private var theme
-    @EnvironmentObject var tabManager: TabManager
-    @EnvironmentObject var historyManger: HistoryManager
-    @EnvironmentObject var downloadManager: DownloadManager
-    @EnvironmentObject var appState: AppState
+    @Environment(TabManager.self) private var tabManager
+    @Environment(HistoryManager.self) private var historyManger
+    @Environment(DownloadManager.self) private var downloadManager
+    @Environment(AppState.self) private var appState: AppState
     @Query var containers: [TabContainer]
     @Query(filter: nil, sort: [.init(\History.lastAccessedAt, order: .reverse)]) var histories:
         [History]
@@ -40,10 +40,10 @@ struct SidebarView: View {
                     containers: containers
                 )
                 .padding(.horizontal, 10)
-                .environmentObject(tabManager)
-                .environmentObject(historyManger)
-                .environmentObject(downloadManager)
-                .environmentObject(appState)
+                .environment(tabManager)
+                .environment(historyManger)
+                .environment(downloadManager)
+                .environment(appState)
             }
 
             HStack {

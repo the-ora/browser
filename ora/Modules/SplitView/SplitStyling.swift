@@ -8,7 +8,8 @@
 import SwiftUI
 
 @MainActor
-public class SplitStyling: ObservableObject {
+@Observable
+public class SplitStyling {
     /// Color of the visible part of the default Splitter.
     public var color: Color
     /// The inset for the visible part of the default Splitter from the ends it reaches to.
@@ -20,7 +21,7 @@ public class SplitStyling: ObservableObject {
     /// Whether to hide the splitter along with the side when SplitSide is set.
     public var hideSplitter: Bool
     /// Whether we are previewing what hiding will look like.
-    @Published public var previewHide: Bool
+    public var previewHide: Bool
 
     public init(
         color: Color? = nil,
@@ -37,7 +38,7 @@ public class SplitStyling: ObservableObject {
         self.previewHide = false        // We never start out previewing
     }
 
-    /// As an ObservableObject, when we want to change to a different SplitStyling, we need to just modify the
+    /// As an Observable, when we want to change to a different SplitStyling, we need to just modify the
     /// properties of this instance.
     public func reset(from styling: SplitStyling) {
         color = styling.color

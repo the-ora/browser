@@ -8,8 +8,9 @@ enum AppAppearance: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
-class AppearanceManager: ObservableObject {
-    @Published var appearance: AppAppearance {
+@Observable
+class AppearanceManager {
+    var appearance: AppAppearance {
         didSet {
             updateAppearance()
             UserDefaults.standard.set(appearance.rawValue, forKey: "AppAppearance")
@@ -19,10 +20,16 @@ class AppearanceManager: ObservableObject {
     init() {
         let saved = UserDefaults.standard.string(forKey: "AppAppearance")
         self.appearance = AppAppearance(rawValue: saved ?? "") ?? .system
-        updateAppearance()
+
+        // Defer appearance update until app is ready
+        DispatchQueue.main.async {
+            self.updateAppearance()
+        }
     }
 
     func updateAppearance() {
+        guard NSApp != nil else { return }
+
         switch appearance {
         case .system:
             NSApp.appearance = nil

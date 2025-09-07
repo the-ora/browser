@@ -11,7 +11,7 @@ struct NewContainerButton: View {
     @FocusState private var isTextFieldFocused: Bool
 
     @Environment(\.theme) private var theme
-    @EnvironmentObject var tabManager: TabManager
+    @Environment(TabManager.self) private var tabManager
 
     var body: some View {
         Button(action: {

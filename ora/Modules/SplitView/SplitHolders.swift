@@ -6,19 +6,21 @@
 //
 
 import Foundation
+import Observation
 
-/// An ObservableObject that `Split` view observes to change what its `layout` is.
+/// An Observable that `Split` view observes to change what its `layout` is.
 ///
 /// Use the static `usingUserDefaults` method to save state automatically in `UserDefaults.standard`.
-public class LayoutHolder: ObservableObject {
-    @Published public var value: SplitLayout {
+@Observable
+public class LayoutHolder {
+    public var value: SplitLayout {
         didSet {
             setter?(value)
         }
     }
 
-    public var getter: (() -> SplitLayout)?
-    public var setter: ((SplitLayout) -> Void)?
+    @ObservationIgnored public var getter: (() -> SplitLayout)?
+    @ObservationIgnored public var setter: ((SplitLayout) -> Void)?
 
     public var isHorizontal: Bool { value == .horizontal }
 
@@ -55,19 +57,20 @@ public class LayoutHolder: ObservableObject {
     }
 }
 
-/// An ObservableObject that `Split` view observes to change what fraction of the width/height the `splitter`
+/// An Observable that `Split` view observes to change what fraction of the width/height the `splitter`
 /// will be positioned at upon open.
 ///
 /// Use the static `usingUserDefaults` method to save state automatically in `UserDefaults.standard`.
-public class FractionHolder: ObservableObject {
-    @Published public var value: CGFloat {
+@Observable
+public class FractionHolder {
+    public var value: CGFloat {
         didSet {
             setter?(value)
         }
     }
 
-    public var getter: (() -> CGFloat)?
-    public var setter: ((CGFloat) -> Void)?
+    @ObservationIgnored public var getter: (() -> CGFloat)?
+    @ObservationIgnored public var setter: ((CGFloat) -> Void)?
 
     public init(_ fraction: CGFloat? = nil, getter: (() -> CGFloat)? = nil, setter: ((CGFloat) -> Void)? = nil) {
         value = getter?() ?? fraction ?? 0.5
@@ -84,18 +87,19 @@ public class FractionHolder: ObservableObject {
     }
 }
 
-/// An ObservableObject that `Split` view observes to change whether  one of the `SplitSide`s is hidden.
+/// An Observable that `Split` view observes to change whether  one of the `SplitSide`s is hidden.
 ///
 /// Use the static `usingUserDefaults` method to save state automatically in `UserDefaults.standard`.
-public class SideHolder: ObservableObject {
-    @Published private var value: SplitSide? {
+@Observable
+public class SideHolder {
+    private var value: SplitSide? {
         didSet {
             setter?(value)
         }
     }
 
-    public var getter: (() -> SplitSide?)?
-    public var setter: ((SplitSide?) -> Void)?
+    @ObservationIgnored public var getter: (() -> SplitSide?)?
+    @ObservationIgnored public var setter: ((SplitSide?) -> Void)?
     public var side: SplitSide? {
         get { value }
         set { setValue(newValue) }

@@ -1,11 +1,12 @@
 import SwiftUI
 
 struct DownloadsWidget: View {
-    @EnvironmentObject var downloadManager: DownloadManager
+    @Environment(DownloadManager.self) private var downloadManager
     @Environment(\.theme) private var theme
     @State private var isHovered = false
 
     var body: some View {
+        @Bindable var bindableDownloadManager = downloadManager
         VStack(spacing: 0) {
             // Active downloads
             if !downloadManager.activeDownloads.isEmpty {
@@ -58,9 +59,9 @@ struct DownloadsWidget: View {
                     isHovered = hovering
                 }
             }
-            .popover(isPresented: $downloadManager.isDownloadsPopoverOpen, arrowEdge: .bottom) {
+            .popover(isPresented: $bindableDownloadManager.isDownloadsPopoverOpen, arrowEdge: .bottom) {
                 DownloadsListView()
-                    .environmentObject(downloadManager)
+                    .environment(downloadManager)
             }
         }
     }

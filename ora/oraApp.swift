@@ -13,23 +13,24 @@ func deleteSwiftDataStore(_ loc: String) {
     try? fileManager.removeItem(at: walURL)
 }
 
-class AppState: ObservableObject {
-    @Published var showLauncher: Bool = false
-    @Published var launcherSearchText: String = ""
-    @Published var showFinderIn: UUID?
-    @Published var isFloatingTabSwitchVisible: Bool = false
+@Observable
+class AppState {
+    var showLauncher: Bool = false
+    var launcherSearchText: String = ""
+    var showFinderIn: UUID?
+    var isFloatingTabSwitchVisible: Bool = false
 }
 
 @main
 struct OraApp: App {
-    @StateObject private var appState = AppState()
-    @StateObject private var keyModifierListener = KeyModifierListener()
-    @StateObject private var appearanceManager = AppearanceManager()
-    @StateObject private var updateService = UpdateService()
+    @State private var appState = AppState()
+    @State private var keyModifierListener = KeyModifierListener()
+    @State private var appearanceManager = AppearanceManager()
+    @State private var updateService = UpdateService()
     // Pass it to TabManager
-    @StateObject private var tabManager: TabManager
-    @StateObject private var historyManager: HistoryManager
-    @StateObject private var downloadManager: DownloadManager
+    @State private var tabManager: TabManager
+    @State private var historyManager: HistoryManager
+    @State private var downloadManager: DownloadManager
 
     let tabContext: ModelContext
     let historyContext: ModelContext
@@ -61,38 +62,31 @@ struct OraApp: App {
         self.tabContext = modelContext
         self.downloadContext = modelContext
         self.historyContext = modelContext
-        let historyManagerObj = StateObject(
-            wrappedValue: HistoryManager(
-                modelContainer: container,
-                modelContext: modelContext
-            )
+        historyManager = HistoryManager(
+            modelContainer: container,
+            modelContext: modelContext
         )
-        _historyManager = historyManagerObj
-        _tabManager = StateObject(
-            wrappedValue: TabManager(
-                modelContainer: container,
-                modelContext: modelContext
-            )
+        tabManager = TabManager(
+            modelContainer: container,
+            modelContext: modelContext
         )
 
-        _downloadManager = StateObject(
-            wrappedValue: DownloadManager(
-                modelContainer: container,
-                modelContext: modelContext
-            )
+        downloadManager = DownloadManager(
+            modelContainer: container,
+            modelContext: modelContext
         )
     }
 
     var body: some Scene {
         WindowGroup {
             BrowserView()
-                .environmentObject(appState)
-                .environmentObject(tabManager)
-                .environmentObject(historyManager)
-                .environmentObject(keyModifierListener)
-                .environmentObject(appearanceManager)
-                .environmentObject(downloadManager)
-                .environmentObject(updateService)
+                .environment(appState)
+                .environment(tabManager)
+                .environment(historyManager)
+                .environment(keyModifierListener)
+                .environment(appearanceManager)
+                .environment(downloadManager)
+                .environment(updateService)
                 .modelContext(tabContext)
                 .modelContext(historyContext)
                 .onAppear {
@@ -140,6 +134,9 @@ struct OraApp: App {
                 )
 
                 ImportDataButton()
+                    .environment(downloadManager)
+                    .environment(tabManager)
+                    .environment(historyManager)
             }
 
             CommandGroup(after: .pasteboard) {
@@ -235,9 +232,9 @@ struct OraApp: App {
         }
         Settings {
             SettingsContentView()
-                .environmentObject(appearanceManager)
-                .environmentObject(historyManager)
-                .environmentObject(updateService)
+                .environment(appearanceManager)
+                .environment(historyManager)
+                .environment(updateService)
                 .modelContext(tabContext)
                 .withTheme()
         }

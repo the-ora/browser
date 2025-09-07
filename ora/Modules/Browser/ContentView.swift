@@ -3,7 +3,7 @@ import SwiftUI
 import WebKit
 
 struct ContentView: View {
-    @StateObject private var viewModel = VideoViewModel()
+    @State private var viewModel = VideoViewModel()
     @State private var manualURL: String = ""
 
     var body: some View {
@@ -28,8 +28,9 @@ struct ContentView: View {
     }
 }
 
-class VideoViewModel: ObservableObject {
-    @Published var videoURL: URL?
+@Observable
+class VideoViewModel {
+    var videoURL: URL?
     let webView: WKWebView
 
     init() {

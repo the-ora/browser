@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct PrivacySecuritySettingsView: View {
-    @StateObject private var settings = SettingsStore.shared
+    @State private var settings = SettingsStore.shared
 
     var body: some View {
         SettingsContainer(maxContentWidth: 760) {

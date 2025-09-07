@@ -82,9 +82,9 @@ struct TabItem: View {
     let onFavoriteToggle: () -> Void
     let onClose: () -> Void
     let onMoveToContainer: (TabContainer) -> Void
-    @EnvironmentObject var tabManager: TabManager
-    @EnvironmentObject var historyManager: HistoryManager
-    @EnvironmentObject var downloadManager: DownloadManager
+    @Environment(TabManager.self) private var tabManager
+    @Environment(HistoryManager.self) private var historyManager
+    @Environment(DownloadManager.self) private var downloadManager
     let availableContainers: [TabContainer]
 
     @Environment(\.theme) private var theme

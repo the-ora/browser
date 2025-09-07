@@ -3,7 +3,7 @@ import SwiftUI
 
 struct FavTabsGrid: View {
     @Environment(\.theme) var theme
-    @EnvironmentObject var tabManager: TabManager
+    @Environment(TabManager.self) private var tabManager
     let tabs: [Tab]
     @Binding var draggedItem: UUID?
     let onDrag: (UUID) -> NSItemProvider

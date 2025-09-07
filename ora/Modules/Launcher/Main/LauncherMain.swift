@@ -42,10 +42,10 @@ struct LauncherMain: View {
     let onSubmit: (String?) -> Void
 
     @Environment(\.theme) private var theme
-    @EnvironmentObject var historyManager: HistoryManager
-    @EnvironmentObject var downloadManager: DownloadManager
-    @EnvironmentObject var tabManager: TabManager
-    @EnvironmentObject var appState: AppState
+    @Environment(HistoryManager.self) private var historyManager
+    @Environment(DownloadManager.self) private var downloadManager
+    @Environment(TabManager.self) private var tabManager
+    @Environment(AppState.self) private var appState: AppState
     @State var focusedElement: UUID = .init()
 
     @State private var suggestions: [LauncherSuggestion] = [

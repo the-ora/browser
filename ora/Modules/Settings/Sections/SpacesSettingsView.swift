@@ -4,7 +4,7 @@ import SwiftUI
 struct SpacesSettingsView: View {
     @Query var containers: [TabContainer]
 
-    @StateObject private var settings = SettingsStore.shared
+    @State private var settings = SettingsStore.shared
     @State private var searchService = SearchEngineService()
     @State private var selectedContainerId: UUID?
 

@@ -22,8 +22,8 @@ public protocol SplitDivider: View {
 /// spacing between views should be `visibleThickness` or zero.
 @MainActor
 public struct Splitter: SplitDivider {
-    @EnvironmentObject private var layout: LayoutHolder
-    @ObservedObject public var styling: SplitStyling
+    @Environment(LayoutHolder.self) var layout
+    public var styling: SplitStyling
     @State private var dividerColor: Color  // Changes based on styling.previewHide
     private var color: Color { privateColor ?? styling.color }
     private var inset: CGFloat { privateInset ?? styling.inset }
@@ -123,16 +123,16 @@ public struct Splitter: SplitDivider {
 struct Splitter_Previews: PreviewProvider {
     static var previews: some View {
         Splitter()
-            .environmentObject(LayoutHolder(.horizontal))
+            .environment(LayoutHolder(.horizontal))
         Splitter(color: Color.red, inset: 2, visibleThickness: 8, invisibleThickness: 30)
-            .environmentObject(LayoutHolder(.horizontal))
+            .environment(LayoutHolder(.horizontal))
         Splitter.line()
-            .environmentObject(LayoutHolder(.horizontal))
+            .environment(LayoutHolder(.horizontal))
         Splitter()
-            .environmentObject(LayoutHolder(.vertical))
+            .environment(LayoutHolder(.vertical))
         Splitter(color: Color.red, inset: 2, visibleThickness: 8, invisibleThickness: 30)
-            .environmentObject(LayoutHolder(.vertical))
+            .environment(LayoutHolder(.vertical))
         Splitter.line()
-            .environmentObject(LayoutHolder(.vertical))
+            .environment(LayoutHolder(.vertical))
     }
 }

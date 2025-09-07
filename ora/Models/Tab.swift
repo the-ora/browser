@@ -18,7 +18,7 @@ struct URLUpdate: Codable {
 // MARK: - Tab
 
 @Model
-class Tab: ObservableObject, Identifiable {
+class Tab: Identifiable {
     var id: UUID
     var url: URL
     var urlString: String

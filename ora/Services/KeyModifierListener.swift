@@ -29,8 +29,9 @@ import SwiftUI
  * }
  */
 
-final class KeyModifierListener: ObservableObject {
-    @Published var modifierFlags = NSEvent.ModifierFlags([])
+@Observable
+final class KeyModifierListener {
+    var modifierFlags = NSEvent.ModifierFlags([])
 
     init() {
         NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { [weak self] event in

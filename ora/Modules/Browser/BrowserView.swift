@@ -4,13 +4,13 @@ import SwiftUI
 // MARK: - BrowserView
 
 struct BrowserView: View {
-    @EnvironmentObject var tabManager: TabManager
+    @Environment(TabManager.self) private var tabManager
     @Environment(\.theme) var theme
-    @EnvironmentObject private var appState: AppState
+    @Environment(AppState.self) private var appState: AppState
     @State private var isFullscreen = false
     @State private var showFloatingSidebar = false
 
-    @StateObject var hide = SideHolder()
+    @State var hide = SideHolder()
 
     private func getAppVersion() -> String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
@@ -233,7 +233,7 @@ struct BrowserView: View {
 }
 
 struct BrowserContentContainer<Content: View>: View {
-    @EnvironmentObject var tabManager: TabManager
+    @Environment(TabManager.self) private var tabManager
     let content: () -> Content
     let isFullscreen: Bool
     let hideState: SideHolder
