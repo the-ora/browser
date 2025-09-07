@@ -96,7 +96,7 @@ class FaviconService: ObservableObject {
 
 extension NSImage {
     var isValid: Bool {
-        return representations.count > 0
+        return !representations.isEmpty
     }
 
     func averageColor() -> NSColor {

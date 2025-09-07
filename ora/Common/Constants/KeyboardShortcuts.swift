@@ -44,6 +44,7 @@ enum KeyboardShortcuts {
     }
 
     enum Address {
+        static let copyURL = KeyboardShortcut("c", modifiers: [.command, .shift])
         static let focus = KeyboardShortcut("l", modifiers: [.command])
         static let find = KeyboardShortcut("f", modifiers: [.command])
         static let findNext = KeyboardShortcut("g", modifiers: [.command])
@@ -114,6 +115,7 @@ extension KeyboardShortcuts {
             .init(category: "Window", name: "Fullscreen", display: "⌃⌘F"),
 
             // Address
+            .init(category: "Address", name: "Copy Address Bar URL", display: "⇧⌘C"),
             .init(category: "Address", name: "Focus Address Bar", display: "⌘L"),
             .init(category: "Address", name: "Find", display: "⌘F"),
             .init(category: "Address", name: "Find Next", display: "⌘G"),

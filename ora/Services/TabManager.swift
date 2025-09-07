@@ -137,8 +137,8 @@ class TabManager: ObservableObject {
         return self.activeTab
     }
 
-    func moveTabToContainer(_ tab: Tab, to: TabContainer) {
-        tab.container = to
+    func moveTabToContainer(_ tab: Tab, toContainer: TabContainer) {
+        tab.container = toContainer
         try? modelContext.save()
     }
 
@@ -189,13 +189,16 @@ class TabManager: ObservableObject {
 
     func addTab(
         title: String = "Untitled",
-        url: URL = URL(string: "https://www.youtube.com/")!,
+        url: URL = URL(string: "https://www.youtube.com/") ?? URL(string: "about:blank") ?? URL(fileURLWithPath: ""),
         container: TabContainer,
         favicon: URL? = nil,
         historyManager: HistoryManager? = nil,
         downloadManager: DownloadManager? = nil
     ) -> Tab {
-        let cleanHost = url.host?.hasPrefix("www.") == true ? String(url.host!.dropFirst(4)) : url.host
+        let cleanHost: String? = {
+            guard let host = url.host else { return nil }
+            return host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
+        }()
         let newTab = Tab(
             url: url,
             title: cleanHost ?? "New Tab",
@@ -254,13 +257,13 @@ class TabManager: ObservableObject {
         }
     }
 
-    func reorderTabs(from: Tab, to: Tab) {
-        from.container.reorderTabs(from: from, to: to)
+    func reorderTabs(from: Tab, toTab: Tab) {
+        from.container.reorderTabs(from: from, to: toTab)
         try? modelContext.save()
     }
 
-    func switchSections(from: Tab, to: Tab) {
-        from.switchSections(from: from, to: to)
+    func switchSections(from: Tab, toTab: Tab) {
+        from.switchSections(from: from, to: toTab)
         try? modelContext.save()
     }
 
@@ -270,7 +273,8 @@ class TabManager: ObservableObject {
             if let nextTab = tab.container.tabs
                 .filter({ $0.id != tab.id && $0.isWebViewReady })
                 .sorted(by: { $0.lastAccessedAt ?? Date.distantPast > $1.lastAccessedAt ?? Date.distantPast })
-                .first {
+                .first
+            {
                 self.activateTab(nextTab)
 
                 //            } else if let nextContainer = containers.first(where: { $0.id != tab.container.id }) {
@@ -283,7 +287,8 @@ class TabManager: ObservableObject {
             self.activeTab = activeTab
         }
         if activeTab?.isWebViewReady != nil, let historyManager = tab.historyManager,
-           let downloadManager = tab.downloadManager, let tabManager = tab.tabManager {
+           let downloadManager = tab.downloadManager, let tabManager = tab.tabManager
+        {
             activeTab?
                 .restoreTransientState(
                     historyManger: historyManager,
@@ -323,7 +328,8 @@ class TabManager: ObservableObject {
         container.lastAccessedAt = Date()
         // Set the most recently accessed tab in the container
         if let lastAccessedTab = container.tabs
-            .sorted(by: { $0.lastAccessedAt ?? Date() > $1.lastAccessedAt ?? Date() }).first {
+            .sorted(by: { $0.lastAccessedAt ?? Date() > $1.lastAccessedAt ?? Date() }).first
+        {
             activeTab?.maybeIsActive = false
             activeTab = lastAccessedTab
             activeTab?.maybeIsActive = true
@@ -355,10 +361,17 @@ class TabManager: ObservableObject {
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         if message.name == "listener",
-           let url = message.body as? String {
+           let url = message.body as? String
+        {
             // You can update the active tab’s url if needed
             DispatchQueue.main.async {
-                self.activeTab?.url = URL(string: url) ?? self.activeTab?.url ?? URL(string: "about:blank")!
+                if let validURL = URL(string: url) {
+                    self.activeTab?.url = validURL
+                } else if let fallbackURL = self.activeTab?.url {
+                    self.activeTab?.url = fallbackURL
+                } else if let blankURL = URL(string: "about:blank") {
+                    self.activeTab?.url = blankURL
+                }
             }
         }
     }

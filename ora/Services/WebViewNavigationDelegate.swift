@@ -1,9 +1,12 @@
 import AppKit
+import os.log
 import SwiftUI
 @preconcurrency import WebKit
 
+private let logger = Logger(subsystem: "com.orabrowser.ora", category: "WebViewNavigationDelegate")
+
 // JavaScript for monitoring URL, title, and favicon changes
-let js = """
+let navigationScript = """
 (function () {
     let lastHref = location.href;
     let lastTitle = document.title;
@@ -80,13 +83,20 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
         decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
     ) {
         // Check if command key is pressed (cmd+click)
-        print(navigationAction.modifierFlags, navigationAction.modifierFlags.contains(.command))
+        logger
+            .debug(
+                """
+                Navigation action - modifier flags: \(navigationAction.modifierFlags.rawValue), \
+                contains command: \(navigationAction.modifierFlags.contains(.command))
+                """
+            )
         if navigationAction.modifierFlags.contains(.command),
            let url = navigationAction.request.url,
            let tab = self.tab,
            let tabManager = tab.tabManager,
            let historyManager = tab.historyManager,
-           let downloadManager = tab.downloadManager {
+           let downloadManager = tab.downloadManager
+        {
             // Open link in new tab
             DispatchQueue.main.async {
                 tabManager.openTab(
@@ -130,7 +140,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
             onURLChange?(webView.url)
             onChange?(webView.title, webView.url)
             onProgressChange?(webView.estimatedProgress * 100.0)
-            webView.evaluateJavaScript(js, completionHandler: nil)
+            webView.evaluateJavaScript(navigationScript, completionHandler: nil)
             takeSnapshotAfterLoad(webView)
             originalURL = nil // Clear stored URL after successful navigation
         }
@@ -306,11 +316,13 @@ class DownloadDelegate: NSObject, WKDownloadDelegate {
                 let completedBytes = self.wkDownload.progress.completedUnitCount
                 let totalBytes = self.wkDownload.progress.totalUnitCount > 0 ? self.wkDownload.progress
                     .totalUnitCount : expectedSize
-                self.downloadManager.updateDownloadProgress(
-                    download,
-                    downloadedBytes: completedBytes,
-                    totalBytes: totalBytes
-                )
+                Task { @MainActor in
+                    self.downloadManager.updateDownloadProgress(
+                        download,
+                        downloadedBytes: completedBytes,
+                        totalBytes: totalBytes
+                    )
+                }
             }
         }
         completionHandler(finalURL)

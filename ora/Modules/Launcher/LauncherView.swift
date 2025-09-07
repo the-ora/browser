@@ -36,7 +36,8 @@ struct LauncherView: View {
         var engineToUse = match
 
         if engineToUse == nil,
-           let defaultEngine = searchEngineService.getDefaultSearchEngine(for: tabManager.activeContainer?.id) {
+           let defaultEngine = searchEngineService.getDefaultSearchEngine(for: tabManager.activeContainer?.id)
+        {
             let customEngine = searchEngineService.settings.customSearchEngines
                 .first { $0.searchURL == defaultEngine.searchURL }
             engineToUse = defaultEngine.toLauncherMatch(
@@ -47,7 +48,8 @@ struct LauncherView: View {
         }
 
         if let engine = engineToUse,
-           let url = searchEngineService.createSearchURL(for: engine, query: correctInput) {
+           let url = searchEngineService.createSearchURL(for: engine, query: correctInput)
+        {
             tabManager
                 .openTab(
                     url: url,
