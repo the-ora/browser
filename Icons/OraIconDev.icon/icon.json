@@ -31,6 +31,13 @@
           }
         }
       ],
+      "position" : {
+        "scale" : 0.9,
+        "translation-in-points" : [
+          0,
+          0
+        ]
+      },
       "shadow" : {
         "kind" : "neutral",
         "opacity" : 0.5
@@ -70,6 +77,13 @@
           "value" : 0.08
         }
       ],
+      "position" : {
+        "scale" : 0.9,
+        "translation-in-points" : [
+          0,
+          0
+        ]
+      },
       "shadow-specializations" : [
         {
           "appearance" : "tinted",
