@@ -1,4 +1,7 @@
+import os.log
 import SwiftUI
+
+private let logger = Logger(subsystem: "com.orabrowser.ora", category: "SearchEngineService")
 
 enum SearchEngineID: String, CaseIterable {
     case youtube = "YouTube"
@@ -164,7 +167,7 @@ class SearchEngineService: ObservableObject {
             let decoded = try JSONDecoder().decode(SuggestResponse.self, from: data)
             return decoded.suggestions
         } catch {
-            print("Error: \(error)")
+            logger.error("Error fetching Google suggestions: \(error.localizedDescription)")
             return []
         }
     }

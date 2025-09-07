@@ -25,7 +25,8 @@ struct ImportDataButton: View {
                     if space.containerIDs
                         .contains(
                             tab.parentID
-                        ) {
+                        )
+                    {
                         if let url = URL(
                             string: tab.urlString
                         ) {
@@ -51,7 +52,8 @@ struct ImportDataButton: View {
             var seenContainers: Set<UUID> = []
             for container in newContainers {
                 if seenContainers
-                    .contains(container.id) {
+                    .contains(container.id)
+                {
                     continue
                 }
                 seenContainers
@@ -60,7 +62,8 @@ struct ImportDataButton: View {
                     if result.favs
                         .contains(
                             tab.parentID
-                        ) {
+                        )
+                    {
                         if let url = URL(
                             string: tab.urlString
                         ) {

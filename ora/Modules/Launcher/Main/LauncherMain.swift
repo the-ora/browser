@@ -264,7 +264,8 @@ struct LauncherMain: View {
     func executeCommand() {
         if let suggestion =
             suggestions
-                .first(where: { $0.id == focusedElement }) {
+                .first(where: { $0.id == focusedElement })
+        {
             suggestion.action()
             appState.showLauncher = false
         }
@@ -330,7 +331,7 @@ struct LauncherMain: View {
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            if match == nil, suggestions.count > 0 {
+            if match == nil, !suggestions.isEmpty {
                 LauncherSuggestionsView(
                     text: $text,
                     suggestions: $suggestions,

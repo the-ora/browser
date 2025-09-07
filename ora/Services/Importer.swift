@@ -1,4 +1,7 @@
+import os.log
 import SwiftUI
+
+private let logger = Logger(subsystem: "com.orabrowser.ora", category: "Importer")
 
 struct Root: Decodable {
     let sidebar: Sidebar
@@ -55,7 +58,8 @@ enum SpaceItem: Decodable {
 
     init(from decoder: Decoder) throws {
         if let singleValue = try? decoder.singleValueContainer(),
-           let id = try? singleValue.decode(String.self) {
+           let id = try? singleValue.decode(String.self)
+        {
             self = .id(id)
         } else {
             self = try .custom(CustomInfo(from: decoder))
@@ -69,7 +73,8 @@ enum Item: Decodable {
 
     init(from decoder: Decoder) throws {
         if let singleValue = try? decoder.singleValueContainer(),
-           let id = try? singleValue.decode(String.self) {
+           let id = try? singleValue.decode(String.self)
+        {
             self = .id(id)
         } else {
             self = try .object(ItemObject(from: decoder))
@@ -131,7 +136,8 @@ enum TopAppsContainerID: Decodable {
 
     init(from decoder: Decoder) throws {
         if let singleValue = try? decoder.singleValueContainer(),
-           let id = try? singleValue.decode(String.self) {
+           let id = try? singleValue.decode(String.self)
+        {
             self = .id(id)
         } else {
             self = try .object(TopAppsObject(from: decoder))
@@ -155,7 +161,7 @@ func getRoot() -> Root? {
         let root = try JSONDecoder().decode(Root.self, from: data)
         return root
     } catch {
-        print("Decoding failed: \(error)")
+        logger.error("Decoding failed: \(error.localizedDescription)")
         return nil
     }
 }
@@ -209,7 +215,7 @@ func inspectItems(_ root: Root) -> Result {
 
                     cleanSpaces.append(cleanSpace)
                 case let .id(id):
-                    print("    Space ID: \(id)")
+                    logger.debug("Space ID: \(id)")
                 }
             }
         } else {
@@ -222,11 +228,11 @@ func inspectItems(_ root: Root) -> Result {
             var idCount = 0
             var objectCount = 0
             for (itemIndex, item) in items.enumerated() {
-                print("    Item \(itemIndex + 1):")
+                logger.debug("Item \(itemIndex + 1):")
                 switch item {
                 case let .id(id):
                     idCount += 1
-                    print("      ID: \(id)")
+                    logger.debug("ID: \(id)")
                 case let .object(itemObject):
                     objectCount += 1
 //                    print("      Object:")
@@ -277,7 +283,7 @@ func inspectItems(_ root: Root) -> Result {
 //                    print("    TopApp ID: \(id)")
                     topIds.append(id)
                 case let .object(obj):
-                    print("    TopApp Object: id=\(obj.id ?? "n/a")")
+                    logger.debug("TopApp Object: id=\(obj.id ?? "n/a")")
                 }
             }
         } else {
