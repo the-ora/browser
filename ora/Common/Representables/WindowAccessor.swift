@@ -13,80 +13,62 @@ struct WindowAccessor: NSViewRepresentable {
         Coordinator(self)
     }
 
-    @MainActor
-    class Coordinator {
+    class Coordinator: NSView {
         var parent: WindowAccessor
-        var observationTasks: [Task<Void, Never>] = []
 
         init(_ parent: WindowAccessor) {
             self.parent = parent
+            super.init(frame: .zero)
         }
 
-        func didEnterFullScreen(_ notification: Notification) {
+        @available(*, unavailable)
+        required init?(coder: NSCoder) {
+            fatalError("init(coder:) has not been implemented")
+        }
+
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            guard let window else { return }
+
+            parent.isFullscreen = window.styleMask.contains(.fullScreen)
+
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(didEnterFullScreen(_:)),
+                name: NSWindow.didEnterFullScreenNotification,
+                object: window
+            )
+
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(didExitFullScreen(_:)),
+                name: NSWindow.didExitFullScreenNotification,
+                object: window
+            )
+
+            parent.updateTrafficLights(for: window)
+        }
+
+        @objc func didEnterFullScreen(_ notification: Notification) {
             guard let window = notification.object as? NSWindow else { return }
             parent.isFullscreen = true
             parent.updateTrafficLights(for: window)
         }
 
-        func didExitFullScreen(_ notification: Notification) {
+        @objc func didExitFullScreen(_ notification: Notification) {
             guard let window = notification.object as? NSWindow else { return }
             parent.isFullscreen = false
             parent.updateTrafficLights(for: window)
         }
     }
 
-    final class WindowView: NSView {
-        var onMoveToWindow: ((NSWindow) -> Void)?
-
-        override func viewDidMoveToWindow() {
-            super.viewDidMoveToWindow()
-            if let window {
-                onMoveToWindow?(window)
-            }
-        }
-    }
-
     func makeNSView(context: Context) -> NSView {
-        let view = WindowView()
-        view.onMoveToWindow = { window in
-            isFullscreen = window.styleMask.contains(.fullScreen)
-
-            let coordinator = context.coordinator
-
-            let didEnterFullScreenNotificationTask = Task {
-                for await notification in NotificationCenter.default.notifications(
-                    named: NSWindow.didEnterFullScreenNotification,
-                    object: window
-                ) {
-                    coordinator.didEnterFullScreen(notification)
-                }
-            }
-
-            let didExitFullScreenNotificationTask = Task {
-                for await notification in NotificationCenter.default.notifications(
-                    named: NSWindow.didExitFullScreenNotification,
-                    object: window
-                ) {
-                    coordinator.didExitFullScreen(notification)
-                }
-            }
-
-            coordinator.observationTasks = [didEnterFullScreenNotificationTask, didExitFullScreenNotificationTask]
-            updateTrafficLights(for: window)
-        }
-
-        return view
+        return context.coordinator
     }
 
     func updateNSView(_ nsView: NSView, context: Context) {
         guard let window = nsView.window else { return }
         updateTrafficLights(for: window)
-    }
-
-    func dismantleNSView(_ nsView: NSView, coordinator: Coordinator) {
-        for task in coordinator.observationTasks {
-            task.cancel()
-        }
     }
 
     private func updateTrafficLights(for window: NSWindow) {
