@@ -85,7 +85,8 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
         // Check if command key is pressed (cmd+click)
         logger
             .debug(
-                "Navigation action - modifier flags: \(navigationAction.modifierFlags.rawValue), contains command: \(navigationAction.modifierFlags.contains(.command))"
+                "Navigation action - modifier flags: \(navigationAction.modifierFlags.rawValue), " +
+                    "contains command: \(navigationAction.modifierFlags.contains(.command))"
             )
         if navigationAction.modifierFlags.contains(.command),
            let url = navigationAction.request.url,

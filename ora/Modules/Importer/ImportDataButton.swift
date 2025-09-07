@@ -21,25 +21,15 @@ struct ImportDataButton: View {
                     .append(
                         container
                     )
-                for tab in result.cleanTabs {
-                    if space.containerIDs
-                        .contains(
-                            tab.parentID
-                        )
-                    {
-                        if let url = URL(
-                            string: tab.urlString
-                        ) {
-                            let newTab =
-                                tabManager
-                                    .addTab(
-                                        title: tab.title,
-                                        url: url,
-                                        container: container,
-                                        historyManager: historyManger,
-                                        downloadManager: downloadManager
-                                    )
-
+                for tab in result.cleanTabs where space.containerIDs
+                    .contains(
+                        tab.parentID
+                    )
+                {
+                    if let url = URL(
+                        string: tab.urlString
+                    ) {
+                        let newTab =
                             tabManager
                                 .addTab(
                                     title: tab.title,
