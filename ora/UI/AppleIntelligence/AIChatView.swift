@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 
 @available(macOS 26.0, *)
@@ -6,11 +7,14 @@ struct AIChatView: View {
     @State private var inputText = ""
     @State private var aiService: AppleIntelligenceService?
 
+    private let conversationId: UUID?
     private let initialQuery: String?
 
     @Environment(\.theme) private var theme
+    @Environment(\.modelContext) private var modelContext
 
-    init(initialQuery: String? = nil) {
+    init(conversationId: UUID? = nil, initialQuery: String? = nil) {
+        self.conversationId = conversationId
         self.initialQuery = initialQuery
     }
 
@@ -24,8 +28,9 @@ struct AIChatView: View {
         }
         .background(theme.background)
         .onAppear {
+            conversationManager.setModelContext(modelContext)
             initializeAIService()
-            ensureActiveConversation()
+            setupConversation()
             handleInitialQuery()
         }
     }
@@ -178,9 +183,26 @@ struct AIChatView: View {
         .frame(maxWidth: .infinity)
     }
 
-    private func ensureActiveConversation() {
-        if conversationManager.activeConversation == nil {
-            conversationManager.createNewConversation()
+    private func setupConversation() {
+        if let conversationId {
+            // Load existing conversation
+            if let existingConversation = conversationManager.conversations.first(where: { $0.id == conversationId }) {
+                conversationManager.activeConversation = existingConversation
+                existingConversation.touch()
+            } else {
+                // Conversation ID provided but not found - create new one with that ID
+                let conversation = AIConversation(id: conversationId)
+                conversationManager.conversations.insert(conversation, at: 0)
+                conversationManager.activeConversation = conversation
+
+                modelContext.insert(conversation)
+                try? modelContext.save()
+            }
+        } else {
+            // No conversation ID - create new conversation
+            if conversationManager.activeConversation == nil {
+                conversationManager.createNewConversation()
+            }
         }
     }
 
@@ -206,11 +228,11 @@ struct AIChatView: View {
         guard let conversationId = conversationManager.activeConversation?.id else { return }
 
         // Add user message
-        let userMessage = AIMessage(content: text, isFromUser: true)
+        let userMessage = AIMessage.userMessage(content: text)
         conversationManager.addMessage(to: conversationId, message: userMessage)
 
         // Add empty assistant message for streaming
-        let assistantMessage = AIMessage(content: "", isFromUser: false)
+        let assistantMessage = AIMessage.aiMessage(content: "")
         conversationManager.addMessage(to: conversationId, message: assistantMessage)
 
         // Generate AI response with streaming - much simpler!

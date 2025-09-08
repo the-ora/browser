@@ -6,7 +6,7 @@ struct AIMessageBubble: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            if message.isFromUser {
+            if message.sender == .user {
                 Spacer(minLength: 80)
                 messageContent
                     .background(theme.foreground.opacity(0.1))
@@ -22,7 +22,7 @@ struct AIMessageBubble: View {
     }
 
     private var messageContent: some View {
-        VStack(alignment: message.isFromUser ? .trailing : .leading, spacing: 4) {
+        VStack(alignment: message.sender == .user ? .trailing : .leading, spacing: 4) {
             Text(message.content)
                 .textSelection(.enabled)
                 .font(.body)
@@ -31,7 +31,7 @@ struct AIMessageBubble: View {
                 .padding(.vertical, 12)
                 .background(
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(message.isFromUser ? theme.foreground.opacity(0.1) : theme.background.opacity(0.05))
+                        .fill(message.sender == .user ? theme.foreground.opacity(0.1) : theme.background.opacity(0.05))
                 )
 
             Text(message.timestamp.formatted(date: .omitted, time: .shortened))
@@ -72,19 +72,16 @@ struct AIMessageBubble: View {
 
 #Preview {
     VStack {
-        AIMessageBubble(message: AIMessage(
-            content: "Hello! How can I help you today?",
-            isFromUser: false
+        AIMessageBubble(message: AIMessage.aiMessage(
+            content: "Hello! How can I help you today?"
         ))
 
-        AIMessageBubble(message: AIMessage(
-            content: "Can you help me write a SwiftUI view?",
-            isFromUser: true
+        AIMessageBubble(message: AIMessage.userMessage(
+            content: "Can you help me write a SwiftUI view?"
         ))
 
-        AIMessageBubble(message: AIMessage(
-            content: "I'm currently generating a response for you...",
-            isFromUser: false
+        AIMessageBubble(message: AIMessage.aiMessage(
+            content: "I'm currently generating a response for you..."
         ))
     }
     .padding()

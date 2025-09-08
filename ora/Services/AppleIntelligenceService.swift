@@ -1,5 +1,6 @@
 import Foundation
 import FoundationModels
+import SwiftData
 import SwiftUI
 
 /// Service for integrating with Apple's on-device Foundation Models
@@ -78,9 +79,8 @@ class AppleIntelligenceService {
         temperature: Double = 1.0
     ) {
         guard isAvailable else {
-            let errorMessage = AIMessage(
-                content: "Apple Intelligence is not available: \(availabilityDescription)",
-                isFromUser: false
+            let errorMessage = AIMessage.aiMessage(
+                content: "Apple Intelligence is not available: \(availabilityDescription)"
             )
             conversationManager.updateLastMessage(in: conversationId, with: errorMessage)
             return
@@ -99,14 +99,14 @@ class AppleIntelligenceService {
 
                     for try await partialResponse in stream {
                         await MainActor.run {
-                            let message = AIMessage(content: partialResponse.content, isFromUser: false)
+                            let message = AIMessage.aiMessage(content: partialResponse.content)
                             conversationManager.updateLastMessage(in: conversationId, with: message)
                         }
                     }
                 } else {
                     let response = try await currentSession.respond(to: prompt, options: options)
                     await MainActor.run {
-                        let message = AIMessage(content: response.content, isFromUser: false)
+                        let message = AIMessage.aiMessage(content: response.content)
                         conversationManager.updateLastMessage(in: conversationId, with: message)
                     }
                 }
@@ -115,9 +115,8 @@ class AppleIntelligenceService {
             } catch {
                 await MainActor.run {
                     self.lastError = error.localizedDescription
-                    let errorMessage = AIMessage(
-                        content: "Sorry, I encountered an error: \(error.localizedDescription)",
-                        isFromUser: false
+                    let errorMessage = AIMessage.aiMessage(
+                        content: "Sorry, I encountered an error: \(error.localizedDescription)"
                     )
                     conversationManager.updateLastMessage(in: conversationId, with: errorMessage)
                 }
@@ -150,33 +149,7 @@ enum AIError: LocalizedError {
     }
 }
 
-// MARK: - Message Types
-
-struct AIMessage: Codable, Identifiable {
-    let id = UUID()
-    let content: String
-    let isFromUser: Bool
-    let timestamp = Date()
-
-    init(content: String, isFromUser: Bool) {
-        self.content = content
-        self.isFromUser = isFromUser
-    }
-}
-
-// MARK: - Conversation Types
-
-struct AIConversation: Codable, Identifiable {
-    let id = UUID()
-    var messages: [AIMessage] = []
-    let createdAt = Date()
-    var updatedAt = Date()
-
-    mutating func addMessage(_ message: AIMessage) {
-        messages.append(message)
-        updatedAt = Date()
-    }
-}
+// MARK: - Legacy types removed - now using SwiftData models from AIConversation.swift
 
 // MARK: - Conversation Manager
 
@@ -186,10 +159,15 @@ class AIConversationManager {
     var conversations: [AIConversation] = []
     var activeConversation: AIConversation?
 
-    private let userDefaults = UserDefaults.standard
-    private let conversationsKey = "ai_conversations"
+    private var modelContext: ModelContext?
 
-    init() {
+    init(modelContext: ModelContext? = nil) {
+        self.modelContext = modelContext
+        loadConversations()
+    }
+
+    func setModelContext(_ context: ModelContext) {
+        self.modelContext = context
         loadConversations()
     }
 
@@ -197,55 +175,83 @@ class AIConversationManager {
         let conversation = AIConversation()
         conversations.insert(conversation, at: 0)
         activeConversation = conversation
-        saveConversations()
+
+        if let context = modelContext {
+            context.insert(conversation)
+            saveContext()
+        }
+
         return conversation
     }
 
     func addMessage(to conversationId: UUID, message: AIMessage) {
-        if let index = conversations.firstIndex(where: { $0.id == conversationId }) {
-            conversations[index].addMessage(message)
-            if activeConversation?.id == conversationId {
-                activeConversation = conversations[index]
+        if let conversation = findConversation(id: conversationId) {
+            conversation.addMessage(message)
+
+            if let context = modelContext {
+                context.insert(message)
+                saveContext()
             }
-            saveConversations()
+
+            // Update in-memory array
+            if let index = conversations.firstIndex(where: { $0.id == conversationId }) {
+                if activeConversation?.id == conversationId {
+                    activeConversation = conversations[index]
+                }
+            }
         }
     }
 
     /// Update the last message in a conversation (for streaming updates)
     func updateLastMessage(in conversationId: UUID, with message: AIMessage) {
-        if let index = conversations.firstIndex(where: { $0.id == conversationId }) {
-            let messageIndex = conversations[index].messages.count - 1
-            if messageIndex >= 0 {
-                conversations[index].messages[messageIndex] = message
-                if activeConversation?.id == conversationId {
-                    activeConversation = conversations[index]
-                }
-                // Don't save on every streaming update - save at completion
+        if let conversation = findConversation(id: conversationId),
+           let lastMessage = conversation.messages.last
+        {
+            lastMessage.content = message.content
+            // Don't save on every streaming update for performance
+        }
+    }
+
+    func deleteConversation(_ conversationId: UUID) {
+        if let conversation = findConversation(id: conversationId) {
+            conversations.removeAll { $0.id == conversationId }
+
+            if activeConversation?.id == conversationId {
+                activeConversation = conversations.first
+            }
+
+            if let context = modelContext {
+                context.delete(conversation)
+                saveContext()
             }
         }
     }
 
-    /// Save conversations to disk
-    func saveConversations() {
-        guard let data = try? JSONEncoder().encode(conversations) else { return }
-        userDefaults.set(data, forKey: conversationsKey)
-    }
-
-    func deleteConversation(_ conversationId: UUID) {
-        conversations.removeAll { $0.id == conversationId }
-        if activeConversation?.id == conversationId {
-            activeConversation = conversations.first
-        }
-        saveConversations()
+    private func findConversation(id: UUID) -> AIConversation? {
+        return conversations.first(where: { $0.id == id })
     }
 
     private func loadConversations() {
-        guard let data = userDefaults.data(forKey: conversationsKey),
-              let conversations = try? JSONDecoder().decode([AIConversation].self, from: data)
-        else {
-            return
+        guard let context = modelContext else { return }
+
+        do {
+            let descriptor = FetchDescriptor<AIConversation>(
+                sortBy: [SortDescriptor(\.lastAccessedAt, order: .reverse)]
+            )
+            conversations = try context.fetch(descriptor)
+            activeConversation = conversations.first
+        } catch {
+            print("Failed to load AI conversations: \(error)")
         }
-        self.conversations = conversations
-        self.activeConversation = conversations.first
+    }
+
+    private func saveContext() {
+        guard let context = modelContext else { return }
+
+        do {
+            try context.save()
+        } catch {
+            print("Failed to save AI conversations: \(error)")
+        }
     }
 }

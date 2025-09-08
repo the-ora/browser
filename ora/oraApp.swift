@@ -37,7 +37,7 @@ struct OraApp: App {
 
     let modelConfiguration = ModelConfiguration(
         "OraData",
-        schema: Schema([TabContainer.self, History.self, Download.self]),
+        schema: Schema([TabContainer.self, History.self, Download.self, AIConversation.self, AIMessage.self]),
         url: URL.applicationSupportDirectory.appending(path: "OraData.sqlite")
     )
     init() {
@@ -50,7 +50,7 @@ struct OraApp: App {
         let modelContext: ModelContext
         do {
             container = try ModelContainer(
-                for: TabContainer.self, History.self, Download.self,
+                for: TabContainer.self, History.self, Download.self, AIConversation.self, AIMessage.self,
                 configurations: modelConfiguration
             )
             modelContext = ModelContext(container)

@@ -9,13 +9,14 @@ protocol CustomSchemeHandler {
 
     /// Create the SwiftUI view for this custom scheme
     /// - Parameters:
-    ///   - url: The full URL (e.g., "ora://apple-intelligence?q=hello")
+    ///   - url: The full URL (e.g., "ora://apple-intelligence/uuid?q=hello")
+    ///   - conversationId: The extracted conversation ID (if any)
     ///   - query: The extracted query parameter (e.g., "hello")
     /// - Returns: A SwiftUI view to display in place of the web view
-    func createView(for url: URL, query: String?) -> AnyView
+    func createView(for url: URL, conversationId: UUID?, query: String?) -> AnyView
 
     /// The title to display in the tab for this scheme
-    func title(for url: URL, query: String?) -> String
+    func title(for url: URL, conversationId: UUID?, query: String?) -> String
 
     /// The favicon/icon to display for this scheme (system name or image name)
     func icon(for url: URL) -> String
@@ -54,15 +55,17 @@ class CustomSchemeRegistry {
     /// Create a view for a custom scheme URL
     func createView(for url: URL) -> AnyView? {
         guard let handler = handler(for: url) else { return nil }
+        let conversationId = extractConversationId(from: url)
         let query = extractQuery(from: url)
-        return handler.createView(for: url, query: query)
+        return handler.createView(for: url, conversationId: conversationId, query: query)
     }
 
     /// Get title for a custom scheme URL
     func title(for url: URL) -> String? {
         guard let handler = handler(for: url) else { return nil }
+        let conversationId = extractConversationId(from: url)
         let query = extractQuery(from: url)
-        return handler.title(for: url, query: query)
+        return handler.title(for: url, conversationId: conversationId, query: query)
     }
 
     /// Get icon for a custom scheme URL
@@ -92,6 +95,19 @@ class CustomSchemeRegistry {
         return value.components(separatedBy: .controlCharacters).joined()
     }
 
+    /// Extract conversation ID from URL path
+    /// URL format: ora://apple-intelligence/[conversationId]?q=query
+    private func extractConversationId(from url: URL) -> UUID? {
+        guard url.scheme == "ora",
+              url.host == "apple-intelligence",
+              !url.path.isEmpty else { return nil }
+
+        let pathComponents = url.path.components(separatedBy: "/").filter { !$0.isEmpty }
+        guard let firstComponent = pathComponents.first else { return nil }
+
+        return UUID(uuidString: firstComponent)
+    }
+
     private func registerDefaultHandlers() {
         // Register Apple Intelligence handler if available
         if #available(macOS 26.0, *) {
@@ -106,12 +122,15 @@ class CustomSchemeRegistry {
 struct AppleIntelligenceSchemeHandler: CustomSchemeHandler {
     let scheme = "apple-intelligence"
 
-    func createView(for url: URL, query: String?) -> AnyView {
-        AnyView(AIChatView(initialQuery: query))
+    func createView(for url: URL, conversationId: UUID?, query: String?) -> AnyView {
+        AnyView(AIChatView(conversationId: conversationId, initialQuery: query))
     }
 
-    func title(for url: URL, query: String?) -> String {
-        if let query, !query.isEmpty {
+    func title(for url: URL, conversationId: UUID?, query: String?) -> String {
+        if let conversationId {
+            // TODO: Look up conversation name from SwiftData
+            return "Apple Intelligence"
+        } else if let query, !query.isEmpty {
             return "Apple Intelligence: \(query)"
         }
         return "Apple Intelligence"
