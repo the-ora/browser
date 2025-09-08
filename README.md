@@ -1,5 +1,5 @@
 <div align="center">
-  <img width="270" height="270" src="/assets/icon.png" alt="Ora Browser Logo">
+  <img width="250" height="250" src="/assets/icon.png" alt="Ora Browser Logo">
   <h1><b>Ora Browser</b></h1>
   <p>
     Ora is a fast, secure, and beautiful browser built for macOS. Inspired by Safari and Arc, Ora delivers a clean, native experience that feels at home on macOS—without unnecessary bloat.
@@ -71,6 +71,10 @@ If you would like to support the project, please consider donating:
 
 </details>
 
+## Wiki
+
+See the [Wiki](wiki/) for comprehensive documentation, guides, and project information.
+
 ## Installation
 
 1. Clone the repository and run setup:
@@ -111,10 +115,6 @@ Also see our [Code of Conduct](CODE_OF_CONDUCT.md) for community guidelines.
   ```
 
 Keyboard shortcuts: see `ora/Common/Constants/KeyboardShortcuts.swift`.
-
-## Wiki
-
-See the [Wiki](wiki/) for comprehensive documentation, guides, and project information.
 
 ## Contact
 
