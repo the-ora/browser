@@ -1,6 +1,4 @@
-# Contributing to Ora Browser
-
-Thank you for your interest in contributing to Ora Browser! This guide will help you get started.
+# Contributing to Ora 
 
 ## 🚀 Development Setup
 
