@@ -125,6 +125,8 @@ class AppleIntelligenceService {
             await MainActor.run {
                 self.isGenerating = false
                 self.streamingTask = nil
+                // Save to database after streaming is complete
+                conversationManager.saveAfterCompletion()
             }
         }
     }
@@ -190,14 +192,7 @@ class AIConversationManager {
 
             if let context = modelContext {
                 context.insert(message)
-                saveContext()
-            }
-
-            // Update in-memory array
-            if let index = conversations.firstIndex(where: { $0.id == conversationId }) {
-                if activeConversation?.id == conversationId {
-                    activeConversation = conversations[index]
-                }
+                // Don't save immediately - batch saves for better performance
             }
         }
     }
@@ -212,6 +207,11 @@ class AIConversationManager {
             lastMessage.aiModel = message.aiModel
             // Don't save on every streaming update for performance
         }
+    }
+
+    /// Save messages after streaming is complete
+    func saveAfterCompletion() {
+        saveContext()
     }
 
     func deleteConversation(_ conversationId: UUID) {

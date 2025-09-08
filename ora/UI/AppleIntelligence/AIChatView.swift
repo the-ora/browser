@@ -113,7 +113,7 @@ struct AIChatView: View {
             ScrollView {
                 LazyVStack(spacing: 0) {
                     if let conversation = conversationManager.activeConversation {
-                        ForEach(conversation.messages) { message in
+                        ForEach(conversation.messages.sorted(by: { $0.timestamp < $1.timestamp })) { message in
                             AIMessageBubble(message: message)
                                 .id(message.id)
                         }
