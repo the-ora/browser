@@ -8,27 +8,13 @@
   </p>
 </div>
 
-<div align="center">
-  <a href="https://www.apple.com/macos/">
-    <img src="https://badgen.net/badge/macOS/14+/blue" alt="macOS">
-  </a>
-  &nbsp;
-  <a href="https://developer.apple.com/xcode/">
-    <img src="https://badgen.net/badge/Xcode/15+/blue" alt="Xcode">
-  </a>
-  &nbsp;
-  <a href="https://swift.org">
-    <img src="https://badgen.net/badge/Swift/5.9/orange" alt="Swift Version">
-  </a>
-  &nbsp;
-  <a href="https://brew.sh">
-    <img src="https://badgen.net/badge/Homebrew/required/yellow" alt="Homebrew">
-  </a>
-  &nbsp;
-  <a href="LICENSE.md">
-    <img src="https://badgen.net/badge/License/MIT/green" alt="License: MIT">
-  </a>
-</div>
+<p align="center">
+    <a href="https://www.apple.com/macos/"><img src="https://badgen.net/badge/macOS/14+/blue" alt="macOS"></a>
+    <a href="https://developer.apple.com/xcode/"><img src="https://badgen.net/badge/Xcode/15+/blue" alt="Xcode"></a>
+    <a href="https://swift.org"><img src="https://badgen.net/badge/Swift/5.9/orange" alt="Swift Version"></a>
+    <a href="https://brew.sh"><img src="https://badgen.net/badge/Homebrew/required/yellow" alt="Homebrew"></a>
+    <a href="LICENSE.md"><img src="https://badgen.net/badge/License/MIT/green" alt="License: MIT"></a>
+</p>
 
 > **⚠️ Disclaimer**  
 Ora is currently in early stages of development and **not yet ready for day-to-day use**. An alpha version with core functionalities will be released soon.
