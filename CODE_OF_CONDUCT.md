@@ -9,7 +9,7 @@ Ora is built by volunteers who contribute their time and expertise out of passio
 ## Expected Behavior
 
 - Be respectful, welcoming, and considerate in all interactions
-- Discuss ideas, give/recieve constructive criticism gracefully
+- Discuss ideas, give/receive constructive criticism gracefully
 - Focus on what's best for the community and project
 - Show empathy toward other community members
 - Help create a positive environment for learning and collaboration

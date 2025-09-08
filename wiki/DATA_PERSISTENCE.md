@@ -28,7 +28,7 @@ The SwiftData database is stored at:
 To reset the local store during development, you can delete the database file:
 
 ```bash
-rm -f ~/Library/Application\ Support/com.orabrowser.ora/OraData.sqlite*
+rm -f "~/Library/Application Support/com.orabrowser.ora/OraData.sqlite"*
 ```
 
 > **⚠️ Caution: Use with care—this permanently clears tabs/history/download metadata.**
