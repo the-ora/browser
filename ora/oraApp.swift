@@ -232,50 +232,9 @@ struct OraApp: App {
                     appState.isFloatingTabSwitchVisible = true
                 }
 
-                Button("Tab 1") {
-                    tabManager.switchToTabAtIndex(1)
+                ForEach(1...9, id: \.self) { tabNumber in
+                    createTabButton(for: tabNumber)
                 }
-                .keyboardShortcut(KeyboardShortcuts.Tabs.tab1)
-
-                Button("Tab 2") {
-                    tabManager.switchToTabAtIndex(2)
-                }
-                .keyboardShortcut(KeyboardShortcuts.Tabs.tab2)
-
-                Button("Tab 3") {
-                    tabManager.switchToTabAtIndex(3)
-                }
-                .keyboardShortcut(KeyboardShortcuts.Tabs.tab3)
-
-                Button("Tab 4") {
-                    tabManager.switchToTabAtIndex(4)
-                }
-                .keyboardShortcut(KeyboardShortcuts.Tabs.tab4)
-
-                Button("Tab 5") {
-                    tabManager.switchToTabAtIndex(5)
-                }
-                .keyboardShortcut(KeyboardShortcuts.Tabs.tab5)
-
-                Button("Tab 6") {
-                    tabManager.switchToTabAtIndex(6)
-                }
-                .keyboardShortcut(KeyboardShortcuts.Tabs.tab6)
-
-                Button("Tab 7") {
-                    tabManager.switchToTabAtIndex(7)
-                }
-                .keyboardShortcut(KeyboardShortcuts.Tabs.tab7)
-
-                Button("Tab 8") {
-                    tabManager.switchToTabAtIndex(8)
-                }
-                .keyboardShortcut(KeyboardShortcuts.Tabs.tab8)
-
-                Button("Tab 9") {
-                    tabManager.switchToTabAtIndex(9)
-                }
-                .keyboardShortcut(KeyboardShortcuts.Tabs.tab9)
             }
         }
         Settings {
@@ -285,6 +244,28 @@ struct OraApp: App {
                 .environmentObject(updateService)
                 .modelContext(tabContext)
                 .withTheme()
+        }
+    }
+
+    private func createTabButton(for tabNumber: Int) -> some View {
+        Button("Tab \(tabNumber)") {
+            tabManager.switchToTabAtIndex(tabNumber)
+        }
+        .keyboardShortcut(keyboardShortcutForTab(tabNumber))
+    }
+
+    private func keyboardShortcutForTab(_ tabNumber: Int) -> KeyboardShortcut {
+        switch tabNumber {
+            case 1: return KeyboardShortcuts.Tabs.tab1
+            case 2: return KeyboardShortcuts.Tabs.tab2
+            case 3: return KeyboardShortcuts.Tabs.tab3
+            case 4: return KeyboardShortcuts.Tabs.tab4
+            case 5: return KeyboardShortcuts.Tabs.tab5
+            case 6: return KeyboardShortcuts.Tabs.tab6
+            case 7: return KeyboardShortcuts.Tabs.tab7
+            case 8: return KeyboardShortcuts.Tabs.tab8
+            case 9: return KeyboardShortcuts.Tabs.tab9
+            default: return KeyboardShortcut("1", modifiers: [.command]) // fallback
         }
     }
 
