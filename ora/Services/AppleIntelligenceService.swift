@@ -205,9 +205,11 @@ class AIConversationManager {
     /// Update the last message in a conversation (for streaming updates)
     func updateLastMessage(in conversationId: UUID, with message: AIMessage) {
         if let conversation = findConversation(id: conversationId),
-           let lastMessage = conversation.messages.last
+           let lastMessage = conversation.messages.last,
+           lastMessage.sender == .ai  // Only update AI messages
         {
             lastMessage.content = message.content
+            lastMessage.aiModel = message.aiModel
             // Don't save on every streaming update for performance
         }
     }
