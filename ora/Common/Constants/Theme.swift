@@ -62,9 +62,18 @@ enum ColorTheme: String, CaseIterable, Identifiable {
             return Color(hex: "63411D") // fallback to orange
         }
     }
+
+    /// Returns the appropriate foreground color for the primary light background
+    var primaryLightForeground: Color {
+        primaryLight.adaptiveForeground
+    }
+
+    /// Returns the appropriate foreground color for the primary dark background
+    var primaryDarkForeground: Color {
+        primaryDark.adaptiveForeground
+    }
 }
 
-// swiftlint:disable:next identifier_name
 struct Theme: Equatable {
     let colorScheme: ColorScheme
     let colorTheme: ColorTheme
@@ -92,7 +101,7 @@ struct Theme: Equatable {
     }
 
     var foreground: Color {
-        colorScheme == .dark ? .white : .black
+        background.adaptiveForeground
     }
 
     var subtleWindowBackgroundColor: Color {
@@ -147,6 +156,28 @@ struct Theme: Equatable {
         Color(hex: "#93DA97")
     }
 
+    // MARK: - Adaptive Foreground Colors
+
+    /// Foreground color that adapts to the solid window background
+    var solidWindowForeground: Color {
+        solidWindowBackgroundColor.adaptiveForeground
+    }
+
+    /// Foreground color that adapts to the inverted solid window background
+    var invertedSolidWindowForeground: Color {
+        invertedSolidWindowBackgroundColor.adaptiveForeground
+    }
+
+    /// Foreground color that adapts to the active tab background
+    var activeTabForeground: Color {
+        activeTabBackground.adaptiveForeground
+    }
+
+    /// Foreground color that adapts to the muted background
+    var mutedBackgroundForeground: Color {
+        mutedBackground.adaptiveForeground
+    }
+
     var warning: Color {
         Color(hex: "#FFBF78")
     }
@@ -180,7 +211,7 @@ struct Theme: Equatable {
         Color(hex: "#FF4500")
     }
 
-    var x: Color {
+    var xPlatform: Color {
         colorScheme == .dark ? .white : .black
     }
 
@@ -219,7 +250,10 @@ struct ThemeProvider: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .environment(\.theme, Theme(colorScheme: colorScheme, colorTheme: colorTheme, updateTrigger: customColorUpdateTrigger))
+            .environment(
+                \.theme,
+                Theme(colorScheme: colorScheme, colorTheme: colorTheme, updateTrigger: customColorUpdateTrigger)
+            )
             .onReceive(NotificationCenter.default.publisher(for: .colorThemeChanged)) { notification in
                 if let newTheme = notification.object as? ColorTheme {
                     withAnimation(.easeInOut(duration: ThemeConstants.colorTransitionDuration)) {

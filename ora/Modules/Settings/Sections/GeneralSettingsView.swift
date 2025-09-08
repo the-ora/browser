@@ -73,11 +73,11 @@ struct GeneralSettingsView: View {
                                                     .fill(customColor)
                                                     .frame(width: 32, height: 32)
                                                     .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
-                                                
+
                                                 // Paint palette icon overlay with dynamic color
                                                 Image(systemName: "paintpalette.fill")
                                                     .font(.system(size: 12))
-                                                    .foregroundColor(contrastColor(for: customColor))
+                                                    .foregroundColor(customColor.adaptiveForeground)
                                                     .shadow(color: .black.opacity(0.3), radius: 1)
 
                                                 // Always reserve space for border, show/hide with opacity
@@ -98,21 +98,28 @@ struct GeneralSettingsView: View {
                                         ColorPickerView(selectedColor: $customColor) { newColor in
                                             // Apply the custom color live as user drags
                                             customColor = newColor
-                                            
+
                                             // Generate a darker version for dark mode
                                             let lightHex = newColor.toHex() ?? "#f3e5d6"
                                             let darkColor = newColor.adjusted(brightness: 0.3, saturation: 1.2)
                                             let darkHex = darkColor.toHex() ?? "#63411D"
-                                            
+
                                             // Store custom colors
-                                            UserDefaults.standard.set(lightHex, forKey: ThemeConstants.customColorLightKey)
-                                            UserDefaults.standard.set(darkHex, forKey: ThemeConstants.customColorDarkKey)
-                                            
+                                            UserDefaults.standard.set(lightHex,
+                                                                      forKey: ThemeConstants.customColorLightKey)
+                                            UserDefaults.standard.set(darkHex,
+                                                                      forKey: ThemeConstants.customColorDarkKey)
+
                                             // Force theme update
-                                            withAnimation(.easeInOut(duration: ThemeConstants.colorTransitionDuration)) {
+                                            withAnimation(
+                                                .easeInOut(duration: ThemeConstants.colorTransitionDuration)
+                                            ) {
                                                 appearanceManager.colorTheme = .custom
                                                 // Post notifications to update theme
-                                                NotificationCenter.default.post(name: .colorThemeChanged, object: ColorTheme.custom)
+                                                NotificationCenter.default.post(
+                                                    name: .colorThemeChanged,
+                                                    object: ColorTheme.custom
+                                                )
                                                 NotificationCenter.default.post(name: .customColorChanged, object: nil)
                                             }
                                         }
@@ -224,26 +231,5 @@ struct GeneralSettingsView: View {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
         return "v\(version) (\(build))"
-    }
-    
-    // Calculate the best contrast color (black or white) for the given background color
-    private func contrastColor(for backgroundColor: Color) -> Color {
-        let nsColor = NSColor(backgroundColor)
-        guard let rgbColor = nsColor.usingColorSpace(.sRGB) else { return .white }
-        
-        // Calculate relative luminance
-        let r = rgbColor.redComponent
-        let g = rgbColor.greenComponent
-        let b = rgbColor.blueComponent
-        
-        // Convert to linear RGB
-        let linearR = r <= 0.03928 ? r / 12.92 : pow((r + 0.055) / 1.055, 2.4)
-        let linearG = g <= 0.03928 ? g / 12.92 : pow((g + 0.055) / 1.055, 2.4)
-        let linearB = b <= 0.03928 ? b / 12.92 : pow((b + 0.055) / 1.055, 2.4)
-        
-        let luminance = 0.2126 * linearR + 0.7152 * linearG + 0.0722 * linearB
-        
-        // Return soft dark for light backgrounds, soft light for dark backgrounds
-        return luminance > 0.5 ? Color(hex: "2C2C2E") : Color(hex: "F2F2F7")
     }
 }
