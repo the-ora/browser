@@ -37,10 +37,7 @@ struct SpacesSettingsView: View {
                                 Text("Space-Specific Defaults")
                                     .font(.subheadline)
                                     .fontWeight(.medium)
-                                Text("Override global defaults for this space only. Leave empty to use global settings."
-                                )
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                                    .foregroundStyle(.secondary)
                             }
 
                             VStack(alignment: .leading, spacing: 8) {
