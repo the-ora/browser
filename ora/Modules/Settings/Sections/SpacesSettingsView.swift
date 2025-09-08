@@ -39,12 +39,8 @@ struct SpacesSettingsView: View {
                                     .fontWeight(.medium)
                                 Text("Override global defaults for this space only. Leave empty to use global settings."
                                 )
-
-                            ) {
-                                ForEach(searchService.searchEngines.filter { !$0.isAIChat }, id: \.name) { engine in
-                                    Text(engine.name).tag(Optional(engine.name)).frame(width: 200)
-                                }.frame(width: 200)
-
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                             }
 
                             VStack(alignment: .leading, spacing: 8) {

@@ -190,7 +190,7 @@ class TabManager: ObservableObject {
         // Convert 1-based index to 0-based and ensure it's within bounds
         let tabIndex = tabNumber - 1
 
-        guard tabIndex >= 0 && tabIndex < sortedTabs.count else {
+        guard tabIndex >= 0, tabIndex < sortedTabs.count else {
             return
         }
 

@@ -1,6 +1,7 @@
 #!/bin/bash
 set -o pipefail && xcodebuild build \
-  -scheme ora \
+  -target ora \
+  -project Ora.xcodeproj \
   -destination "platform=macOS" \
   -configuration Debug \
   CODE_SIGN_IDENTITY="" \
