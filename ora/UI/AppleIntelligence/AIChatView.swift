@@ -20,23 +20,22 @@ struct AIChatView: View {
     }
 
     var body: some View {
-        HStack(spacing: 0) {
-            // Conversation History Sidebar
+        VStack(spacing: 0) {
+            if let aiService, aiService.isAvailable {
+                chatContent(aiService: aiService)
+            } else {
+                unavailableView
+            }
+        }
+        .safeAreaInset(edge: .leading) {
             if showConversationHistory {
                 conversationHistoryView
                     .frame(width: 280)
-                    .transition(.move(edge: .leading))
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                    .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 18))
+                    .padding([.vertical, .leading], 10)
+                    .transition(.move(edge: .leading).combined(with: .blur))
             }
-
-            // Main Chat Content
-            VStack(spacing: 0) {
-                if let aiService, aiService.isAvailable {
-                    chatContent(aiService: aiService)
-                } else {
-                    unavailableView
-                }
-            }
-//            .background(theme.background)
         }
         .onAppear {
             conversationManager.setModelContext(modelContext)
@@ -44,7 +43,8 @@ struct AIChatView: View {
             setupConversation()
             handleInitialQuery()
         }
-        .animation(.easeInOut(duration: 0.3), value: showConversationHistory)
+        .animation(.smooth(duration: 0.15), value: showConversationHistory)
+        .background(theme.background)
     }
 
     private func initializeAIService() {
@@ -280,14 +280,12 @@ struct AIChatView: View {
 
                 Button("New") {
                     startNewConversation()
-                    showConversationHistory = false
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(theme.background.opacity(0.5))
 
             Divider()
 
@@ -307,25 +305,16 @@ struct AIChatView: View {
                         )
                     }
                 }
-                .padding(.top, 8)
             }
-
-            Spacer()
+            .contentMargins(.vertical, 10)
+            .contentMargins(.horizontal, 10)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(theme.background.opacity(0.95))
-        .overlay(
-            Rectangle()
-                .frame(width: 1)
-                .foregroundColor(Color(.separatorColor)),
-            alignment: .trailing
-        )
     }
 
     private func selectConversation(_ conversation: AIConversation) {
         conversationManager.activeConversation = conversation
         conversation.touch()
-        showConversationHistory = false
 
         // Save the touch update
         if let context = conversationManager.modelContext {

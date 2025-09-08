@@ -128,7 +128,7 @@ struct Theme: Equatable {
 }
 
 private struct ThemeKey: EnvironmentKey {
-    static let defaultValue = Theme(colorScheme: .light)  // fallback
+    static let defaultValue = Theme(colorScheme: .dark)  // fallback
 }
 
 extension EnvironmentValues {

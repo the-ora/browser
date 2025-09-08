@@ -216,15 +216,25 @@ class AIConversationManager {
 
     func deleteConversation(_ conversationId: UUID) {
         if let conversation = findConversation(id: conversationId) {
+            // Update UI state first
             conversations.removeAll { $0.id == conversationId }
 
             if activeConversation?.id == conversationId {
                 activeConversation = conversations.first
             }
 
+            // Delete from database safely
             if let context = modelContext {
-                context.delete(conversation)
-                saveContext()
+                // The cascade delete rule should handle messages automatically
+                // but let's make sure the conversation is properly detached first
+                do {
+                    context.delete(conversation)
+                    try context.save()
+                } catch {
+                    print("Failed to delete conversation: \(error)")
+                    // Reload conversations to sync with database state
+                    loadConversations()
+                }
             }
         }
     }
