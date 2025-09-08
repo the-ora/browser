@@ -11,11 +11,23 @@
 > **⚠️ Disclaimer**  
 Ora is currently in early stages of development and **not yet ready for day-to-day use**. An alpha version with core functionalities will be released soon.
 
-## Requirements
-
-- **macOS 14.0** or later
-- **Xcode 15** or later (Swift 5.9)
-- **Homebrew** (for developer tooling)
+<div align="center">
+  <a href="https://www.apple.com/macos/">
+    <img src="https://img.shields.io/badge/macOS-14%2B-blue.svg" alt="macOS">
+  </a>
+  <a href="https://developer.apple.com/xcode/">
+    <img src="https://img.shields.io/badge/Xcode-15%2B-blue.svg" alt="Xcode">
+  </a>
+  <a href="https://swift.org">
+    <img src="https://img.shields.io/badge/Swift-5.9-orange.svg" alt="Swift Version">
+  </a>
+  <a href="https://brew.sh">
+    <img src="https://img.shields.io/badge/Homebrew-required-yellow.svg" alt="Homebrew">
+  </a>
+  <a href="LICENSE.md">
+    <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT">
+  </a>
+</div>
 
 ## Support
 
