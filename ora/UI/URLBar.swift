@@ -1,4 +1,5 @@
 import AppKit
+import SwiftData
 import SwiftUI
 
 // MARK: - Extensions Popup View
@@ -6,6 +7,93 @@ import SwiftUI
 struct ExtensionsPopupView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.theme) var theme
+    @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject var tabManager: TabManager
+
+    @State private var locationPermission: PermissionState = .ask
+    @State private var cameraPermission: PermissionState = .ask
+    @State private var microphonePermission: PermissionState = .ask
+    @State private var notificationsPermission: PermissionState = .ask
+
+    enum PermissionState: String, CaseIterable {
+        case ask = "Ask"
+        case allow = "Allow"
+        case block = "Block"
+
+        var next: PermissionState {
+            switch self {
+            case .ask: return .allow
+            case .allow: return .block
+            case .block: return .allow
+            }
+        }
+    }
+
+    private var currentHost: String {
+        return tabManager.activeTab?.url.host ?? "example.com"
+    }
+
+    private func togglePermission(_ kind: PermissionKind, currentState: Binding<PermissionState>) {
+        let newState = currentState.wrappedValue.next
+        currentState.wrappedValue = newState
+
+        // Update SwiftData
+        updateSitePermission(for: kind, allow: newState == .allow)
+    }
+
+    private func updateSitePermission(for kind: PermissionKind, allow: Bool) {
+        let host = currentHost
+
+        // Find existing site permission or create new one
+        let descriptor = FetchDescriptor<SitePermission>(
+            predicate: #Predicate<SitePermission> { site in
+                site.host.localizedStandardContains(host)
+            }
+        )
+
+        let existingSite = try? modelContext.fetch(descriptor).first
+        let site = existingSite ?? {
+            let newSite = SitePermission(host: host)
+            modelContext.insert(newSite)
+            return newSite
+        }()
+
+        // Update the specific permission
+        switch kind {
+        case .location:
+            site.locationAllowed = allow
+            site.locationConfigured = true
+        case .camera:
+            site.cameraAllowed = allow
+            site.cameraConfigured = true
+        case .microphone:
+            site.microphoneAllowed = allow
+            site.microphoneConfigured = true
+        case .notifications:
+            site.notificationsAllowed = allow
+            site.notificationsConfigured = true
+        }
+
+        try? modelContext.save()
+    }
+
+    private func loadCurrentPermissions() {
+        let host = currentHost
+
+        let descriptor = FetchDescriptor<SitePermission>(
+            predicate: #Predicate<SitePermission> { site in
+                site.host.localizedStandardContains(host)
+            }
+        )
+
+        if let site = try? modelContext.fetch(descriptor).first {
+            locationPermission = site.locationConfigured ? (site.locationAllowed ? .allow : .block) : .ask
+            cameraPermission = site.cameraConfigured ? (site.cameraAllowed ? .allow : .block) : .ask
+            microphonePermission = site.microphoneConfigured ? (site.microphoneAllowed ? .allow : .block) : .ask
+            notificationsPermission = site
+                .notificationsConfigured ? (site.notificationsAllowed ? .allow : .block) : .ask
+        }
+    }
 
     private func openSettingsPermissions() {
         // Open Ora's settings window to the Privacy & Security tab
@@ -21,10 +109,25 @@ struct ExtensionsPopupView: View {
                     .font(.headline)
                     .foregroundColor(.primary)
 
-                PopupPermissionRow(icon: "location", title: "Location", status: "Ask")
-                PopupPermissionRow(icon: "camera", title: "Camera", status: "Ask")
-                PopupPermissionRow(icon: "mic", title: "Microphone", status: "Ask")
-                PopupPermissionRow(icon: "bell", title: "Notifications", status: "Ask")
+                Button(action: { togglePermission(.location, currentState: $locationPermission) }) {
+                    PopupPermissionRow(icon: "location", title: "Location", status: locationPermission.rawValue)
+                }
+                .buttonStyle(.plain)
+
+                Button(action: { togglePermission(.camera, currentState: $cameraPermission) }) {
+                    PopupPermissionRow(icon: "camera", title: "Camera", status: cameraPermission.rawValue)
+                }
+                .buttonStyle(.plain)
+
+                Button(action: { togglePermission(.microphone, currentState: $microphonePermission) }) {
+                    PopupPermissionRow(icon: "mic", title: "Microphone", status: microphonePermission.rawValue)
+                }
+                .buttonStyle(.plain)
+
+                Button(action: { togglePermission(.notifications, currentState: $notificationsPermission) }) {
+                    PopupPermissionRow(icon: "bell", title: "Notifications", status: notificationsPermission.rawValue)
+                }
+                .buttonStyle(.plain)
 
                 Button(action: {
                     openSettingsPermissions()
@@ -57,6 +160,9 @@ struct ExtensionsPopupView: View {
         .frame(width: 320)
         .background(Color(NSColor.controlBackgroundColor))
         .cornerRadius(12)
+        .onAppear {
+            loadCurrentPermissions()
+        }
     }
 }
 
@@ -163,23 +269,24 @@ struct PopupPermissionRow: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
-                .font(.system(size: 16, weight: .medium))
+                .font(.system(size: 18, weight: .medium))
                 .foregroundColor(.primary)
-                .frame(width: 24, height: 24)
+                .frame(width: 28, height: 28)
                 .background(Color.secondary.opacity(0.1))
                 .cornerRadius(6)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(.subheadline)
+                    .font(.body)
                     .foregroundColor(.primary)
                 Text(status)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(.subheadline)
+                    .foregroundColor(status == "Allow" ? .green : status == "Block" ? .red : .secondary)
             }
 
             Spacer()
         }
+        .padding(.vertical, 2)
     }
 }
 
