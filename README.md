@@ -16,7 +16,7 @@
 </p>
 
 > **⚠️ Disclaimer**  
-Ora is currently in early stages of development and **not yet ready for day-to-day use**. An alpha version with core functionalities will be released soon.
+Ora is currently in early stages of development and **not yet ready for day-to-day use**. A beta version with core functionalities will be released soon.
 
 ## Support
 
