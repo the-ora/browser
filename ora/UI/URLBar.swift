@@ -95,12 +95,6 @@ struct ExtensionsPopupView: View {
         }
     }
 
-    private func openSettingsPermissions() {
-        // Open Ora's settings window to the Privacy & Security tab
-        NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
-        dismiss()
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             // Settings section
@@ -129,9 +123,7 @@ struct ExtensionsPopupView: View {
                 }
                 .buttonStyle(.plain)
 
-                Button(action: {
-                    openSettingsPermissions()
-                }) {
+                SettingsLink {
                     HStack(spacing: 12) {
                         Image(systemName: "gear")
                             .font(.system(size: 16, weight: .medium))
@@ -152,6 +144,9 @@ struct ExtensionsPopupView: View {
                     }
                 }
                 .buttonStyle(.plain)
+                .onTapGesture {
+                    dismiss()
+                }
             }
 
             .padding(.top, 8)
