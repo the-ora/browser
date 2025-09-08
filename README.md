@@ -12,15 +12,19 @@
   <a href="https://www.apple.com/macos/">
     <img src="https://badgen.net/badge/macOS/14+/blue" alt="macOS">
   </a>
+  &nbsp;
   <a href="https://developer.apple.com/xcode/">
     <img src="https://badgen.net/badge/Xcode/15+/blue" alt="Xcode">
   </a>
+  &nbsp;
   <a href="https://swift.org">
     <img src="https://badgen.net/badge/Swift/5.9/orange" alt="Swift Version">
   </a>
+  &nbsp;
   <a href="https://brew.sh">
     <img src="https://badgen.net/badge/Homebrew/required/yellow" alt="Homebrew">
   </a>
+  &nbsp;
   <a href="LICENSE.md">
     <img src="https://badgen.net/badge/License/MIT/green" alt="License: MIT">
   </a>
