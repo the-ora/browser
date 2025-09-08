@@ -13,19 +13,19 @@ Ora is currently in early stages of development and **not yet ready for day-to-d
 
 <div align="center">
   <a href="https://www.apple.com/macos/">
-    <img src="https://img.shields.io/badge/macOS-14%2B-blue.svg" alt="macOS">
+    <img src="https://badgen.net/badge/macOS/14+/blue" alt="macOS">
   </a>
   <a href="https://developer.apple.com/xcode/">
-    <img src="https://img.shields.io/badge/Xcode-15%2B-blue.svg" alt="Xcode">
+    <img src="https://badgen.net/badge/Xcode/15+/blue" alt="Xcode">
   </a>
   <a href="https://swift.org">
-    <img src="https://img.shields.io/badge/Swift-5.9-orange.svg" alt="Swift Version">
+    <img src="https://badgen.net/badge/Swift/5.9/orange" alt="Swift Version">
   </a>
   <a href="https://brew.sh">
-    <img src="https://img.shields.io/badge/Homebrew-required-yellow.svg" alt="Homebrew">
+    <img src="https://badgen.net/badge/Homebrew/required/yellow" alt="Homebrew">
   </a>
   <a href="LICENSE.md">
-    <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT">
+    <img src="https://badgen.net/badge/License/MIT/green" alt="License: MIT">
   </a>
 </div>
 
