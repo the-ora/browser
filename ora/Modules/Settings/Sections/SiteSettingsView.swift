@@ -51,25 +51,130 @@ struct SiteSettingsView: View {
                     DisclosureGroup {
                         VStack(spacing: 0) {
                             PermissionRow(
+                                title: "Background sync",
+                                subtitle: "Recently closed sites can finish sending and receiving data",
+                                systemImage: "gear"
+                            ) {
+                                AdditionalPermissionListView(title: "Background sync")
+                            }
+                            PermissionRow(
+                                title: "Motion sensors",
+                                subtitle: "Sites can use motion sensors",
+                                systemImage: "gear"
+                            ) {
+                                AdditionalPermissionListView(title: "Motion sensors")
+                            }
+                            PermissionRow(
+                                title: "Automatic downloads",
+                                subtitle: "Sites can ask to automatically download multiple files",
+                                systemImage: "gear"
+                            ) {
+                                AdditionalPermissionListView(title: "Automatic downloads")
+                            }
+                            PermissionRow(
+                                title: "Protocol handlers",
+                                subtitle: "Sites can ask to handle protocols",
+                                systemImage: "gear"
+                            ) {
+                                AdditionalPermissionListView(title: "Protocol handlers")
+                            }
+                            PermissionRow(
+                                title: "MIDI device control & reprogram",
+                                subtitle: "Sites can ask to control and reprogram your MIDI devices",
+                                systemImage: "gear"
+                            ) {
+                                AdditionalPermissionListView(title: "MIDI device control & reprogram")
+                            }
+                            PermissionRow(
+                                title: "USB devices",
+                                subtitle: "Sites can ask to connect to USB devices",
+                                systemImage: "gear"
+                            ) {
+                                AdditionalPermissionListView(title: "USB devices")
+                            }
+                            PermissionRow(
+                                title: "Serial ports",
+                                subtitle: "Sites can ask to connect to serial ports",
+                                systemImage: "gear"
+                            ) {
+                                AdditionalPermissionListView(title: "Serial ports")
+                            }
+                            PermissionRow(
+                                title: "File editing",
+                                subtitle: "Sites can ask to edit files and folders on your device",
+                                systemImage: "gear"
+                            ) {
+                                AdditionalPermissionListView(title: "File editing")
+                            }
+                            PermissionRow(
+                                title: "HID devices",
+                                subtitle: "Ask when a site wants to access HID devices",
+                                systemImage: "gear"
+                            ) {
+                                AdditionalPermissionListView(title: "HID devices")
+                            }
+                            PermissionRow(
                                 title: "Clipboard",
-                                subtitle: "Sites can ask to read your clipboard",
-                                systemImage: "clipboard"
+                                subtitle: "Sites can ask to see text and images on your clipboard",
+                                systemImage: "gear"
                             ) {
                                 AdditionalPermissionListView(title: "Clipboard")
                             }
                             PermissionRow(
-                                title: "Sensors",
-                                subtitle: "Sites can ask to use sensors",
-                                systemImage: "dot.radiowaves.left.right"
+                                title: "Payment handlers",
+                                subtitle: "Sites can install payment handlers",
+                                systemImage: "gear"
                             ) {
-                                AdditionalPermissionListView(title: "Sensors")
+                                AdditionalPermissionListView(title: "Payment handlers")
                             }
                             PermissionRow(
-                                title: "Popups and redirects",
-                                subtitle: "Manage popups and redirects",
-                                systemImage: "arrowshape.turn.up.right"
+                                title: "Augmented reality",
+                                subtitle: "Ask when a site wants to create a 3D map of your surroundings or track camera position",
+                                systemImage: "gear"
                             ) {
-                                AdditionalPermissionListView(title: "Popups and redirects")
+                                AdditionalPermissionListView(title: "Augmented reality")
+                            }
+                            PermissionRow(
+                                title: "Virtual reality",
+                                subtitle: "Sites can ask to use virtual reality devices and data",
+                                systemImage: "gear"
+                            ) {
+                                AdditionalPermissionListView(title: "Virtual reality")
+                            }
+                            PermissionRow(
+                                title: "Your device use",
+                                subtitle: "Sites can ask to know when you're actively using your device",
+                                systemImage: "gear"
+                            ) {
+                                AdditionalPermissionListView(title: "Your device use")
+                            }
+                            PermissionRow(
+                                title: "Window management",
+                                subtitle: "Sites can ask to manage windows on all your displays",
+                                systemImage: "gear"
+                            ) {
+                                AdditionalPermissionListView(title: "Window management")
+                            }
+                            PermissionRow(
+                                title: "Fonts",
+                                subtitle: "Sites can ask to use fonts installed on your device",
+                                systemImage: "gear"
+                            ) {
+                                AdditionalPermissionListView(title: "Fonts")
+                            }
+                            PermissionRow(
+                                title: "Automatic picture-in-picture",
+                                subtitle: "Sites can enter picture-in-picture automatically",
+                                systemImage: "gear"
+                            ) {
+                                AdditionalPermissionListView(title: "Automatic picture-in-picture")
+                            }
+                            PermissionRow(
+                                title: "Scrolling and zooming shared tabs",
+                                subtitle: "Sites can ask to scroll and zoom shared tabs",
+                                systemImage: "gear"
+                            ) {
+                                AdditionalPermissionListView(title: "Scrolling and zooming shared tabs")
                             }
                         }
                         .padding(.top, 8)
