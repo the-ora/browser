@@ -1,6 +1,188 @@
 import AppKit
 import SwiftUI
 
+// MARK: - Extensions Popup View
+
+struct ExtensionsPopupView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.theme) var theme
+
+    private func openSettingsPermissions() {
+        // Open Ora's settings window to the Privacy & Security tab
+        NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
+        dismiss()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Settings section
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Settings")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+
+                PopupPermissionRow(icon: "location", title: "Location", status: "Ask")
+                PopupPermissionRow(icon: "camera", title: "Camera", status: "Ask")
+                PopupPermissionRow(icon: "mic", title: "Microphone", status: "Ask")
+                PopupPermissionRow(icon: "bell", title: "Notifications", status: "Ask")
+
+                Button(action: {
+                    openSettingsPermissions()
+                }) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "gear")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.primary)
+                            .frame(width: 24, height: 24)
+                            .background(Color.secondary.opacity(0.1))
+                            .cornerRadius(6)
+
+                        Text("More settings")
+                            .font(.subheadline)
+                            .foregroundColor(.primary)
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .buttonStyle(.plain)
+            }
+
+            .padding(.top, 8)
+        }
+        .padding(16)
+        .frame(width: 320)
+        .background(Color(NSColor.controlBackgroundColor))
+        .cornerRadius(12)
+    }
+}
+
+struct PopupActionButton: View {
+    let icon: String
+    let title: String
+
+    var body: some View {
+        Button(action: {}) {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.primary)
+                    .frame(width: 32, height: 32)
+                    .background(Color.secondary.opacity(0.1))
+                    .cornerRadius(8)
+
+                Text(title)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct ExtensionIcon: View {
+    let index: Int
+
+    private var iconName: String {
+        let icons = [
+            "doc.text",
+            "globe",
+            "circle.fill",
+            "square.grid.2x2",
+            "star.fill",
+            "folder",
+            "paintbrush",
+            "plus.circle",
+            "photo",
+            "camera",
+            "map",
+            "gamecontroller",
+            "music.note",
+            "video",
+            "textformat",
+            "gear"
+        ]
+        return icons[index % icons.count]
+    }
+
+    private var iconColor: Color {
+        let colors: [Color] = [.blue, .green, .red, .orange, .purple, .pink, .yellow, .gray]
+        return colors[index % colors.count]
+    }
+
+    var body: some View {
+        Button(action: {}) {
+            Image(systemName: iconName)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(iconColor)
+                .frame(width: 40, height: 40)
+                .background(iconColor.opacity(0.1))
+                .cornerRadius(8)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct BoostRow: View {
+    let icon: String
+    let title: String
+    let status: String
+    let isEnabled: Bool
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.primary)
+                .frame(width: 24, height: 24)
+                .background(Color.secondary.opacity(0.1))
+                .cornerRadius(6)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.subheadline)
+                    .foregroundColor(.primary)
+                Text(status)
+                    .font(.caption)
+                    .foregroundColor(isEnabled ? .green : .secondary)
+            }
+
+            Spacer()
+        }
+    }
+}
+
+struct PopupPermissionRow: View {
+    let icon: String
+    let title: String
+    let status: String
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.primary)
+                .frame(width: 24, height: 24)
+                .background(Color.secondary.opacity(0.1))
+                .cornerRadius(6)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.subheadline)
+                    .foregroundColor(.primary)
+                Text(status)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            Spacer()
+        }
+    }
+}
+
 // MARK: - URLBar
 
 struct URLBar: View {
@@ -12,6 +194,7 @@ struct URLBar: View {
     @State private var editingURLString: String = ""
     @FocusState private var isEditing: Bool
     @Environment(\.colorScheme) var colorScheme
+    @State private var showExtensionsPopup = false
 
     let onSidebarToggle: () -> Void
 
@@ -229,8 +412,13 @@ struct URLBar: View {
                             systemName: "ellipsis",
                             isEnabled: true,
                             foregroundColor: buttonForegroundColor,
-                            action: {}
+                            action: {
+                                showExtensionsPopup.toggle()
+                            }
                         )
+                        .popover(isPresented: $showExtensionsPopup, arrowEdge: .bottom) {
+                            ExtensionsPopupView()
+                        }
                     }
                 }
                 .padding(.horizontal, 12)
