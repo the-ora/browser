@@ -6,7 +6,7 @@ struct AIChatView: View {
     @State private var conversationManager = AIConversationManager()
     @State private var inputText = ""
     @State private var aiService: AppleIntelligenceService?
-    @State private var showConversationHistory = false
+    @State private var showConversationHistory = true
 
     private let conversationId: UUID?
     private let initialQuery: String?
@@ -36,7 +36,7 @@ struct AIChatView: View {
                     unavailableView
                 }
             }
-            .background(theme.background)
+//            .background(theme.background)
         }
         .onAppear {
             conversationManager.setModelContext(modelContext)
@@ -83,6 +83,10 @@ struct AIChatView: View {
             }
             .buttonStyle(.plain)
 
+            Divider()
+                .frame(height: 10)
+                .padding(.horizontal, 5)
+
             Image(systemName: "apple.intelligence")
                 .font(.title2)
                 .foregroundStyle(.tint)
@@ -92,18 +96,12 @@ struct AIChatView: View {
                     .font(.headline)
                     .foregroundStyle(theme.foreground)
 
-                Text("On-device AI • Private & Secure")
+                Text("On-device Model")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-
-            Spacer()
-
-            Button("New Chat") {
-                startNewConversation()
-            }
-            .buttonStyle(.borderedProminent)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
     }
@@ -349,6 +347,6 @@ struct AIChatView: View {
     if #available(macOS 26.0, *) {
         AIChatView()
     } else {
-        Text("")
+        Text("Not Supported")
     }
 }
