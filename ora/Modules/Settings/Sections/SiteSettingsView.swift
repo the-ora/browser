@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 
 struct SiteSettingsView: View {
@@ -225,65 +226,62 @@ private struct PermissionRow<Destination: View>: View {
 
 // MARK: - Permission detail screens
 
-private struct PerSiteToggleList: View {
-    @ObservedObject var settings = SettingsStore.shared
-    let keyPath: WritableKeyPath<SitePermissionSettings, Bool>
+struct DynamicPermissionView: View {
+    let permissionKind: PermissionKind
+    let title: String
+    let description: String
+    let allowedText: String
+    let blockedText: String
 
-    var body: some View {
-        List(Array(settings.sitePermissions.values).sorted(by: { $0.host < $1.host })) { item in
-            Toggle(isOn: Binding(
-                get: { item[keyPath: keyPath] },
-                set: { newValue in
-                    var updated = item
-                    updated[keyPath: keyPath] = newValue
-                    settings.upsertSitePermission(updated)
-                }
-            )) {
-                Text(item.host)
-            }
-            .toggleStyle(.switch)
-            .contextMenu {
-                Button(role: .destructive) {
-                    settings.removeSitePermission(host: item.host)
-                } label: {
-                    Label("Remove", systemImage: "trash")
-                }
-            }
-        }
-        .listStyle(.inset)
-    }
-}
-
-struct LocationPermissionView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var store = PermissionSettingsStore.shared
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \SitePermission.host) private var allSitePermissions: [SitePermission]
     @State private var newHost: String = ""
     @State private var newPolicyAllow: Bool = true
+
+    private var allowedSites: [SitePermission] {
+        allSitePermissions.filter { site in
+            switch permissionKind {
+            case .location: return site.locationAllowed
+            case .camera: return site.cameraAllowed
+            case .microphone: return site.microphoneAllowed
+            case .notifications: return site.notificationsAllowed
+            }
+        }
+    }
+
+    private var blockedSites: [SitePermission] {
+        allSitePermissions.filter { site in
+            switch permissionKind {
+            case .location: return !site.locationAllowed
+            case .camera: return !site.cameraAllowed
+            case .microphone: return !site.microphoneAllowed
+            case .notifications: return !site.notificationsAllowed
+            }
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             InlineBackButton(action: { dismiss() })
 
-            Text("Sites usually use your location for relevant features or info, like local news or nearby shops")
+            Text(description)
                 .foregroundStyle(.secondary)
 
             Group {
                 Text("Customized behaviors").font(.headline)
 
-                let blocked = store.notAllowedSites(for: .location)
-                let allowed = store.allowedSites(for: .location)
-
-                if !blocked.isEmpty {
-                    Text("Not allowed to see your location").font(.subheadline)
-                    ForEach(blocked, id: \.host) { entry in
-                        SiteRow(entry: entry, onRemove: { store.removeSite(host: entry.host) })
+                if !blockedSites.isEmpty {
+                    Text(blockedText).font(.subheadline)
+                    ForEach(blockedSites, id: \.host) { entry in
+                        SiteRow(entry: entry, onRemove: { removeSite(entry) })
                     }
                 }
 
-                if !allowed.isEmpty {
-                    Text("Allowed to see your location").font(.subheadline)
-                    ForEach(allowed, id: \.host) { entry in
-                        SiteRow(entry: entry, onRemove: { store.removeSite(host: entry.host) })
+                if !allowedSites.isEmpty {
+                    Text(allowedText).font(.subheadline)
+                    ForEach(allowedSites, id: \.host) { entry in
+                        SiteRow(entry: entry, onRemove: { removeSite(entry) })
                     }
                 }
 
@@ -296,11 +294,7 @@ struct LocationPermissionView: View {
                     }
                     .pickerStyle(.segmented)
                     Button("Add") {
-                        let host = newHost.trimmingCharacters(in: .whitespacesAndNewlines)
-                        guard !host.isEmpty else { return }
-                        store.addOrUpdateSite(host: host, allow: newPolicyAllow, for: .location)
-                        newHost = ""
-                        newPolicyAllow = true
+                        addSite()
                     }
                     .buttonStyle(.bordered)
                 }
@@ -308,6 +302,49 @@ struct LocationPermissionView: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
+    }
+
+    private func addSite() {
+        let host = newHost.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !host.isEmpty else { return }
+
+        let existingSite = allSitePermissions.first {
+            $0.host.caseInsensitiveCompare(host) == .orderedSame
+        }
+
+        let site = existingSite ?? {
+            let newSite = SitePermission(host: host)
+            modelContext.insert(newSite)
+            return newSite
+        }()
+
+        switch permissionKind {
+        case .location: site.locationAllowed = newPolicyAllow
+        case .camera: site.cameraAllowed = newPolicyAllow
+        case .microphone: site.microphoneAllowed = newPolicyAllow
+        case .notifications: site.notificationsAllowed = newPolicyAllow
+        }
+
+        try? modelContext.save()
+        newHost = ""
+        newPolicyAllow = true
+    }
+
+    private func removeSite(_ site: SitePermission) {
+        modelContext.delete(site)
+        try? modelContext.save()
+    }
+}
+
+struct LocationPermissionView: View {
+    var body: some View {
+        DynamicPermissionView(
+            permissionKind: .location,
+            title: "Location",
+            description: "Sites usually use your location for relevant features or info, like local news or nearby shops",
+            allowedText: "Allowed to see your location",
+            blockedText: "Not allowed to see your location"
+        )
     }
 }
 
@@ -339,41 +376,38 @@ private struct RadioButton: View {
 }
 
 struct CameraPermissionView: View {
-    @Environment(\.dismiss) private var dismiss
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            InlineBackButton(action: { dismiss() })
-            Text("Sites can ask to use your camera").foregroundStyle(.secondary)
-            PerSiteToggleList(keyPath: \._Camera)
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
+        DynamicPermissionView(
+            permissionKind: .camera,
+            title: "Camera",
+            description: "Sites can ask to use your camera for video calls, photos, and other features",
+            allowedText: "Allowed to use your camera",
+            blockedText: "Not allowed to use your camera"
+        )
     }
 }
 
 struct MicrophonePermissionView: View {
-    @Environment(\.dismiss) private var dismiss
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            InlineBackButton(action: { dismiss() })
-            Text("Sites can ask to use your microphone").foregroundStyle(.secondary)
-            PerSiteToggleList(keyPath: \._Microphone)
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
+        DynamicPermissionView(
+            permissionKind: .microphone,
+            title: "Microphone",
+            description: "Sites can ask to use your microphone for voice calls, recordings, and audio features",
+            allowedText: "Allowed to use your microphone",
+            blockedText: "Not allowed to use your microphone"
+        )
     }
 }
 
 struct NotificationsPermissionView: View {
-    @Environment(\.dismiss) private var dismiss
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            InlineBackButton(action: { dismiss() })
-            Text("Collapse unwanted requests (recommended)").foregroundStyle(.secondary)
-            PerSiteToggleList(keyPath: \._Notifications)
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
+        DynamicPermissionView(
+            permissionKind: .notifications,
+            title: "Notifications",
+            description: "Sites can ask to send you notifications for updates, messages, and alerts",
+            allowedText: "Allowed to send notifications",
+            blockedText: "Not allowed to send notifications"
+        )
     }
 }
 
@@ -383,8 +417,7 @@ struct EmbeddedContentPermissionView: View {
         VStack(alignment: .leading, spacing: 12) {
             InlineBackButton(action: { dismiss() })
             Text("Sites can ask to use information they've saved about you").foregroundStyle(.secondary)
-            // Placeholder list reused for now
-            PerSiteToggleList(keyPath: \._Notifications)
+            Text("No additional settings available yet.").foregroundStyle(.tertiary)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
@@ -403,15 +436,6 @@ struct AdditionalPermissionListView: View {
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
     }
-}
-
-// MARK: - KeyPath helpers to access specific fields on SitePermissionSettings
-
-private extension SitePermissionSettings {
-    var _Location: Bool { get { location } set { location = newValue } }
-    var _Camera: Bool { get { camera } set { camera = newValue } }
-    var _Microphone: Bool { get { microphone } set { microphone = newValue } }
-    var _Notifications: Bool { get { notifications } set { notifications = newValue } }
 }
 
 // MARK: - Inline Back Button
