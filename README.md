@@ -60,46 +60,27 @@ If you would like to support the project, please consider donating:
 </details>
 
 ## Installation
-why 
-1. Clone the repository.
 
-```
-git clone https://github.com/the-ora/browser.git
-cd browser
-```
-
-2. Run the setup script to install tools, configure git hooks, and generate the Xcode project:
+1. Clone the repository and run setup:
    ```bash
+   git clone https://github.com/the-ora/browser.git
+   cd browser
    ./setup.sh
    ```
-3. Open in Xcode and run:
+
+2. Open and build:
    ```bash
    open Ora.xcodeproj
    ```
-   - In Xcode: select the `ora` scheme and Run (⌘R). Build (⌘B). Test (⌘U).
 
-### Command-line build (optional)
-
-- Debug build via helper script (uses `xcodebuild`; piping to `xcbeautify` if installed):
-  ```bash
-  ./xcbuild-debug.sh
-  ```
-  If you do not have `xcbeautify`, remove the final pipe or install it via Homebrew.
+For detailed setup instructions, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 
-## Development
+## Contributing
 
-### Formatting and linting
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, code style guidelines, and pull request process.
 
-- Run formatting:
-  ```bash
-  swiftformat . --quiet
-  ```
-- Run linting:
-  ```bash
-  swiftlint --quiet
-  ```
-- Pre-commit hook runs both automatically (installed by `./setup.sh`).
+Also see our [Code of Conduct](CODE_OF_CONDUCT.md) for community guidelines.
 
 ### Releases and Updates
 
@@ -157,32 +138,9 @@ The app includes automatic update checking in Settings > General.
 
 Keyboard shortcuts: see `ora/Common/Constants/KeyboardShortcuts.swift`.
 
-## Documentation
+## Wiki
 
-- **[Quick Start Guide](docs/QUICK_START.md)** - 5-minute setup for hosting and updates
-- **[Hosting Setup Guide](docs/HOSTING_SETUP.md)** - Complete guide for update hosting and deployment
-- **[Documentation Index](docs/README.md)** - All documentation organized by topic
-
-## Contributing
-
-Contributions are welcome! To propose changes:
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/my-feature`
-3. Commit your changes: `git commit -m 'Add some feature'`
-4. Push the branch: `git push origin feature/my-feature`
-5. Open a Pull Request
-
-## Troubleshooting
-
-- XcodeGen, SwiftFormat, or SwiftLint not found
-  - Run `./setup.sh` or install via Homebrew: `brew install xcodegen swiftformat swiftlint`
-- Code signing issues (CLI builds)
-  - The helper script disables signing for Debug builds. In Xcode, use automatic signing or adjust target settings.
-- Missing `Ora.xcodeproj`
-  - Run `xcodegen` (or `./setup.sh`) to regenerate from `project.yml`.
-- CLI build output is hard to read
-  - Install `xcbeautify` (`brew install xcbeautify`) and keep the pipe in `xcbuild-debug.sh`.
+See the [Wiki](wiki/) for comprehensive documentation, guides, and project information.
 
 ## Contact
 
@@ -190,7 +148,5 @@ Questions or support? Join the community on [Discord](https://discord.gg/9aZWH52
 
 ## License
 
-Ora is open source and licensed under the [MIT License](LICENSE.md).  
-Feel free to use, modify, and distribute it under the terms of the MIT License.
 Ora is open source and licensed under the [MIT License](LICENSE.md).  
 Feel free to use, modify, and distribute it under the terms of the MIT License.
