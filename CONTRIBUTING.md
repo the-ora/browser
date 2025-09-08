@@ -12,7 +12,7 @@
 
 1. Fork the repository and clone your fork:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/browser.git
+   git clone https://github.com/the-ora/browser.git
    cd browser
    ```
 
