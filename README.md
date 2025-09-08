@@ -8,14 +8,14 @@
   </p>
 </div>
 
+> **⚠️ Disclaimer**  
+Ora is currently in early stages of development and **not yet ready for day-to-day use**. An alpha version with core functionalities will be released soon.
+
 ## Requirements
 
 - **macOS 14.0** or later
 - **Xcode 15** or later (Swift 5.9)
 - **Homebrew** (for developer tooling)
-
-> **⚠️ Disclaimer**  
-Ora is currently in early stages of development and **not yet ready for day-to-day use**. An alpha version with core functionalities will be released soon.
 
 If you would like to support the project, please consider donating via [Buy Me A Coffee](https://buymeacoffee.com/orabrowser).
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/orabrowser)
@@ -32,7 +32,8 @@ If you would like to support the project, please consider donating via [Buy Me A
 - Quick Launcher for instant navigation and search
 - Developer mode
 
-### Way to Beta Version
+<details>
+<summary><b>Way to Beta Version</b></summary>
 
 - [x] Tab management with
   - containers (spaces),
@@ -52,6 +53,8 @@ If you would like to support the project, please consider donating via [Buy Me A
 - [ ] Split tabs — multiple tabs open side by side
 - [ ] Reader mode with adjustable font and themes
 - [ ] Web notifications
+
+</details>
 
 
 ## Key Management for Updates
