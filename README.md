@@ -1,12 +1,28 @@
-## Ora Browser
+<div align="center">
+  <img width="250" height="250" src="/assets/icon.png" alt="Ora Browser Logo">
+  <h1><b>Ora Browser</b></h1>
+  <p>
+    Ora is a fast, secure, and beautiful browser built for macOS. Inspired by Safari and Arc, Ora delivers a clean, native experience that feels at home on macOS—without unnecessary bloat.
+    <br>
+  </p>
+</div>
 
-Ora is a fast, secure, and beautiful browser built for macOS. Inspired by Safari and Arc, Ora delivers a clean, native experience that feels at home on macOS — without unnecessary bloat.
+<p align="center">
+    <a href="https://www.apple.com/macos/"><img src="https://badgen.net/badge/macOS/14+/blue" alt="macOS"></a>
+    <a href="https://developer.apple.com/xcode/"><img src="https://badgen.net/badge/Xcode/15+/blue" alt="Xcode"></a>
+    <a href="https://swift.org"><img src="https://badgen.net/badge/Swift/5.9/orange" alt="Swift Version"></a>
+    <a href="https://brew.sh"><img src="https://badgen.net/badge/Homebrew/required/yellow" alt="Homebrew"></a>
+    <a href="LICENSE.md"><img src="https://badgen.net/badge/License/MIT/green" alt="License: MIT"></a>
+</p>
 
 > **⚠️ Disclaimer**  
 Ora is currently in early stages of development and **not yet ready for day-to-day use**. A beta version with core functionalities will be released soon.
 
-If you would like to support the project, please consider donating via [Buy Me A Coffee](https://buymeacoffee.com/orabrowser).
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/orabrowser)
+## Support
+
+If you would like to support the project, please consider donating:
+
+[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/orabrowser)
 
 ## Features
 
@@ -20,7 +36,8 @@ If you would like to support the project, please consider donating via [Buy Me A
 - Quick Launcher for instant navigation and search
 - Developer mode
 
-### Way to Beta Version
+<details>
+<summary><h2>Way to Beta Version</h2></summary>
 
 - [x] Tab management with
   - containers (spaces),
@@ -41,156 +58,35 @@ If you would like to support the project, please consider donating via [Buy Me A
 - [ ] Reader mode with adjustable font and themes
 - [ ] Web notifications
 
-## Requirements
+</details>
 
-- macOS 14.0 or later
-- Xcode 15 or later (Swift 5.9)
-- Homebrew (for developer tooling)
-- Tools: `xcodegen`, `swiftlint`, `swiftformat` (installed by the setup script)
-- Optional: `xcbeautify` (for prettier CLI build output)
+## Wiki
 
-## Key Management for Updates
-
-Ora Browser uses Ed25519 cryptographic keys to sign and verify app updates for security:
-
-### Public Key (Committed to Git)
-- **File**: `ora_public_key.pem`
-- **Purpose**: Verifies update signatures in the app
-- **Status**: Committed to git repository
-- **Safety**: Public keys are safe to share
-
-### Private Key (Never Commit!)
-- **File**: `.env` (contains `ORA_PRIVATE_KEY`)
-- **Purpose**: Signs app updates during release
-- **Status**: Never committed to git
-- **Safety**: Keep secure and private
-
-### Setup Process
-1. **First machine**: Keys auto-generated and saved appropriately
-2. **Additional machines**: Copy `.env` file from first machine
-3. **Release process**: `./create-release.sh` handles key management automatically
-
-### Security Notes
-- `.env` is in `.gitignore` - it will never be committed
-- Public key is committed - this is safe and required
-- Never share your private key with anyone
-- If private key is lost, you'll need to regenerate keys (breaks update chain)
+See the [Wiki](wiki/) for comprehensive documentation, guides, and project information.
 
 ## Installation
 
-1. Clone the repository.
-
-```
-git clone https://github.com/the-ora/browser.git
-cd browser
-```
-
-2. Run the setup script to install tools, configure git hooks, and generate the Xcode project:
+1. Clone the repository and run setup:
    ```bash
+   git clone https://github.com/the-ora/browser.git
+   cd browser
    ./setup.sh
    ```
-3. Open in Xcode and run:
+
+2. Open and build:
    ```bash
    open Ora.xcodeproj
    ```
-   - In Xcode: select the `ora` scheme and Run (⌘R). Build (⌘B). Test (⌘U).
 
-### Command-line build (optional)
+For detailed setup instructions, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-- Debug build via helper script (uses `xcodebuild`; piping to `xcbeautify` if installed):
-  ```bash
-  ./xcbuild-debug.sh
-  ```
-  If you do not have `xcbeautify`, remove the final pipe or install it via Homebrew.
 
-## Project structure
+## Contributing
 
-```
-browser/
-├─ ora/                             # application sources
-│  ├─ Modules/                      # feature modules (Browser, Launcher, Find, Settings, Sidebar, SplitView, EmojiPicker, TabSwitch)
-│  ├─ UI/                           # shared, reusable UI components
-│  ├─ Services/                     # app-wide services (TabManager, HistoryManager, DownloadManager, PrivacyService, SearchEngineService)
-│  ├─ Common/                       # shared resources, extensions, constants, representables, utilities
-│  ├─ Models/                       # SwiftData models and related data
-│  ├─ Resources/                    # app resources and auxiliary files
-│  ├─ Assets.xcassets/              # asset catalog
-│  ├─ Capsule.xcassets/             # asset catalog
-│  └─ oraApp.swift                  # app entry point
-├─ project.yml                      # XcodeGen project definition
-├─ .swiftformat                     # formatting configuration
-├─ .githooks/                       # git hooks (pre-commit, pre-push)
-├─ setup.sh                         # tooling bootstrap and project generation
-├─ xcbuild-debug.sh                 # CLI debug build helper
-├─ LICENSE.md                       # license
-├─ oraTests/                        # unit tests
-└─ oraUITests/                      # UI tests
-```
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, code style guidelines, and pull request process.
 
-## Data and persistence
+Also see our [Code of Conduct](CODE_OF_CONDUCT.md) for community guidelines.
 
-The app uses SwiftData with a single `ModelContainer` storing `TabContainer`, `History`, and `Download` models. The default store is under the app's Application Support directory as `OraData.sqlite`.
-
-To reset the local store during development, you can delete the file under Application Support. Example path (your user folder will vary):
-
-```bash
-rm -f "$(getconf DARWIN_USER_DIR 2>/dev/null || echo "$HOME/Library/Application Support")/OraData.sqlite"*
-```
-
-> **⚠️ Caution: Use with care—this permanently clears tabs/history/download metadata.**
-
-## Development
-
-### Formatting and linting
-
-- Run formatting:
-  ```bash
-  swiftformat . --quiet
-  ```
-- Run linting:
-  ```bash
-  swiftlint --quiet
-  ```
-- Pre-commit hook runs both automatically (installed by `./setup.sh`).
-
-### Releases and Updates
-
-Ora uses [Sparkle](https://sparkle-project.org/) for automatic updates. All build artifacts are organized in the `build/` directory.
-
-1. **Add Sparkle dependency:**
-   - Open `Ora.xcodeproj` in Xcode
-   - Go to File → Add Packages...
-   - Add `https://github.com/sparkle-project/Sparkle` (version 2.6.3+)
-   - Add Sparkle to your target
-
-2. **Setup Sparkle tools:**
-   ```bash
-   brew install --cask sparkle
-   ./setup-sparkle-tools.sh
-   ./setup-sparkle.sh
-   ```
-   This generates DSA keys in `build/` directory.
-
-3. **Configure signing:**
-   - Copy the public key from `build/dsa_pub.pem` to your `Info.plist` as `SUPublicEDKey`
-   - Keep `build/dsa_priv.pem` secure for signing releases
-   - Add `SUFeedURL` to Info.plist pointing to your appcast.xml URL
-
-4. **Create a release:**
-   ```bash
-   ./create-release.sh 0.0.2 build/dsa_priv.pem
-   ```
-   This builds, signs, and prepares release files in `build/`.
-
-5. **Host appcast.xml:**
-   - Upload `build/appcast.xml` to a public URL (e.g., GitHub Pages)
-   - Update `SUFeedURL` in `Info.plist` to point to your appcast.xml
-
-6. **Publish release:**
-   - Upload `build/Ora-Browser.dmg` to GitHub releases
-   - Users will automatically receive update notifications
-
-The app includes automatic update checking in Settings > General.
 
 ### Regenerating the Xcode project
 
@@ -207,36 +103,13 @@ The app includes automatic update checking in Settings > General.
   xcodebuild test -scheme ora -destination "platform=macOS"
   ```
 
-Keyboard shortcuts: see `ora/Common/Constants/KeyboardShortcuts.swift`.
 
-## Documentation
+## Links
 
-- **[Quick Start Guide](docs/QUICK_START.md)** - 5-minute setup for hosting and updates
-- **[Hosting Setup Guide](docs/HOSTING_SETUP.md)** - Complete guide for update hosting and deployment
-- **[Documentation Index](docs/README.md)** - All documentation organized by topic
-
-## Contributing
-
-Contributions are welcome! To propose changes:
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/my-feature`
-3. Commit your changes: `git commit -m 'Add some feature'`
-4. Push the branch: `git push origin feature/my-feature`
-5. Open a Pull Request
-
-*N.B* - each PR must only solve one issue/bug or feature at a time. This help us on reviews. Thank you for your contributions.
-
-## Troubleshooting
-
-- XcodeGen, SwiftFormat, or SwiftLint not found
-  - Run `./setup.sh` or install via Homebrew: `brew install xcodegen swiftformat swiftlint`
-- Code signing issues (CLI builds)
-  - The helper script disables signing for Debug builds. In Xcode, use automatic signing or adjust target settings.
-- Missing `Ora.xcodeproj`
-  - Run `xcodegen` (or `./setup.sh`) to regenerate from `project.yml`.
-- CLI build output is hard to read
-  - Install `xcbeautify` (`brew install xcbeautify`) and keep the pipe in `xcbuild-debug.sh`.
+- 🌐 **Website**: [orabrowser.com](https://www.orabrowser.com)
+- 💬 **Discord**: [Join Community](https://discord.gg/9aZWH52Zjm)
+- ☕ **Support**: [Buy Me A Coffee](https://buymeacoffee.com/orabrowser)
+- 🐦 **Twitter/X**: [@orabrowser](https://x.com/orabrowser)
 
 ## Contact
 
