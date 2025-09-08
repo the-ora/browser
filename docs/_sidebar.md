@@ -18,7 +18,6 @@
 ## 📦 Deployment & Updates
 - [Hosting Setup](HOSTING_SETUP.md) 
 - [Release Process](RELEASE_PROCESS.md)
-- [Security & Key Management](SECURITY_KEY_MANAGEMENT.md)
 
 ## 🛠️ Advanced Topics
 - [Data & Persistence](DATA_PERSISTENCE.md)

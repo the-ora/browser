@@ -56,13 +56,8 @@ If you would like to support the project, please consider donating via [Buy Me A
 
 </details>
 
-
-## Security
-
-Ora Browser uses cryptographic signing for secure updates. See [Security & Key Management](docs/SECURITY_KEY_MANAGEMENT.md) for details.
-
 ## Installation
-
+why 
 1. Clone the repository.
 
 ```
