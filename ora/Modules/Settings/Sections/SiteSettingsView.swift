@@ -238,9 +238,10 @@ struct DynamicPermissionView: View {
     @Query(sort: \SitePermission.host) private var allSitePermissions: [SitePermission]
     @State private var newHost: String = ""
     @State private var newPolicyAllow: Bool = true
+    @State private var searchText: String = ""
 
     private var allowedSites: [SitePermission] {
-        allSitePermissions.filter { site in
+        let filtered = allSitePermissions.filter { site in
             switch permissionKind {
             case .location: return site.locationConfigured && site.locationAllowed
             case .camera: return site.cameraConfigured && site.cameraAllowed
@@ -248,10 +249,16 @@ struct DynamicPermissionView: View {
             case .notifications: return site.notificationsConfigured && site.notificationsAllowed
             }
         }
+
+        if searchText.isEmpty {
+            return filtered
+        } else {
+            return filtered.filter { $0.host.localizedCaseInsensitiveContains(searchText) }
+        }
     }
 
     private var blockedSites: [SitePermission] {
-        allSitePermissions.filter { site in
+        let filtered = allSitePermissions.filter { site in
             switch permissionKind {
             case .location: return site.locationConfigured && !site.locationAllowed
             case .camera: return site.cameraConfigured && !site.cameraAllowed
@@ -259,11 +266,33 @@ struct DynamicPermissionView: View {
             case .notifications: return site.notificationsConfigured && !site.notificationsAllowed
             }
         }
+
+        if searchText.isEmpty {
+            return filtered
+        } else {
+            return filtered.filter { $0.host.localizedCaseInsensitiveContains(searchText) }
+        }
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            InlineBackButton(action: { dismiss() })
+            HStack {
+                InlineBackButton(action: { dismiss() })
+
+                Spacer()
+
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundStyle(.secondary)
+                    TextField("Search sites...", text: $searchText)
+                        .textFieldStyle(.plain)
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color(NSColor.controlBackgroundColor))
+                .cornerRadius(6)
+                .frame(width: 200)
+            }
 
             Text(description)
                 .foregroundStyle(.secondary)
@@ -299,7 +328,10 @@ struct DynamicPermissionView: View {
                     .buttonStyle(.bordered)
                 }
             }
+
+            Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
     }
