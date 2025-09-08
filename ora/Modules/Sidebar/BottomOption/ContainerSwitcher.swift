@@ -85,7 +85,7 @@ struct ContainerSwitcher: View {
                 let success = tabManager.deleteContainer(container)
 
                 if !success {
-                    print("Failed to delete workspace!")
+                    print("Failed to delete container!")
                     didFailToDeleteContainer = true
                 }
             }
