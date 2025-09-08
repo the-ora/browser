@@ -122,18 +122,21 @@ This project uses **XcodeGen**. If you need to modify project settings:
 
 ### Bug Reports
 
-Include:
+**Be descriptive and thorough**. Include:
 - macOS version
 - Ora Browser version
-- Steps to reproduce
+- Clear steps to reproduce the issue
 - Expected vs actual behavior
 - Screenshots if applicable
+- Relevant console/error messages
 
 ### Feature Requests
 
-- Describe the feature and its use case
+**Provide detailed context**. Include:
+- Clear description of the feature and its use case
 - Explain how it fits with Ora's goals (fast, secure, beautiful)
-- Consider implementation complexity
+- Consider implementation complexity and user impact
+- Check that similar functionality doesn't already exist
 
 ## 💬 Community Guidelines
 
