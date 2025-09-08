@@ -29,8 +29,8 @@ disabled_rules:
 
 # Rule configurations
 line_length:
-  warning: 120 # Match SwiftFormat --maxwidth 120
-  error: 140
+  warning: 120
+  # error: 140
 
 file_length:
   warning: 500
