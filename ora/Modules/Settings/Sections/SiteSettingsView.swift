@@ -57,126 +57,216 @@ struct SiteSettingsView: View {
                                 subtitle: "Recently closed sites can finish sending and receiving data",
                                 systemImage: "arrow.triangle.2.circlepath"
                             ) {
-                                AdditionalPermissionListView(title: "Background sync")
+                                BackgroundSyncPermissionView()
                             }
                             PermissionRow(
                                 title: "Motion sensors",
                                 subtitle: "Sites can use motion sensors",
                                 systemImage: "waveform.path.ecg"
                             ) {
-                                AdditionalPermissionListView(title: "Motion sensors")
+                                MotionSensorsPermissionView()
                             }
                             PermissionRow(
                                 title: "Automatic downloads",
                                 subtitle: "Sites can ask to automatically download multiple files",
                                 systemImage: "arrow.down.circle"
                             ) {
-                                AdditionalPermissionListView(title: "Automatic downloads")
+                                AutomaticDownloadsPermissionView()
                             }
                             PermissionRow(
                                 title: "Protocol handlers",
                                 subtitle: "Sites can ask to handle protocols",
                                 systemImage: "link"
                             ) {
-                                AdditionalPermissionListView(title: "Protocol handlers")
+                                UnifiedPermissionView(
+                                    title: "Protocol handlers",
+                                    description: "Sites can ask to handle protocols",
+                                    permissionKind: nil,
+                                    allowedText: nil,
+                                    blockedText: nil
+                                )
                             }
                             PermissionRow(
                                 title: "MIDI device control & reprogram",
                                 subtitle: "Sites can ask to control and reprogram your MIDI devices",
-                                systemImage: "pianokeys"
+                                systemImage: "airpodspro"
                             ) {
-                                AdditionalPermissionListView(title: "MIDI device control & reprogram")
+                                UnifiedPermissionView(
+                                    title: "MIDI device control & reprogram",
+                                    description: "Sites can ask to control and reprogram your MIDI devices",
+                                    permissionKind: nil,
+                                    allowedText: nil,
+                                    blockedText: nil
+                                )
                             }
                             PermissionRow(
                                 title: "USB devices",
                                 subtitle: "Sites can ask to connect to USB devices",
                                 systemImage: "externaldrive"
                             ) {
-                                AdditionalPermissionListView(title: "USB devices")
+                                UnifiedPermissionView(
+                                    title: "USB devices",
+                                    description: "Sites can ask to connect to USB devices",
+                                    permissionKind: nil,
+                                    allowedText: nil,
+                                    blockedText: nil
+                                )
                             }
                             PermissionRow(
                                 title: "Serial ports",
                                 subtitle: "Sites can ask to connect to serial ports",
                                 systemImage: "cable.connector.horizontal"
                             ) {
-                                AdditionalPermissionListView(title: "Serial ports")
+                                UnifiedPermissionView(
+                                    title: "Serial ports",
+                                    description: "Sites can ask to connect to serial ports",
+                                    permissionKind: nil,
+                                    allowedText: nil,
+                                    blockedText: nil
+                                )
                             }
                             PermissionRow(
                                 title: "File editing",
                                 subtitle: "Sites can ask to edit files and folders on your device",
                                 systemImage: "folder"
                             ) {
-                                AdditionalPermissionListView(title: "File editing")
+                                UnifiedPermissionView(
+                                    title: "File editing",
+                                    description: "Sites can ask to edit files and folders on your device",
+                                    permissionKind: nil,
+                                    allowedText: nil,
+                                    blockedText: nil
+                                )
                             }
                             PermissionRow(
                                 title: "HID devices",
                                 subtitle: "Ask when a site wants to access HID devices",
                                 systemImage: "dot.radiowaves.left.and.right"
                             ) {
-                                AdditionalPermissionListView(title: "HID devices")
+                                UnifiedPermissionView(
+                                    title: "HID devices",
+                                    description: "Ask when a site wants to access HID devices",
+                                    permissionKind: nil,
+                                    allowedText: nil,
+                                    blockedText: nil
+                                )
                             }
                             PermissionRow(
                                 title: "Clipboard",
                                 subtitle: "Sites can ask to see text and images on your clipboard",
                                 systemImage: "clipboard"
                             ) {
-                                AdditionalPermissionListView(title: "Clipboard")
+                                UnifiedPermissionView(
+                                    title: "Clipboard",
+                                    description: "Sites can ask to see text and images on your clipboard",
+                                    permissionKind: nil,
+                                    allowedText: nil,
+                                    blockedText: nil
+                                )
                             }
                             PermissionRow(
                                 title: "Payment handlers",
                                 subtitle: "Sites can install payment handlers",
                                 systemImage: "creditcard"
                             ) {
-                                AdditionalPermissionListView(title: "Payment handlers")
+                                UnifiedPermissionView(
+                                    title: "Payment handlers",
+                                    description: "Sites can install payment handlers",
+                                    permissionKind: nil,
+                                    allowedText: nil,
+                                    blockedText: nil
+                                )
                             }
                             PermissionRow(
                                 title: "Augmented reality",
                                 subtitle: "Ask when a site wants to create a 3D map of your surroundings or track camera position",
                                 systemImage: "arkit"
                             ) {
-                                AdditionalPermissionListView(title: "Augmented reality")
+                                UnifiedPermissionView(
+                                    title: "Augmented reality",
+                                    description: "Ask when a site wants to create a 3D map of your surroundings or track camera position",
+                                    permissionKind: nil,
+                                    allowedText: nil,
+                                    blockedText: nil
+                                )
                             }
                             PermissionRow(
                                 title: "Virtual reality",
                                 subtitle: "Sites can ask to use virtual reality devices and data",
                                 systemImage: "visionpro"
                             ) {
-                                AdditionalPermissionListView(title: "Virtual reality")
+                                UnifiedPermissionView(
+                                    title: "Virtual reality",
+                                    description: "Sites can ask to use virtual reality devices and data",
+                                    permissionKind: nil,
+                                    allowedText: nil,
+                                    blockedText: nil
+                                )
                             }
                             PermissionRow(
                                 title: "Your device use",
                                 subtitle: "Sites can ask to know when you're actively using your device",
                                 systemImage: "cursorarrow.rays"
                             ) {
-                                AdditionalPermissionListView(title: "Your device use")
+                                UnifiedPermissionView(
+                                    title: "Your device use",
+                                    description: "Sites can ask to know when you're actively using your device",
+                                    permissionKind: nil,
+                                    allowedText: nil,
+                                    blockedText: nil
+                                )
                             }
                             PermissionRow(
                                 title: "Window management",
                                 subtitle: "Sites can ask to manage windows on all your displays",
                                 systemImage: "macwindow.on.rectangle"
                             ) {
-                                AdditionalPermissionListView(title: "Window management")
+                                UnifiedPermissionView(
+                                    title: "Window management",
+                                    description: "Sites can ask to manage windows on all your displays",
+                                    permissionKind: nil,
+                                    allowedText: nil,
+                                    blockedText: nil
+                                )
                             }
                             PermissionRow(
                                 title: "Fonts",
                                 subtitle: "Sites can ask to use fonts installed on your device",
                                 systemImage: "textformat"
                             ) {
-                                AdditionalPermissionListView(title: "Fonts")
+                                UnifiedPermissionView(
+                                    title: "Fonts",
+                                    description: "Sites can ask to use fonts installed on your device",
+                                    permissionKind: nil,
+                                    allowedText: nil,
+                                    blockedText: nil
+                                )
                             }
                             PermissionRow(
                                 title: "Automatic picture-in-picture",
                                 subtitle: "Sites can enter picture-in-picture automatically",
                                 systemImage: "pip"
                             ) {
-                                AdditionalPermissionListView(title: "Automatic picture-in-picture")
+                                UnifiedPermissionView(
+                                    title: "Automatic picture-in-picture",
+                                    description: "Sites can enter picture-in-picture automatically",
+                                    permissionKind: nil,
+                                    allowedText: nil,
+                                    blockedText: nil
+                                )
                             }
                             PermissionRow(
                                 title: "Scrolling and zooming shared tabs",
                                 subtitle: "Sites can ask to scroll and zoom shared tabs",
                                 systemImage: "magnifyingglass"
                             ) {
-                                AdditionalPermissionListView(title: "Scrolling and zooming shared tabs")
+                                UnifiedPermissionView(
+                                    title: "Scrolling and zooming shared tabs",
+                                    description: "Sites can ask to scroll and zoom shared tabs",
+                                    permissionKind: nil,
+                                    allowedText: nil,
+                                    blockedText: nil
+                                )
                             }
                         }
                         .padding(.top, 8)
@@ -226,21 +316,21 @@ private struct PermissionRow<Destination: View>: View {
 
 // MARK: - Permission detail screens
 
-struct DynamicPermissionView: View {
-    let permissionKind: PermissionKind
+struct UnifiedPermissionView: View {
     let title: String
     let description: String
-    let allowedText: String
-    let blockedText: String
+    let permissionKind: PermissionKind?
+    let allowedText: String?
+    let blockedText: String?
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \SitePermission.host) private var allSitePermissions: [SitePermission]
-    @State private var newHost: String = ""
-    @State private var newPolicyAllow: Bool = true
     @State private var searchText: String = ""
 
     private var allowedSites: [SitePermission] {
+        guard let permissionKind else { return [] }
+
         let filtered = allSitePermissions.filter { site in
             switch permissionKind {
             case .location: return site.locationConfigured && site.locationAllowed
@@ -258,6 +348,8 @@ struct DynamicPermissionView: View {
     }
 
     private var blockedSites: [SitePermission] {
+        guard let permissionKind else { return [] }
+
         let filtered = allSitePermissions.filter { site in
             switch permissionKind {
             case .location: return site.locationConfigured && !site.locationAllowed
@@ -294,38 +386,36 @@ struct DynamicPermissionView: View {
                 .frame(width: 200)
             }
 
+            Text(title)
+                .font(.title2)
+                .fontWeight(.semibold)
+
             Text(description)
                 .foregroundStyle(.secondary)
 
             Group {
                 Text("Customized behaviors").font(.headline)
 
-                if !blockedSites.isEmpty {
-                    Text(blockedText).font(.subheadline)
-                    ForEach(blockedSites, id: \.host) { entry in
-                        SiteRow(entry: entry, onRemove: { removeSite(entry) })
+                if permissionKind != nil {
+                    if !blockedSites.isEmpty {
+                        Text(blockedText ?? "Blocked sites").font(.subheadline)
+                        ForEach(blockedSites, id: \.host) { entry in
+                            SiteRow(entry: entry, onRemove: { removeSite(entry) })
+                        }
                     }
-                }
 
-                if !allowedSites.isEmpty {
-                    Text(allowedText).font(.subheadline)
-                    ForEach(allowedSites, id: \.host) { entry in
-                        SiteRow(entry: entry, onRemove: { removeSite(entry) })
+                    if !allowedSites.isEmpty {
+                        Text(allowedText ?? "Allowed sites").font(.subheadline)
+                        ForEach(allowedSites, id: \.host) { entry in
+                            SiteRow(entry: entry, onRemove: { removeSite(entry) })
+                        }
                     }
-                }
 
-                HStack(spacing: 8) {
-                    TextField("Add site (e.g. example.com)", text: $newHost)
-                        .textFieldStyle(.roundedBorder)
-                    Picker("Policy", selection: $newPolicyAllow) {
-                        Text("Allow").tag(true)
-                        Text("Block").tag(false)
+                    if allowedSites.isEmpty, blockedSites.isEmpty {
+                        Text("No sites configured yet.").foregroundStyle(.tertiary)
                     }
-                    .pickerStyle(.segmented)
-                    Button("Add") {
-                        addSite()
-                    }
-                    .buttonStyle(.bordered)
+                } else {
+                    Text("No sites configured yet.").foregroundStyle(.tertiary)
                 }
             }
 
@@ -336,40 +426,6 @@ struct DynamicPermissionView: View {
         .padding(.vertical, 12)
     }
 
-    private func addSite() {
-        let host = newHost.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !host.isEmpty else { return }
-
-        let existingSite = allSitePermissions.first {
-            $0.host.caseInsensitiveCompare(host) == .orderedSame
-        }
-
-        let site = existingSite ?? {
-            let newSite = SitePermission(host: host)
-            modelContext.insert(newSite)
-            return newSite
-        }()
-
-        switch permissionKind {
-        case .location:
-            site.locationAllowed = newPolicyAllow
-            site.locationConfigured = true
-        case .camera:
-            site.cameraAllowed = newPolicyAllow
-            site.cameraConfigured = true
-        case .microphone:
-            site.microphoneAllowed = newPolicyAllow
-            site.microphoneConfigured = true
-        case .notifications:
-            site.notificationsAllowed = newPolicyAllow
-            site.notificationsConfigured = true
-        }
-
-        try? modelContext.save()
-        newHost = ""
-        newPolicyAllow = true
-    }
-
     private func removeSite(_ site: SitePermission) {
         modelContext.delete(site)
         try? modelContext.save()
@@ -378,10 +434,10 @@ struct DynamicPermissionView: View {
 
 struct LocationPermissionView: View {
     var body: some View {
-        DynamicPermissionView(
-            permissionKind: .location,
+        UnifiedPermissionView(
             title: "Location",
             description: "Sites usually use your location for relevant features or info, like local news or nearby shops",
+            permissionKind: .location,
             allowedText: "Allowed to see your location",
             blockedText: "Not allowed to see your location"
         )
@@ -417,10 +473,10 @@ private struct RadioButton: View {
 
 struct CameraPermissionView: View {
     var body: some View {
-        DynamicPermissionView(
-            permissionKind: .camera,
+        UnifiedPermissionView(
             title: "Camera",
             description: "Sites can ask to use your camera for video calls, photos, and other features",
+            permissionKind: .camera,
             allowedText: "Allowed to use your camera",
             blockedText: "Not allowed to use your camera"
         )
@@ -429,10 +485,10 @@ struct CameraPermissionView: View {
 
 struct MicrophonePermissionView: View {
     var body: some View {
-        DynamicPermissionView(
-            permissionKind: .microphone,
+        UnifiedPermissionView(
             title: "Microphone",
             description: "Sites can ask to use your microphone for voice calls, recordings, and audio features",
+            permissionKind: .microphone,
             allowedText: "Allowed to use your microphone",
             blockedText: "Not allowed to use your microphone"
         )
@@ -441,10 +497,10 @@ struct MicrophonePermissionView: View {
 
 struct NotificationsPermissionView: View {
     var body: some View {
-        DynamicPermissionView(
-            permissionKind: .notifications,
+        UnifiedPermissionView(
             title: "Notifications",
             description: "Sites can ask to send you notifications for updates, messages, and alerts",
+            permissionKind: .notifications,
             allowedText: "Allowed to send notifications",
             blockedText: "Not allowed to send notifications"
         )
@@ -452,29 +508,52 @@ struct NotificationsPermissionView: View {
 }
 
 struct EmbeddedContentPermissionView: View {
-    @Environment(\.dismiss) private var dismiss
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            InlineBackButton(action: { dismiss() })
-            Text("Sites can ask to use information they've saved about you").foregroundStyle(.secondary)
-            Text("No additional settings available yet.").foregroundStyle(.tertiary)
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
+        UnifiedPermissionView(
+            title: "Embedded content",
+            description: "Sites can ask to use information they've saved about you",
+            permissionKind: nil,
+            allowedText: nil,
+            blockedText: nil
+        )
     }
 }
 
-struct AdditionalPermissionListView: View {
-    let title: String
-    @Environment(\.dismiss) private var dismiss
+// MARK: - Additional Permission Views
+
+struct BackgroundSyncPermissionView: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            InlineBackButton(action: { dismiss() })
-            Text(title).foregroundStyle(.secondary)
-            Text("No additional settings available yet.").foregroundStyle(.tertiary)
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
+        UnifiedPermissionView(
+            title: "Background sync",
+            description: "Recently closed sites can finish sending and receiving data",
+            permissionKind: nil,
+            allowedText: nil,
+            blockedText: nil
+        )
+    }
+}
+
+struct MotionSensorsPermissionView: View {
+    var body: some View {
+        UnifiedPermissionView(
+            title: "Motion sensors",
+            description: "Sites can use motion sensors",
+            permissionKind: nil,
+            allowedText: nil,
+            blockedText: nil
+        )
+    }
+}
+
+struct AutomaticDownloadsPermissionView: View {
+    var body: some View {
+        UnifiedPermissionView(
+            title: "Automatic downloads",
+            description: "Sites can ask to automatically download multiple files",
+            permissionKind: nil,
+            allowedText: nil,
+            blockedText: nil
+        )
     }
 }
 
