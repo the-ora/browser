@@ -1,88 +1,22 @@
-# Ora Browser Documentation
+# Welcome to the Ora Wiki
 
-This directory contains documentation for Ora Browser development, deployment, and maintenance.
+This wiki contains comprehensive documentation for Ora development, deployment, and maintenance.
 
-## 🏗️ Project Structure
+## What is Ora?
 
-```
-browser/
-├─ ora/                             # application sources
-│  ├─ Modules/                      # feature modules (Browser, Launcher, Find, Settings, Sidebar, SplitView, EmojiPicker, TabSwitch)
-│  ├─ UI/                           # shared, reusable UI components
-│  ├─ Services/                     # app-wide services (TabManager, HistoryManager, DownloadManager, PrivacyService, SearchEngineService)
-│  ├─ Common/                       # shared resources, extensions, constants, representables, utilities
-│  ├─ Models/                       # SwiftData models and related data
-│  ├─ Resources/                    # app resources and auxiliary files
-│  ├─ Assets.xcassets/              # asset catalog
-│  ├─ Capsule.xcassets/             # asset catalog
-│  └─ oraApp.swift                  # app entry point
-├─ project.yml                      # XcodeGen project definition
-├─ .swiftformat                     # formatting configuration
-├─ .githooks/                       # git hooks (pre-commit, pre-push)
-├─ setup.sh                         # tooling bootstrap and project generation
-├─ xcbuild-debug.sh                 # CLI debug build helper
-├─ LICENSE.md                       # license
-├─ oraTests/                        # unit tests
-└─ oraUITests/                      # UI tests
-```
+Ora is a fast, secure, and beautiful browser built for macOS. Inspired by Safari and Arc, it delivers a clean, native experience that feels at home on macOS—without unnecessary bloat.
 
-## 📚 Documentation Index
+## What's in This Wiki
 
-### 🚀 Getting Started
-- **[QUICK_START.md](QUICK_START.md)** - 5-minute setup guide for hosting and updates
-- **[../README.md](../README.md)** - Main project README with installation instructions
+**For Users & Contributors:**
+- **Getting Started** - Quick setup guides for development and deployment
+- **Development** - Technical documentation for contributors and maintainers  
+- **Deployment & Updates** - Guides for hosting, releases, and the update system
 
-### 📦 Hosting & Deployment
-- **[HOSTING_SETUP.md](HOSTING_SETUP.md)** - Complete guide for setting up update hosting
-- **[../.github/workflows/release.yml](../.github/workflows/release.yml)** - GitHub Actions for automated releases
+## Need Help?
 
-### 🔧 Development
-- **[DATA_PERSISTENCE.md](DATA_PERSISTENCE.md)** - Database models and local storage
-- **[../ora/Services/UpdateService.swift](../ora/Services/UpdateService.swift)** - Update service implementation
-- **[../ora/Modules/Settings/Sections/GeneralSettingsView.swift](../ora/Modules/Settings/Sections/GeneralSettingsView.swift)** - Settings UI with update controls
-- **[../project.yml](../project.yml)** - XcodeGen project configuration
-
-### 🏗️ Build & Release
-- **[../build-release.sh](../build-release.sh)** - Release build script
-- **[../create-release.sh](../create-release.sh)** - Complete release creation script (auto-increments versions)
-- **[../setup-sparkle.sh](../setup-sparkle.sh)** - Sparkle key generation setup
-
-## 🎯 Key Files for Updates
-
-### Configuration Files
-- `appcast.xml` - Update feed (host publicly)
-- `dsa_priv.pem` - Private key (keep secure!)
-- `dsa_pub.pem` - Public key (add to app)
-
-### App Files
-- `Ora-Browser.dmg` - Release installer (upload to GitHub Releases)
-- `ora/Services/UpdateService.swift` - Update checking logic
-- `ora/Modules/Settings/Sections/GeneralSettingsView.swift` - Update UI
-
-## 🔄 Update Flow
-
-1. **Build:** `./create-release.sh` (auto-increments version) or `./create-release.sh 1.0.0` (manual version)
-2. **Sign:** Use `dsa_priv.pem` to sign DMG
-3. **Host:** Upload `appcast.xml` to public web server
-4. **Release:** Upload DMG to GitHub Releases
-5. **Configure:** Update `SUFeedURL` in app
-6. **Test:** Users get automatic update notifications
-
-## 📞 Support
-
-- **Sparkle Documentation:** https://sparkle-project.org/documentation/
-- **GitHub Pages:** https://docs.github.com/en/pages
-- **Code Signing:** https://developer.apple.com/support/code-signing/
-
-## 📝 Contributing
-
-When updating documentation:
-1. Keep `QUICK_START.md` for 5-minute setup
-2. Use `HOSTING_SETUP.md` for detailed procedures
-3. Update this README when adding new docs
+- **New to contributing?** Start with our [main README](../README.md) and [Contributing Guidelines](../CONTRIBUTING.md)
+- **Having issues?** Check the [Troubleshooting](TROUBLESHOOTING.md) guide
+- **Questions?** Join our [Discord community](https://discord.gg/9aZWH52Zjm)
 
 ---
-
-**Ora Browser** | *Fast, secure, and beautiful browser for macOS*</content>
-</xai:function_call: write>
-<parameter name="filePath">/Users/keni/code/ora/browser/docs/README.md
