@@ -183,8 +183,21 @@ class TabManager: ObservableObject {
         try? modelContext.save()
     }
 
-    func deleteContainer(_ container: TabContainer) {
+    func deleteContainer(_ container: TabContainer) -> Bool {
+        do {
+            let descriptor = FetchDescriptor<TabContainer>()
+            let containers = try modelContext.fetch(descriptor)
+
+            // Don't delete the container, if we only have one!
+            if containers.count == 1 {
+                return false
+            }
+        } catch {
+            print("Error: \(error)")
+        }
+
         modelContext.delete(container)
+        return true
     }
 
     func addTab(

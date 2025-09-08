@@ -9,6 +9,7 @@ struct ContainerSwitcher: View {
     @Query var containers: [TabContainer]
 
     @State private var hoveredContainer: UUID?
+    @State private var didFailToDeleteContainer: Bool = false
 
     private let normalButtonWidth: CGFloat = 28
     private let compactButtonWidth: CGFloat = 12
@@ -31,6 +32,11 @@ struct ContainerSwitcher: View {
         }
         .padding(0)
         .frame(height: 28)
+        .alert("Cannot delete Container", isPresented: $didFailToDeleteContainer) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("You either have only one Container, or something went wrong.") // this text kinda sucks ngl
+        }
     }
 
     @ViewBuilder
@@ -76,7 +82,12 @@ struct ContainerSwitcher: View {
                 // tabManager.renameContainer(container, name: "New Name", emoji: "💩")
             }
             Button("Delete Container") {
-                tabManager.deleteContainer(container)
+                let success = tabManager.deleteContainer(container)
+
+                if !success {
+                    print("Failed to delete workspace!")
+                    didFailToDeleteContainer = true
+                }
             }
         }
     }
