@@ -12,3 +12,4 @@
 
 ## 🆘 Help & Support
 - [Troubleshooting](TROUBLESHOOTING.md)
+- [Keyboard Shortcuts](KEYBOARD_SHORTCUTS.md)

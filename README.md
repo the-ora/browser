@@ -103,7 +103,13 @@ Also see our [Code of Conduct](CODE_OF_CONDUCT.md) for community guidelines.
   xcodebuild test -scheme ora -destination "platform=macOS"
   ```
 
-Keyboard shortcuts: see `ora/Common/Constants/KeyboardShortcuts.swift`.
+
+## Links
+
+- 🌐 **Website**: [orabrowser.com](https://www.orabrowser.com)
+- 💬 **Discord**: [Join Community](https://discord.gg/9aZWH52Zjm)
+- ☕ **Support**: [Buy Me A Coffee](https://buymeacoffee.com/orabrowser)
+- 🐦 **Twitter/X**: [@orabrowser](https://x.com/orabrowser)
 
 ## Contact
 
