@@ -45,7 +45,7 @@ jobs:
       run: brew install xcbeautify
 
     - name: Clean build folder
-      run: xcodebuild clean -target ora -project Ora.xcodeproj
+      run: xcodebuild clean -scheme ora -project Ora.xcodeproj
 
     - name: Cache SPM dependencies
       uses: actions/cache@v3
@@ -68,8 +68,7 @@ jobs:
     # - name: Run tests
     #   run: |
     #     xcodebuild test \
-    #       -target ora \
-    #       -project Ora.xcodeproj \
+    #       -scheme ora \
     #       -destination "platform=macOS" \
     #       -configuration Debug \
     #       CODE_SIGN_IDENTITY="" \
