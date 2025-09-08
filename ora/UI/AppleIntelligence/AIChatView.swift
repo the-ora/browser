@@ -7,6 +7,7 @@ struct AIChatView: View {
     @State private var inputText = ""
     @State private var aiService: AppleIntelligenceService?
     @State private var showConversationHistory = true
+    @State private var hasProcessedInitialQuery = false
 
     private let conversationId: UUID?
     private let initialQuery: String?
@@ -218,21 +219,36 @@ struct AIChatView: View {
                 try? modelContext.save()
             }
         } else {
-            // No conversation ID - create new conversation
-            if conversationManager.activeConversation == nil {
+            // No conversation ID - decide whether to create new conversation
+            if initialQuery != nil, !initialQuery!.isEmpty, !hasProcessedInitialQuery {
+                // If there's an initial query and we haven't processed it yet, create new conversation
+                conversationManager.createNewConversation()
+            } else if conversationManager.activeConversation == nil {
+                // If no query and no active conversation, create new one
                 conversationManager.createNewConversation()
             }
+            // If no query and there's an active conversation, reuse it
         }
     }
 
     private func handleInitialQuery() {
-        if let query = initialQuery, !query.isEmpty {
+        if let query = initialQuery, !query.isEmpty, !hasProcessedInitialQuery {
+            print("DEBUG: Handling initial query: '\(query)'")
+            hasProcessedInitialQuery = true  // Mark as processed
             inputText = query
             // Automatically send the initial query after a short delay
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                sendMessage(query)
-                inputText = ""
+                print("DEBUG: Sending initial query: '\(query)'")
+                if let aiService, aiService.isAvailable {
+                    print("DEBUG: AI service is available")
+                } else {
+                    print("DEBUG: AI service not available!")
+                }
+                self.sendMessage(query)
+                self.inputText = ""
             }
+        } else {
+            print("DEBUG: No initial query provided or already processed")
         }
     }
 
