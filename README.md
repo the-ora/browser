@@ -17,8 +17,11 @@ Ora is currently in early stages of development and **not yet ready for day-to-d
 - **Xcode 15** or later (Swift 5.9)
 - **Homebrew** (for developer tooling)
 
-If you would like to support the project, please consider donating via [Buy Me A Coffee](https://buymeacoffee.com/orabrowser).
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/orabrowser)
+## Support
+
+If you would like to support the project, please consider donating:
+
+[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/orabrowser)
 
 ## Features
 
