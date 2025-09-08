@@ -4,12 +4,12 @@ import SwiftUI
 // MARK: - Custom Scheme Protocol
 
 protocol CustomSchemeHandler {
-    /// The scheme this handler manages (e.g., "apple-intelligence")
+    /// The scheme this handler manages (e.g., "chat")
     var scheme: String { get }
 
     /// Create the SwiftUI view for this custom scheme
     /// - Parameters:
-    ///   - url: The full URL (e.g., "ora://apple-intelligence/uuid?q=hello")
+    ///   - url: The full URL (e.g., "ora://chat/uuid?q=hello")
     ///   - conversationId: The extracted conversation ID (if any)
     ///   - query: The extracted query parameter (e.g., "hello")
     /// - Returns: A SwiftUI view to display in place of the web view
@@ -96,10 +96,10 @@ class CustomSchemeRegistry {
     }
 
     /// Extract conversation ID from URL path
-    /// URL format: ora://apple-intelligence/[conversationId]?q=query
+    /// URL format: ora://chat/[conversationId]?q=query
     private func extractConversationId(from url: URL) -> UUID? {
         guard url.scheme == "ora",
-              url.host == "apple-intelligence",
+              url.host == "chat",
               !url.path.isEmpty else { return nil }
 
         let pathComponents = url.path.components(separatedBy: "/").filter { !$0.isEmpty }
@@ -120,7 +120,7 @@ class CustomSchemeRegistry {
 
 @available(macOS 26.0, *)
 struct AppleIntelligenceSchemeHandler: CustomSchemeHandler {
-    let scheme = "apple-intelligence"
+    let scheme = "chat"
 
     func createView(for url: URL, conversationId: UUID?, query: String?) -> AnyView {
         AnyView(AIChatView(conversationId: conversationId, initialQuery: query))
@@ -129,15 +129,14 @@ struct AppleIntelligenceSchemeHandler: CustomSchemeHandler {
     func title(for url: URL, conversationId: UUID?, query: String?) -> String {
         if let conversationId {
             // TODO: Look up conversation name from SwiftData
-            return "Apple Intelligence"
+            return "AI"
         } else if let query, !query.isEmpty {
-            return "Apple Intelligence: \(query)"
+            return "AI: \(query)"
         }
-        return "Apple Intelligence"
+        return "AI"
     }
 
     func icon(for url: URL) -> String {
-        // Use sparkles icon as fallback since apple.intelligence might not be available
         return "sparkles"
     }
 }
@@ -157,7 +156,7 @@ enum CustomSchemeError: LocalizedError {
     var recoverySuggestion: String? {
         switch self {
         case .unknownScheme:
-            return "Available schemes: apple-intelligence"
+            return "Available schemes: chat"
         }
     }
 }

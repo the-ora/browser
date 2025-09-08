@@ -123,7 +123,7 @@ class SearchEngineService: ObservableObject {
                 color: Color.accentColor,
                 icon: "apple.intelligence",
                 aliases: ["ai", "apple", "intelligence"],
-                searchURL: "ora://apple-intelligence?q={query}",
+                searchURL: "ora://chat?q={query}",
                 isAIChat: true,
                 isLocal: true
             ), at: 1) // Insert after YouTube, before other AI services

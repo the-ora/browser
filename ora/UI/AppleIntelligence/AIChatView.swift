@@ -242,7 +242,7 @@ struct AIChatView: View {
             aiService.startNewConversation()
         }
 
-        // TODO: Navigate to new conversation URL: ora://apple-intelligence/\(newConversation.id)
+        // TODO: Navigate to new conversation URL: ora://chat/\(newConversation.id)
         // This would require access to the tab manager or navigation system
     }
 
@@ -323,6 +323,9 @@ struct AIChatView: View {
     }
 
     private func deleteConversation(_ conversation: AIConversation) {
+        // Ensure any pending changes are saved first
+        conversationManager.saveAfterCompletion()
+
         conversationManager.deleteConversation(conversation.id)
 
         // If we deleted the active conversation, select the first available
