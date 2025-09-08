@@ -256,14 +256,85 @@ private struct PerSiteToggleList: View {
 
 struct LocationPermissionView: View {
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var store = PermissionSettingsStore.shared
+    @State private var newHost: String = ""
+    @State private var newPolicyAllow: Bool = true
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
             InlineBackButton(action: { dismiss() })
-            Text("Sites can ask for your location").foregroundStyle(.secondary)
-            PerSiteToggleList(keyPath: \._Location)
+
+            Text("Sites usually use your location for relevant features or info, like local news or nearby shops")
+                .foregroundStyle(.secondary)
+
+            Group {
+                Text("Customized behaviors").font(.headline)
+
+                let blocked = store.notAllowedSites(for: .location)
+                let allowed = store.allowedSites(for: .location)
+
+                if !blocked.isEmpty {
+                    Text("Not allowed to see your location").font(.subheadline)
+                    ForEach(blocked, id: \.host) { entry in
+                        SiteRow(entry: entry, onRemove: { store.removeSite(host: entry.host) })
+                    }
+                }
+
+                if !allowed.isEmpty {
+                    Text("Allowed to see your location").font(.subheadline)
+                    ForEach(allowed, id: \.host) { entry in
+                        SiteRow(entry: entry, onRemove: { store.removeSite(host: entry.host) })
+                    }
+                }
+
+                HStack(spacing: 8) {
+                    TextField("Add site (e.g. example.com)", text: $newHost)
+                        .textFieldStyle(.roundedBorder)
+                    Picker("Policy", selection: $newPolicyAllow) {
+                        Text("Allow").tag(true)
+                        Text("Block").tag(false)
+                    }
+                    .pickerStyle(.segmented)
+                    Button("Add") {
+                        let host = newHost.trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard !host.isEmpty else { return }
+                        store.addOrUpdateSite(host: host, allow: newPolicyAllow, for: .location)
+                        newHost = ""
+                        newPolicyAllow = true
+                    }
+                    .buttonStyle(.bordered)
+                }
+            }
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
+    }
+}
+
+private struct SiteRow: View {
+    let entry: SitePermission
+    let onRemove: () -> Void
+    var body: some View {
+        HStack {
+            Text(entry.host)
+            Spacer()
+            Button(role: .destructive, action: onRemove) {
+                Image(systemName: "trash")
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.vertical, 6)
+    }
+}
+
+private struct RadioButton: View {
+    let isSelected: Bool
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
+        }
+        .buttonStyle(.plain)
     }
 }
 
