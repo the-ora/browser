@@ -9,6 +9,12 @@ final class SitePermission {
     var microphoneAllowed: Bool
     var notificationsAllowed: Bool
 
+    // Track which permissions have been explicitly set
+    var locationConfigured: Bool
+    var cameraConfigured: Bool
+    var microphoneConfigured: Bool
+    var notificationsConfigured: Bool
+
     init(
         host: String,
         locationAllowed: Bool = true,
@@ -21,5 +27,11 @@ final class SitePermission {
         self.cameraAllowed = cameraAllowed
         self.microphoneAllowed = microphoneAllowed
         self.notificationsAllowed = notificationsAllowed
+
+        // Initially, no permissions are configured
+        self.locationConfigured = false
+        self.cameraConfigured = false
+        self.microphoneConfigured = false
+        self.notificationsConfigured = false
     }
 }

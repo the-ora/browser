@@ -242,10 +242,10 @@ struct DynamicPermissionView: View {
     private var allowedSites: [SitePermission] {
         allSitePermissions.filter { site in
             switch permissionKind {
-            case .location: return site.locationAllowed
-            case .camera: return site.cameraAllowed
-            case .microphone: return site.microphoneAllowed
-            case .notifications: return site.notificationsAllowed
+            case .location: return site.locationConfigured && site.locationAllowed
+            case .camera: return site.cameraConfigured && site.cameraAllowed
+            case .microphone: return site.microphoneConfigured && site.microphoneAllowed
+            case .notifications: return site.notificationsConfigured && site.notificationsAllowed
             }
         }
     }
@@ -253,10 +253,10 @@ struct DynamicPermissionView: View {
     private var blockedSites: [SitePermission] {
         allSitePermissions.filter { site in
             switch permissionKind {
-            case .location: return !site.locationAllowed
-            case .camera: return !site.cameraAllowed
-            case .microphone: return !site.microphoneAllowed
-            case .notifications: return !site.notificationsAllowed
+            case .location: return site.locationConfigured && !site.locationAllowed
+            case .camera: return site.cameraConfigured && !site.cameraAllowed
+            case .microphone: return site.microphoneConfigured && !site.microphoneAllowed
+            case .notifications: return site.notificationsConfigured && !site.notificationsAllowed
             }
         }
     }
@@ -319,10 +319,18 @@ struct DynamicPermissionView: View {
         }()
 
         switch permissionKind {
-        case .location: site.locationAllowed = newPolicyAllow
-        case .camera: site.cameraAllowed = newPolicyAllow
-        case .microphone: site.microphoneAllowed = newPolicyAllow
-        case .notifications: site.notificationsAllowed = newPolicyAllow
+        case .location:
+            site.locationAllowed = newPolicyAllow
+            site.locationConfigured = true
+        case .camera:
+            site.cameraAllowed = newPolicyAllow
+            site.cameraConfigured = true
+        case .microphone:
+            site.microphoneAllowed = newPolicyAllow
+            site.microphoneConfigured = true
+        case .notifications:
+            site.notificationsAllowed = newPolicyAllow
+            site.notificationsConfigured = true
         }
 
         try? modelContext.save()
