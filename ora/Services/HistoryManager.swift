@@ -1,5 +1,8 @@
 import Foundation
+import os.log
 import SwiftData
+
+private let logger = Logger(subsystem: "com.orabrowser.ora", category: "HistoryManager")
 
 @MainActor
 class HistoryManager: ObservableObject {
@@ -33,12 +36,13 @@ class HistoryManager: ObservableObject {
             existing.lastAccessedAt = Date() // update last visited time
         } else {
             let now = Date()
-            let faviconURL = faviconURL  ??
-                URL(string: "https://www.google.com/s2/favicons?domain=\(url.host ?? "google.com")")!
+            let defaultFaviconURL = URL(string: "https://www.google.com/s2/favicons?domain=\(url.host ?? "google.com")")
+            let fallbackURL = URL(fileURLWithPath: "")
+            let resolvedFaviconURL = faviconURL ?? defaultFaviconURL ?? fallbackURL
             modelContext.insert(History(
                 url: url,
                 title: title,
-                faviconURL: faviconURL,
+                faviconURL: resolvedFaviconURL,
                 faviconLocalFile: faviconLocalFile,
                 createdAt: now,
                 lastAccessedAt: now,
@@ -77,7 +81,7 @@ class HistoryManager: ObservableObject {
             // Fetch matching history records
             return try modelContext.fetch(descriptor)
         } catch {
-            print("Error fetching history: \(error)")
+            logger.error("Error fetching history: \(error.localizedDescription)")
             return []
         }
     }

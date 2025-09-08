@@ -331,7 +331,7 @@ struct LauncherMain: View {
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            if match == nil, suggestions.count > 0 {
+            if match == nil, !suggestions.isEmpty {
                 LauncherSuggestionsView(
                     text: $text,
                     suggestions: $suggestions,

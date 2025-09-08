@@ -2,8 +2,11 @@
 
 Ora is a fast, secure, and beautiful browser built for macOS. Inspired by Safari and Arc, Ora delivers a clean, native experience that feels at home on macOS — without unnecessary bloat.
 
-> **⚠️ Disclaimer**  
-> Ora is currently in early stages of development and **not yet ready for day-to-day use**. An alpha version with core functionalities will be released soon.
+> **⚠️ Disclaimer**
+Ora is currently in early stages of development and **not yet ready for day-to-day use**. A beta version with core functionalities will be released soon.
+
+If you would like to support the project, please consider donating via [Buy Me A Coffee](https://buymeacoffee.com/orabrowser).
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/orabrowser)
 
 ## Features
 
@@ -222,6 +225,8 @@ Contributions are welcome! To propose changes:
 4. Push the branch: `git push origin feature/my-feature`
 5. Open a Pull Request
 
+*N.B* - each PR must only solve one issue/bug or feature at a time. This help us on reviews. Thank you for your contributions.
+
 ## Troubleshooting
 
 - XcodeGen, SwiftFormat, or SwiftLint not found
@@ -239,5 +244,5 @@ Questions or support? Join the community on [Discord](https://discord.gg/9aZWH52
 
 ## License
 
-Ora is open source and licensed under the [MIT License](LICENSE.md).  
+Ora is open source and licensed under the [MIT License](LICENSE.md).
 Feel free to use, modify, and distribute it under the terms of the MIT License.

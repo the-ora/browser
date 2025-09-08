@@ -10,9 +10,7 @@ struct TabDropDelegate: DropDelegate {
     func dropEntered(info: DropInfo) {
         guard let provider = info.itemProviders(for: [.text]).first else { return }
         performHapticFeedback(pattern: .alignment)
-        provider.loadObject(ofClass: NSString.self) {
-            object,
-                _ in
+        provider.loadObject(ofClass: NSString.self) { object, _ in
             if let string = object as? String,
                let uuid = UUID(uuidString: string)
             {

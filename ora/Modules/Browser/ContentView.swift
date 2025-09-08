@@ -1,6 +1,9 @@
 import AVKit
+import os.log
 import SwiftUI
 import WebKit
+
+private let logger = Logger(subsystem: "com.orabrowser.ora", category: "ContentView")
 
 struct ContentView: View {
     @StateObject private var viewModel = VideoViewModel()
@@ -36,7 +39,9 @@ class VideoViewModel: ObservableObject {
         let configuration = WKWebViewConfiguration()
         configuration.preferences.isElementFullscreenEnabled = true
         webView = WKWebView(frame: .zero, configuration: configuration)
-        webView.customUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Safari/605.1.15"
+        webView
+            .customUserAgent =
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Safari/605.1.15"
         if let url = URL(string: "https://www.youtube.com/watch?v=OTCK_At6qwQ") {
             webView.load(URLRequest(url: url))
         }
@@ -65,14 +70,14 @@ class VideoViewModel: ObservableObject {
             """
             self.webView.evaluateJavaScript(js) { result, error in
                 if let error {
-                    print("JS Error: \(error)")
+                    logger.error("JavaScript evaluation failed: \(error.localizedDescription)")
                     return
                 }
                 if let urlString = result as? String, let url = URL(string: urlString) {
                     self.videoURL = url
                     self.showPiPWindow()
                 } else {
-                    print("Failed to extract video URL: \(String(describing: result))")
+                    logger.error("Failed to extract video URL: \(String(describing: result))")
                 }
             }
         }

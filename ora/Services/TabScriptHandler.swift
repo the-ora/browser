@@ -4,7 +4,10 @@
 //
 //  Created by keni on 7/21/25.
 //
+import os.log
 import WebKit
+
+private let logger = Logger(subsystem: "com.orabrowser.ora", category: "TabScriptHandler")
 
 class TabScriptHandler: NSObject, WKScriptMessageHandler {
     var onChange: ((String) -> Void)?
@@ -32,7 +35,7 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
                 }
 
             } catch {
-                print("Failed to decode JS message: \(error)")
+                logger.error("Failed to decode JS message: \(error.localizedDescription)")
             }
         } else if message.name == "linkHover" {
             // Expect a String body with the hovered URL or empty string to clear
@@ -48,7 +51,8 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
     func defaultWKConfig() -> WKWebViewConfiguration {
         // Configure WebView for performance
         let configuration = WKWebViewConfiguration()
-        let userAgent = "Mozilla/5.0 (Macintosh; arm64 Mac OS X 14_5) AppleWebKit/616.1.1 (KHTML, like Gecko) Version/18.5 Safari/616.1.1 Ora/1.0"
+        let userAgent =
+            "Mozilla/5.0 (Macintosh; arm64 Mac OS X 14_5) AppleWebKit/616.1.1 (KHTML, like Gecko) Version/18.5 Safari/616.1.1 Ora/1.0"
 //        let userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko)
 //        Chrome/133.0.0.0 Safari/537.36"
         configuration.applicationNameForUserAgent = userAgent
@@ -69,8 +73,10 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         configuration.processPool = processPool
         // video shit
         configuration.preferences.isElementFullscreenEnabled = true
-        if #available(macOS 10.12, *) {
-//            configuration.allowsPictureInPictureMediaPlayback = true
+        if #unavailable(macOS 10.12) {
+            // Picture in picture not available on older macOS versions
+        } else {
+//            configuration.allowsPictureInPictureMediaPlaybook = true
         }
 
         // Enable media playback without user interaction
@@ -96,6 +102,6 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
 
     deinit {
         // Optional cleanup
-        print("TabScriptHandler deinitialized")
+        logger.debug("TabScriptHandler deinitialized")
     }
 }

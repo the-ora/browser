@@ -37,6 +37,22 @@ fi
 # Private key will be determined by the key management section above
 # PRIVATE_KEY is set dynamically based on available keys
 
+# Set BUILD_VERSION to current + 1
+if [ -f "project.yml" ]; then
+    CURRENT_BUILD_VERSION=$(grep "CURRENT_PROJECT_VERSION:" project.yml | sed 's/.*CURRENT_PROJECT_VERSION: //' | tr -d ' ')
+    if [ -n "$CURRENT_BUILD_VERSION" ]; then
+        BUILD_VERSION=$((CURRENT_BUILD_VERSION + 1))
+        echo "Setting BUILD_VERSION to $BUILD_VERSION (from $CURRENT_BUILD_VERSION + 1)"
+    else
+        BUILD_VERSION=$(echo $VERSION | awk -F. '{print $NF + 0}')
+    fi
+else
+    BUILD_VERSION=$(echo $VERSION | awk -F. '{print $NF + 0}')
+fi
+
+# Private key will be determined by the key management section above
+# PRIVATE_KEY is set dynamically based on available keys
+
 # Save original directory
 ORIGINAL_DIR="$(pwd)"
 
@@ -48,8 +64,7 @@ if [ -f "project.yml" ]; then
     # Update MARKETING_VERSION
     sed -i.bak "s/MARKETING_VERSION: .*/MARKETING_VERSION: $VERSION/" project.yml
 
-    # Update CURRENT_PROJECT_VERSION (use the numeric part after last dot, or increment)
-    BUILD_VERSION=$(echo $VERSION | awk -F. '{print $NF + 0}')
+    # Update CURRENT_PROJECT_VERSION
     sed -i.bak "s/CURRENT_PROJECT_VERSION: .*/CURRENT_PROJECT_VERSION: $BUILD_VERSION/" project.yml
 
     echo "✅ Updated project.yml: MARKETING_VERSION=$VERSION, CURRENT_PROJECT_VERSION=$BUILD_VERSION"
@@ -129,6 +144,10 @@ if [ -f "$PUBLIC_KEY_FILE" ]; then
         echo "✅ Updated SUPublicEDKey in project.yml: ${PUBLIC_KEY:0:20}..."
     fi
 
+    # Add public key file to git
+    git add "$PUBLIC_KEY_FILE"
+    echo "✅ Added $PUBLIC_KEY_FILE to git"
+
     # Check if private key exists in .env file
     if [ -f "$PRIVATE_KEY_FILE" ]; then
         echo "🔑 Found private key in $PRIVATE_KEY_FILE"
@@ -158,10 +177,11 @@ else
     if generate_keys --account "ora-browser-ed25519"; then
         echo "✅ New Ed25519 keys generated"
 
-        # Get public key and save to root directory (will be committed)
-        PUBLIC_KEY=$(generate_keys --account "ora-browser-ed25519" -p)
-        echo "$PUBLIC_KEY" > "$PUBLIC_KEY_FILE"
-        echo "✅ Public key saved to $PUBLIC_KEY_FILE (will be committed to git)"
+    # Get public key and save to root directory (will be committed)
+    PUBLIC_KEY=$(generate_keys --account "ora-browser-ed25519" -p)
+    echo "$PUBLIC_KEY" > "$PUBLIC_KEY_FILE"
+    git add "$PUBLIC_KEY_FILE"
+    echo "✅ Public key saved to $PUBLIC_KEY_FILE (added to git)"
 
         # Export private key and save to .env file (will NOT be committed)
         if generate_keys --account "ora-browser-ed25519" -x build/temp_private_key.pem 2>/dev/null; then
@@ -208,12 +228,12 @@ cat > appcast.xml << EOF
         <p>This release includes bug fixes and performance improvements. Enjoy browsing with Ora!</p>
       ]]></description>
       <pubDate>$PUB_DATE</pubDate>
-      <enclosure url="https://github.com/the-ora/browser/releases/download/v$VERSION/Ora-Browser-$VERSION.dmg"
-                 sparkle:version="$VERSION"
-                 sparkle:shortVersionString="$VERSION"
-                 length="33592320"
-                 type="application/octet-stream"
-                  sparkle:edSignature="YOUR_DSA_SIGNATURE_HERE"/>
+       <enclosure url="https://github.com/the-ora/browser/releases/download/v$VERSION/Ora-Browser-$VERSION.dmg"
+                  sparkle:version="$BUILD_VERSION"
+                  sparkle:shortVersionString="$VERSION"
+                  length="33592320"
+                  type="application/octet-stream"
+                   sparkle:edSignature="YOUR_DSA_SIGNATURE_HERE"/>
     </item>
   </channel>
 </rss>
@@ -301,10 +321,10 @@ sed -i.bak "s/length=\"33592320\"/length=\"$FILE_SIZE\"/g" appcast.xml
 
 echo "✅ Appcast.xml updated with signature and file size"
 
-# Commit changes before deployment
-echo "📝 Committing changes for v$VERSION..."
-git add project.yml appcast.xml
-git commit -m "Update to v$VERSION"
+    # Commit changes before deployment
+    echo "📝 Committing changes for v$VERSION..."
+    git add project.yml appcast.xml "$PUBLIC_KEY_FILE"
+    git commit -m "Update to v$VERSION"
 
 # Backup appcast.xml before deployment
 cp appcast.xml /tmp/appcast_backup.xml
