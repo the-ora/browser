@@ -8,9 +8,6 @@
   </p>
 </div>
 
-> **⚠️ Disclaimer**  
-Ora is currently in early stages of development and **not yet ready for day-to-day use**. An alpha version with core functionalities will be released soon.
-
 <div align="center">
   <a href="https://www.apple.com/macos/">
     <img src="https://img.shields.io/badge/macOS-14%2B-blue.svg" alt="macOS">
@@ -28,6 +25,9 @@ Ora is currently in early stages of development and **not yet ready for day-to-d
     <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT">
   </a>
 </div>
+
+> **⚠️ Disclaimer**  
+Ora is currently in early stages of development and **not yet ready for day-to-day use**. An alpha version with core functionalities will be released soon.
 
 ## Support
 
