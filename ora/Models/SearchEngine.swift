@@ -32,14 +32,33 @@ struct SearchEngine {
 }
 
 extension SearchEngine {
-    func toLauncherMatch(originalAlias: String) -> LauncherMain.Match {
+    func toLauncherMatch(
+        originalAlias: String,
+        faviconService: FaviconService? = nil,
+        customEngine: CustomSearchEngine? = nil
+    ) -> LauncherMain.Match {
+        var favicon: NSImage?
+        var faviconColor: Color?
+
+        // Use cached favicon data from custom engine if available
+        if let customEngine {
+            favicon = customEngine.favicon
+            faviconColor = customEngine.faviconBackgroundColor
+        } else {
+            // For built-in engines, use favicon service
+            favicon = faviconService?.getFavicon(for: searchURL)
+            faviconColor = faviconService?.getFaviconColor(for: searchURL)
+        }
+
         return LauncherMain.Match(
             text: name,
             color: color,
             foregroundColor: foregroundColor ?? .white,
             icon: icon,
             originalAlias: originalAlias,
-            searchURL: searchURL
+            searchURL: searchURL,
+            favicon: favicon,
+            faviconBackgroundColor: faviconColor
         )
     }
 }

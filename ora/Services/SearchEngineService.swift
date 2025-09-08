@@ -1,4 +1,7 @@
+import os.log
 import SwiftUI
+
+private let logger = Logger(subsystem: "com.orabrowser.ora", category: "SearchEngineService")
 
 enum SearchEngineID: String, CaseIterable {
     case youtube = "YouTube"
@@ -26,12 +29,17 @@ struct SuggestResponse: Decodable {
 
 class SearchEngineService: ObservableObject {
     private var theme: Theme?
+    @ObservedObject private var settingsStore = SettingsStore.shared
 
     func setTheme(_ theme: Theme) {
         self.theme = theme
     }
 
-    var searchEngines: [SearchEngine] {
+    var settings: SettingsStore {
+        return settingsStore
+    }
+
+    var builtInSearchEngines: [SearchEngine] {
         [
             SearchEngine(
                 name: "YouTube",
@@ -104,16 +112,58 @@ class SearchEngineService: ObservableObject {
         ]
     }
 
+    var searchEngines: [SearchEngine] {
+        var engines = builtInSearchEngines
+
+        let customEngines = settingsStore.customSearchEngines.map { custom in
+            SearchEngine(
+                name: custom.name,
+                color: custom.faviconBackgroundColor ?? .blue,
+                icon: "",
+                aliases: custom.aliases,
+                searchURL: custom.searchURL,
+                isAIChat: false
+            )
+        }
+
+        engines.append(contentsOf: customEngines)
+        return engines
+    }
+
     func findSearchEngine(for alias: String) -> SearchEngine? {
         let textLowercased = alias.lowercased()
         return searchEngines.first(where: { $0.aliases.contains(textLowercased) })
     }
 
-    func getDefaultSearchEngine() -> SearchEngine? {
+    func getDefaultSearchEngine(for containerId: UUID? = nil) -> SearchEngine? {
+        // First check per-container setting
+        if let containerId,
+           let defaultId = settingsStore.defaultSearchEngineId(for: containerId),
+           let engine = searchEngines.first(where: { $0.name == defaultId })
+        {
+            return engine
+        }
+
+        // Then check global default setting
+        if let globalDefaultId = settingsStore.globalDefaultSearchEngine,
+           let engine = searchEngines.first(where: { $0.name == globalDefaultId })
+        {
+            return engine
+        }
+
+        // Fallback to Google if no custom default is set
         return searchEngines.first(where: { $0.name == "Google" })
     }
 
-    func getDefaultAIChat() -> SearchEngine? {
+    func getDefaultAIChat(for containerId: UUID? = nil) -> SearchEngine? {
+        if let containerId,
+           let defaultId = settingsStore.defaultAIEngineId(for: containerId),
+           let engine = searchEngines.first(where: { $0.name == defaultId && $0.isAIChat })
+        {
+            return engine
+        }
+
+        // Fallback to ChatGPT if no custom default is set
         return searchEngines.first(where: { $0.isAIChat && $0.name == "ChatGPT" })
     }
 
@@ -164,7 +214,7 @@ class SearchEngineService: ObservableObject {
             let decoded = try JSONDecoder().decode(SuggestResponse.self, from: data)
             return decoded.suggestions
         } catch {
-            print("Error: \(error)")
+            logger.error("Error fetching Google suggestions: \(error.localizedDescription)")
             return []
         }
     }

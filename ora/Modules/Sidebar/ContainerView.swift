@@ -97,7 +97,7 @@ struct ContainerView: View {
         tabManager
             .moveTabToContainer(
                 tab,
-                to: newContainer
+                toContainer: newContainer
             )
     }
 

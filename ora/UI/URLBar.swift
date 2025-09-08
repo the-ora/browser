@@ -7,6 +7,8 @@ struct URLBar: View {
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var appState: AppState
 
+    @State private var showCopiedAnimation = false
+    @State private var startWheelAnimation = false
     @State private var editingURLString: String = ""
     @FocusState private var isEditing: Bool
     @Environment(\.colorScheme) var colorScheme
@@ -30,8 +32,27 @@ struct URLBar: View {
         return tabManager.activeTab.map { getForegroundColor($0).opacity(isEditing ? 1.0 : 0.5) } ?? .gray
     }
 
+    private func copyToClipboard(_ text: String) {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+    }
+
     var buttonForegroundColor: Color {
         return tabManager.activeTab.map { getForegroundColor($0).opacity(0.5) } ?? .gray
+    }
+
+    private func shareCurrentPage(tab: Tab, sourceView: NSView, sourceRect: NSRect) {
+        let url = tab.url
+        let title = tab.title.isEmpty ? "Shared from Ora" : tab.title
+        let items: [Any] = [title, url]
+
+        let picker = NSSharingServicePicker(items: items)
+        picker.delegate = nil
+
+        DispatchQueue.main.async {
+            picker.show(relativeTo: sourceRect, of: sourceView, preferredEdge: .minY)
+        }
     }
 
     var body: some View {
@@ -106,35 +127,70 @@ struct URLBar: View {
                             .frame(width: 16, height: 16)
                         }
 
-                        TextField("", text: $editingURLString)
-                            .font(.system(size: 14))
-                            .textFieldStyle(PlainTextFieldStyle())
-                            .foregroundColor(getUrlFieldColor(tab))
-                            .focused($isEditing)
-                            .onSubmit {
-                                tab.loadURL(editingURLString)
-                                isEditing = false
+                        ZStack(alignment: .leading) {
+                            TextField("", text: $editingURLString)
+                                .textFieldStyle(PlainTextFieldStyle())
+                                .focused($isEditing)
+                                .onSubmit {
+                                    tab.loadURL(editingURLString)
+                                    isEditing = false
+                                }
+                                .opacity(showCopiedAnimation ? 0 : 1)
+                                .offset(y: showCopiedAnimation ? (startWheelAnimation ? -12 : 12) : 0)
+                                .animation(.easeInOut(duration: 0.3), value: showCopiedAnimation)
+                                .animation(.easeInOut(duration: 0.3), value: startWheelAnimation)
+
+                            HStack {
+                                Image(systemName: "link")
+
+                                Text("Copied Current URL")
                             }
-                            .onTapGesture {
-                                editingURLString = tab.url.absoluteString
-                            }
-                            .onKeyPress(.escape) {
-                                isEditing = false
-                                return .handled
-                            }
-                            .overlay(
-                                Group {
-                                    if !isEditing, editingURLString.isEmpty {
-                                        HStack {
-                                            Text(tab.title.isEmpty ? "New Tab" : tab.title)
-                                                .font(.system(size: 14))
-                                                .foregroundColor(getUrlFieldColor(tab))
-                                                .lineLimit(1)
-                                            Spacer()
-                                        }
+                            .opacity(showCopiedAnimation ? 1 : 0)
+                            .offset(y: showCopiedAnimation ? 0 : (startWheelAnimation ? -12 : 12))
+                            .animation(.easeInOut(duration: 0.3), value: showCopiedAnimation)
+                            .animation(.easeInOut(duration: 0.3), value: startWheelAnimation)
+                        }
+                        .font(.system(size: 14))
+                        .foregroundColor(getUrlFieldColor(tab))
+                        .onTapGesture {
+                            editingURLString = tab.url.absoluteString
+                        }
+                        .onKeyPress(.escape) {
+                            isEditing = false
+                            return .handled
+                        }
+                        // Overlay the placeholder when not editing
+                        .overlay(
+                            Group {
+                                if !isEditing, editingURLString.isEmpty {
+                                    HStack {
+                                        Text(tab.title.isEmpty ? "New Tab" : tab.title)
+                                            .font(.system(size: 14))
+                                            .foregroundColor(getUrlFieldColor(tab))
+                                            .lineLimit(1)
+                                        Spacer()
                                     }
                                 }
-                            )
+                            }
+                        )
+                        // Hidden button for copy shortcut
+                        .overlay(
+                            Button("") {
+                                copyToClipboard(tab.url.absoluteString)
+                                withAnimation {
+                                    showCopiedAnimation = true
+                                    startWheelAnimation = true
+                                }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                    withAnimation {
+                                        showCopiedAnimation = false
+                                        startWheelAnimation = false
+                                    }
+                                }
+                            }
+                            .keyboardShortcut(KeyboardShortcuts.Address.copyURL)
+                            .opacity(0)
+                        )
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
@@ -159,19 +215,22 @@ struct URLBar: View {
 
                     // Action buttons
                     HStack(spacing: 8) {
-                        Button(action: {}) {
-                            Image(systemName: "square.and.arrow.up")
-                                .font(.system(size: 14))
-                                .foregroundColor(.secondary)
-                        }
-                        .buttonStyle(PlainButtonStyle())
+                        ShareButton(
+                            foregroundColor: buttonForegroundColor,
+                            onShare: { sourceView, sourceRect in
+                                if let activeTab = tabManager.activeTab {
+                                    shareCurrentPage(tab: activeTab, sourceView: sourceView, sourceRect: sourceRect)
+                                }
+                            }
+                        )
+                        .frame(width: 32, height: 32)
 
-                        Button(action: {}) {
-                            Image(systemName: "ellipsis")
-                                .font(.system(size: 14))
-                                .foregroundColor(.secondary)
-                        }
-                        .buttonStyle(PlainButtonStyle())
+                        NavigationButton(
+                            systemName: "ellipsis",
+                            isEnabled: true,
+                            foregroundColor: buttonForegroundColor,
+                            action: {}
+                        )
                     }
                 }
                 .padding(.horizontal, 12)
@@ -197,6 +256,43 @@ struct URLBar: View {
                         .fill(tab.backgroundColor)
                 )
             }
+        }
+    }
+}
+
+struct ShareButton: NSViewRepresentable {
+    let foregroundColor: Color
+    let onShare: (NSView, NSRect) -> Void
+
+    func makeNSView(context: Context) -> NSButton {
+        let button = NSButton()
+        button.image = NSImage(systemSymbolName: "square.and.arrow.up", accessibilityDescription: "Share")
+        button.isBordered = false
+        button.bezelStyle = .regularSquare
+        button.imagePosition = .imageOnly
+        button.target = context.coordinator
+        button.action = #selector(Coordinator.buttonTapped)
+        return button
+    }
+
+    func updateNSView(_ nsView: NSButton, context: Context) {
+        context.coordinator.onShare = onShare
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onShare: onShare)
+    }
+
+    class Coordinator: NSObject {
+        var onShare: (NSView, NSRect) -> Void
+
+        init(onShare: @escaping (NSView, NSRect) -> Void) {
+            self.onShare = onShare
+        }
+
+        @objc func buttonTapped(_ sender: NSButton) {
+            let rect = sender.bounds
+            onShare(sender, rect)
         }
     }
 }

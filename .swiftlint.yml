@@ -1,0 +1,70 @@
+excluded:
+  - Pods
+  - Carthage
+  - .build
+  - DerivedData
+  - build
+  - Build
+  - "*.xcworkspace"
+  - "*.xcodeproj"
+  - fastlane/report.xml
+  - fastlane/Preview.html
+  - fastlane/screenshots
+  - fastlane/test_output
+
+opt_in_rules:
+  - empty_count
+  - force_unwrapping
+  - implicitly_unwrapped_optional
+  - weak_delegate
+
+# Disabled rules to avoid conflicts with SwiftFormat
+disabled_rules:
+  - trailing_comma # SwiftFormat handles this with --commas inline
+  - vertical_whitespace # SwiftFormat handles whitespace
+  - opening_brace # SwiftFormat handles brace style with --allman false
+  - statement_position # SwiftFormat handles statement positioning
+  - redundant_string_enum_value # Let SwiftFormat handle redundancy
+  - sorted_imports # SwiftFormat has this disabled
+
+# Rule configurations
+line_length:
+  warning: 120
+  # error: 140
+
+file_length:
+  warning: 500
+  error: 800
+
+function_body_length:
+  warning: 50
+  error: 100
+
+type_body_length:
+  warning: 300
+  error: 500
+
+cyclomatic_complexity:
+  warning: 10
+  error: 20
+
+nesting:
+  type_level:
+    warning: 2
+    error: 3
+  function_level:
+    warning: 2
+    error: 3
+
+force_unwrapping:
+  severity: warning
+
+implicitly_unwrapped_optional:
+  severity: warning
+
+custom_rules:
+  no_print_statements:
+    name: "No Print Statements"
+    regex: "print\\("
+    message: "Use logger instead of print statements"
+    severity: warning

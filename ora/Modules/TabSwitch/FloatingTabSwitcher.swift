@@ -37,7 +37,7 @@ struct FloatingTabSwitcher: View {
         }
         .onAppear {
             preloadSnapshots()
-            if recentTabs.count > 0 {
+            if !recentTabs.isEmpty {
                 let to = recentTabs.count == 1 ? 0 : 1
                 focusedTab = recentTabs[to].id
             }
@@ -45,7 +45,7 @@ struct FloatingTabSwitcher: View {
         .onChange(of: appState.isFloatingTabSwitchVisible) { _, isVisible in
             if isVisible {
                 preloadSnapshots()
-                if recentTabs.count > 0 {
+                if !recentTabs.isEmpty {
                     let to = recentTabs.count == 1 ? 0 : 1
                     focusedTab = recentTabs[to].id
                 }
@@ -72,7 +72,7 @@ struct FloatingTabSwitcher: View {
     private var tabSwitcherContainer: some View {
         HStack(spacing: 12) {
             if tabManager.activeContainer != nil {
-                if recentTabs.count == 0 {
+                if recentTabs.isEmpty {
                     ZStack {
                         RoundedRectangle(cornerRadius: Constants.cornerRadius, style: .continuous)
                             .fill(Color.gray.opacity(0.1))

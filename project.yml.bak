@@ -6,36 +6,62 @@ packages:
     url: https://github.com/sparkle-project/Sparkle
     from: 2.6.0
 targets:
-   ora:
-      type: application
-      platform: "macOS"
-      deploymentTarget: "14.0"
-      sources:
-        - path: ora
-      resources:
-        - path: ora/Modules/EmojiPicker/emoji-set.json
-        - path: ora/Resources
-          optional: true
-      dependencies:
-        - package: Sparkle
+  ora:
+    type: application
+    platform: "macOS"
+    deploymentTarget: "14.0"
+    sources:
+      - path: ora
+        excludes:
+          - "Icons/**"
+    resources:
+      - path: ora/Modules/EmojiPicker/emoji-set.json
+      - path: ora/Resources
+        optional: true
+    dependencies:
+      - package: Sparkle
 
-      info:
-        path: ora/Info.plist
-        properties:
-          SUFeedURL: "https://the-ora.github.io/browser/appcast.xml"
-          SUPublicEDKey: "Ozj+rezzbJAD76RfajtfQ7rFojJbpFSCl/0DcFSBCTI="
-          SUEnableAutomaticChecks: YES
+    preBuildScripts:
+      - name: "Copy Icon Bundle"
+        inputFiles:
+          - "$(SRCROOT)/ora/Icons/OraIcon.icon"
+          - "$(SRCROOT)/ora/Icons/OraIconDev.icon"
+        outputFiles:
+          - "$(BUILT_PRODUCTS_DIR)/$(PRODUCT_NAME).app/Contents/Resources/OraIcon.icon"
+          - "$(BUILT_PRODUCTS_DIR)/$(PRODUCT_NAME).app/Contents/Resources/OraIconDev.icon"
+        script: |
+          ICON_SRC_DEV="$SRCROOT/ora/Icons/OraIconDev.icon"
+          ICON_SRC_RELEASE="$SRCROOT/ora/Icons/OraIcon.icon"
+          ICON_DST="$BUILT_PRODUCTS_DIR/$PRODUCT_NAME.app/Contents/Resources/"
+          if [ "$CONFIGURATION" = "Debug" ]; then
+              echo "Using OraIconDev.icon for Debug build"
+              cp -R "$ICON_SRC_DEV" "$ICON_DST"
+          else
+              echo "Using OraIcon.icon for Release build"
+              cp -R "$ICON_SRC_RELEASE" "$ICON_DST"
+          fi
 
-      settings:
-        base:
-          SWIFT_VERSION: 5.9
-          CODE_SIGN_STYLE: Automatic
-          MARKETING_VERSION: 0.1.6
-          CURRENT_PROJECT_VERSION: 76
-          PRODUCT_NAME: Ora
-          PRODUCT_BUNDLE_IDENTIFIER: com.orabrowser.ora
-          GENERATE_INFOPLIST_FILE: YES
-          SUFeedURL: "https://the-ora.github.io/browser/appcast.xml"
-          SUPublicEDKey: "Ozj+rezzbJAD76RfajtfQ7rFojJbpFSCl/0DcFSBCTI="
-          SUEnableAutomaticChecks: YES
+    info:
+      path: ora/Info.plist
+      properties:
+        SUFeedURL: "https://the-ora.github.io/browser/appcast.xml"
+        SUPublicEDKey: "Ozj+rezzbJAD76RfajtfQ7rFojJbpFSCl/0DcFSBCTI="
+        SUEnableAutomaticChecks: YES
 
+    settings:
+      base:
+        SWIFT_VERSION: 5.9
+        CODE_SIGN_STYLE: Automatic
+        MARKETING_VERSION: 0.1.8
+        CURRENT_PROJECT_VERSION: 78
+        PRODUCT_NAME: Ora
+        PRODUCT_BUNDLE_IDENTIFIER: com.orabrowser.ora
+        GENERATE_INFOPLIST_FILE: YES
+        SUFeedURL: "https://the-ora.github.io/browser/appcast.xml"
+        SUPublicEDKey: "Ozj+rezzbJAD76RfajtfQ7rFojJbpFSCl/0DcFSBCTI="
+        SUEnableAutomaticChecks: YES
+      configs:
+        Debug:
+          ASSETCATALOG_COMPILER_APPICON_NAME: OraIconDev
+        Release:
+          ASSETCATALOG_COMPILER_APPICON_NAME: OraIcon
