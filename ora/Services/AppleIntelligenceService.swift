@@ -159,7 +159,7 @@ class AIConversationManager {
     var conversations: [AIConversation] = []
     var activeConversation: AIConversation?
 
-    private var modelContext: ModelContext?
+    var modelContext: ModelContext?
 
     init(modelContext: ModelContext? = nil) {
         self.modelContext = modelContext

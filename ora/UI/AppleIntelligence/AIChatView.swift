@@ -6,6 +6,7 @@ struct AIChatView: View {
     @State private var conversationManager = AIConversationManager()
     @State private var inputText = ""
     @State private var aiService: AppleIntelligenceService?
+    @State private var showConversationHistory = false
 
     private let conversationId: UUID?
     private let initialQuery: String?
@@ -19,20 +20,31 @@ struct AIChatView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            if let aiService, aiService.isAvailable {
-                chatContent(aiService: aiService)
-            } else {
-                unavailableView
+        HStack(spacing: 0) {
+            // Conversation History Sidebar
+            if showConversationHistory {
+                conversationHistoryView
+                    .frame(width: 280)
+                    .transition(.move(edge: .leading))
             }
+
+            // Main Chat Content
+            VStack(spacing: 0) {
+                if let aiService, aiService.isAvailable {
+                    chatContent(aiService: aiService)
+                } else {
+                    unavailableView
+                }
+            }
+            .background(theme.background)
         }
-        .background(theme.background)
         .onAppear {
             conversationManager.setModelContext(modelContext)
             initializeAIService()
             setupConversation()
             handleInitialQuery()
         }
+        .animation(.easeInOut(duration: 0.3), value: showConversationHistory)
     }
 
     private func initializeAIService() {
@@ -62,6 +74,15 @@ struct AIChatView: View {
 
     private var chatHeader: some View {
         HStack {
+            Button(action: {
+                showConversationHistory.toggle()
+            }) {
+                Image(systemName: "sidebar.left")
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
+
             Image(systemName: "apple.intelligence")
                 .font(.title2)
                 .foregroundStyle(.tint)
@@ -218,10 +239,13 @@ struct AIChatView: View {
     }
 
     private func startNewConversation() {
-        conversationManager.createNewConversation()
+        let newConversation = conversationManager.createNewConversation()
         if #available(macOS 26.0, *), let aiService {
             aiService.startNewConversation()
         }
+
+        // TODO: Navigate to new conversation URL: ora://apple-intelligence/\(newConversation.id)
+        // This would require access to the tab manager or navigation system
     }
 
     private func sendMessage(_ text: String) {
@@ -243,6 +267,80 @@ struct AIChatView: View {
                 conversationId: conversationId,
                 useStreaming: true
             )
+        }
+    }
+
+    private var conversationHistoryView: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // History Header
+            HStack {
+                Text("Conversations")
+                    .font(.headline)
+                    .foregroundStyle(theme.foreground)
+
+                Spacer()
+
+                Button("New") {
+                    startNewConversation()
+                    showConversationHistory = false
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(theme.background.opacity(0.5))
+
+            Divider()
+
+            // Conversation List
+            ScrollView {
+                LazyVStack(spacing: 0) {
+                    ForEach(conversationManager.conversations) { conversation in
+                        ConversationHistoryRow(
+                            conversation: conversation,
+                            isActive: conversationManager.activeConversation?.id == conversation.id,
+                            onSelect: {
+                                selectConversation(conversation)
+                            },
+                            onDelete: {
+                                deleteConversation(conversation)
+                            }
+                        )
+                    }
+                }
+                .padding(.top, 8)
+            }
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(theme.background.opacity(0.95))
+        .overlay(
+            Rectangle()
+                .frame(width: 1)
+                .foregroundColor(Color(.separatorColor)),
+            alignment: .trailing
+        )
+    }
+
+    private func selectConversation(_ conversation: AIConversation) {
+        conversationManager.activeConversation = conversation
+        conversation.touch()
+        showConversationHistory = false
+
+        // Save the touch update
+        if let context = conversationManager.modelContext {
+            try? context.save()
+        }
+    }
+
+    private func deleteConversation(_ conversation: AIConversation) {
+        conversationManager.deleteConversation(conversation.id)
+
+        // If we deleted the active conversation, select the first available
+        if conversationManager.activeConversation?.id == conversation.id {
+            conversationManager.activeConversation = conversationManager.conversations.first
         }
     }
 }
