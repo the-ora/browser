@@ -1,5 +1,5 @@
 <div align="center">
-  <img width="270" height="270" src="/assets/icon.png" alt="Ora Browser Logo">
+  <img width="250" height="250" src="/assets/icon.png" alt="Ora Browser Logo">
   <h1><b>Ora Browser</b></h1>
   <p>
     Ora is a fast, secure, and beautiful browser built for macOS. Inspired by Safari and Arc, Ora delivers a clean, native experience that feels at home on macOS—without unnecessary bloat.
