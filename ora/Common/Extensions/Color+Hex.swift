@@ -43,4 +43,24 @@ extension Color {
             ? String(format: "#%02X%02X%02X%02X", r, g, b, a)
             : String(format: "#%02X%02X%02X", r, g, b)
     }
+    
+    /// Adjusts the brightness and saturation of a color
+    func adjusted(brightness: Double = 1.0, saturation: Double = 1.0) -> Color {
+        let nsColor = NSColor(self)
+        guard let rgbColor = nsColor.usingColorSpace(.sRGB) else {
+            return self
+        }
+        
+        var h: CGFloat = 0
+        var s: CGFloat = 0
+        var b: CGFloat = 0
+        var a: CGFloat = 0
+        rgbColor.getHue(&h, saturation: &s, brightness: &b, alpha: &a)
+        
+        return Color(
+            hue: Double(h),
+            saturation: min(1.0, Double(s) * saturation),
+            brightness: min(1.0, Double(b) * brightness)
+        ).opacity(Double(a))
+    }
 }
