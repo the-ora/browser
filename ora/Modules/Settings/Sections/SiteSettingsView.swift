@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SiteSettingsView: View {
     @Environment(\.dismiss) private var dismiss
+    @State private var isAdditionalExpanded: Bool = false
     var body: some View {
         SettingsContainer(maxContentWidth: 760) {
             Form {
@@ -48,144 +49,148 @@ struct SiteSettingsView: View {
                         EmbeddedContentPermissionView()
                     }
 
-                    DisclosureGroup {
+                    DisclosureGroup(isExpanded: $isAdditionalExpanded) {
                         VStack(spacing: 0) {
                             PermissionRow(
                                 title: "Background sync",
                                 subtitle: "Recently closed sites can finish sending and receiving data",
-                                systemImage: "gear"
+                                systemImage: "arrow.triangle.2.circlepath"
                             ) {
                                 AdditionalPermissionListView(title: "Background sync")
                             }
                             PermissionRow(
                                 title: "Motion sensors",
                                 subtitle: "Sites can use motion sensors",
-                                systemImage: "gear"
+                                systemImage: "waveform.path.ecg"
                             ) {
                                 AdditionalPermissionListView(title: "Motion sensors")
                             }
                             PermissionRow(
                                 title: "Automatic downloads",
                                 subtitle: "Sites can ask to automatically download multiple files",
-                                systemImage: "gear"
+                                systemImage: "arrow.down.circle"
                             ) {
                                 AdditionalPermissionListView(title: "Automatic downloads")
                             }
                             PermissionRow(
                                 title: "Protocol handlers",
                                 subtitle: "Sites can ask to handle protocols",
-                                systemImage: "gear"
+                                systemImage: "link"
                             ) {
                                 AdditionalPermissionListView(title: "Protocol handlers")
                             }
                             PermissionRow(
                                 title: "MIDI device control & reprogram",
                                 subtitle: "Sites can ask to control and reprogram your MIDI devices",
-                                systemImage: "gear"
+                                systemImage: "pianokeys"
                             ) {
                                 AdditionalPermissionListView(title: "MIDI device control & reprogram")
                             }
                             PermissionRow(
                                 title: "USB devices",
                                 subtitle: "Sites can ask to connect to USB devices",
-                                systemImage: "gear"
+                                systemImage: "externaldrive"
                             ) {
                                 AdditionalPermissionListView(title: "USB devices")
                             }
                             PermissionRow(
                                 title: "Serial ports",
                                 subtitle: "Sites can ask to connect to serial ports",
-                                systemImage: "gear"
+                                systemImage: "cable.connector.horizontal"
                             ) {
                                 AdditionalPermissionListView(title: "Serial ports")
                             }
                             PermissionRow(
                                 title: "File editing",
                                 subtitle: "Sites can ask to edit files and folders on your device",
-                                systemImage: "gear"
+                                systemImage: "folder"
                             ) {
                                 AdditionalPermissionListView(title: "File editing")
                             }
                             PermissionRow(
                                 title: "HID devices",
                                 subtitle: "Ask when a site wants to access HID devices",
-                                systemImage: "gear"
+                                systemImage: "dot.radiowaves.left.and.right"
                             ) {
                                 AdditionalPermissionListView(title: "HID devices")
                             }
                             PermissionRow(
                                 title: "Clipboard",
                                 subtitle: "Sites can ask to see text and images on your clipboard",
-                                systemImage: "gear"
+                                systemImage: "clipboard"
                             ) {
                                 AdditionalPermissionListView(title: "Clipboard")
                             }
                             PermissionRow(
                                 title: "Payment handlers",
                                 subtitle: "Sites can install payment handlers",
-                                systemImage: "gear"
+                                systemImage: "creditcard"
                             ) {
                                 AdditionalPermissionListView(title: "Payment handlers")
                             }
                             PermissionRow(
                                 title: "Augmented reality",
                                 subtitle: "Ask when a site wants to create a 3D map of your surroundings or track camera position",
-                                systemImage: "gear"
+                                systemImage: "arkit"
                             ) {
                                 AdditionalPermissionListView(title: "Augmented reality")
                             }
                             PermissionRow(
                                 title: "Virtual reality",
                                 subtitle: "Sites can ask to use virtual reality devices and data",
-                                systemImage: "gear"
+                                systemImage: "visionpro"
                             ) {
                                 AdditionalPermissionListView(title: "Virtual reality")
                             }
                             PermissionRow(
                                 title: "Your device use",
                                 subtitle: "Sites can ask to know when you're actively using your device",
-                                systemImage: "gear"
+                                systemImage: "cursorarrow.rays"
                             ) {
                                 AdditionalPermissionListView(title: "Your device use")
                             }
                             PermissionRow(
                                 title: "Window management",
                                 subtitle: "Sites can ask to manage windows on all your displays",
-                                systemImage: "gear"
+                                systemImage: "macwindow.on.rectangle"
                             ) {
                                 AdditionalPermissionListView(title: "Window management")
                             }
                             PermissionRow(
                                 title: "Fonts",
                                 subtitle: "Sites can ask to use fonts installed on your device",
-                                systemImage: "gear"
+                                systemImage: "textformat"
                             ) {
                                 AdditionalPermissionListView(title: "Fonts")
                             }
                             PermissionRow(
                                 title: "Automatic picture-in-picture",
                                 subtitle: "Sites can enter picture-in-picture automatically",
-                                systemImage: "gear"
+                                systemImage: "pip"
                             ) {
                                 AdditionalPermissionListView(title: "Automatic picture-in-picture")
                             }
                             PermissionRow(
                                 title: "Scrolling and zooming shared tabs",
                                 subtitle: "Sites can ask to scroll and zoom shared tabs",
-                                systemImage: "gear"
+                                systemImage: "magnifyingglass"
                             ) {
                                 AdditionalPermissionListView(title: "Scrolling and zooming shared tabs")
                             }
                         }
                         .padding(.top, 8)
                     } label: {
-                        Text("Additional permissions")
+                        HStack {
+                            Text("Additional permissions")
+                            Spacer(minLength: 0)
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture { isAdditionalExpanded.toggle() }
                     }
                     .padding(.top, 16)
                 }
             }
         }
-        .navigationTitle("Site settings")
     }
 }
 
@@ -257,7 +262,6 @@ struct LocationPermissionView: View {
             Text("Sites can ask for your location").foregroundStyle(.secondary)
             PerSiteToggleList(keyPath: \._Location)
         }
-        .navigationTitle("Location")
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
     }
@@ -271,7 +275,6 @@ struct CameraPermissionView: View {
             Text("Sites can ask to use your camera").foregroundStyle(.secondary)
             PerSiteToggleList(keyPath: \._Camera)
         }
-        .navigationTitle("Camera")
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
     }
@@ -285,7 +288,6 @@ struct MicrophonePermissionView: View {
             Text("Sites can ask to use your microphone").foregroundStyle(.secondary)
             PerSiteToggleList(keyPath: \._Microphone)
         }
-        .navigationTitle("Microphone")
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
     }
@@ -299,7 +301,6 @@ struct NotificationsPermissionView: View {
             Text("Collapse unwanted requests (recommended)").foregroundStyle(.secondary)
             PerSiteToggleList(keyPath: \._Notifications)
         }
-        .navigationTitle("Notifications")
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
     }
@@ -314,7 +315,6 @@ struct EmbeddedContentPermissionView: View {
             // Placeholder list reused for now
             PerSiteToggleList(keyPath: \._Notifications)
         }
-        .navigationTitle("Embedded content")
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
     }
@@ -329,7 +329,6 @@ struct AdditionalPermissionListView: View {
             Text(title).foregroundStyle(.secondary)
             Text("No additional settings available yet.").foregroundStyle(.tertiary)
         }
-        .navigationTitle(title)
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
     }

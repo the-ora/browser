@@ -33,6 +33,7 @@ struct PrivacySecuritySettingsView: View {
                             Section {
                                 NavigationLink {
                                     SiteSettingsView()
+                                        .navigationBarBackButtonHidden(true)
                                 } label: {
                                     HStack(spacing: 12) {
                                         Image(systemName: "gear")
