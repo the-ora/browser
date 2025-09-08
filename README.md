@@ -33,7 +33,7 @@ If you would like to support the project, please consider donating via [Buy Me A
 - Developer mode
 
 <details>
-<summary><b>Way to Beta Version</b></summary>
+<summary><h2>Way to Beta Version</h2></summary>
 
 - [x] Tab management with
   - containers (spaces),
@@ -57,32 +57,9 @@ If you would like to support the project, please consider donating via [Buy Me A
 </details>
 
 
-## Key Management for Updates
+## Security
 
-Ora Browser uses Ed25519 cryptographic keys to sign and verify app updates for security:
-
-### Public Key (Committed to Git)
-- **File**: `ora_public_key.pem`
-- **Purpose**: Verifies update signatures in the app
-- **Status**: Committed to git repository
-- **Safety**: Public keys are safe to share
-
-### Private Key (Never Commit!)
-- **File**: `.env` (contains `ORA_PRIVATE_KEY`)
-- **Purpose**: Signs app updates during release
-- **Status**: Never committed to git
-- **Safety**: Keep secure and private
-
-### Setup Process
-1. **First machine**: Keys auto-generated and saved appropriately
-2. **Additional machines**: Copy `.env` file from first machine
-3. **Release process**: `./create-release.sh` handles key management automatically
-
-### Security Notes
-- `.env` is in `.gitignore` - it will never be committed
-- Public key is committed - this is safe and required
-- Never share your private key with anyone
-- If private key is lost, you'll need to regenerate keys (breaks update chain)
+Ora Browser uses cryptographic signing for secure updates. See [Security & Key Management](docs/SECURITY_KEY_MANAGEMENT.md) for details.
 
 ## Installation
 
