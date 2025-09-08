@@ -35,7 +35,7 @@ struct ContainerSwitcher: View {
         .alert("Cannot delete Container", isPresented: $didFailToDeleteContainer) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("You either have only one Container, or something went wrong.") // this text kinda sucks ngl
+            Text("Cannot delete the last remaining container. At least one container must exist.")
         }
     }
 
