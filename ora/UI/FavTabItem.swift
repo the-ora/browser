@@ -18,6 +18,9 @@ struct FavTabItem: View {
     @EnvironmentObject var downloadManager: DownloadManager
 
     @State private var isHovering = false
+    @State private var isAudioButtonHovering = false
+    @State private var showAudioTooltip = false
+    @State private var audioHoverWorkItem: DispatchWorkItem?
 
     var body: some View {
         ZStack {
@@ -41,13 +44,58 @@ struct FavTabItem: View {
                     textColor: Color(.white)
                 )
             }
-
-            if tab.isPlayingMedia {
+            // Audio indicator overlay button
+            if tab.isMediaActive {
                 VStack {
                     HStack {
-                        Image(systemName: "speaker.wave.3")
-                            .font(.system(size: 10))
-                            .foregroundColor(.secondary)
+                        ZStack(alignment: .topLeading) {
+                            Button(action: { tab.toggleMute() }) {
+                                Image(systemName: tab.isMuted ? "speaker.slash.fill" : "speaker.wave.3.fill")
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .foregroundColor(.secondary)
+                                    .padding(6)
+                                    .frame(width: 24, height: 24)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                            .fill(isAudioButtonHovering ? theme.activeTabBackground
+                                                .opacity(0.25) : .clear
+                                            )
+                                    )
+                                    .contentShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                            }
+                            .buttonStyle(.plain)
+
+                            if showAudioTooltip {
+                                Text(tab.isMuted ? "Unmute this tab" : "Mute this tab")
+                                    .font(.caption2)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 6)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                            .fill(theme.activeTabBackground.opacity(0.95))
+                                    )
+                                    .foregroundColor(.white)
+                                    .shadow(color: Color.black.opacity(0.25), radius: 6, x: 0, y: 2)
+                                    .offset(y: -26)
+                                    .zIndex(10)
+                                    .allowsHitTesting(false)
+                                    .animation(.easeInOut(duration: 0.12), value: showAudioTooltip)
+                                    .transition(.opacity.combined(with: .scale))
+                            }
+                        }
+                        .zIndex(1)
+                        .onHover { hovering in
+                            isAudioButtonHovering = hovering
+                            audioHoverWorkItem?.cancel()
+                            if hovering {
+                                let work = DispatchWorkItem { self.showAudioTooltip = true }
+                                audioHoverWorkItem = work
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: work)
+                            } else {
+                                showAudioTooltip = false
+                                audioHoverWorkItem = nil
+                            }
+                        }
                         Spacer()
                     }
                     Spacer()

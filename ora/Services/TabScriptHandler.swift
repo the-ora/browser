@@ -14,7 +14,8 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
     var tab: Tab?
     // Tracks which frames within the page are currently reporting active media playback.
     // We aggregate across frames to avoid false negatives when one iframe pauses while another continues.
-    private var playingFrameIds = Set<String>()
+    private var playingFrameIds = Set<String>() // audible
+    private var activeFrameIds = Set<String>()  // playing regardless of mute
 
     // Large JS moved out of defaultWKConfig() to keep function body under SwiftLint limits.
     private static let mediaDetectionScript: String = """
@@ -32,33 +33,162 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
             }
         })();
 
+        // Track and control WebAudio contexts (AudioContext / webkitAudioContext)
+        window.__oraAudioContexts = window.__oraAudioContexts || new Set();
+        (function patchAudioContext() {
+            if (window.__oraPatchedAudioCtx) return;
+            const Original = window.AudioContext || window.webkitAudioContext;
+            if (!Original) return;
+            function Wrapped(...args) {
+                const ctx = new Original(...args);
+                try {
+                    window.__oraAudioContexts.add(ctx);
+                    if (window.__oraForcedMute && ctx.state !== 'suspended') {
+                        ctx.suspend().catch(() => {});
+                    }
+                } catch (e) {}
+                return ctx;
+            }
+            Wrapped.prototype = Original.prototype;
+            try {
+                if (window.AudioContext) window.AudioContext = Wrapped;
+                if (window.webkitAudioContext) window.webkitAudioContext = Wrapped;
+                window.__oraPatchedAudioCtx = true;
+            } catch (e) {}
+        })();
+        function enforceAudioContextMute() {
+            try {
+                window.__oraAudioContexts && window.__oraAudioContexts.forEach(ctx => {
+                    try {
+                        if (window.__oraForcedMute) {
+                            if (ctx.state !== 'suspended') { ctx.suspend().catch(() => {}); }
+                        } else {
+                            if (ctx.state === 'suspended') { ctx.resume().catch(() => {}); }
+                        }
+                    } catch (e) {}
+                });
+            } catch (e) {}
+        }
+
         let lastMediaState = false;
+        let lastActiveState = false;
         let debounceTimer = null;
+        let seekGraceMs = 5000; // 5s threshold to avoid flicker during short seeks
+        let seekGraceUntil = 0;
+
+        // Forced mute control without changing page-visible mute state
+        // We avoid toggling HTMLMediaElement.muted to prevent UI desync in players (e.g., YouTube).
+        window.__oraForcedMute = window.__oraForcedMute || false;
+        function applyForcedMuteTo(el) {
+            try {
+                if (window.__oraForcedMute) {
+                    if (el.__oraPrevVolume === undefined || el.__oraPrevVolume === null) {
+                        el.__oraPrevVolume = el.volume;
+                    }
+                    if (el.volume > 0) {
+                        el.volume = 0;
+                    }
+                } else {
+                    if (el.__oraPrevVolume !== undefined && el.__oraPrevVolume !== null) {
+                        el.volume = el.__oraPrevVolume;
+                        el.__oraPrevVolume = null;
+                        try { delete el.__oraPrevVolume; } catch (e) {}
+                    }
+                }
+            } catch (e) {}
+        }
+        function applyForcedMuteAll() {
+            const mediaElements = document.querySelectorAll('video, audio');
+            mediaElements.forEach(applyForcedMuteTo);
+        }
+        // Background enforcement loop while forced mute is enabled
+        window.__oraMuteInterval && clearInterval(window.__oraMuteInterval);
+        window.__oraMuteInterval = null;
+
+        function setForcedMute(flag) {
+            try {
+                window.__oraForcedMute = !!flag;
+                applyForcedMuteAll();
+                enforceAudioContextMute();
+                if (window.__oraForcedMute && !window.__oraMuteInterval) {
+                    window.__oraMuteInterval = setInterval(function(){
+                        applyForcedMuteAll();
+                        enforceAudioContextMute();
+                    }, 250);
+                } else if (!window.__oraForcedMute && window.__oraMuteInterval) {
+                    clearInterval(window.__oraMuteInterval);
+                    window.__oraMuteInterval = null;
+                }
+                debouncedUpdateMediaState();
+            } catch (e) {}
+        }
+
+        function broadcastForcedMute(flag) {
+            try { window.postMessage({ __ORA_MUTE_TOGGLE: !!flag }, "*"); } catch (e) {}
+            try {
+                const iframes = document.querySelectorAll('iframe');
+                iframes.forEach(f => { try { f.contentWindow && f.contentWindow.postMessage({ __ORA_MUTE_TOGGLE: !!flag }, "*"); } catch (e) {} });
+            } catch (e) {}
+            try { if (window.top && window.top !== window) { window.top.postMessage({ __ORA_MUTE_TOGGLE: !!flag }, "*"); } } catch (e) {}
+        }
+
+        window.addEventListener('message', function(evt) {
+            try {
+                const data = evt && evt.data;
+                if (data && Object.prototype.hasOwnProperty.call(data, '__ORA_MUTE_TOGGLE')) {
+                    setForcedMute(!!data.__ORA_MUTE_TOGGLE);
+                }
+            } catch (e) {}
+        }, false);
+
+        window.__oraSetForcedMute = function(flag) {
+            setForcedMute(flag);
+            broadcastForcedMute(flag);
+        }
 
         function isElementAudible(el) {
             // Consider readyState to filter out elements that aren't actually playing yet
             const hasData = (typeof el.readyState === 'number') ? (el.readyState >= 2) : true;
             return !el.paused && el.currentTime > 0 && !el.muted && el.volume > 0 && hasData && !el.seeking;
         }
+        function isElementActive(el) {
+            const hasData = (typeof el.readyState === 'number') ? (el.readyState >= 2) : true;
+            return !el.paused && el.currentTime > 0 && hasData && !el.seeking;
+        }
 
         function updateMediaState() {
+            const now = Date.now();
             const mediaElements = document.querySelectorAll('video, audio');
-            let isPlaying = false;
+            let rawPlaying = false; // audible
+            let rawActive = false;  // playing ignoring mute/volume
 
             for (const media of mediaElements) {
-                if (isElementAudible(media)) {
-                    isPlaying = true;
-                    break;
-                }
+                if (isElementActive(media)) { rawActive = true; }
+                if (isElementAudible(media)) { rawPlaying = true; }
+                if (rawPlaying && rawActive) { break; }
             }
 
-            if (isPlaying !== lastMediaState) {
-                lastMediaState = isPlaying;
-                try {
-                    window.webkit.messageHandlers.mediaState.postMessage({ frameId: FRAME_ID, isPlaying });
-                } catch (e) {
-                    // no-op
+            // Consider WebAudio contexts as active if any are running
+            try {
+                if (window.__oraAudioContexts) {
+                    window.__oraAudioContexts.forEach(ctx => { if (ctx.state === 'running') { rawActive = true; } });
                 }
+            } catch (e) {}
+
+            // Apply grace to suppress brief dropouts due to short seeks
+            let isPlaying = rawPlaying;
+            let isActive = rawActive;
+            if (now < seekGraceUntil) {
+                if (lastMediaState && !rawPlaying) { isPlaying = true; }
+                if (lastActiveState && !rawActive) { isActive = true; }
+            }
+
+            if (isPlaying !== lastMediaState || isActive !== lastActiveState) {
+                lastMediaState = isPlaying;
+                lastActiveState = isActive;
+                try {
+                    window.webkit.messageHandlers.mediaState.postMessage({ frameId: FRAME_ID, isPlaying: isPlaying, isActive: isActive });
+                } catch (e) { /* no-op */ }
             }
         }
 
@@ -76,10 +206,22 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
                 media.addEventListener('ended', debouncedUpdateMediaState);
                 media.addEventListener('volumechange', debouncedUpdateMediaState);
                 media.addEventListener('loadeddata', debouncedUpdateMediaState);
+                media.addEventListener('loadedmetadata', debouncedUpdateMediaState);
+                media.addEventListener('loadstart', debouncedUpdateMediaState);
+                media.addEventListener('canplay', debouncedUpdateMediaState);
+                media.addEventListener('canplaythrough', debouncedUpdateMediaState);
                 media.addEventListener('timeupdate', debouncedUpdateMediaState);
-                media.addEventListener('seeking', debouncedUpdateMediaState);
+                media.addEventListener('seeking', () => { seekGraceUntil = Date.now() + seekGraceMs; debouncedUpdateMediaState(); });
                 media.addEventListener('seeked', debouncedUpdateMediaState);
                 media.addEventListener('ratechange', debouncedUpdateMediaState);
+                // Enforce forced mute on relevant transitions
+                media.addEventListener('play', () => applyForcedMuteTo(media));
+                media.addEventListener('loadeddata', () => applyForcedMuteTo(media));
+                media.addEventListener('loadedmetadata', () => applyForcedMuteTo(media));
+                media.addEventListener('loadstart', () => applyForcedMuteTo(media));
+                media.addEventListener('canplay', () => applyForcedMuteTo(media));
+                media.addEventListener('canplaythrough', () => applyForcedMuteTo(media));
+                media.addEventListener('volumechange', () => applyForcedMuteTo(media));
             });
         }
 
@@ -102,10 +244,15 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
                             element.addEventListener('ended', debouncedUpdateMediaState);
                             element.addEventListener('volumechange', debouncedUpdateMediaState);
                             element.addEventListener('loadeddata', debouncedUpdateMediaState);
+                            element.addEventListener('loadedmetadata', debouncedUpdateMediaState);
+                            element.addEventListener('loadstart', debouncedUpdateMediaState);
+                            element.addEventListener('canplay', debouncedUpdateMediaState);
+                            element.addEventListener('canplaythrough', debouncedUpdateMediaState);
                             element.addEventListener('timeupdate', debouncedUpdateMediaState);
-                            element.addEventListener('seeking', debouncedUpdateMediaState);
+                            element.addEventListener('seeking', () => { seekGraceUntil = Date.now() + seekGraceMs; debouncedUpdateMediaState(); });
                             element.addEventListener('seeked', debouncedUpdateMediaState);
                             element.addEventListener('ratechange', debouncedUpdateMediaState);
+                            applyForcedMuteTo(element);
                         }
                         const mediaElements = element.querySelectorAll && element.querySelectorAll('video, audio');
                         if (mediaElements && mediaElements.length > 0) {
@@ -118,9 +265,10 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
                                 media.addEventListener('volumechange', debouncedUpdateMediaState);
                                 media.addEventListener('loadeddata', debouncedUpdateMediaState);
                                 media.addEventListener('timeupdate', debouncedUpdateMediaState);
-                                media.addEventListener('seeking', debouncedUpdateMediaState);
+                                media.addEventListener('seeking', () => { seekGraceUntil = Date.now() + seekGraceMs; debouncedUpdateMediaState(); });
                                 media.addEventListener('seeked', debouncedUpdateMediaState);
                                 media.addEventListener('ratechange', debouncedUpdateMediaState);
+                                applyForcedMuteTo(media);
                             });
                         }
                     }
@@ -145,7 +293,7 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
 
         // Ensure we clear state when this frame is being unloaded
         const sendSilence = () => {
-            try { window.webkit.messageHandlers.mediaState.postMessage({ frameId: FRAME_ID, isPlaying: false }); } catch (e) {}
+            try { window.webkit.messageHandlers.mediaState.postMessage({ frameId: FRAME_ID, isPlaying: false, isActive: false }); } catch (e) {}
         };
         window.addEventListener('pagehide', sendSilence);
         window.addEventListener('unload', sendSilence);
@@ -190,23 +338,22 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
                let frameId = payload["frameId"] as? String,
                let isPlaying = payload["isPlaying"] as? Bool
             {
-                if isPlaying {
-                    playingFrameIds.insert(frameId)
-                } else {
-                    playingFrameIds.remove(frameId)
-                }
-                let aggregated = !playingFrameIds.isEmpty
+                let isActive = (payload["isActive"] as? Bool) ?? isPlaying
+                if isPlaying { playingFrameIds.insert(frameId) } else { playingFrameIds.remove(frameId) }
+                if isActive { activeFrameIds.insert(frameId) } else { activeFrameIds.remove(frameId) }
+                let aggregatedPlaying = !playingFrameIds.isEmpty
+                let aggregatedActive = !activeFrameIds.isEmpty
                 DispatchQueue.main.async {
                     guard let tab = self.tab else { return }
-                    if tab.isPlayingMedia != aggregated {
-                        tab.isPlayingMedia = aggregated
-                    }
+                    if tab.isMediaActive != aggregatedActive { tab.isMediaActive = aggregatedActive }
+                    if tab.isPlayingMedia != aggregatedPlaying { tab.isPlayingMedia = aggregatedPlaying }
                 }
             } else if let isPlaying = message.body as? Bool {
                 // Backward compatibility with older script that sent a bare Bool
                 DispatchQueue.main.async {
                     guard let tab = self.tab else { return }
                     tab.isPlayingMedia = isPlaying
+                    tab.isMediaActive = isPlaying
                 }
             }
         }
