@@ -168,6 +168,12 @@ struct OraApp: App {
                 }
             }
 
+            CommandGroup(replacing: .appInfo) {
+                Button("About Ora") {
+                    showAboutWindow()
+                }
+            }
+
             // CommandGroup(replacing: .appSettings) {
             //     Button("Settings…") {
             //         SettingsWindowController.shared.show()
@@ -235,5 +241,26 @@ struct OraApp: App {
                 .modelContext(tabContext)
                 .withTheme()
         }
+    }
+
+    private func showAboutWindow() {
+        let alert = NSAlert()
+        alert.messageText = "Ora Browser"
+        alert.informativeText = """
+        Version \(getAppVersion())
+
+        Fast, secure, and beautiful browser built for macOS.
+
+        © 2025 Ora Browser
+        """
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "OK")
+        alert.runModal()
+    }
+
+    private func getAppVersion() -> String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
+        return "\(version) (\(build))"
     }
 }

@@ -12,6 +12,11 @@ struct BrowserView: View {
 
     @StateObject var hide = SideHolder()
 
+    private func getAppVersion() -> String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+        return "Ora \(version)"
+    }
+
     var body: some View {
         ZStack(alignment: .leading) {
             HSplit(
@@ -192,6 +197,18 @@ struct BrowserView: View {
                                             )
                                             .padding(.leading, 12)
                                         Spacer()
+
+                                        // Version indicator (bottom-right)
+                                        Text(getAppVersion())
+                                            .font(.system(size: 10, weight: .regular))
+                                            .foregroundStyle(Color.white.opacity(0.6))
+                                            .padding(.horizontal, 8)
+                                            .padding(.vertical, 4)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                                    .fill(Color.black.opacity(0.2))
+                                            )
+                                            .padding(.trailing, 12)
                                     }
                                     .padding(.bottom, 12)
                                 }
