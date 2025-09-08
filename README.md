@@ -59,6 +59,10 @@ If you would like to support the project, please consider donating:
 
 </details>
 
+## Wiki
+
+See the [Wiki](wiki/) for comprehensive documentation, guides, and project information.
+
 ## Installation
 
 1. Clone the repository and run setup:
@@ -99,10 +103,6 @@ Also see our [Code of Conduct](CODE_OF_CONDUCT.md) for community guidelines.
   ```
 
 Keyboard shortcuts: see `ora/Common/Constants/KeyboardShortcuts.swift`.
-
-## Wiki
-
-See the [Wiki](wiki/) for comprehensive documentation, guides, and project information.
 
 ## Contact
 
