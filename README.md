@@ -83,41 +83,6 @@ cd browser
   ```
   If you do not have `xcbeautify`, remove the final pipe or install it via Homebrew.
 
-## Project structure
-
-```
-browser/
-├─ ora/                             # application sources
-│  ├─ Modules/                      # feature modules (Browser, Launcher, Find, Settings, Sidebar, SplitView, EmojiPicker, TabSwitch)
-│  ├─ UI/                           # shared, reusable UI components
-│  ├─ Services/                     # app-wide services (TabManager, HistoryManager, DownloadManager, PrivacyService, SearchEngineService)
-│  ├─ Common/                       # shared resources, extensions, constants, representables, utilities
-│  ├─ Models/                       # SwiftData models and related data
-│  ├─ Resources/                    # app resources and auxiliary files
-│  ├─ Assets.xcassets/              # asset catalog
-│  ├─ Capsule.xcassets/             # asset catalog
-│  └─ oraApp.swift                  # app entry point
-├─ project.yml                      # XcodeGen project definition
-├─ .swiftformat                     # formatting configuration
-├─ .githooks/                       # git hooks (pre-commit, pre-push)
-├─ setup.sh                         # tooling bootstrap and project generation
-├─ xcbuild-debug.sh                 # CLI debug build helper
-├─ LICENSE.md                       # license
-├─ oraTests/                        # unit tests
-└─ oraUITests/                      # UI tests
-```
-
-## Data and persistence
-
-The app uses SwiftData with a single `ModelContainer` storing `TabContainer`, `History`, and `Download` models. The default store is under the app's Application Support directory as `OraData.sqlite`.
-
-To reset the local store during development, you can delete the file under Application Support. Example path (your user folder will vary):
-
-```bash
-rm -f "$(getconf DARWIN_USER_DIR 2>/dev/null || echo "$HOME/Library/Application Support")/OraData.sqlite"*
-```
-
-> **⚠️ Caution: Use with care—this permanently clears tabs/history/download metadata.**
 
 ## Development
 

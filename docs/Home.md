@@ -2,6 +2,30 @@
 
 This directory contains documentation for Ora Browser development, deployment, and maintenance.
 
+## 🏗️ Project Structure
+
+```
+browser/
+├─ ora/                             # application sources
+│  ├─ Modules/                      # feature modules (Browser, Launcher, Find, Settings, Sidebar, SplitView, EmojiPicker, TabSwitch)
+│  ├─ UI/                           # shared, reusable UI components
+│  ├─ Services/                     # app-wide services (TabManager, HistoryManager, DownloadManager, PrivacyService, SearchEngineService)
+│  ├─ Common/                       # shared resources, extensions, constants, representables, utilities
+│  ├─ Models/                       # SwiftData models and related data
+│  ├─ Resources/                    # app resources and auxiliary files
+│  ├─ Assets.xcassets/              # asset catalog
+│  ├─ Capsule.xcassets/             # asset catalog
+│  └─ oraApp.swift                  # app entry point
+├─ project.yml                      # XcodeGen project definition
+├─ .swiftformat                     # formatting configuration
+├─ .githooks/                       # git hooks (pre-commit, pre-push)
+├─ setup.sh                         # tooling bootstrap and project generation
+├─ xcbuild-debug.sh                 # CLI debug build helper
+├─ LICENSE.md                       # license
+├─ oraTests/                        # unit tests
+└─ oraUITests/                      # UI tests
+```
+
 ## 📚 Documentation Index
 
 ### 🚀 Getting Started
@@ -13,6 +37,7 @@ This directory contains documentation for Ora Browser development, deployment, a
 - **[../.github/workflows/release.yml](../.github/workflows/release.yml)** - GitHub Actions for automated releases
 
 ### 🔧 Development
+- **[DATA_PERSISTENCE.md](DATA_PERSISTENCE.md)** - Database models and local storage
 - **[../ora/Services/UpdateService.swift](../ora/Services/UpdateService.swift)** - Update service implementation
 - **[../ora/Modules/Settings/Sections/GeneralSettingsView.swift](../ora/Modules/Settings/Sections/GeneralSettingsView.swift)** - Settings UI with update controls
 - **[../project.yml](../project.yml)** - XcodeGen project configuration
