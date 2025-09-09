@@ -94,6 +94,7 @@ struct TabItem: View {
     @State private var isAudioButtonHovering = false
     @State private var showAudioTooltip = false
     @State private var audioHoverWorkItem: DispatchWorkItem?
+    @State private var muteToggleScale: CGFloat = 1.0
 
     var body: some View {
         HStack {
@@ -107,7 +108,12 @@ struct TabItem: View {
             // Audio indicator button
             if tab.isMediaActive {
                 ZStack(alignment: .top) {
-                    Button(action: { tab.toggleMute() }) {
+                    Button(action: {
+                        withAnimation(.easeOut(duration: 0.15).repeatCount(1, autoreverses: true)) {
+                            muteToggleScale = 1.2
+                        }
+                        tab.toggleMute()
+                    }) {
                         Image(systemName: tab.isMuted ? "speaker.slash.fill" : "speaker.wave.3.fill")
                             .font(.system(size: 10, weight: .semibold))
                             .foregroundColor(.secondary)
@@ -117,6 +123,9 @@ struct TabItem: View {
                                     .fill(isAudioButtonHovering ? theme.activeTabBackground.opacity(0.25) : .clear)
                             )
                             .contentShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                            .scaleEffect(muteToggleScale)
+                            .animation(.spring(duration: 0.4), value: muteToggleScale)
+                            .animation(.spring(duration: 0.4), value: tab.isMuted)
                     }
                     .buttonStyle(.plain)
                     .background(

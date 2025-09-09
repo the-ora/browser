@@ -21,6 +21,7 @@ struct FavTabItem: View {
     @State private var isAudioButtonHovering = false
     @State private var showAudioTooltip = false
     @State private var audioHoverWorkItem: DispatchWorkItem?
+    @State private var muteToggleScale: CGFloat = 1.0
 
     var body: some View {
         ZStack {
@@ -49,7 +50,12 @@ struct FavTabItem: View {
                 VStack {
                     HStack {
                         ZStack(alignment: .topLeading) {
-                            Button(action: { tab.toggleMute() }) {
+                            Button(action: {
+                                withAnimation(.easeOut(duration: 0.15).repeatCount(1, autoreverses: true)) {
+                                    muteToggleScale = 1.2
+                                }
+                                tab.toggleMute()
+                            }) {
                                 Image(systemName: tab.isMuted ? "speaker.slash.fill" : "speaker.wave.3.fill")
                                     .font(.system(size: 10, weight: .semibold))
                                     .foregroundColor(.secondary)
@@ -62,6 +68,9 @@ struct FavTabItem: View {
                                             )
                                     )
                                     .contentShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                                    .scaleEffect(muteToggleScale)
+                                    .animation(.spring(duration: 0.4), value: muteToggleScale)
+                                    .animation(.spring(duration: 0.4), value: tab.isMuted)
                             }
                             .buttonStyle(.plain)
 
@@ -80,6 +89,7 @@ struct FavTabItem: View {
                                     .zIndex(10)
                                     .allowsHitTesting(false)
                                     .animation(.easeInOut(duration: 0.12), value: showAudioTooltip)
+                                    .animation(.spring(duration: 0.4), value: tab.isMuted)
                                     .transition(.opacity.combined(with: .scale))
                             }
                         }
