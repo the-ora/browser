@@ -72,7 +72,7 @@ class TabManager: ObservableObject {
             return
         }
 
-        // Sort by order in inverse order to match UI
+        // Sort tabs in descending order of their 'order' property so that tab indices correspond to the visual order in the UI (left-to-right or top-to-bottom as displayed)
         let sortedTabs = tabs.sorted { $0.order > $1.order }
 
         // Convert 1-based index to 0-based and ensure it's within bounds
