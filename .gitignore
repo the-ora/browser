@@ -86,5 +86,3 @@ dsa_pub.pem     # Public key (safe to commit if needed)
 # !build/*.dmg
 # !build/appcast.xml
 # !build/dsa_pub.pem
-
-xcbuild-debug-local.sh
