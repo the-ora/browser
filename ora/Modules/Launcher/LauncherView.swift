@@ -8,6 +8,7 @@ struct LauncherView: View {
     @EnvironmentObject var downloadManager: DownloadManager
     @Environment(\.theme) private var theme
     @StateObject private var searchEngineService = SearchEngineService()
+    @StateObject private var faviconService = FaviconService()
 
     @State private var input = ""
     @State private var isVisible = false
@@ -19,19 +20,36 @@ struct LauncherView: View {
     private func onTabPress() {
         guard !input.isEmpty else { return }
         if let searchEngine = searchEngineService.findSearchEngine(for: input) {
-            match = searchEngine.toLauncherMatch(originalAlias: input)
+            let customEngine = searchEngineService.settings.customSearchEngines
+                .first { $0.searchURL == searchEngine.searchURL }
+            match = searchEngine.toLauncherMatch(
+                originalAlias: input,
+                faviconService: faviconService,
+                customEngine: customEngine
+            )
             input = ""
         }
     }
 
     private func onSubmit(_ newInput: String? = nil) {
         let correctInput = newInput ?? input
-        let engineToUse =
-            match
-                ?? searchEngineService.getDefaultSearchEngine()?.toLauncherMatch(originalAlias: correctInput)
+        var engineToUse = match
+
+        if engineToUse == nil,
+           let defaultEngine = searchEngineService.getDefaultSearchEngine(for: tabManager.activeContainer?.id)
+        {
+            let customEngine = searchEngineService.settings.customSearchEngines
+                .first { $0.searchURL == defaultEngine.searchURL }
+            engineToUse = defaultEngine.toLauncherMatch(
+                originalAlias: correctInput,
+                faviconService: faviconService,
+                customEngine: customEngine
+            )
+        }
 
         if let engine = engineToUse,
-           let url = searchEngineService.createSearchURL(for: engine, query: correctInput) {
+           let url = searchEngineService.createSearchURL(for: engine, query: correctInput)
+        {
             tabManager
                 .openTab(
                     url: url,
@@ -66,7 +84,7 @@ struct LauncherView: View {
                 onSubmit: onSubmit
             )
             .gradientAnimatingBorder(
-                color: match?.color ?? .clear,
+                color: match?.faviconBackgroundColor ?? match?.color ?? .clear,
                 trigger: match != nil
             )
             .offset(y: isVisible ? 250 : 240)

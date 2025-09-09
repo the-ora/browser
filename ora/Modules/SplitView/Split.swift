@@ -118,7 +118,8 @@ public struct Split<P: View, D: SplitDivider, S: View>: View {
     /// The `layout`, `fraction`,  `hide` ,  `constraints`, and any custom `splitter` must be specified using the
     /// modifiers if they are not defaults
     public init(@ViewBuilder primary: @escaping () -> P, @ViewBuilder secondary: @escaping () -> S)
-        where D == Splitter {
+        where D == Splitter
+    {
         let layout = LayoutHolder()
         let fraction = FractionHolder()
         let hide = SideHolder()
@@ -362,7 +363,8 @@ public struct Split<P: View, D: SplitDivider, S: View>: View {
 
     /// Return a new Split with the `splitter` set to the `splitter` passed-in.
     public func splitter<T>(@ViewBuilder _ splitter: @escaping () -> T) -> Split<P, T, S>
-        where T: View {
+        where T: View
+    {
         return Split<P, T, S>(
             layout, fraction: fraction, hide: hide, constraints: constraints, onDrag: onDrag,
             primary: { primary }, splitter: splitter, secondary: { secondary }

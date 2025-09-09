@@ -1,4 +1,7 @@
+import os.log
 import WebKit
+
+private let logger = Logger(subsystem: "com.orabrowser.ora", category: "FindController")
 
 class FindController: NSObject {
     let webView: WKWebView
@@ -14,13 +17,13 @@ class FindController: NSObject {
         guard let jsPath = Bundle.main.path(forResource: "mark", ofType: "js"),
               let jsCode = try? String(contentsOfFile: jsPath, encoding: .utf8)
         else {
-            print("mark.js not found or failed to load")
+            logger.error("mark.js not found or failed to load")
             return
         }
 
         webView.evaluateJavaScript(jsCode) { _, error in
             if let error {
-                print("Error injecting mark.js: \(error)")
+                logger.error("Error injecting mark.js: \(error.localizedDescription)")
             }
         }
     }
@@ -179,7 +182,8 @@ class FindController: NSObject {
         webView.evaluateJavaScript(js) { result, _ in
             if let dict = result as? [String: Any],
                let total = dict["total"] as? Int,
-               let current = dict["current"] as? Int {
+               let current = dict["current"] as? Int
+            {
                 completion(current, total)
             } else {
                 completion(0, 0)

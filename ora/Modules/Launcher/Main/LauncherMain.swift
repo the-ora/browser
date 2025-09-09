@@ -33,6 +33,8 @@ struct LauncherMain: View {
         let icon: String
         let originalAlias: String
         let searchURL: String
+        let favicon: NSImage?
+        let faviconBackgroundColor: Color?
     }
 
     @Binding var text: String
@@ -51,9 +53,12 @@ struct LauncherMain: View {
     @State private var suggestions: [LauncherSuggestion] = [
     ]
     func defaultSuggestions() -> [LauncherSuggestion] {
+        let containerId = tabManager.activeContainer?.id
+        let searchEngine = SearchEngineService().getDefaultSearchEngine(for: containerId)
+        let engineName = searchEngine?.name ?? "Google"
         return [
             LauncherSuggestion(
-                type: .suggestedQuery, title: "Search on Google",
+                type: .suggestedQuery, title: "Search on \(engineName)",
                 action: { onSubmit(nil) }
             ),
             LauncherSuggestion(
@@ -107,7 +112,7 @@ struct LauncherMain: View {
         var itemsCount = 0
         appendOpenTabs(tabs, itemsCount: &itemsCount)
         appendOpenURLSuggestionIfNeeded(text)
-        appendSearchWithGoogleSuggestion(text)
+        appendSearchWithDefaultEngineSuggestion(text)
 
         let insertIndex = suggestions.count
         requestAutoSuggestions(text, insertAt: insertIndex)
@@ -170,19 +175,23 @@ struct LauncherMain: View {
         )
     }
 
-    private func appendSearchWithGoogleSuggestion(_ text: String) {
+    private func appendSearchWithDefaultEngineSuggestion(_ text: String) {
+        let containerId = tabManager.activeContainer?.id
+        let searchEngine = SearchEngineService().getDefaultSearchEngine(for: containerId)
+        let engineName = searchEngine?.name ?? "Google"
         suggestions.append(
             LauncherSuggestion(
                 type: .suggestedQuery,
-                title: "\(text) - Search with google",
+                title: "\(text) - Search with \(engineName)",
                 action: { onSubmit(nil) }
             )
         )
     }
 
     private func requestAutoSuggestions(_ text: String, insertAt: Int) {
+        let containerId = tabManager.activeContainer?.id
         debouncer.run {
-            let searchEngine = SearchEngineService().getDefaultSearchEngine()
+            let searchEngine = SearchEngineService().getDefaultSearchEngine(for: containerId)
             if let autoSuggestions = searchEngine?.autoSuggestions {
                 let searchSuggestions = await autoSuggestions(text)
                 await MainActor.run {
@@ -264,7 +273,8 @@ struct LauncherMain: View {
     func executeCommand() {
         if let suggestion =
             suggestions
-                .first(where: { $0.id == focusedElement }) {
+                .first(where: { $0.id == focusedElement })
+        {
             suggestion.action()
             appState.showLauncher = false
         }
@@ -292,7 +302,9 @@ struct LauncherMain: View {
                         text: match?.text ?? "",
                         color: match?.color ?? .blue,
                         foregroundColor: match?.foregroundColor ?? .white,
-                        icon: match?.icon ?? ""
+                        icon: match?.icon ?? "",
+                        favicon: match?.favicon,
+                        faviconBackgroundColor: match?.faviconBackgroundColor
                     )
                 }
                 LauncherTextField(
@@ -316,7 +328,7 @@ struct LauncherMain: View {
                     onMoveDown: {
                         moveFocusedElement(.down)
                     },
-                    cursorColor: match?.color ?? (theme.foreground),
+                    cursorColor: match?.faviconBackgroundColor ?? match?.color ?? (theme.foreground),
                     placeholder: getPlaceholder(match: match)
                 )
                 .onChange(of: text) { _, _ in
@@ -330,7 +342,7 @@ struct LauncherMain: View {
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            if match == nil, suggestions.count > 0 {
+            if match == nil, !suggestions.isEmpty {
                 LauncherSuggestionsView(
                     text: $text,
                     suggestions: $suggestions,
@@ -347,7 +359,7 @@ struct LauncherMain: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .inset(by: 0.25)
                 .stroke(
-                    Color(match?.color ?? theme.foreground).opacity(0.15),
+                    Color(match?.faviconBackgroundColor ?? match?.color ?? theme.foreground).opacity(0.15),
                     lineWidth: 0.5
                 )
         )

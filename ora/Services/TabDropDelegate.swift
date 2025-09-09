@@ -10,11 +10,10 @@ struct TabDropDelegate: DropDelegate {
     func dropEntered(info: DropInfo) {
         guard let provider = info.itemProviders(for: [.text]).first else { return }
         performHapticFeedback(pattern: .alignment)
-        provider.loadObject(ofClass: NSString.self) {
-            object,
-                _ in
+        provider.loadObject(ofClass: NSString.self) { object, _ in
             if let string = object as? String,
-               let uuid = UUID(uuidString: string) {
+               let uuid = UUID(uuidString: string)
+            {
                 DispatchQueue.main.async {
                     guard let from = self.item.container.tabs.first(where: { $0.id == uuid }) else { return }
 

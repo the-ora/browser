@@ -9,6 +9,8 @@ struct BrowserView: View {
     @EnvironmentObject private var appState: AppState
     @State private var isFullscreen = false
     @State private var showFloatingSidebar = false
+    // Persisted sidebar fraction for width across modes/sessions
+    @StateObject private var sidebarFraction = FractionHolder.usingUserDefaults(0.2, key: "ui.sidebar.fraction")
 
     @StateObject var hide = SideHolder()
 
@@ -78,13 +80,15 @@ struct BrowserView: View {
             )
             .hide(hide)
             .splitter { Splitter.invisible() }
-            .fraction(0.2)
+            .fraction(sidebarFraction)
             .constraints(
                 minPFraction: 0.15,
                 minSFraction: 0.7,
                 priority: .left,
                 dragToHideP: true
             )
+            // In autohide mode, remove any draggable splitter area to unhide
+            .styling(hideSplitter: true)
             .ignoresSafeArea(.all)
             .background(theme.subtleWindowBackgroundColor)
             .background(
@@ -113,19 +117,57 @@ struct BrowserView: View {
             }
 
             if hide.side == .primary {
-                if showFloatingSidebar {
-                    FloatingSidebar(isFullscreen: isFullscreen)
-                        .frame(width: 340)
-                        .transition(.move(edge: .leading))
-                        .zIndex(3)
+                // Floating sidebar with resizable width based on persisted fraction
+                GeometryReader { geo in
+                    let totalWidth = geo.size.width
+                    let minFraction: CGFloat = 0.15
+                    let maxFraction: CGFloat = 0.30
+                    let clampedFraction = min(max(sidebarFraction.value, minFraction), maxFraction)
+                    let floatingWidth = max(0, min(totalWidth * clampedFraction, totalWidth))
+                    ZStack(alignment: .leading) {
+                        if showFloatingSidebar {
+                            FloatingSidebar(isFullscreen: isFullscreen)
+                                .frame(width: floatingWidth)
+                                .transition(.move(edge: .leading))
+                                .overlay(alignment: .trailing) {
+                                    // Invisible resize handle to adjust width in autohide mode
+                                    Rectangle()
+                                        .fill(Color.clear)
+                                        .frame(width: 14)
+                                    #if targetEnvironment(macCatalyst) || os(macOS)
+                                        .cursor(NSCursor.resizeLeftRight)
+                                    #endif
+                                        .contentShape(Rectangle())
+                                        .gesture(
+                                            DragGesture()
+                                                .onChanged { value in
+                                                    let proposedWidth = max(
+                                                        0,
+                                                        min(floatingWidth + value.translation.width, totalWidth)
+                                                    )
+                                                    let newFraction = proposedWidth / max(totalWidth, 1)
+                                                    // Clamp to same constraints as HSplit
+                                                    sidebarFraction.value = min(
+                                                        max(newFraction, minFraction),
+                                                        maxFraction
+                                                    )
+                                                }
+                                        )
+                                }
+                                .zIndex(3)
+                        }
+                        // Hover tracking strip to show/hide floating sidebar
+                        Color.clear
+                            .frame(width: showFloatingSidebar ? floatingWidth : 10)
+                            .overlay(
+                                MouseTrackingArea(
+                                    mouseEntered: $showFloatingSidebar,
+                                    xExit: floatingWidth
+                                )
+                            )
+                            .zIndex(2)
+                    }
                 }
-
-                Color.clear
-                    .frame(width: showFloatingSidebar ? 340 : 10)
-                    .overlay(
-                        MouseTrackingArea(mouseEntered: $showFloatingSidebar, xExit: 340)
-                    )
-                    .zIndex(2)
             }
         }
         .edgesIgnoringSafeArea(.all)
