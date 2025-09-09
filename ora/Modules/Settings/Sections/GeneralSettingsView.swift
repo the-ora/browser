@@ -6,6 +6,14 @@ struct GeneralSettingsView: View {
     @EnvironmentObject var updateService: UpdateService
     @StateObject private var settings = SettingsStore.shared
     @Environment(\.theme) var theme
+    @State private var isColorPickerOpen = false
+    @State private var customColor: Color = {
+        // Load saved custom color or default to orange
+        if let hexString = UserDefaults.standard.string(forKey: ThemeConstants.customColorLightKey) {
+            return Color(hex: hexString)
+        }
+        return .orange
+    }()
 
     var body: some View {
         SettingsContainer(maxContentWidth: 760) {
@@ -41,6 +49,122 @@ struct GeneralSettingsView: View {
                     .cornerRadius(8)
 
                     AppearanceSelector(selection: $appearanceManager.appearance)
+
+                    // Color Scheme Selector
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Color Scheme").foregroundStyle(.secondary)
+
+                        LazyVGrid(
+                            columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 4),
+                            spacing: 12
+                        ) {
+                            ForEach(ColorTheme.allCases) { colorTheme in
+                                let isSelected = appearanceManager.colorTheme == colorTheme
+
+                                if colorTheme == .custom {
+                                    // Custom color picker button with popover
+                                    Button {
+                                        isColorPickerOpen = true
+                                    } label: {
+                                        VStack(spacing: 6) {
+                                            ZStack {
+                                                // Show the actual selected custom color
+                                                Circle()
+                                                    .fill(customColor)
+                                                    .frame(width: 32, height: 32)
+                                                    .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
+
+                                                // Paint palette icon overlay with dynamic color
+                                                Image(systemName: "paintpalette.fill")
+                                                    .font(.system(size: 12))
+                                                    .foregroundColor(customColor.adaptiveForeground)
+                                                    .shadow(color: .black.opacity(0.3), radius: 1)
+
+                                                // Always reserve space for border, show/hide with opacity
+                                                Circle()
+                                                    .stroke(theme.foreground, lineWidth: 2)
+                                                    .frame(width: 38, height: 38)
+                                                    .opacity(isSelected ? 1 : 0)
+                                            }
+
+                                            Text(colorTheme.rawValue)
+                                                .font(.caption)
+                                                .fontWeight(isSelected ? .semibold : .regular)
+                                                .foregroundColor(isSelected ? theme.foreground : .secondary)
+                                        }
+                                    }
+                                    .buttonStyle(.plain)
+                                    .popover(isPresented: $isColorPickerOpen, arrowEdge: .bottom) {
+                                        ColorPickerView(selectedColor: $customColor) { newColor in
+                                            // Apply the custom color live as user drags
+                                            customColor = newColor
+
+                                            // Generate a darker version for dark mode
+                                            let lightHex = newColor.toHex() ?? "#f3e5d6"
+                                            let darkColor = newColor.adjusted(brightness: 0.3, saturation: 1.2)
+                                            let darkHex = darkColor.toHex() ?? "#63411D"
+
+                                            // Store custom colors
+                                            UserDefaults.standard.set(lightHex,
+                                                                      forKey: ThemeConstants.customColorLightKey)
+                                            UserDefaults.standard.set(darkHex,
+                                                                      forKey: ThemeConstants.customColorDarkKey)
+
+                                            // Force theme update
+                                            withAnimation(
+                                                .easeInOut(duration: ThemeConstants.colorTransitionDuration)
+                                            ) {
+                                                appearanceManager.colorTheme = .custom
+                                                // Post notifications to update theme
+                                                NotificationCenter.default.post(
+                                                    name: .colorThemeChanged,
+                                                    object: ColorTheme.custom
+                                                )
+                                                NotificationCenter.default.post(name: .customColorChanged, object: nil)
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    // Regular color theme buttons
+                                    Button {
+                                        withAnimation(.easeInOut(duration: ThemeConstants.colorTransitionDuration)) {
+                                            appearanceManager.colorTheme = colorTheme
+                                        }
+                                    } label: {
+                                        VStack(spacing: 6) {
+                                            ZStack {
+                                                Circle()
+                                                    .fill(
+                                                        LinearGradient(
+                                                            colors: [
+                                                                colorTheme.primaryLight,
+                                                                colorTheme.primaryDark
+                                                            ],
+                                                            startPoint: .topLeading,
+                                                            endPoint: .bottomTrailing
+                                                        )
+                                                    )
+                                                    .frame(width: 32, height: 32)
+                                                    .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
+
+                                                // Always reserve space for border, show/hide with opacity
+                                                Circle()
+                                                    .stroke(theme.foreground, lineWidth: 2)
+                                                    .frame(width: 38, height: 38)
+                                                    .opacity(isSelected ? 1 : 0)
+                                            }
+
+                                            Text(colorTheme.rawValue)
+                                                .font(.caption)
+                                                .fontWeight(isSelected ? .semibold : .regular)
+                                                .foregroundColor(isSelected ? theme.foreground : .secondary)
+                                        }
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                        }
+                    }
 
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Updates")

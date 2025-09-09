@@ -53,7 +53,7 @@ extension SearchEngine {
         return LauncherMain.Match(
             text: name,
             color: color,
-            foregroundColor: foregroundColor ?? .white,
+            foregroundColor: foregroundColor ?? color.adaptiveForeground,
             icon: icon,
             originalAlias: originalAlias,
             searchURL: searchURL,

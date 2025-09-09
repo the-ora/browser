@@ -56,7 +56,7 @@ class SearchEngineService: ObservableObject {
                 aliases: ["chat", "chatgpt", "gpt", "cgpt", "openai", "cha"],
                 searchURL: "https://chatgpt.com?q={query}",
                 isAIChat: true,
-                foregroundColor: theme?.background ?? .black
+                foregroundColor: (theme?.foreground ?? .white).adaptiveForeground
             ),
             SearchEngine(
                 name: "Google",
@@ -74,7 +74,7 @@ class SearchEngineService: ObservableObject {
                 aliases: ["grok", "gr", "gro"],
                 searchURL: "https://grok.com?q={query}",
                 isAIChat: true,
-                foregroundColor: theme?.background ?? .black
+                foregroundColor: (theme?.foreground ?? .white).adaptiveForeground
             ),
             SearchEngine(
                 name: "Perplexity",
@@ -107,7 +107,7 @@ class SearchEngineService: ObservableObject {
                 aliases: ["x", "x.com", "twitter", "tw", "twtr", "twit", "twitt", "twitte"],
                 searchURL: "https://twitter.com/search?q={query}",
                 isAIChat: false,
-                foregroundColor: theme?.background ?? .black
+                foregroundColor: (theme?.foreground ?? .white).adaptiveForeground
             )
         ]
     }
@@ -122,7 +122,8 @@ class SearchEngineService: ObservableObject {
                 icon: "",
                 aliases: custom.aliases,
                 searchURL: custom.searchURL,
-                isAIChat: false
+                isAIChat: false,
+                foregroundColor: (custom.faviconBackgroundColor ?? .blue).adaptiveForeground
             )
         }
 
