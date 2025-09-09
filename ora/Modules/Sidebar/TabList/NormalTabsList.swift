@@ -33,6 +33,7 @@ struct NormalTabsList: View {
                     onMoveToContainer: { onMoveToContainer(tab, $0) },
                     availableContainers: containers
                 )
+                .padding(.vertical, -6)
                 .onDrag { onDrag(tab.id) }
                 .onDrop(
                     of: [.text],
