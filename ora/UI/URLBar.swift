@@ -202,7 +202,8 @@ struct URLBar: View {
 
                     // Action buttons
                     HStack(spacing: 8) {
-                        Button(action: {}) {
+                        // Share current page (uses macOS share sheet like Safari)
+                        ShareLink(item: tab.url, preview: SharePreview(tab.title)) {
                             Image(systemName: "square.and.arrow.up")
                                 .font(.system(size: 14))
                                 .foregroundColor(.secondary)
