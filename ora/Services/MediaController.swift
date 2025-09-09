@@ -41,7 +41,7 @@ final class MediaController: ObservableObject {
 
         func ensureSession() -> Int {
             if let idx = sessions.firstIndex(where: { $0.tabID == id }) { return idx }
-            let s = Session(
+            let session = Session(
                 tabID: id,
                 title: tab.title,
                 pageURL: tab.url,
@@ -52,7 +52,7 @@ final class MediaController: ObservableObject {
                 canGoPrevious: false,
                 lastActive: Date()
             )
-            sessions.insert(s, at: 0)
+            sessions.insert(session, at: 0)
             return 0
         }
 
@@ -150,8 +150,8 @@ final class MediaController: ObservableObject {
 
     private func moveToFront(index: Int) {
         guard index < sessions.count else { return }
-        let s = sessions.remove(at: index)
-        sessions.insert(s, at: 0)
+        let session = sessions.remove(at: index)
+        sessions.insert(session, at: 0)
     }
 
     private func eval(_ tabID: UUID, _ javaScript: String) {
