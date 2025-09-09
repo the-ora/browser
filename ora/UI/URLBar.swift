@@ -193,16 +193,16 @@ struct URLBar: View {
                                 }
                             }
                         )
-                        .overlay(
-                            Button {
-                                triggerCopy(tab.url.absoluteString)
-                            } label: {
-                                Image(systemName: "link")
-                                    .font(.system(size: 12, weight: .regular))
-                                    .foregroundColor(getUrlFieldColor(tab))
-                                    .frame(width: 16, height: 16)
-                            }
-                        )
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                        Button {
+                            triggerCopy(tab.url.absoluteString)
+                        } label: {
+                            Image(systemName: "link")
+                                .font(.system(size: 12, weight: .regular))
+                                .foregroundColor(getUrlFieldColor(tab))
+                                .frame(width: 16, height: 16)
+                        }
                         .buttonStyle(.plain)
                         .help("Copy URL (⇧⌘C)")
                         .accessibilityLabel(Text("Copy URL"))
@@ -225,6 +225,7 @@ struct URLBar: View {
                         }
                         .keyboardShortcut(KeyboardShortcuts.Address.focus)
                         .opacity(0)
+                        .allowsHitTesting(false)
                     )
 
                     Spacer()
