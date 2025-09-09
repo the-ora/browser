@@ -224,6 +224,9 @@ struct BrowserView: View {
                                         Text(hovered)
                                             .font(.system(size: 12, weight: .regular))
                                             .foregroundStyle(theme.foreground)
+                                            .lineLimit(1)
+                                            .truncationMode(.middle)
+                                            .multilineTextAlignment(.leading)
                                             .padding(.horizontal, 10)
                                             .padding(.vertical, 6)
                                             .background(

@@ -193,14 +193,20 @@ struct URLBar: View {
                                 }
                             }
                         )
-                        // Hidden button for copy shortcut (⇧⌘C)
                         .overlay(
-                            Button("") {
+                            Button {
                                 triggerCopy(tab.url.absoluteString)
+                            } label: {
+                                Image(systemName: "link")
+                                    .font(.system(size: 12, weight: .regular))
+                                    .foregroundColor(getUrlFieldColor(tab))
+                                    .frame(width: 16, height: 16)
                             }
-                            .keyboardShortcut(KeyboardShortcuts.Address.copyURL)
-                            .opacity(0)
                         )
+                        .buttonStyle(.plain)
+                        .help("Copy URL (⇧⌘C)")
+                        .accessibilityLabel(Text("Copy URL"))
+                        .keyboardShortcut(KeyboardShortcuts.Address.copyURL)
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
