@@ -6,14 +6,49 @@ struct GlobalMediaPlayer: View {
     @EnvironmentObject var tabManager: TabManager
 
     @State private var isHovered: Bool = false
-    @State private var showVolume: Bool = false
 
-    private var titleText: String {
-        media.nowPlaying?.title ?? ""
+    // Show up to 4 sessions when hovered, otherwise only the most recent one.
+    // Exclude the currently active tab's media session.
+    private var sessionsToShow: [MediaController.Session] {
+        let activeId = tabManager.activeTab?.id
+        let visible = media.visibleSessions.filter { session in
+            guard let activeId else { return true }
+            return session.tabID != activeId
+        }
+        if isHovered { return Array(visible.prefix(4)) }
+        return Array(visible.prefix(1))
     }
 
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Show older session first so the most recent appears at the bottom
+            ForEach(Array(sessionsToShow.reversed()), id: \.id) { session in
+                MediaPlayerCard(
+                    session: session,
+                    isPrimary: session.tabID == sessionsToShow.first?.tabID
+                )
+                .environmentObject(media)
+                .environmentObject(tabManager)
+            }
+        }
+        .onHover { isHovered = $0 }
+        .animation(.easeInOut(duration: 0.12), value: isHovered)
+    }
+}
+
+private struct MediaPlayerCard: View {
+    @Environment(\.theme) var theme
+    @EnvironmentObject var media: MediaController
+    @EnvironmentObject var tabManager: TabManager
+
+    let session: MediaController.Session
+    let isPrimary: Bool
+
+    @State private var showVolume: Bool = false
+    @State private var hovered: Bool = false
+
     private var faviconImage: Image {
-        if let url = media.nowPlaying?.favicon {
+        if let url = session.favicon {
             return Image(nsImage: NSImage(byReferencing: url))
         }
         return Image(systemName: "play.rectangle.fill")
@@ -21,16 +56,14 @@ struct GlobalMediaPlayer: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if isHovered, !titleText.isEmpty {
+            if hovered, !session.title.isEmpty {
                 HStack(spacing: 8) {
-                    Text(titleText)
+                    Text(session.title)
                         .lineLimit(1)
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(Color.white.opacity(0.9))
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    Button {
-                        media.close()
-                    } label: {
+                    Button { media.closeSession(session.tabID) } label: {
                         Image(systemName: "xmark")
                             .font(.system(size: 11, weight: .semibold))
                     }
@@ -42,11 +75,7 @@ struct GlobalMediaPlayer: View {
             }
 
             HStack(spacing: 12) {
-                Button {
-                    if let id = media.nowPlaying?.tabID {
-                        tabManager.activateTab(id: id)
-                    }
-                } label: {
+                Button { tabManager.activateTab(id: session.tabID) } label: {
                     faviconImage
                         .resizable()
                         .scaledToFit()
@@ -58,36 +87,37 @@ struct GlobalMediaPlayer: View {
 
                 Spacer(minLength: 4)
 
-                Button(action: media.previousTrack) {
+                Button(action: { media.previousTrack(session.tabID) }) {
                     Image(systemName: "backward.fill")
                         .font(.system(size: 12, weight: .semibold))
-                        .opacity(media.canGoPrevious ? 1.0 : 0.35)
+                        .opacity(media.canGoPrevious(of: session.tabID) ? 1.0 : 0.35)
                 }
-                .buttonStyle(PlayerIconButtonStyle(isEnabled: media.canGoPrevious))
-                .disabled(!media.canGoPrevious)
+                .buttonStyle(PlayerIconButtonStyle(isEnabled: media.canGoPrevious(of: session.tabID)))
+                .disabled(!media.canGoPrevious(of: session.tabID))
 
-                Button(action: media.togglePlayPause) {
-                    Image(systemName: media.isPlaying ? "pause.fill" : "play.fill")
+                Button(action: { media.togglePlayPause(session.tabID) }) {
+                    Image(systemName: session.isPlaying ? "pause.fill" : "play.fill")
                         .font(.system(size: 14, weight: .bold))
                 }
                 .buttonStyle(PlayerIconButtonStyle(isEnabled: true))
-                .keyboardShortcut(.space, modifiers: [])
 
-                Button(action: media.nextTrack) {
+                Button(action: { media.nextTrack(session.tabID) }) {
                     Image(systemName: "forward.fill")
                         .font(.system(size: 12, weight: .semibold))
-                        .opacity(media.canGoNext ? 1.0 : 0.35)
+                        .opacity(media.canGoNext(of: session.tabID) ? 1.0 : 0.35)
                 }
-                .buttonStyle(PlayerIconButtonStyle(isEnabled: media.canGoNext))
-                .disabled(!media.canGoNext)
+                .buttonStyle(PlayerIconButtonStyle(isEnabled: media.canGoNext(of: session.tabID)))
+                .disabled(!media.canGoNext(of: session.tabID))
 
                 Spacer(minLength: 6)
 
                 Button {
                     withAnimation(.easeInOut(duration: 0.15)) { showVolume.toggle() }
                 } label: {
-                    Image(systemName: media.volume <= 0.001 ? "speaker.slash.fill" : "speaker.wave.2.fill")
-                        .font(.system(size: 12, weight: .semibold))
+                    Image(systemName: media
+                        .volume(of: session.tabID) <= 0.001 ? "speaker.slash.fill" : "speaker.wave.2.fill"
+                    )
+                    .font(.system(size: 12, weight: .semibold))
                 }
                 .buttonStyle(PlayerIconButtonStyle(isEnabled: true))
             }
@@ -96,8 +126,8 @@ struct GlobalMediaPlayer: View {
 
             if showVolume {
                 Slider(value: Binding(
-                    get: { media.volume },
-                    set: { media.setVolume($0) }
+                    get: { media.volume(of: session.tabID) },
+                    set: { media.setVolume(for: session.tabID, $0) }
                 ), in: 0 ... 1)
                     .controlSize(.small)
                     .frame(maxWidth: .infinity)
@@ -114,8 +144,7 @@ struct GlobalMediaPlayer: View {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .stroke(Color.white.opacity(0.05), lineWidth: 1)
         )
-        .onHover { isHovered = $0 }
+        .onHover { hovered = $0 }
         .frame(maxWidth: .infinity)
-        .animation(.easeInOut(duration: 0.12), value: isHovered)
     }
 }

@@ -4,109 +4,158 @@ import WebKit
 
 @MainActor
 final class MediaController: ObservableObject {
-    struct NowPlaying: Equatable {
+    struct Session: Identifiable, Equatable {
+        var id: UUID { tabID }
         var tabID: UUID
         var title: String
         var pageURL: URL
         var favicon: URL?
+        var isPlaying: Bool
+        var volume: Double
+        var canGoNext: Bool
+        var canGoPrevious: Bool
+        var lastActive: Date
     }
 
-    @Published var nowPlaying: NowPlaying?
-    @Published var isPlaying: Bool = false
-    @Published var volume: Double = 1.0
-    @Published var canGoNext: Bool = false
-    @Published var canGoPrevious: Bool = false
+    // Published list of sessions ordered by recency (most recent first)
+    @Published private(set) var sessions: [Session] = []
     @Published var isVisible: Bool = false
 
-    weak var currentTab: Tab?
-
-    func activate(for tab: Tab, title: String? = nil) {
-        currentTab = tab
-        nowPlaying = .init(
-            tabID: tab.id,
-            title: (title?.isEmpty == false ? title! : tab.title),
-            pageURL: tab.url,
-            favicon: tab.faviconLocalFile ?? tab.favicon
-        )
-        isVisible = true
+    // Weak references to tabs by id so we can run JS in the right webview
+    private final class WeakTab { weak var value: Tab?
+        init(_ value: Tab?) { self.value = value }
     }
 
+    private var tabRefs: [UUID: WeakTab] = [:]
+
+    // MARK: - Public accessors
+
+    var primary: Session? { visibleSessions.first }
+    var visibleSessions: [Session] { sessions }
+
+    // MARK: - Receive events from JS bridge
+
     func receive(event: MediaEventPayload, from tab: Tab) {
-        let isCurrent = currentTab?.id == tab.id
+        tabRefs[tab.id] = WeakTab(tab)
+        let id = tab.id
+
+        func ensureSession() -> Int {
+            if let idx = sessions.firstIndex(where: { $0.tabID == id }) { return idx }
+            let s = Session(
+                tabID: id,
+                title: tab.title,
+                pageURL: tab.url,
+                favicon: tab.faviconLocalFile ?? tab.favicon,
+                isPlaying: false,
+                volume: 1.0,
+                canGoNext: false,
+                canGoPrevious: false,
+                lastActive: Date()
+            )
+            sessions.insert(s, at: 0)
+            return 0
+        }
 
         switch event.type {
         case "state":
+            let idx = ensureSession()
             let playing = (event.state == "playing")
-            if playing {
-                if !isCurrent { activate(for: tab, title: event.title) }
-                isPlaying = true
-                isVisible = true
-            } else {
-                if isCurrent {
-                    isPlaying = false
-                } else {
-                    return
-                }
+            sessions[idx].isPlaying = playing
+            if let newTitle = event.title, !newTitle.isEmpty { sessions[idx].title = newTitle }
+            if let vol = event.volume { sessions[idx].volume = clamp(vol) }
+            // Update recency when it starts playing
+            if playing { sessions[idx].lastActive = Date()
+                moveToFront(index: idx)
             }
-            if let newTitle = event.title, !newTitle.isEmpty { nowPlaying?.title = newTitle }
-            if let vol = event.volume { volume = clamp(vol) }
 
         case "ready":
-            if isCurrent {
-                if let newTitle = event.title, !newTitle.isEmpty { nowPlaying?.title = newTitle }
+            if let idx = sessions.firstIndex(where: { $0.tabID == id }) {
+                if let newTitle = event.title, !newTitle.isEmpty { sessions[idx].title = newTitle }
             }
 
         case "volume":
-            if isCurrent, let vol = event.volume { volume = clamp(vol) }
+            if let idx = sessions.firstIndex(where: { $0.tabID == id }), let vol = event.volume {
+                sessions[idx].volume = clamp(vol)
+            }
 
         case "caps":
-            if isCurrent {
-                canGoNext = event.hasNext ?? canGoNext
-                canGoPrevious = event.hasPrevious ?? canGoPrevious
+            if let idx = sessions.firstIndex(where: { $0.tabID == id }) {
+                sessions[idx].canGoNext = event.hasNext ?? sessions[idx].canGoNext
+                sessions[idx].canGoPrevious = event.hasPrevious ?? sessions[idx].canGoPrevious
             }
 
         case "ended":
-            if isCurrent { isPlaying = false }
+            if let idx = sessions.firstIndex(where: { $0.tabID == id }) {
+                sessions[idx].isPlaying = false
+            }
 
         default:
             break
         }
+
+        isVisible = !sessions.isEmpty
     }
 
-    func togglePlayPause() {
-        eval("window.__oraMedia && window.__oraMedia.toggle && window.__oraMedia.toggle()")
-        isPlaying.toggle()
+    // MARK: - Controls (per session, default to primary)
+
+    func togglePlayPause(_ tabID: UUID? = nil) {
+        guard let id = tabID ?? primary?.tabID else { return }
+        eval(id, "window.__oraMedia && window.__oraMedia.toggle && window.__oraMedia.toggle()")
+        if let idx = sessions.firstIndex(where: { $0.tabID == id }) {
+            sessions[idx].isPlaying.toggle()
+        }
     }
 
-    func nextTrack() {
-        eval("window.__oraMedia && window.__oraMedia.next && window.__oraMedia.next()")
+    func nextTrack(_ tabID: UUID? = nil) {
+        guard let id = tabID ?? primary?.tabID else { return }
+        eval(id, "window.__oraMedia && window.__oraMedia.next && window.__oraMedia.next()")
     }
 
-    func previousTrack() {
-        eval("window.__oraMedia && window.__oraMedia.previous && window.__oraMedia.previous()")
+    func previousTrack(_ tabID: UUID? = nil) {
+        guard let id = tabID ?? primary?.tabID else { return }
+        eval(id, "window.__oraMedia && window.__oraMedia.previous && window.__oraMedia.previous()")
     }
 
-    func setVolume(_ value: Double) {
+    func setVolume(for tabID: UUID? = nil, _ value: Double) {
+        guard let id = tabID ?? primary?.tabID else { return }
         let clampedVolume = clamp(value)
-        volume = clampedVolume
-        eval("window.__oraMedia && window.__oraMedia.setVolume && window.__oraMedia.setVolume(\(clampedVolume))")
+        if let idx = sessions.firstIndex(where: { $0.tabID == id }) { sessions[idx].volume = clampedVolume }
+        eval(id, "window.__oraMedia && window.__oraMedia.setVolume && window.__oraMedia.setVolume(\(clampedVolume))")
     }
 
-    func volumeDelta(_ delta: Double) {
-        let newValue = clamp(volume + delta)
-        volume = newValue
-        eval("window.__oraMedia && window.__oraMedia.deltaVolume && window.__oraMedia.deltaVolume(\(delta))")
+    func volumeDelta(for tabID: UUID? = nil, _ delta: Double) {
+        guard let id = tabID ?? primary?.tabID else { return }
+        if let idx = sessions.firstIndex(where: { $0.tabID == id }) {
+            sessions[idx].volume = clamp(sessions[idx].volume + delta)
+        }
+        eval(id, "window.__oraMedia && window.__oraMedia.deltaVolume && window.__oraMedia.deltaVolume(\(delta))")
     }
 
-    func close() {
-        // Pause and hide, keep last known state
-        eval("window.__oraMedia && window.__oraMedia.pause && window.__oraMedia.pause()")
-        isPlaying = false
-        isVisible = false
+    func closeSession(_ tabID: UUID? = nil) {
+        guard let id = tabID ?? primary?.tabID else { return }
+        eval(id, "window.__oraMedia && window.__oraMedia.pause && window.__oraMedia.pause()")
+        if let idx = sessions.firstIndex(where: { $0.tabID == id }) {
+            sessions.remove(at: idx)
+        }
+        tabRefs[id] = nil
+        isVisible = !visibleSessions.isEmpty
     }
 
-    private func eval(_ javaScript: String) {
-        guard let webView = currentTab?.webView else { return }
+    // Helpers
+    func volume(of tabID: UUID) -> Double { sessions.first(where: { $0.tabID == tabID })?.volume ?? 1.0 }
+    func canGoNext(of tabID: UUID) -> Bool { sessions.first(where: { $0.tabID == tabID })?.canGoNext ?? false }
+    func canGoPrevious(of tabID: UUID) -> Bool { sessions.first(where: { $0.tabID == tabID })?.canGoPrevious ?? false }
+
+    // MARK: - Private
+
+    private func moveToFront(index: Int) {
+        guard index < sessions.count else { return }
+        let s = sessions.remove(at: index)
+        sessions.insert(s, at: 0)
+    }
+
+    private func eval(_ tabID: UUID, _ javaScript: String) {
+        guard let webView = tabRefs[tabID]?.value?.webView else { return }
         webView.evaluateJavaScript(javaScript, completionHandler: nil)
     }
 

@@ -15,6 +15,15 @@ struct SidebarView: View {
     private let columns = Array(repeating: GridItem(spacing: 10), count: 3)
     let isFullscreen: Bool
 
+    private var shouldShowMediaWidget: Bool {
+        let activeId = tabManager.activeTab?.id
+        let others = media.visibleSessions.filter { session in
+            guard let activeId else { return true }
+            return session.tabID != activeId
+        }
+        return media.isVisible && !others.isEmpty
+    }
+
     private var selectedContainerIndex: Binding<Int> {
         Binding(
             get: {
@@ -47,7 +56,8 @@ struct SidebarView: View {
                 .environmentObject(appState)
             }
 
-            if media.isVisible, let np = media.nowPlaying, tabManager.activeTab?.id != np.tabID {
+            // Show player if there is at least one playing session not belonging to the active tab
+            if shouldShowMediaWidget {
                 GlobalMediaPlayer()
                     .environmentObject(media)
                     .padding(.horizontal, 10)
