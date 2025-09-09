@@ -49,9 +49,40 @@ struct LauncherMain: View {
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var appState: AppState
     @State var focusedElement: UUID = .init()
+    @StateObject private var faviconService = FaviconService()
 
     @State private var suggestions: [LauncherSuggestion] = [
     ]
+
+    private func createAISuggestion(engineName: SearchEngineID, query: String? = nil) -> LauncherSuggestion {
+        let searchEngineService = SearchEngineService()
+        guard let engine = searchEngineService.getSearchEngine(engineName) else {
+            return LauncherSuggestion(
+                type: .aiChat,
+                title: query ?? engineName.rawValue,
+                name: engineName.rawValue,
+                action: {}
+            )
+        }
+
+        let favicon = faviconService.getFavicon(for: engine.searchURL)
+        let faviconURL = faviconService.faviconURL(for: URL(string: engine.searchURL)?.host ?? "")
+
+        return LauncherSuggestion(
+            type: .aiChat,
+            title: query ?? engine.name,
+            name: engine.name,
+            faviconURL: faviconURL,
+            action: {
+                tabManager.openFromEngine(
+                    engineName: engineName,
+                    query: query ?? text,
+                    historyManager: historyManager
+                )
+            }
+        )
+    }
+
     func defaultSuggestions() -> [LauncherSuggestion] {
         let containerId = tabManager.activeContainer?.id
         let searchEngine = SearchEngineService().getDefaultSearchEngine(for: containerId)
@@ -61,45 +92,9 @@ struct LauncherMain: View {
                 type: .suggestedQuery, title: "Search on \(engineName)",
                 action: { onSubmit(nil) }
             ),
-            LauncherSuggestion(
-                type: .aiChat,
-                title: "Grok",
-                name: "Grok",
-                action: {
-                    tabManager
-                        .openFromEngine(
-                            engineName: .grok,
-                            query: text,
-                            historyManager: historyManager
-                        )
-                }
-            ),
-            LauncherSuggestion(
-                type: .aiChat,
-                title: "ChatGPT",
-                name: "ChatGPT",
-                action: {
-                    tabManager
-                        .openFromEngine(
-                            engineName: .chatgpt,
-                            query: text,
-                            historyManager: historyManager
-                        )
-                }
-            ),
-            LauncherSuggestion(
-                type: .aiChat,
-                title: "Claude",
-                name: "Claude",
-                action: {
-                    tabManager
-                        .openFromEngine(
-                            engineName: .claude,
-                            query: text,
-                            historyManager: historyManager
-                        )
-                }
-            )
+            createAISuggestion(engineName: .grok),
+            createAISuggestion(engineName: .chatgpt),
+            createAISuggestion(engineName: .claude)
         ]
     }
 
@@ -253,48 +248,9 @@ struct LauncherMain: View {
 
     private func appendAISuggestionsIfNeeded(_ text: String) {
         guard isAISuitableQuery(text) else { return }
-        suggestions.append(
-            LauncherSuggestion(
-                type: .aiChat,
-                title: text,
-                name: "Grok",
-                action: {
-                    tabManager.openFromEngine(
-                        engineName: .grok,
-                        query: text,
-                        historyManager: historyManager
-                    )
-                }
-            )
-        )
-        suggestions.append(
-            LauncherSuggestion(
-                type: .aiChat,
-                title: text,
-                name: "ChatGPT",
-                action: {
-                    tabManager.openFromEngine(
-                        engineName: .chatgpt,
-                        query: text,
-                        historyManager: historyManager
-                    )
-                }
-            )
-        )
-        suggestions.append(
-            LauncherSuggestion(
-                type: .aiChat,
-                title: text,
-                name: "Claude",
-                action: {
-                    tabManager.openFromEngine(
-                        engineName: .claude,
-                        query: text,
-                        historyManager: historyManager
-                    )
-                }
-            )
-        )
+        suggestions.append(createAISuggestion(engineName: .grok, query: text))
+        suggestions.append(createAISuggestion(engineName: .chatgpt, query: text))
+        suggestions.append(createAISuggestion(engineName: .claude, query: text))
     }
 
     func executeCommand() {

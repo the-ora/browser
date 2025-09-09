@@ -62,7 +62,7 @@ class SearchEngineService: ObservableObject {
             SearchEngine(
                 name: "Claude",
                 color: Color(hex: "#DE7C4C"),
-                icon: "claude-capsule-logo",
+                icon: "",
                 aliases: ["claude", "cl", "cla", "anthropic"],
                 searchURL: "https://claude.ai?q={query}",
                 isAIChat: true
