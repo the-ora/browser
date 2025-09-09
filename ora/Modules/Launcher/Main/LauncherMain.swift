@@ -86,6 +86,19 @@ struct LauncherMain: View {
                             historyManager: historyManager
                         )
                 }
+            ),
+            LauncherSuggestion(
+                type: .aiChat,
+                title: "Claude",
+                name: "Claude",
+                action: {
+                    tabManager
+                        .openFromEngine(
+                            engineName: .claude,
+                            query: text,
+                            historyManager: historyManager
+                        )
+                }
             )
         ]
     }
@@ -268,6 +281,20 @@ struct LauncherMain: View {
                 }
             )
         )
+        suggestions.append(
+            LauncherSuggestion(
+                type: .aiChat,
+                title: text,
+                name: "Claude",
+                action: {
+                    tabManager.openFromEngine(
+                        engineName: .claude,
+                        query: text,
+                        historyManager: historyManager
+                    )
+                }
+            )
+        )
     }
 
     func executeCommand() {
@@ -382,6 +409,8 @@ struct LauncherMain: View {
             return "Search on Google"
         case "ChatGPT":
             return "Ask ChatGPT"
+        case "Claude":
+            return "Ask Claude"
         case "Grok":
             return "Ask Grok"
         case "Perplexity":
