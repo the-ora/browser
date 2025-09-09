@@ -125,37 +125,6 @@ struct SidebarURLDisplay: View {
                 .fill(theme.mutedBackground)
         )
         .padding(.horizontal, 10) // Fixed spacing: outer margin after background
-        .contextMenu {
-            if appState.showFullURL {
-                Button(action: {
-                    appState.showFullURL = false
-                }) {
-                    Label("Hide Full URL", systemImage: "eye.slash")
-                }
-            } else {
-                Button(action: {
-                    appState.showFullURL = true
-                }) {
-                    Label("Show Full URL", systemImage: "eye")
-                }
-            }
-
-            Divider()
-
-            if appState.isToolbarHidden {
-                Button(action: {
-                    appState.isToolbarHidden = false
-                }) {
-                    Label("Show Toolbar", systemImage: "eye")
-                }
-            } else {
-                Button(action: {
-                    appState.isToolbarHidden = true
-                }) {
-                    Label("Hide Toolbar", systemImage: "eye.slash")
-                }
-            }
-        }
         .onAppear {
             // Keep field empty when not editing so overlay shows current URL/host
             editingURLString = ""
