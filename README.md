@@ -64,33 +64,6 @@ If you would like to support the project, please consider donating:
 
 See the [Wiki](wiki/) for comprehensive documentation, guides, and project information.
 
-## Key Management for Updates
-
-Ora Browser uses Ed25519 cryptographic keys to sign and verify app updates for security:
-
-### Public Key (Committed to Git)
-- **File**: `ora_public_key.pem`
-- **Purpose**: Verifies update signatures in the app
-- **Status**: Committed to git repository
-- **Safety**: Public keys are safe to share
-
-### Private Key (Never Commit!)
-- **File**: `.env` (contains `ORA_PRIVATE_KEY`)
-- **Purpose**: Signs app updates during release
-- **Status**: Never committed to git
-- **Safety**: Keep secure and private
-
-### Setup Process
-1. **First machine**: Keys auto-generated and saved appropriately
-2. **Additional machines**: Copy `.env` file from first machine
-3. **Release process**: `./create-release.sh` handles key management automatically
-
-### Security Notes
-- `.env` is in `.gitignore` - it will never be committed
-- Public key is committed - this is safe and required
-- Never share your private key with anyone
-- If private key is lost, you'll need to regenerate keys (breaks update chain)
-
 ## Installation
 
 1. Clone the repository and run setup:
@@ -114,6 +87,7 @@ Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for developmen
 
 Also see our [Code of Conduct](CODE_OF_CONDUCT.md) for community guidelines.
 
+
 ### Regenerating the Xcode project
 
 - Update `project.yml` as needed, then:
@@ -129,14 +103,6 @@ Also see our [Code of Conduct](CODE_OF_CONDUCT.md) for community guidelines.
   xcodebuild test -scheme ora -destination "platform=macOS"
   ```
 
-
-## Links
-
-## Documentation
-
-- [Quick Start Guide](docs/QUICK_START.md) — 5-minute setup for hosting and updates
-- [Hosting Setup Guide](docs/HOSTING_SETUP.md) — Complete guide for update hosting and deployment
-- [Documentation Index](docs/README.md) — All documentation organized by topic
 
 ## Links
 
