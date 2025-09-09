@@ -94,7 +94,8 @@ struct LauncherMain: View {
             ),
             createAISuggestion(engineName: .grok),
             createAISuggestion(engineName: .chatgpt),
-            createAISuggestion(engineName: .claude)
+            createAISuggestion(engineName: .claude),
+            createAISuggestion(engineName: .gemini)
         ]
     }
 
@@ -251,6 +252,7 @@ struct LauncherMain: View {
         suggestions.append(createAISuggestion(engineName: .grok, query: text))
         suggestions.append(createAISuggestion(engineName: .chatgpt, query: text))
         suggestions.append(createAISuggestion(engineName: .claude, query: text))
+        suggestions.append(createAISuggestion(engineName: .gemini, query: text))
     }
 
     func executeCommand() {
@@ -375,6 +377,14 @@ struct LauncherMain: View {
             return "Search on Reddit"
         case "T3Chat":
             return "Ask T3Chat"
+        case "Gemini":
+            return "Ask Gemini"
+        case "Copilot":
+            return "Ask Copilot"
+        case "GitHub Copilot":
+            return "Ask GitHub Copilot"
+        case "Meta AI":
+            return "Ask Meta AI"
         default:
             return "Search on \(match!.text)"
         }
