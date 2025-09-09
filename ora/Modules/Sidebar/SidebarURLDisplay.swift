@@ -172,7 +172,6 @@ struct SidebarURLDisplay: View {
             if !isEditing { editingURLString = "" }
         }
         .onChange(of: isEditing) { _, newValue in
-            // Populate field when entering edit mode, clear when exiting
             if newValue {
                 editingURLString = tab.url.absoluteString
             } else {

@@ -280,10 +280,8 @@ struct URLBar: View {
                 }
                 .onChange(of: isEditing) { _, newValue in
                     if newValue, let tab = tabManager.activeTab {
-                        // When entering edit mode, always populate with the full URL
                         editingURLString = tab.url.absoluteString
                     } else if let tab = tabManager.activeTab {
-                        // Restore the field to the current URL/host when focus leaves the field
                         editingURLString = getDisplayURL(tab)
                     }
                 }
