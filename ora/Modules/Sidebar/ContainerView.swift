@@ -50,6 +50,7 @@ struct ContainerView: View {
                 }
             }
         }
+        .modifier(WindowDragIfAvailable())
     }
 
     private var favoriteTabs: [Tab] {
@@ -112,6 +113,16 @@ struct ContainerView: View {
 
     private func dropTab(_ tabId: String) {
         draggedItem = nil
+    }
+}
+
+private struct WindowDragIfAvailable: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(macOS 15.0, *) {
+            content.gesture(WindowDragGesture())
+        } else {
+            content
+        }
     }
 }
 
