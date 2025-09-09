@@ -8,6 +8,7 @@ struct SidebarView: View {
     @EnvironmentObject var historyManger: HistoryManager
     @EnvironmentObject var downloadManager: DownloadManager
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var media: MediaController
     @Query var containers: [TabContainer]
     @Query(filter: nil, sort: [.init(\History.lastAccessedAt, order: .reverse)]) var histories:
         [History]
@@ -44,6 +45,13 @@ struct SidebarView: View {
                 .environmentObject(historyManger)
                 .environmentObject(downloadManager)
                 .environmentObject(appState)
+            }
+
+            if media.isVisible, let np = media.nowPlaying, tabManager.activeTab?.id != np.tabID {
+                GlobalMediaPlayer()
+                    .environmentObject(media)
+                    .padding(.horizontal, 10)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
             }
 
             HStack {

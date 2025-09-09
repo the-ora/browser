@@ -12,6 +12,7 @@ private let logger = Logger(subsystem: "com.orabrowser.ora", category: "TabScrip
 class TabScriptHandler: NSObject, WKScriptMessageHandler {
     var onChange: ((String) -> Void)?
     var tab: Tab?
+    weak var mediaController: MediaController?
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         if message.name == "listener" {
@@ -44,6 +45,16 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
                 guard let tab = self.tab else { return }
                 let trimmed = (hovered ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
                 tab.hoveredLinkURL = trimmed.isEmpty ? nil : trimmed
+            }
+        } else if message.name == "mediaEvent" {
+            guard let body = message.body as? String,
+                  let data = body.data(using: .utf8),
+                  let tab = self.tab
+            else { return }
+            if let payload = try? JSONDecoder().decode(MediaEventPayload.self, from: data) {
+                DispatchQueue.main.async { [weak self] in
+                    self?.mediaController?.receive(event: payload, from: tab)
+                }
             }
         }
     }
@@ -95,6 +106,7 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         let contentController = WKUserContentController()
         contentController.add(self, name: "listener")
         contentController.add(self, name: "linkHover")
+        contentController.add(self, name: "mediaEvent")
         configuration.userContentController = contentController
 
         return configuration

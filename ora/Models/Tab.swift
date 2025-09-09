@@ -94,6 +94,7 @@ class Tab: ObservableObject, Identifiable {
         self.tabManager = tabManager
 
         config.tab = self
+        config.mediaController = tabManager.mediaController
         // Configure WebView for performance
         webView.allowsMagnification = true
         webView.allowsBackForwardNavigationGestures = true
@@ -253,6 +254,7 @@ class Tab: ObservableObject, Identifiable {
         let config = TabScriptHandler()
         self.webView = WKWebView(frame: .zero, configuration: config.defaultWKConfig())
         config.tab = self
+        config.mediaController = tabManager.mediaController
 
         webView.allowsMagnification = true
         webView.allowsBackForwardNavigationGestures = true

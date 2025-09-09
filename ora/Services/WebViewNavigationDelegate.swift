@@ -61,6 +61,150 @@ let navigationScript = """
     document.addEventListener('mouseover', onMouseOver, true);
     document.addEventListener('mouseout', onMouseOut, true);
 })();
+// Media detection & control bridge
+(function () {
+    if (window.__oraMediaInstalled) return; // prevent double-inject
+    window.__oraMediaInstalled = true;
+
+    function post(payload) {
+        try {
+            window.webkit.messageHandlers.mediaEvent.postMessage(JSON.stringify(payload));
+        } catch (e) {}
+    }
+
+    function findNextButton() {
+        const selectors = [
+            '.ytp-next-button',
+            'button[aria-label*="Next" i]',
+            'button[title*="Next" i]',
+            '[data-testid="control-button-skip-forward"]'
+        ];
+        for (const s of selectors) {
+            const el = document.querySelector(s);
+            if (el) return el;
+        }
+        return null;
+    }
+    function findPrevButton() {
+        const selectors = [
+            '.ytp-prev-button',
+            'button[aria-label*="Previous" i]',
+            'button[title*="Previous" i]',
+            '[data-testid="control-button-skip-backward"]'
+        ];
+        for (const s of selectors) {
+            const el = document.querySelector(s);
+            if (el) return el;
+        }
+        return null;
+    }
+
+    function caps() {
+        post(
+            {
+                type: 'caps',
+                hasNext: !!findNextButton(),
+                hasPrevious: !!findPrevButton()
+            }
+        );
+    }
+
+    const stateFrom = (el) => ({
+        type: 'state',
+        state: el && !el.paused ? 'playing' : 'paused',
+        volume: el ? (el.muted ? 0 : el.volume) : undefined,
+        title: document.title
+    });
+
+    function attach(el) {
+        if (!el || el.__oraAttached) return;
+        el.__oraAttached = true;
+        const update = () => post(stateFrom(el));
+        el.addEventListener('play', update);
+        el.addEventListener('pause', update);
+        el.addEventListener('ended', () => post({ type: 'ended' }));
+        el.addEventListener('volumechange', () =>
+            post({ type: 'volume', volume: el.muted ? 0 : el.volume })
+        );
+        // If already playing, announce
+        if (!el.paused) update();
+    }
+
+    function scan() {
+        document.querySelectorAll('video, audio').forEach(attach);
+        caps();
+    }
+
+    const mo = new MutationObserver(scan);
+    mo.observe(document.documentElement, { childList: true, subtree: true });
+    scan();
+
+    window.__oraMedia = {
+        active: null,
+        _pick() {
+            // Prefer any not-paused media, otherwise first element
+            const els = Array.from(document.querySelectorAll('video, audio'));
+            const playing = els.find(e => !e.paused);
+            this.active = playing || els[0] || null;
+            return this.active;
+        },
+        play() {
+            try {
+                (this._pick()||{}).play(); return true;
+            } catch(e) { return false; }
+        },
+        pause() {
+            try {
+                (this._pick()||{}).pause(); return true;
+            } catch(e) { return false; }
+        },
+        toggle() {
+            const el = this._pick();
+            if (!el) return false;
+            if (el.paused) {
+                el.play();
+            } else {
+                el.pause();
+            }
+            return true;
+        },
+        setVolume(v) {
+            const el = this._pick();
+            if (!el) return false;
+            el.muted = false;
+            el.volume = Math.max(0, Math.min(1, v));
+            post({ type: 'volume', volume: el.volume });
+            return true;
+        },
+        deltaVolume(d) {
+            const el = this._pick();
+            if (!el) return false;
+            el.muted = false;
+            el.volume = Math.max(0, Math.min(1, (el.volume||0) + d));
+            post({ type: 'volume', volume: el.volume });
+            return true;
+        },
+        next() {
+            const el = findNextButton();
+            if (el) {
+                el.click(); caps(); return true;
+            }
+            return false;
+        },
+        previous() {
+            const el = findPrevButton();
+            if (el) {
+                el.click(); caps(); return true;
+            }
+            return false;
+        },
+        title() {
+            return document.title;
+        }
+    };
+
+    post({ type: 'ready', title: document.title });
+})();
 """
 
 class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
