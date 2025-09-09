@@ -35,7 +35,7 @@ struct ContainerSwitcher: View {
         .alert("Cannot delete Container", isPresented: $didFailToDeleteContainer) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("You either have only one Container, or something went wrong.") // this text kinda sucks ngl
+            Text("Cannot delete the last remaining container. At least one container must exist.")
         }
     }
 
@@ -85,7 +85,7 @@ struct ContainerSwitcher: View {
                 let success = tabManager.deleteContainer(container)
 
                 if !success {
-                    print("Failed to delete workspace!")
+                    print("Failed to delete container!")
                     didFailToDeleteContainer = true
                 }
             }
