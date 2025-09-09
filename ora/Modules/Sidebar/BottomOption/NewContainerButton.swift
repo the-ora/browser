@@ -7,6 +7,7 @@ struct NewContainerButton: View {
     @State private var isPopoverOpen = false
     @State private var name = ""
     @State private var emoji = ""
+    let defaultEmoji = "•"
     @State private var isEmojiPickerOpen = false
     @FocusState private var isTextFieldFocused: Bool
 
@@ -77,8 +78,8 @@ struct NewContainerButton: View {
                         .cornerRadius(10)
                         .focused($isTextFieldFocused)
                         .onSubmit {
-                            if !name.isEmpty, !emoji.isEmpty {
-                                tabManager.createContainer(name: name, emoji: emoji)
+                            if !name.isEmpty {
+                                tabManager.createContainer(name: name, emoji: emoji.isEmpty ? defaultEmoji : emoji)
                                 isPopoverOpen = false
                                 name = ""
                                 emoji = ""
@@ -94,9 +95,10 @@ struct NewContainerButton: View {
                 }
 
                 Button("Create") {
-                    let defaultEmoji = "•"
                     tabManager.createContainer(name: name, emoji: emoji.isEmpty ? defaultEmoji : emoji)
                     isPopoverOpen = false
+                    name = ""
+                    emoji = ""
                 }
                 .disabled(name.isEmpty)
             }
