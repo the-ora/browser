@@ -192,11 +192,38 @@ class TabManager: ObservableObject {
             if containers.count == 1 {
                 return false
             }
+
+            guard let fallback = containers.first(where: { $0.id != container.id }) else {
+                return false
+            }
+
+            if activeContainer?.id == container.id {
+                if let tab = fallback.tabs
+                    .sorted(by: { ($0.lastAccessedAt ?? .distantPast) > ($1.lastAccessedAt ?? .distantPast) }).first
+                {
+                    activateTab(tab)
+                } else {
+                    activateContainer(fallback)
+                }
+            }
+
+            for tab in container.tabs {
+                modelContext.delete(tab)
+            }
+
+            for history in container.history {
+                modelContext.delete(history)
+            }
+
+            try modelContext.save()
+
+            modelContext.delete(container)
+            try modelContext.save()
+
         } catch {
             print("Error: \(error)")
         }
 
-        modelContext.delete(container)
         return true
     }
 
