@@ -50,12 +50,12 @@ struct LauncherMain: View {
     @EnvironmentObject var appState: AppState
     @State var focusedElement: UUID = .init()
     @StateObject private var faviconService = FaviconService()
+    @StateObject private var searchEngineService = SearchEngineService()
 
     @State private var suggestions: [LauncherSuggestion] = [
     ]
 
     private func createAISuggestion(engineName: SearchEngineID, query: String? = nil) -> LauncherSuggestion {
-        let searchEngineService = SearchEngineService()
         guard let engine = searchEngineService.getSearchEngine(engineName) else {
             return LauncherSuggestion(
                 type: .aiChat,
@@ -85,7 +85,7 @@ struct LauncherMain: View {
 
     func defaultSuggestions() -> [LauncherSuggestion] {
         let containerId = tabManager.activeContainer?.id
-        let searchEngine = SearchEngineService().getDefaultSearchEngine(for: containerId)
+        let searchEngine = searchEngineService.getDefaultSearchEngine(for: containerId)
         let engineName = searchEngine?.name ?? "Google"
         return [
             LauncherSuggestion(
@@ -186,7 +186,7 @@ struct LauncherMain: View {
 
     private func appendSearchWithDefaultEngineSuggestion(_ text: String) {
         let containerId = tabManager.activeContainer?.id
-        let searchEngine = SearchEngineService().getDefaultSearchEngine(for: containerId)
+        let searchEngine = searchEngineService.getDefaultSearchEngine(for: containerId)
         let engineName = searchEngine?.name ?? "Google"
         suggestions.append(
             LauncherSuggestion(
@@ -200,7 +200,7 @@ struct LauncherMain: View {
     private func requestAutoSuggestions(_ text: String, insertAt: Int) {
         let containerId = tabManager.activeContainer?.id
         debouncer.run {
-            let searchEngine = SearchEngineService().getDefaultSearchEngine(for: containerId)
+            let searchEngine = self.searchEngineService.getDefaultSearchEngine(for: containerId)
             if let autoSuggestions = searchEngine?.autoSuggestions {
                 let searchSuggestions = await autoSuggestions(text)
                 await MainActor.run {
