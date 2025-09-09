@@ -34,7 +34,7 @@ private final class TrackingStrip: NSView {
 
         let area = NSTrackingArea(
             rect: bounds,
-            options: [.mouseEnteredAndExited, .activeInKeyWindow],
+            options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect],
             owner: self,
             userInfo: nil
         )
@@ -47,13 +47,17 @@ private final class TrackingStrip: NSView {
     }
 
     override func mouseExited(with event: NSEvent) {
-        let mouse = convert(event.locationInWindow, from: nil)
+        let global = event.locationInWindow
+        let screenPoint = window?.convertPoint(toScreen: global) ?? global
 
-        let xExitCondition = xExit.map { mouse.x > $0 || mouse.x < 0 } ?? true
-        let yExitCondition = yExit.map { mouse.y > $0 || mouse.y < 0 } ?? true
-
-        if xExitCondition || yExitCondition {
-            mouseEntered = false
+        // Check if mouse is still inside the sidebar area
+        if let win = window {
+            let sidebarRect = NSRect(x: 0, y: 0, width: xExit ?? 340, height: win.frame.height)
+            if sidebarRect.contains(win.convertFromScreen(NSRect(origin: screenPoint, size: .zero)).origin) {
+                return // still inside sidebar zone → don’t close
+            }
         }
+
+        mouseEntered = false
     }
 }
