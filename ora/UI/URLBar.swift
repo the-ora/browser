@@ -173,24 +173,28 @@ struct URLBar: View {
                                 }
                             }
                         )
-                        // Hidden button for copy shortcut
-                        .overlay(
-                            Button("") {
-                                copyToClipboard(tab.url.absoluteString)
+                        Button {
+                            copyToClipboard(tab.url.absoluteString)
+                            withAnimation {
+                                showCopiedAnimation = true
+                                startWheelAnimation = true
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                                 withAnimation {
-                                    showCopiedAnimation = true
-                                    startWheelAnimation = true
-                                }
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                                    withAnimation {
-                                        showCopiedAnimation = false
-                                        startWheelAnimation = false
-                                    }
+                                    showCopiedAnimation = false
+                                    startWheelAnimation = false
                                 }
                             }
-                            .keyboardShortcut(KeyboardShortcuts.Address.copyURL)
-                            .opacity(0)
-                        )
+                        } label: {
+                            Image(systemName: "link")
+                                .font(.system(size: 12, weight: .regular))
+                                .foregroundColor(getUrlFieldColor(tab))
+                                .frame(width: 16, height: 16)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Copy URL (⇧⌘C)")
+                        .accessibilityLabel(Text("Copy URL"))
+                        .keyboardShortcut(KeyboardShortcuts.Address.copyURL)
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
