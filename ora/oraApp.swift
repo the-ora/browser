@@ -231,6 +231,10 @@ struct OraApp: App {
                 Button("Previous Tab") {
                     appState.isFloatingTabSwitchVisible = true
                 }
+
+                ForEach(Array(1 ... 9), id: \.self) { tabNumber in
+                    createTabButton(for: tabNumber)
+                }
             }
         }
         Settings {
@@ -240,6 +244,32 @@ struct OraApp: App {
                 .environmentObject(updateService)
                 .modelContext(tabContext)
                 .withTheme()
+        }
+    }
+
+    @inline(never)
+    private func createTabButton(for tabNumber: Int) -> some View {
+        Button("Tab \(tabNumber)") {
+            DispatchQueue.main.async {
+                tabManager.switchToTabAtIndex(tabNumber)
+            }
+        }
+        .keyboardShortcut(keyboardShortcutForTab(tabNumber))
+    }
+
+    @inline(never)
+    private func keyboardShortcutForTab(_ tabNumber: Int) -> KeyboardShortcut {
+        switch tabNumber {
+        case 1: return KeyboardShortcuts.Tabs.tab1
+        case 2: return KeyboardShortcuts.Tabs.tab2
+        case 3: return KeyboardShortcuts.Tabs.tab3
+        case 4: return KeyboardShortcuts.Tabs.tab4
+        case 5: return KeyboardShortcuts.Tabs.tab5
+        case 6: return KeyboardShortcuts.Tabs.tab6
+        case 7: return KeyboardShortcuts.Tabs.tab7
+        case 8: return KeyboardShortcuts.Tabs.tab8
+        case 9: return KeyboardShortcuts.Tabs.tab9
+        default: return KeyboardShortcut("1", modifiers: [.command]) // fallback
         }
     }
 

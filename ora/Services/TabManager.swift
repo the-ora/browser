@@ -60,6 +60,82 @@ class TabManager: ObservableObject {
         }
     }
 
+    func switchToTabAtIndex(_ tabNumber: Int) {
+        guard let container = activeContainer else {
+            return
+        }
+
+        // Get all available tabs
+        let tabs = Array(container.tabs)
+
+        guard !tabs.isEmpty else {
+            return
+        }
+
+        // Sort by order in inverse order to match UI
+        let sortedTabs = tabs.sorted { $0.order > $1.order }
+
+        // Convert 1-based index to 0-based and ensure it's within bounds
+        let tabIndex = tabNumber - 1
+
+        guard tabIndex >= 0, tabIndex < sortedTabs.count else {
+            return
+        }
+
+        let targetTab = sortedTabs[tabIndex]
+
+        // Skip if already the active tab
+        guard activeTab?.id != targetTab.id else {
+            // Ensure the WebView is ready even if already active
+            if !targetTab.isWebViewReady {
+                reactivateTab(targetTab)
+            }
+            return
+        }
+
+        // Use reactivateTab to ensure WebView is ready and viewable
+        reactivateTab(targetTab)
+    }
+
+    private func reactivateTab(
+        _ tab: Tab,
+        historyManager: HistoryManager? = nil,
+        downloadManager: DownloadManager? = nil
+    ) {
+        // First activate the tab (sets UI state)
+        activateTab(tab)
+
+        // Then ensure WebView is ready for viewing
+        if !tab.isWebViewReady {
+            // Try to get dependencies from parameters, tab, or activeTab
+            let finalHistoryManager = historyManager ?? tab.historyManager ?? activeTab?.historyManager
+            let finalDownloadManager = downloadManager ?? tab.downloadManager ?? activeTab?.downloadManager
+
+            if let histMgr = finalHistoryManager, let dlMgr = finalDownloadManager {
+                tab.restoreTransientState(
+                    historyManger: histMgr,
+                    downloadManager: dlMgr,
+                    tabManager: self
+                )
+            } else {
+                // Create a minimal WebView even without full dependencies
+                // This ensures the tab is at least visually active
+                let config = TabScriptHandler()
+                tab.webView = WKWebView(frame: .zero, configuration: config.defaultWKConfig())
+                config.tab = tab
+                tab.webView.allowsMagnification = true
+                tab.webView.allowsBackForwardNavigationGestures = true
+                tab.webView.wantsLayer = true
+
+                // Load the URL and set ready state
+                DispatchQueue.main.async {
+                    tab.webView.load(URLRequest(url: tab.url))
+                    tab.isWebViewReady = true
+                }
+            }
+        }
+    }
+
     private func combinedScore(for tab: Tab, query: String, now: Date) -> Double {
         let match = scoreMatch(tab, text: query)
 
