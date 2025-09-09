@@ -281,6 +281,9 @@ struct URLBar: View {
                 .onChange(of: isEditing) { _, newValue in
                     if newValue, let tab = tabManager.activeTab {
                         editingURLString = tab.url.absoluteString
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                            NSApp.sendAction(#selector(NSText.selectAll(_:)), to: nil, from: nil)
+                        }
                     } else if let tab = tabManager.activeTab {
                         editingURLString = getDisplayURL(tab)
                     }

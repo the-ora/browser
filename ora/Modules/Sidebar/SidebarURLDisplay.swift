@@ -25,7 +25,6 @@ struct SidebarURLDisplay: View {
     }
 
     private func triggerCopy(_ text: String) {
-        // Prevent double-trigger if both Command and view shortcut fire
         if showCopiedAnimation { return }
         copyToClipboard(text)
         withAnimation {
@@ -42,7 +41,6 @@ struct SidebarURLDisplay: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            // Security indicator
             ZStack {
                 if tab.isLoading {
                     ProgressView()
@@ -56,7 +54,6 @@ struct SidebarURLDisplay: View {
             }
             .frame(width: 16, height: 16)
 
-            // URL input field + copied overlay
             ZStack(alignment: .leading) {
                 TextField("", text: $editingURLString)
                     .font(.system(size: 14))
@@ -103,7 +100,6 @@ struct SidebarURLDisplay: View {
                 }
                 .allowsHitTesting(false)
             )
-            // Hidden button for copy shortcut (⇧⌘C)
             .overlay(
                 Button("") {
                     triggerCopy(tab.url.absoluteString)
@@ -124,25 +120,25 @@ struct SidebarURLDisplay: View {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(theme.mutedBackground)
         )
-        .padding(.horizontal, 10) // Fixed spacing: outer margin after background
+        .padding(.horizontal, 10)
         .onAppear {
-            // Keep field empty when not editing so overlay shows current URL/host
             editingURLString = ""
             DispatchQueue.main.async {
                 isEditing = false
             }
         }
         .onChange(of: tab.url) { _, _ in
-            // When the tab's URL changes and we're not editing, keep the field empty
             if !isEditing { editingURLString = "" }
         }
         .onChange(of: appState.showFullURL) { _, _ in
-            // Reflect toggle immediately via overlay; keep field empty
             if !isEditing { editingURLString = "" }
         }
         .onChange(of: isEditing) { _, newValue in
             if newValue {
                 editingURLString = tab.url.absoluteString
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    NSApp.sendAction(#selector(NSText.selectAll(_:)), to: nil, from: nil)
+                }
             } else {
                 editingURLString = ""
             }
