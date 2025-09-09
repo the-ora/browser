@@ -82,6 +82,20 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
         decidePolicyFor navigationAction: WKNavigationAction,
         decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
     ) {
+        // Check for custom scheme URLs first
+        if let url = navigationAction.request.url,
+           CustomSchemeRegistry.shared.shouldHandle(url)
+        {
+            // Cancel web navigation for custom schemes
+            decisionHandler(.cancel)
+
+            // Notify tab to handle custom scheme
+            DispatchQueue.main.async { [weak self] in
+                self?.tab?.handleCustomScheme(url)
+            }
+            return
+        }
+
         // Check if command key is pressed (cmd+click)
         logger
             .debug(

@@ -45,10 +45,20 @@ struct FavIcon: View {
     let favicon: URL?
     let faviconLocalFile: URL?
     let textColor: Color
+    let tab: Tab?
 
     var body: some View {
         HStack {
-            if let favicon, isWebViewReady {
+            if let tab,
+               tab.isShowingCustomScheme,
+               let iconName = CustomSchemeRegistry.shared.icon(for: tab.url)
+            {
+                Image(systemName: iconName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 16, height: 16)
+                    .foregroundColor(textColor)
+            } else if let favicon, isWebViewReady {
                 AsyncImage(
                     url: favicon
                 ) { image in
@@ -96,7 +106,8 @@ struct TabItem: View {
                 isWebViewReady: tab.isWebViewReady,
                 favicon: tab.favicon,
                 faviconLocalFile: tab.faviconLocalFile,
-                textColor: textColor
+                textColor: textColor,
+                tab: tab
             )
             tabTitle
             Spacer()

@@ -200,6 +200,10 @@ struct BrowserView: View {
                                 } : nil
                         )
                         .id(tab.id)
+                    } else if tab.isShowingCustomScheme, let customView = tab.customSchemeView {
+                        // Show custom scheme view
+                        customView
+                            .id(tab.id)
                     } else {
                         // Show normal web view
                         ZStack(alignment: .topTrailing) {

@@ -95,7 +95,8 @@ struct LauncherSuggestionItem: View {
                 isWebViewReady: true,
                 favicon: suggestion.faviconURL,
                 faviconLocalFile: suggestion.faviconLocalFile,
-                textColor: Color(.secondaryLabelColor)
+                textColor: Color(.secondaryLabelColor),
+                tab: nil
             )
         } else {
             Image(systemName: suggestion.type == .suggestedLink ? "globe" : "magnifyingglass")

@@ -50,6 +50,8 @@ class Tab: ObservableObject, Identifiable {
     @Transient @Published var navigationError: Error?
     @Transient @Published var failedURL: URL?
     @Transient @Published var hoveredLinkURL: String?
+    @Transient @Published var isShowingCustomScheme: Bool = false
+    @Transient @Published var customSchemeView: AnyView?
 
     @Relationship(inverse: \TabContainer.tabs) var container: TabContainer
 
@@ -305,8 +307,15 @@ class Tab: ObservableObject, Identifiable {
         }
 
         if let url = URL(string: finalURLString) {
-            let request = URLRequest(url: url)
-            webView.load(request)
+            // Check if this is a custom scheme URL
+            if CustomSchemeRegistry.shared.shouldHandle(url) {
+                handleCustomScheme(url)
+            } else {
+                // Clear custom scheme state for normal URLs
+                clearCustomScheme()
+                let request = URLRequest(url: url)
+                webView.load(request)
+            }
         }
     }
 
@@ -356,6 +365,32 @@ class Tab: ObservableObject, Identifiable {
             let request = URLRequest(url: url)
             webView.load(request)
         }
+    }
+
+    func handleCustomScheme(_ url: URL) {
+        // Update the tab's URL and title for custom schemes
+        self.url = url
+        self.urlString = url.absoluteString
+
+        // Get title and view from custom scheme registry
+        if let customTitle = CustomSchemeRegistry.shared.title(for: url) {
+            self.title = customTitle
+        }
+
+        if let customView = CustomSchemeRegistry.shared.createView(for: url) {
+            self.customSchemeView = customView
+            self.isShowingCustomScheme = true
+            self.clearNavigationError()
+            self.isLoading = false
+
+            // Update history for custom schemes
+            self.updateHistory()
+        }
+    }
+
+    func clearCustomScheme() {
+        self.isShowingCustomScheme = false
+        self.customSchemeView = nil
     }
 }
 
