@@ -41,10 +41,9 @@ struct OraApp: App {
         url: URL.applicationSupportDirectory.appending(path: "OraData.sqlite")
     )
     init() {
-        // #if DEBUG
-        //        deleteSwiftDataStore("OraData.sqlite")
-        // #endif
-        //
+        #if DEBUG
+            deleteSwiftDataStore("OraData.sqlite")
+        #endif
         // Create single container for all models
         let container: ModelContainer
         let modelContext: ModelContext

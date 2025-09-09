@@ -64,7 +64,7 @@ final class SitePermission {
         microphoneAllowed: Bool = false,
         notificationsAllowed: Bool = false,
         embeddedContentAllowed: Bool = false,
-        backgroundSyncAllowed: Bool = false,
+        backgroundSyncAllowed: Bool = true,  // Allow by default
         motionSensorsAllowed: Bool = false,
         automaticDownloadsAllowed: Bool = false,
         protocolHandlersAllowed: Bool = false,
@@ -114,7 +114,7 @@ final class SitePermission {
         self.microphoneConfigured = false
         self.notificationsConfigured = false
         self.embeddedContentConfigured = false
-        self.backgroundSyncConfigured = false
+        self.backgroundSyncConfigured = true
         self.motionSensorsConfigured = false
         self.automaticDownloadsConfigured = false
         self.protocolHandlersConfigured = false

@@ -72,6 +72,63 @@ struct ExtensionsPopupView: View {
         case .notifications:
             site.notificationsAllowed = allow
             site.notificationsConfigured = true
+        case .embeddedContent:
+            site.embeddedContentAllowed = allow
+            site.embeddedContentConfigured = true
+        case .backgroundSync:
+            site.backgroundSyncAllowed = allow
+            site.backgroundSyncConfigured = true
+        case .motionSensors:
+            site.motionSensorsAllowed = allow
+            site.motionSensorsConfigured = true
+        case .automaticDownloads:
+            site.automaticDownloadsAllowed = allow
+            site.automaticDownloadsConfigured = true
+        case .protocolHandlers:
+            site.protocolHandlersAllowed = allow
+            site.protocolHandlersConfigured = true
+        case .midiDevice:
+            site.midiDeviceAllowed = allow
+            site.midiDeviceConfigured = true
+        case .usbDevices:
+            site.usbDevicesAllowed = allow
+            site.usbDevicesConfigured = true
+        case .serialPorts:
+            site.serialPortsAllowed = allow
+            site.serialPortsConfigured = true
+        case .fileEditing:
+            site.fileEditingAllowed = allow
+            site.fileEditingConfigured = true
+        case .hidDevices:
+            site.hidDevicesAllowed = allow
+            site.hidDevicesConfigured = true
+        case .clipboard:
+            site.clipboardAllowed = allow
+            site.clipboardConfigured = true
+        case .paymentHandlers:
+            site.paymentHandlersAllowed = allow
+            site.paymentHandlersConfigured = true
+        case .augmentedReality:
+            site.augmentedRealityAllowed = allow
+            site.augmentedRealityConfigured = true
+        case .virtualReality:
+            site.virtualRealityAllowed = allow
+            site.virtualRealityConfigured = true
+        case .deviceUse:
+            site.deviceUseAllowed = allow
+            site.deviceUseConfigured = true
+        case .windowManagement:
+            site.windowManagementAllowed = allow
+            site.windowManagementConfigured = true
+        case .fonts:
+            site.fontsAllowed = allow
+            site.fontsConfigured = true
+        case .automaticPictureInPicture:
+            site.automaticPictureInPictureAllowed = allow
+            site.automaticPictureInPictureConfigured = true
+        case .scrollingZoomingSharedTabs:
+            site.scrollingZoomingSharedTabsAllowed = allow
+            site.scrollingZoomingSharedTabsConfigured = true
         }
 
         try? modelContext.save()

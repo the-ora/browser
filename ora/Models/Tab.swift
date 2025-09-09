@@ -320,8 +320,28 @@ class Tab: ObservableObject, Identifiable {
         initiatedByFrame frame: WKFrameInfo,
         decisionHandler: @escaping (WKPermissionDecision) -> Void
     ) {
-        // For now, grant all
-        decisionHandler(.grant)
+        let host = origin.host
+
+        // Request camera permission first, then microphone if camera is granted
+        Task { @MainActor in
+            PermissionManager.shared.requestPermission(
+                for: .camera,
+                from: host,
+                webView: webView
+            ) { cameraAllowed in
+                if cameraAllowed {
+                    PermissionManager.shared.requestPermission(
+                        for: .microphone,
+                        from: host,
+                        webView: webView
+                    ) { microphoneAllowed in
+                        decisionHandler(microphoneAllowed ? .grant : .deny)
+                    }
+                } else {
+                    decisionHandler(.deny)
+                }
+            }
+        }
     }
 
     func destroyWebView() {

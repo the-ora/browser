@@ -110,7 +110,29 @@ struct WebView: NSViewRepresentable {
             initiatedByFrame frame: WKFrameInfo,
             decisionHandler: @escaping (WKPermissionDecision) -> Void
         ) {
-            decisionHandler(.grant)
+            let host = origin.host
+
+            // For media capture, we need to determine if it's camera or microphone
+            // Since WebKit doesn't specify which type, we'll request both
+            Task { @MainActor in
+                PermissionManager.shared.requestPermission(
+                    for: .camera,
+                    from: host,
+                    webView: webView
+                ) { cameraAllowed in
+                    if cameraAllowed {
+                        PermissionManager.shared.requestPermission(
+                            for: .microphone,
+                            from: host,
+                            webView: webView
+                        ) { microphoneAllowed in
+                            decisionHandler(microphoneAllowed ? .grant : .deny)
+                        }
+                    } else {
+                        decisionHandler(.deny)
+                    }
+                }
+            }
         }
 
         func webView(
@@ -129,6 +151,40 @@ struct WebView: NSViewRepresentable {
                     completionHandler(nil)
                 }
             }
+        }
+
+        // MARK: - Additional Permission Handlers
+
+        // Note: Most permissions are handled via JavaScript interceptor
+        // WebKit only provides delegates for a limited set of permissions
+
+        func webView(
+            _ webView: WKWebView,
+            runJavaScriptAlertPanelWithMessage message: String,
+            initiatedByFrame frame: WKFrameInfo,
+            completionHandler: @escaping () -> Void
+        ) {
+            let alert = NSAlert()
+            alert.messageText = "Alert"
+            alert.informativeText = message
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+            completionHandler()
+        }
+
+        func webView(
+            _ webView: WKWebView,
+            runJavaScriptConfirmPanelWithMessage message: String,
+            initiatedByFrame frame: WKFrameInfo,
+            completionHandler: @escaping (Bool) -> Void
+        ) {
+            let alert = NSAlert()
+            alert.messageText = "Confirm"
+            alert.informativeText = message
+            alert.addButton(withTitle: "OK")
+            alert.addButton(withTitle: "Cancel")
+            let response = alert.runModal()
+            completionHandler(response == .alertFirstButtonReturn)
         }
 
         // MARK: - Handle target="_blank" and new window requests

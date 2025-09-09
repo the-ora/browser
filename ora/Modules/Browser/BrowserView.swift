@@ -109,6 +109,9 @@ struct BrowserView: View {
                 if appState.isFloatingTabSwitchVisible {
                     FloatingTabSwitcher()
                 }
+
+                // Permission dialog overlay
+                PermissionDialogOverlay()
             }
 
             if hide.side == .primary {
