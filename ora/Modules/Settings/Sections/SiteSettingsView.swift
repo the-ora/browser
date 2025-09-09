@@ -81,9 +81,9 @@ struct SiteSettingsView: View {
                                 UnifiedPermissionView(
                                     title: "Protocol handlers",
                                     description: "Sites can ask to handle protocols",
-                                    permissionKind: nil,
-                                    allowedText: nil,
-                                    blockedText: nil
+                                    permissionKind: .protocolHandlers,
+                                    allowedText: "Allowed to handle protocols",
+                                    blockedText: "Not allowed to handle protocols"
                                 )
                             }
                             PermissionRow(
@@ -94,9 +94,9 @@ struct SiteSettingsView: View {
                                 UnifiedPermissionView(
                                     title: "MIDI device control & reprogram",
                                     description: "Sites can ask to control and reprogram your MIDI devices",
-                                    permissionKind: nil,
-                                    allowedText: nil,
-                                    blockedText: nil
+                                    permissionKind: .midiDevice,
+                                    allowedText: "Allowed to control MIDI devices",
+                                    blockedText: "Not allowed to control MIDI devices"
                                 )
                             }
                             PermissionRow(
@@ -107,9 +107,9 @@ struct SiteSettingsView: View {
                                 UnifiedPermissionView(
                                     title: "USB devices",
                                     description: "Sites can ask to connect to USB devices",
-                                    permissionKind: nil,
-                                    allowedText: nil,
-                                    blockedText: nil
+                                    permissionKind: .usbDevices,
+                                    allowedText: "Allowed to connect to USB devices",
+                                    blockedText: "Not allowed to connect to USB devices"
                                 )
                             }
                             PermissionRow(
@@ -120,9 +120,9 @@ struct SiteSettingsView: View {
                                 UnifiedPermissionView(
                                     title: "Serial ports",
                                     description: "Sites can ask to connect to serial ports",
-                                    permissionKind: nil,
-                                    allowedText: nil,
-                                    blockedText: nil
+                                    permissionKind: .serialPorts,
+                                    allowedText: "Allowed to connect to serial ports",
+                                    blockedText: "Not allowed to connect to serial ports"
                                 )
                             }
                             PermissionRow(
@@ -133,9 +133,9 @@ struct SiteSettingsView: View {
                                 UnifiedPermissionView(
                                     title: "File editing",
                                     description: "Sites can ask to edit files and folders on your device",
-                                    permissionKind: nil,
-                                    allowedText: nil,
-                                    blockedText: nil
+                                    permissionKind: .fileEditing,
+                                    allowedText: "Allowed to edit files",
+                                    blockedText: "Not allowed to edit files"
                                 )
                             }
                             PermissionRow(
@@ -146,9 +146,9 @@ struct SiteSettingsView: View {
                                 UnifiedPermissionView(
                                     title: "HID devices",
                                     description: "Ask when a site wants to access HID devices",
-                                    permissionKind: nil,
-                                    allowedText: nil,
-                                    blockedText: nil
+                                    permissionKind: .hidDevices,
+                                    allowedText: "Allowed to access HID devices",
+                                    blockedText: "Not allowed to access HID devices"
                                 )
                             }
                             PermissionRow(
@@ -159,9 +159,9 @@ struct SiteSettingsView: View {
                                 UnifiedPermissionView(
                                     title: "Clipboard",
                                     description: "Sites can ask to see text and images on your clipboard",
-                                    permissionKind: nil,
-                                    allowedText: nil,
-                                    blockedText: nil
+                                    permissionKind: .clipboard,
+                                    allowedText: "Allowed to access clipboard",
+                                    blockedText: "Not allowed to access clipboard"
                                 )
                             }
                             PermissionRow(
@@ -172,9 +172,9 @@ struct SiteSettingsView: View {
                                 UnifiedPermissionView(
                                     title: "Payment handlers",
                                     description: "Sites can install payment handlers",
-                                    permissionKind: nil,
-                                    allowedText: nil,
-                                    blockedText: nil
+                                    permissionKind: .paymentHandlers,
+                                    allowedText: "Allowed to install payment handlers",
+                                    blockedText: "Not allowed to install payment handlers"
                                 )
                             }
                             PermissionRow(
@@ -185,9 +185,9 @@ struct SiteSettingsView: View {
                                 UnifiedPermissionView(
                                     title: "Augmented reality",
                                     description: "Ask when a site wants to create a 3D map of your surroundings or track camera position",
-                                    permissionKind: nil,
-                                    allowedText: nil,
-                                    blockedText: nil
+                                    permissionKind: .augmentedReality,
+                                    allowedText: "Allowed to use augmented reality",
+                                    blockedText: "Not allowed to use augmented reality"
                                 )
                             }
                             PermissionRow(
@@ -198,9 +198,9 @@ struct SiteSettingsView: View {
                                 UnifiedPermissionView(
                                     title: "Virtual reality",
                                     description: "Sites can ask to use virtual reality devices and data",
-                                    permissionKind: nil,
-                                    allowedText: nil,
-                                    blockedText: nil
+                                    permissionKind: .virtualReality,
+                                    allowedText: "Allowed to use virtual reality",
+                                    blockedText: "Not allowed to use virtual reality"
                                 )
                             }
                             PermissionRow(
@@ -211,9 +211,9 @@ struct SiteSettingsView: View {
                                 UnifiedPermissionView(
                                     title: "Your device use",
                                     description: "Sites can ask to know when you're actively using your device",
-                                    permissionKind: nil,
-                                    allowedText: nil,
-                                    blockedText: nil
+                                    permissionKind: .deviceUse,
+                                    allowedText: "Allowed to track device use",
+                                    blockedText: "Not allowed to track device use"
                                 )
                             }
                             PermissionRow(
@@ -224,9 +224,9 @@ struct SiteSettingsView: View {
                                 UnifiedPermissionView(
                                     title: "Window management",
                                     description: "Sites can ask to manage windows on all your displays",
-                                    permissionKind: nil,
-                                    allowedText: nil,
-                                    blockedText: nil
+                                    permissionKind: .windowManagement,
+                                    allowedText: "Allowed to manage windows",
+                                    blockedText: "Not allowed to manage windows"
                                 )
                             }
                             PermissionRow(
@@ -237,9 +237,9 @@ struct SiteSettingsView: View {
                                 UnifiedPermissionView(
                                     title: "Fonts",
                                     description: "Sites can ask to use fonts installed on your device",
-                                    permissionKind: nil,
-                                    allowedText: nil,
-                                    blockedText: nil
+                                    permissionKind: .fonts,
+                                    allowedText: "Allowed to access fonts",
+                                    blockedText: "Not allowed to access fonts"
                                 )
                             }
                             PermissionRow(
@@ -250,9 +250,9 @@ struct SiteSettingsView: View {
                                 UnifiedPermissionView(
                                     title: "Automatic picture-in-picture",
                                     description: "Sites can enter picture-in-picture automatically",
-                                    permissionKind: nil,
-                                    allowedText: nil,
-                                    blockedText: nil
+                                    permissionKind: .automaticPictureInPicture,
+                                    allowedText: "Allowed to use automatic picture-in-picture",
+                                    blockedText: "Not allowed to use automatic picture-in-picture"
                                 )
                             }
                             PermissionRow(
@@ -263,9 +263,9 @@ struct SiteSettingsView: View {
                                 UnifiedPermissionView(
                                     title: "Scrolling and zooming shared tabs",
                                     description: "Sites can ask to scroll and zoom shared tabs",
-                                    permissionKind: nil,
-                                    allowedText: nil,
-                                    blockedText: nil
+                                    permissionKind: .scrollingZoomingSharedTabs,
+                                    allowedText: "Allowed to scroll and zoom shared tabs",
+                                    blockedText: "Not allowed to scroll and zoom shared tabs"
                                 )
                             }
                         }
@@ -337,6 +337,27 @@ struct UnifiedPermissionView: View {
             case .camera: return site.cameraConfigured && site.cameraAllowed
             case .microphone: return site.microphoneConfigured && site.microphoneAllowed
             case .notifications: return site.notificationsConfigured && site.notificationsAllowed
+            case .embeddedContent: return site.embeddedContentConfigured && site.embeddedContentAllowed
+            case .backgroundSync: return site.backgroundSyncConfigured && site.backgroundSyncAllowed
+            case .motionSensors: return site.motionSensorsConfigured && site.motionSensorsAllowed
+            case .automaticDownloads: return site.automaticDownloadsConfigured && site.automaticDownloadsAllowed
+            case .protocolHandlers: return site.protocolHandlersConfigured && site.protocolHandlersAllowed
+            case .midiDevice: return site.midiDeviceConfigured && site.midiDeviceAllowed
+            case .usbDevices: return site.usbDevicesConfigured && site.usbDevicesAllowed
+            case .serialPorts: return site.serialPortsConfigured && site.serialPortsAllowed
+            case .fileEditing: return site.fileEditingConfigured && site.fileEditingAllowed
+            case .hidDevices: return site.hidDevicesConfigured && site.hidDevicesAllowed
+            case .clipboard: return site.clipboardConfigured && site.clipboardAllowed
+            case .paymentHandlers: return site.paymentHandlersConfigured && site.paymentHandlersAllowed
+            case .augmentedReality: return site.augmentedRealityConfigured && site.augmentedRealityAllowed
+            case .virtualReality: return site.virtualRealityConfigured && site.virtualRealityAllowed
+            case .deviceUse: return site.deviceUseConfigured && site.deviceUseAllowed
+            case .windowManagement: return site.windowManagementConfigured && site.windowManagementAllowed
+            case .fonts: return site.fontsConfigured && site.fontsAllowed
+            case .automaticPictureInPicture: return site.automaticPictureInPictureConfigured && site
+                .automaticPictureInPictureAllowed
+            case .scrollingZoomingSharedTabs: return site.scrollingZoomingSharedTabsConfigured && site
+                .scrollingZoomingSharedTabsAllowed
             }
         }
 
@@ -356,6 +377,27 @@ struct UnifiedPermissionView: View {
             case .camera: return site.cameraConfigured && !site.cameraAllowed
             case .microphone: return site.microphoneConfigured && !site.microphoneAllowed
             case .notifications: return site.notificationsConfigured && !site.notificationsAllowed
+            case .embeddedContent: return site.embeddedContentConfigured && !site.embeddedContentAllowed
+            case .backgroundSync: return site.backgroundSyncConfigured && !site.backgroundSyncAllowed
+            case .motionSensors: return site.motionSensorsConfigured && !site.motionSensorsAllowed
+            case .automaticDownloads: return site.automaticDownloadsConfigured && !site.automaticDownloadsAllowed
+            case .protocolHandlers: return site.protocolHandlersConfigured && !site.protocolHandlersAllowed
+            case .midiDevice: return site.midiDeviceConfigured && !site.midiDeviceAllowed
+            case .usbDevices: return site.usbDevicesConfigured && !site.usbDevicesAllowed
+            case .serialPorts: return site.serialPortsConfigured && !site.serialPortsAllowed
+            case .fileEditing: return site.fileEditingConfigured && !site.fileEditingAllowed
+            case .hidDevices: return site.hidDevicesConfigured && !site.hidDevicesAllowed
+            case .clipboard: return site.clipboardConfigured && !site.clipboardAllowed
+            case .paymentHandlers: return site.paymentHandlersConfigured && !site.paymentHandlersAllowed
+            case .augmentedReality: return site.augmentedRealityConfigured && !site.augmentedRealityAllowed
+            case .virtualReality: return site.virtualRealityConfigured && !site.virtualRealityAllowed
+            case .deviceUse: return site.deviceUseConfigured && !site.deviceUseAllowed
+            case .windowManagement: return site.windowManagementConfigured && !site.windowManagementAllowed
+            case .fonts: return site.fontsConfigured && !site.fontsAllowed
+            case .automaticPictureInPicture: return site.automaticPictureInPictureConfigured && !site
+                .automaticPictureInPictureAllowed
+            case .scrollingZoomingSharedTabs: return site.scrollingZoomingSharedTabsConfigured && !site
+                .scrollingZoomingSharedTabsAllowed
             }
         }
 
@@ -512,9 +554,9 @@ struct EmbeddedContentPermissionView: View {
         UnifiedPermissionView(
             title: "Embedded content",
             description: "Sites can ask to use information they've saved about you",
-            permissionKind: nil,
-            allowedText: nil,
-            blockedText: nil
+            permissionKind: .embeddedContent,
+            allowedText: "Allowed to use embedded content",
+            blockedText: "Not allowed to use embedded content"
         )
     }
 }
@@ -526,9 +568,9 @@ struct BackgroundSyncPermissionView: View {
         UnifiedPermissionView(
             title: "Background sync",
             description: "Recently closed sites can finish sending and receiving data",
-            permissionKind: nil,
-            allowedText: nil,
-            blockedText: nil
+            permissionKind: .backgroundSync,
+            allowedText: "Allowed to sync in background",
+            blockedText: "Not allowed to sync in background"
         )
     }
 }
@@ -538,9 +580,9 @@ struct MotionSensorsPermissionView: View {
         UnifiedPermissionView(
             title: "Motion sensors",
             description: "Sites can use motion sensors",
-            permissionKind: nil,
-            allowedText: nil,
-            blockedText: nil
+            permissionKind: .motionSensors,
+            allowedText: "Allowed to use motion sensors",
+            blockedText: "Not allowed to use motion sensors"
         )
     }
 }
@@ -550,9 +592,9 @@ struct AutomaticDownloadsPermissionView: View {
         UnifiedPermissionView(
             title: "Automatic downloads",
             description: "Sites can ask to automatically download multiple files",
-            permissionKind: nil,
-            allowedText: nil,
-            blockedText: nil
+            permissionKind: .automaticDownloads,
+            allowedText: "Allowed to download automatically",
+            blockedText: "Not allowed to download automatically"
         )
     }
 }
