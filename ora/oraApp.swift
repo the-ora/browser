@@ -164,13 +164,11 @@ struct OraApp: App {
                         appState.showFinderIn = activeTab.id
                     }
                 }
-                .keyboardShortcut(
-                    KeyboardShortcuts.Address.find
-                )
+                .keyboardShortcut(KeyboardShortcuts.Address.find)
 
                 Divider()
 
-                Button("Copy Address Bar URL") {
+                Button("Copy URL") {
                     NotificationCenter.default.post(name: .copyAddressURL, object: nil)
                 }
                 .keyboardShortcut(KeyboardShortcuts.Address.copyURL)
