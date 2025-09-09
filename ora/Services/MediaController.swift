@@ -48,12 +48,12 @@ final class MediaController: ObservableObject {
                     return
                 }
             }
-            if let t = event.title, !t.isEmpty { nowPlaying?.title = t }
+            if let newTitle = event.title, !newTitle.isEmpty { nowPlaying?.title = newTitle }
             if let vol = event.volume { volume = clamp(vol) }
 
         case "ready":
             if isCurrent {
-                if let t = event.title, !t.isEmpty { nowPlaying?.title = t }
+                if let newTitle = event.title, !newTitle.isEmpty { nowPlaying?.title = newTitle }
             }
 
         case "volume":
@@ -87,9 +87,9 @@ final class MediaController: ObservableObject {
     }
 
     func setVolume(_ value: Double) {
-        let v = clamp(value)
-        volume = v
-        eval("window.__oraMedia && window.__oraMedia.setVolume && window.__oraMedia.setVolume(\(v))")
+        let clampedVolume = clamp(value)
+        volume = clampedVolume
+        eval("window.__oraMedia && window.__oraMedia.setVolume && window.__oraMedia.setVolume(\(clampedVolume))")
     }
 
     func volumeDelta(_ delta: Double) {
@@ -105,12 +105,12 @@ final class MediaController: ObservableObject {
         isVisible = false
     }
 
-    private func eval(_ js: String) {
+    private func eval(_ javaScript: String) {
         guard let webView = currentTab?.webView else { return }
-        webView.evaluateJavaScript(js, completionHandler: nil)
+        webView.evaluateJavaScript(javaScript, completionHandler: nil)
     }
 
-    private func clamp(_ v: Double) -> Double { max(0, min(1, v)) }
+    private func clamp(_ value: Double) -> Double { max(0, min(1, value)) }
 }
 
 // Payload from injected JS
