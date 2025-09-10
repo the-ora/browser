@@ -109,7 +109,8 @@ extension UpdateService: SPUUpdaterDelegate {
     func updater(_ updater: SPUUpdater, didFindValidUpdate item: SUAppcastItem) {
         logger.info("✅ Found valid update!")
         logger.info("📦 Update details:")
-        logger.info("   - Version: \(item.displayVersionString)")
+        let version = item.displayVersionString ?? item.versionString
+        logger.info("   - Version: \(version)")
         logger.info("   - File URL: \(item.fileURL?.absoluteString ?? "none")")
         logger.info("   - Info URL: \(item.infoURL?.absoluteString ?? "none")")
         logger.info("   - Release notes: \(item.itemDescription ?? "none")")
@@ -119,7 +120,7 @@ extension UpdateService: SPUUpdaterDelegate {
         DispatchQueue.main.async {
             self.updateAvailable = true
             self.isCheckingForUpdates = false
-            self.lastCheckResult = "Update available: \(item.displayVersionString)"
+            self.lastCheckResult = "Update available: \(version)"
             self.lastCheckDate = Date()
         }
     }
@@ -171,7 +172,8 @@ extension UpdateService: SPUUpdaterDelegate {
         // Log details of each item
         for (index, item) in appcast.items.enumerated() {
             logger.info("📦 Item \(index + 1):")
-            logger.info("   - Version: \(item.displayVersionString)")
+            let version = item.displayVersionString ?? item.versionString
+            logger.info("   - Version: \(version)")
             logger.info("   - File URL: \(item.fileURL?.absoluteString ?? "none")")
             logger.info("   - Info URL: \(item.infoURL?.absoluteString ?? "none")")
             logger.info("   - File size: \(item.contentLength) bytes")
@@ -199,7 +201,8 @@ extension UpdateService: SPUUpdaterDelegate {
     func updater(_ updater: SPUUpdater, failedToDownloadUpdate item: SUAppcastItem, error: Error) {
         logger.error("❌ Failed to download update")
         logger.error("❌ Error: \(error.localizedDescription)")
-        logger.error("❌ Item version: \(item.displayVersionString)")
+        let version = item.displayVersionString ?? item.versionString
+        logger.error("❌ Item version: \(version)")
         logger.error("❌ Download URL: \(item.fileURL?.absoluteString ?? "none")")
 
         let nsError = error as NSError
