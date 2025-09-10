@@ -7,6 +7,7 @@ struct SpacesSettingsView: View {
     @StateObject private var settings = SettingsStore.shared
     @State private var searchService = SearchEngineService()
     @State private var selectedContainerId: UUID?
+    @EnvironmentObject var historyManger: HistoryManager
 
     private var selectedContainer: TabContainer? {
         containers.first { $0.id == selectedContainerId } ?? containers.first
@@ -98,9 +99,11 @@ struct SpacesSettingsView: View {
 
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Clear Data").foregroundStyle(.secondary)
-                            Button("Clear Cache") { PrivacyService.clearCache() }
-                            Button("Clear Cookies") { PrivacyService.clearCookies() }
-                            Button("Clear Browsing History") {}
+                            Button("Clear Cache") { PrivacyService.clearCache(container) }
+                            Button("Clear Cookies") { PrivacyService.clearCookies(container) }
+                            Button("Clear Browsing History") {
+                                historyManger.clearContainerHistory(container)
+                            }
                         }
                         .padding(8)
 

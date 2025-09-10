@@ -85,7 +85,7 @@ class Tab: ObservableObject, Identifiable {
         self.webView = WKWebView(
             frame: .zero,
             configuration: config
-                .defaultWKConfig()
+                .customWKConfig(containerId: container.id)
         )
 
         self.order = order
@@ -190,7 +190,7 @@ class Tab: ObservableObject, Identifiable {
         }
     }
 
-    private func setupNavigationDelegate() {
+    public func setupNavigationDelegate() {
         let delegate = WebViewNavigationDelegate()
         delegate.tab = self
         delegate.onStart = { [weak self] in
@@ -251,9 +251,16 @@ class Tab: ObservableObject, Identifiable {
         if webView.url != nil { return }
 
         let config = TabScriptHandler()
-        self.webView = WKWebView(frame: .zero, configuration: config.defaultWKConfig())
+        
+       
         config.tab = self
-
+        self.webView = WKWebView(
+            frame: .zero,
+            configuration:config
+                .customWKConfig(
+                    containerId:self.container.id
+                )
+        )
         webView.allowsMagnification = true
         webView.allowsBackForwardNavigationGestures = true
 
