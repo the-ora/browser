@@ -41,7 +41,6 @@ struct OraApp: App {
     @StateObject private var downloadManager: DownloadManager
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
-
     let tabContext: ModelContext
     let historyContext: ModelContext
     let downloadContext: ModelContext
