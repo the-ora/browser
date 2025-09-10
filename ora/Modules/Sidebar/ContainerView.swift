@@ -23,7 +23,7 @@ struct ContainerView: View {
             )
 
             VerticalScrollView {
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 10) {
                     PinnedTabsList(
                         tabs: pinnedTabs,
                         draggedItem: $draggedItem,

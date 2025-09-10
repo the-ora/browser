@@ -62,21 +62,25 @@ struct LauncherView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            Color.black.opacity(clearOverlay! ? 0 : 0.3)
-                .ignoresSafeArea()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .contentShape(Rectangle())
-                .animation(.easeOut(duration: 0.3), value: isVisible)
-                .onTapGesture {
-                    if tabManager.activeTab != nil {
-                        isVisible = false
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                            appState.showLauncher = false
+            if isVisible {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .contentShape(Rectangle())
+                    .animation(.easeOut(duration: 0.3), value: isVisible)
+                    .onTapGesture {
+                        if tabManager.activeTab != nil {
+                            isVisible = false
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                appState.showLauncher = false
+                            }
                         }
                     }
-                }
+                    .transition(.opacity.animation(.smooth(duration: 0.3)))
+            }
 
             LauncherMain(
+                isVisible: isVisible,
                 text: $input,
                 match: $match,
                 isFocused: $isTextFieldFocused,
@@ -87,27 +91,18 @@ struct LauncherView: View {
                 color: match?.faviconBackgroundColor ?? match?.color ?? .clear,
                 trigger: match != nil
             )
-            .scaleEffect(isVisible ? 1.0 : 0.85)
-            .opacity(isVisible ? 1.0 : 0.0)
-            .blur(radius: isVisible ? 0 : 2)
             .offset(y: 250)
-            .animation(
-                isVisible
-                    ? .spring(response: 0.15, dampingFraction: 0.5, blendDuration: 0.2)
-                    : .easeOut(duration: 0.1),
-                value: isVisible
-            )
-            .onAppear {
-                isVisible = true
-                isTextFieldFocused = true
-                searchEngineService.setTheme(theme)
-            }
-            .onChange(of: appState.showLauncher) { _, newValue in
-                isVisible = newValue
-            }
             // .onChange(of: theme) { _, newValue in
             //     searchEngineService.setTheme(newValue)
             // }
+        }
+        .onAppear {
+            isVisible = true
+            isTextFieldFocused = true
+            searchEngineService.setTheme(theme)
+        }
+        .onChange(of: appState.showLauncher) { _, newValue in
+            isVisible = newValue
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onExitCommand {

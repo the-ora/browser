@@ -37,6 +37,7 @@ struct LauncherMain: View {
         let faviconBackgroundColor: Color?
     }
 
+    var isVisible: Bool
     @Binding var text: String
     @Binding var match: Match?
     var isFocused: FocusState<Bool>.Binding
@@ -277,17 +278,23 @@ struct LauncherMain: View {
     var body: some View {
         if #available(macOS 26.0, *) {
             VStack(alignment: .leading, spacing: 10) {
-                LauncherTextFieldContainer()
-                    .animation(nil, value: match?.color)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 10)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(8)
-                    .frame(width: 814, alignment: .leading)
-                    .glassEffect(.regular.tint(theme.launcherMainBackground), in: .rect(cornerRadius: 16))
-                    .glassEffectID("text", in: namespace)
                 GlassEffectContainer(spacing: 10) {
-                    if match == nil, !suggestions.isEmpty {
+                    if isVisible {
+                        LauncherTextFieldContainer()
+                            .animation(nil, value: match?.color)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 10)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(8)
+                            .frame(width: 814, alignment: .leading)
+                            .glassEffect(.regular.tint(theme.launcherMainBackground), in: .rect(cornerRadius: 16))
+                            .glassEffectID("text", in: namespace)
+                    }
+                }
+                .animation(.bouncy(duration: 0.3), value: isVisible)
+
+                GlassEffectContainer(spacing: 10) {
+                    if match == nil, !suggestions.isEmpty, isVisible {
                         LauncherSuggestionsView(
                             text: $text,
                             suggestions: $suggestions,

@@ -125,7 +125,7 @@ struct TabItem: View {
                 }
             }
         }
-        .padding(8)
+        .padding(10)
         .opacity(isDragging ? 0.0 : 1.0)
         .background(backgroundColor)
         .clipShape(.rect(cornerRadius: 10))
