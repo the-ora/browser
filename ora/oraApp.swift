@@ -205,6 +205,10 @@ struct OraApp: App {
                 Button("About Ora") {
                     showAboutWindow()
                 }
+
+                Button("Check for Updates") {
+                    updateService.checkForUpdates()
+                }
             }
 
             // CommandGroup(replacing: .appSettings) {

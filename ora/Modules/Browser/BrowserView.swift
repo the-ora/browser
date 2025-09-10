@@ -171,7 +171,7 @@ struct BrowserView: View {
             }
         }
         .edgesIgnoringSafeArea(.all)
-        .animation(.spring(response: 0.25, dampingFraction: 0.9), value: showFloatingSidebar)
+        .animation(.easeOut(duration: 0.1), value: showFloatingSidebar)
         .onReceive(NotificationCenter.default.publisher(for: .toggleSidebar)) { _ in
             toggleSidebar()
         }
@@ -347,10 +347,10 @@ struct BrowserContentContainer<Content: View>: View {
                     trailing: 0
                 )
                 : EdgeInsets(
-                    top: 10,
-                    leading: hideState.side == .primary ? 10 : 0,
-                    bottom: 10,
-                    trailing: 10
+                    top: 6,
+                    leading: hideState.side == .primary ? 6 : 0,
+                    bottom: 6,
+                    trailing: 6
                 )
         )
         .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 2)
