@@ -337,33 +337,17 @@ struct LauncherMain: View {
         }
         .padding(8)
         .frame(width: 814, alignment: .leading)
-        .if {
-            if #available(macOS 26.0, *) {
-                $0.adaptiveGlassEffect(
-                    tintColor: Color(theme.launcherMainBackground),
-                    cornerRadius: 16
-                )
-            } else {
-                $0
-                    .background(theme.launcherMainBackground)
-                    .adaptiveGlassEffect(
-                        tintColor: Color(match?.faviconBackgroundColor ?? match?.color ?? theme.foreground),
-                        cornerRadius: 16
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .inset(by: 0.25)
-                            .stroke(
-                                Color(match?.faviconBackgroundColor ?? match?.color ?? theme.foreground).opacity(0.15),
-                                lineWidth: 0.5
-                            )
-                    )
-                    .shadow(
-                        color: Color.black.opacity(0.1),
-                        radius: 40, x: 0, y: 24
-                    )
-            }
-        }
+        .adaptiveGlassEffect(
+            backgroundColor: theme.launcherMainBackground,
+            cornerRadius: 16,
+            strokeColor: Color(match?.faviconBackgroundColor ?? match?.color ?? theme.foreground),
+            strokeOpacity: 0.15,
+            strokeWidth: 0.5,
+            strokeInset: 0.25,
+            shadowColor: Color.black.opacity(0.1),
+            shadowRadius: 40,
+            shadowOffset: (x: 0, y: 24)
+        )
     }
 
     private func getPlaceholder(match: Match?) -> String {

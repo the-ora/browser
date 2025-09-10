@@ -7,11 +7,10 @@ struct FloatingSidebar: View {
     var body: some View {
         ZStack(alignment: .leading) {
             SidebarView(isFullscreen: isFullscreen)
-                .background(theme.subtleWindowBackgroundColor)
-                .adaptiveGlassEffect(cornerRadius: 8)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .stroke(theme.invertedSolidWindowBackgroundColor.opacity(0.3), lineWidth: 1)
+                .adaptiveGlassEffect(
+                    backgroundColor: theme.subtleWindowBackgroundColor,
+                    cornerRadius: 8,
+                    strokeColor: theme.invertedSolidWindowBackgroundColor
                 )
         }
         .padding(6)

@@ -15,13 +15,39 @@ extension View {
     }
 
     @ViewBuilder
-    func adaptiveGlassEffect(tintColor: Color? = nil, cornerRadius: CGFloat = 16) -> some View {
+    func adaptiveGlassEffect(
+        backgroundColor: Color? = nil,
+        cornerRadius: CGFloat = 16,
+        strokeColor: Color? = nil,
+        strokeOpacity: Double = 0.3,
+        strokeWidth: CGFloat = 1.0,
+        strokeInset: CGFloat = 0.0,
+        shadowColor: Color? = nil,
+        shadowRadius: CGFloat = 0,
+        shadowOffset: (x: CGFloat, y: CGFloat) = (0, 0)
+    ) -> some View {
         if #available(macOS 26.0, *) {
-            self.glassEffect(.regular.tint(tintColor), in: .rect(cornerRadius: cornerRadius))
+            self.glassEffect(.regular.tint(backgroundColor), in: .rect(cornerRadius: cornerRadius))
                 .glassEffectTransition(.materialize)
         } else {
-            self.background(BlurEffectView(material: .popover, blendingMode: .withinWindow))
+            self
+                .background(backgroundColor ?? Color.clear)
+                .background(BlurEffectView(material: .popover, blendingMode: .withinWindow))
                 .clipShape(.rect(cornerRadius: cornerRadius))
+                .overlay(
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .inset(by: strokeInset)
+                        .stroke(
+                            strokeColor?.opacity(strokeOpacity) ?? Color.clear,
+                            lineWidth: strokeWidth
+                        )
+                )
+                .shadow(
+                    color: shadowColor ?? Color.clear,
+                    radius: shadowRadius,
+                    x: shadowOffset.x,
+                    y: shadowOffset.y
+                )
         }
     }
 
