@@ -93,9 +93,8 @@ struct FloatingTabSwitcher: View {
         }
         .padding(.horizontal, 28)
         .padding(.vertical, 20)
-        .background(BlurEffectView(material: .popover, blendingMode: .withinWindow))
         .background(theme.background.opacity(0.3))
-        .clipShape(.rect(cornerRadius: Constants.containerCornerRadius))
+        .adaptiveGlassEffect(cornerRadius: Constants.containerCornerRadius)
         .shadow(color: .blue.opacity(0.07), radius: 16, x: 0, y: 12)
         .background(keyboardHandler)
         .overlay(containerBorder)
