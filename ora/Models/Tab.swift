@@ -24,6 +24,7 @@ class Tab: ObservableObject, Identifiable {
     var urlString: String
     var savedURL: URL?
     var title: String
+    var customTitle: String? // User-defined custom title
     var favicon: URL? // Add favicon property
     var createdAt: Date
     var lastAccessedAt: Date?
@@ -58,6 +59,7 @@ class Tab: ObservableObject, Identifiable {
         id: UUID = UUID(),
         url: URL,
         title: String,
+        customTitle: String? = nil,
         favicon: URL? = nil,
         container: TabContainer,
         type: TabType = .normal,
@@ -73,6 +75,7 @@ class Tab: ObservableObject, Identifiable {
         self.urlString = url.absoluteString
 
         self.title = title
+        self.customTitle = customTitle
         self.favicon = favicon
         self.createdAt = nowDate
         self.lastAccessedAt = nowDate
@@ -118,6 +121,11 @@ class Tab: ObservableObject, Identifiable {
         }
     }
 
+    // Computed property to get the title to display (custom title takes precedence)
+    var displayTitle: String {
+        return customTitle ?? title
+    }
+    
     func syncBackgroundColorFromHex() {
         backgroundColor = Color(hex: backgroundColorHex)
     }

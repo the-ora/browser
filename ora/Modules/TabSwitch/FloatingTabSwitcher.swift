@@ -176,7 +176,7 @@ struct FloatingTabSwitcher: View {
             )
             .frame(width: 16, height: 16)
 
-            Text(tab.title)
+            Text(tab.displayTitle)
                 .font(.system(size: 12))
                 .foregroundColor(theme.foreground)
                 .lineLimit(1)

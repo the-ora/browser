@@ -414,4 +414,10 @@ class TabManager: ObservableObject {
         folder.isOpened.toggle()
         try? modelContext.save()
     }
+    
+    // MARK: - Persistence
+    
+    func saveChanges() {
+        try? modelContext.save()
+    }
 }

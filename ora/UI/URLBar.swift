@@ -164,7 +164,7 @@ struct URLBar: View {
                             Group {
                                 if !isEditing, editingURLString.isEmpty {
                                     HStack {
-                                        Text(tab.title.isEmpty ? "New Tab" : tab.title)
+                                        Text(tab.displayTitle.isEmpty ? "New Tab" : tab.displayTitle)
                                             .font(.system(size: 14))
                                             .foregroundColor(getUrlFieldColor(tab))
                                             .lineLimit(1)

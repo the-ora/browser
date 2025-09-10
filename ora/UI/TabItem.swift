@@ -158,10 +158,11 @@ struct TabItem: View {
     }
 
     private var tabTitle: some View {
-        Text(tab.title)
-            .font(.system(size: 13))
-            .foregroundColor(textColor)
-            .lineLimit(1)
+        EditableTabTitle(
+            tab: tab,
+            isSelected: isSelected,
+            textColor: textColor
+        )
     }
 
     private var backgroundColor: Color {
