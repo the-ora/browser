@@ -109,11 +109,13 @@ final class MediaController: ObservableObject {
     func nextTrack(_ tabID: UUID? = nil) {
         guard let id = tabID ?? primary?.tabID else { return }
         eval(id, "window.__oraMedia && window.__oraMedia.next && window.__oraMedia.next()")
+        scheduleTitleSync(for: id)
     }
 
     func previousTrack(_ tabID: UUID? = nil) {
         guard let id = tabID ?? primary?.tabID else { return }
         eval(id, "window.__oraMedia && window.__oraMedia.previous && window.__oraMedia.previous()")
+        scheduleTitleSync(for: id)
     }
 
     func setVolume(for tabID: UUID? = nil, _ value: Double) {
@@ -160,6 +162,35 @@ final class MediaController: ObservableObject {
     }
 
     private func clamp(_ value: Double) -> Double { max(0, min(1, value)) }
+
+    // MARK: - Title sync helpers
+
+    private func scheduleTitleSync(for tabID: UUID, attempts: Int = 6, delay: TimeInterval = 0.25) {
+        guard attempts > 0 else { return }
+        let currentTitle = sessions.first(where: { $0.tabID == tabID })?.title
+        fetchDocumentTitle(for: tabID) { [weak self] newTitle in
+            guard let self else { return }
+            if let title = newTitle, !title.isEmpty, title != currentTitle,
+               let idx = self.sessions.firstIndex(where: { $0.tabID == tabID })
+            {
+                self.sessions[idx].title = title
+            } else {
+                DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                    self.scheduleTitleSync(for: tabID, attempts: attempts - 1, delay: delay)
+                }
+            }
+        }
+    }
+
+    private func fetchDocumentTitle(for tabID: UUID, completion: @escaping (String?) -> Void) {
+        guard let webView = tabRefs[tabID]?.value?.webView else { completion(nil)
+            return
+        }
+        let js = "(function(){ try { return (window.__oraMedia && window.__oraMedia.title && window.__oraMedia.title()) || document.title || ''; } catch(e) { return document.title || ''; } })()"
+        webView.evaluateJavaScript(js) { result, _ in
+            completion(result as? String)
+        }
+    }
 }
 
 // Payload from injected JS
