@@ -4,7 +4,7 @@ struct EditableTabTitle: View {
     let tab: Tab
     let isSelected: Bool
     let textColor: Color
-    @State private var isEditing = false
+    @Binding var isEditing: Bool
     @State private var editingText = ""
     @FocusState private var isFocused: Bool
     @EnvironmentObject var tabManager: TabManager
@@ -19,9 +19,16 @@ struct EditableTabTitle: View {
                 .font(.system(size: 13))
                 .foregroundColor(textColor)
                 .focused($isFocused)
+                .background(Color.white.opacity(0.1))
+                .cornerRadius(4)
+                .padding(.horizontal, 4)
+                .padding(.vertical, 2)
                 .onAppear {
                     editingText = tab.displayTitle
-                    isFocused = true
+                    // Delay focus to ensure the text field is ready
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        isFocused = true
+                    }
                 }
                 .onSubmit {
                     saveTitle()
@@ -39,11 +46,23 @@ struct EditableTabTitle: View {
                     }
             }
         }
+        .onChange(of: isEditing) { _, newValue in
+            if newValue {
+                editingText = tab.displayTitle
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    isFocused = true
+                }
+            }
+        }
     }
     
     private func startEditing() {
         editingText = tab.displayTitle
         isEditing = true
+        // Ensure focus is set
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            isFocused = true
+        }
     }
     
     private func saveTitle() {
