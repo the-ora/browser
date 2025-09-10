@@ -272,82 +272,124 @@ struct LauncherMain: View {
         focusedElement = suggestions[newIndex].id
     }
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .center, spacing: 8) {
-                if match == nil {
-                    Image(systemName: getIconName(match: match, text: text))
-                        .resizable()
-                        .frame(width: 18, height: 18)
-                        .foregroundStyle(Color(.placeholderTextColor))
-                }
+    @Namespace var namespace
 
-                if match != nil {
-                    SearchEngineCapsule(
-                        text: match?.text ?? "",
-                        color: match?.color ?? .blue,
-                        foregroundColor: match?.foregroundColor ?? .white,
-                        icon: match?.icon ?? "",
-                        favicon: match?.favicon,
-                        faviconBackgroundColor: match?.faviconBackgroundColor
+    var body: some View {
+        if #available(macOS 26.0, *) {
+            GlassEffectContainer(spacing: 10) {
+                VStack(alignment: .leading, spacing: 10) {
+                    LauncherTextFieldContainer()
+                        .animation(nil, value: match?.color)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 10)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(8)
+                        .frame(width: 814, alignment: .leading)
+                        .glassEffect(.regular, in: .rect(cornerRadius: 16))
+                        .glassEffectID("text", in: namespace)
+
+                    if match == nil, !suggestions.isEmpty {
+                        LauncherSuggestionsView(
+                            text: $text,
+                            suggestions: $suggestions,
+                            focusedElement: $focusedElement
+                        )
+                        .padding(8)
+                        .frame(width: 814, alignment: .leading)
+                        .glassEffect(.regular, in: .rect(cornerRadius: 16))
+                        .glassEffectID("suggestions", in: namespace)
+                    }
+                }
+            }
+            .animation(.bouncy(duration: 0.3), value: suggestions.isEmpty)
+        } else {
+            VStack(alignment: .leading, spacing: 6) {
+                LauncherTextFieldContainer()
+                    .animation(nil, value: match?.color)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                if match == nil, !suggestions.isEmpty {
+                    LauncherSuggestionsView(
+                        text: $text,
+                        suggestions: $suggestions,
+                        focusedElement: $focusedElement
                     )
                 }
-                LauncherTextField(
-                    text: $text,
-                    font: NSFont.systemFont(ofSize: 18, weight: .medium),
-                    onTab: onTabPress,
-                    onSubmit: {
-                        executeCommand()
-                    },
-                    onDelete: {
-                        if text.isEmpty, match != nil {
-                            text = match!.originalAlias
-                            match = nil
-                            return true
-                        }
-                        return false
-                    },
-                    onMoveUp: {
-                        moveFocusedElement(.up)
-                    },
-                    onMoveDown: {
-                        moveFocusedElement(.down)
-                    },
-                    cursorColor: match?.faviconBackgroundColor ?? match?.color ?? (theme.foreground),
-                    placeholder: getPlaceholder(match: match)
-                )
-                .onChange(of: text) { _, _ in
-                    searchHandler(text)
-                }
-                .textFieldStyle(PlainTextFieldStyle())
-                .focused(isFocused)
             }
-            .animation(nil, value: match?.color)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 10)
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            if match == nil, !suggestions.isEmpty {
-                LauncherSuggestionsView(
-                    text: $text,
-                    suggestions: $suggestions,
-                    focusedElement: $focusedElement
-                )
-            }
+            .padding(8)
+            .frame(width: 814, alignment: .leading)
+            .background(theme.launcherMainBackground)
+            .background(BlurEffectView(material: .popover, blendingMode: .withinWindow))
+            .clipShape(.rect(cornerRadius: 16))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .inset(by: 0.25)
+                    .stroke(
+                        Color(match?.faviconBackgroundColor ?? match?.color ?? theme.foreground).opacity(0.15),
+                        lineWidth: 0.5
+                    )
+            )
+            .shadow(
+                color: Color.black.opacity(0.1),
+                radius: 40,
+                x: 0,
+                y: 24
+            )
         }
-        .padding(8)
-        .frame(width: 814, alignment: .leading)
-        .adaptiveGlassEffect(
-            backgroundColor: theme.launcherMainBackground,
-            cornerRadius: 16,
-            strokeColor: Color(match?.faviconBackgroundColor ?? match?.color ?? theme.foreground),
-            strokeOpacity: 0.15,
-            strokeWidth: 0.5,
-            strokeInset: 0.25,
-            shadowColor: Color.black.opacity(0.1),
-            shadowRadius: 40,
-            shadowOffset: (x: 0, y: 24)
-        )
+    }
+
+    @ViewBuilder
+    func LauncherTextFieldContainer() -> some View {
+        HStack(alignment: .center, spacing: 8) {
+            if match == nil {
+                Image(systemName: getIconName(match: match, text: text))
+                    .resizable()
+                    .frame(width: 18, height: 18)
+                    .foregroundStyle(Color(.placeholderTextColor))
+            }
+
+            if match != nil {
+                SearchEngineCapsule(
+                    text: match?.text ?? "",
+                    color: match?.color ?? .blue,
+                    foregroundColor: match?.foregroundColor ?? .white,
+                    icon: match?.icon ?? "",
+                    favicon: match?.favicon,
+                    faviconBackgroundColor: match?.faviconBackgroundColor
+                )
+            }
+            LauncherTextField(
+                text: $text,
+                font: NSFont.systemFont(ofSize: 18, weight: .medium),
+                onTab: onTabPress,
+                onSubmit: {
+                    executeCommand()
+                },
+                onDelete: {
+                    if text.isEmpty, match != nil {
+                        text = match!.originalAlias
+                        match = nil
+                        return true
+                    }
+                    return false
+                },
+                onMoveUp: {
+                    moveFocusedElement(.up)
+                },
+                onMoveDown: {
+                    moveFocusedElement(.down)
+                },
+                cursorColor: match?.faviconBackgroundColor ?? match?.color ?? (theme.foreground),
+                placeholder: getPlaceholder(match: match)
+            )
+            .onChange(of: text) { _, _ in
+                searchHandler(text)
+            }
+            .textFieldStyle(PlainTextFieldStyle())
+            .focused(isFocused)
+        }
     }
 
     private func getPlaceholder(match: Match?) -> String {

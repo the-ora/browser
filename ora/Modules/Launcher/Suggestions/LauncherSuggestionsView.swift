@@ -22,13 +22,20 @@ struct LauncherSuggestionsView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.top, 4)
-        .overlay(
-            Rectangle()
-                .frame(height: 1)
-                .foregroundColor(theme.border.opacity(0.5)),
-            alignment: .top
-        )
+        .if {
+            if #available(macOS 26.0, *) {
+                $0
+            } else {
+                $0
+                    .padding(.top, 4)
+                    .overlay(
+                        Rectangle()
+                            .frame(height: 1)
+                            .foregroundColor(theme.border.opacity(0.5)),
+                        alignment: .top
+                    )
+            }
+        }
         .onAppear {
             searchEngineService.setTheme(theme)
         }
