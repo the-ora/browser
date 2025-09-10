@@ -363,7 +363,7 @@ class TabManager: ObservableObject {
         if message.name == "listener",
            let url = message.body as? String
         {
-            // You can update the active tab’s url if needed
+            // You can update the active tab's url if needed
             DispatchQueue.main.async {
                 if let validURL = URL(string: url) {
                     self.activeTab?.url = validURL
@@ -374,5 +374,44 @@ class TabManager: ObservableObject {
                 }
             }
         }
+    }
+    
+    // MARK: - Folder Management
+    
+    func createFolder(name: String, in container: TabContainer) -> Folder {
+        let maxOrder = container.folders.map { $0.order }.max() ?? 0
+        let folder = Folder(
+            name: name,
+            isOpened: true,
+            order: maxOrder + 1,
+            container: container
+        )
+        modelContext.insert(folder)
+        try? modelContext.save()
+        return folder
+    }
+    
+    func renameFolder(_ folder: Folder, newName: String) {
+        folder.name = newName
+        try? modelContext.save()
+    }
+    
+    func deleteFolder(_ folder: Folder) {
+        // Move tabs back to container before deleting folder
+        for tab in folder.tabs {
+            tab.folder = nil
+        }
+        modelContext.delete(folder)
+        try? modelContext.save()
+    }
+    
+    func moveTabToFolder(_ tab: Tab, folder: Folder?) {
+        tab.folder = folder
+        try? modelContext.save()
+    }
+    
+    func toggleFolderOpen(_ folder: Folder) {
+        folder.isOpened.toggle()
+        try? modelContext.save()
     }
 }

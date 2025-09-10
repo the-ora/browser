@@ -219,6 +219,23 @@ struct TabItem: View {
                 }
             }
         }
+        
+        Menu("Move to Folder") {
+            if tab.folder != nil {
+                Button("Remove from Folder") {
+                    tabManager.moveTabToFolder(tab, folder: nil)
+                }
+                Divider()
+            }
+            
+            ForEach(tab.container.folders.sorted(by: { $0.order < $1.order })) { folder in
+                if tab.folder?.id != folder.id {
+                    Button(action: { tabManager.moveTabToFolder(tab, folder: folder) }) {
+                        Label(folder.name, systemImage: "folder")
+                    }
+                }
+            }
+        }
 
         Divider()
 
