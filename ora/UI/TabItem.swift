@@ -89,6 +89,7 @@ struct TabItem: View {
 
     @Environment(\.theme) private var theme
     @State private var isHovering = false
+    @State private var isEditingTitle = false
 
     var body: some View {
         HStack {
@@ -158,10 +159,12 @@ struct TabItem: View {
     }
 
     private var tabTitle: some View {
-        Text(tab.title)
-            .font(.system(size: 13))
-            .foregroundColor(textColor)
-            .lineLimit(1)
+        EditableTabTitle(
+            tab: tab,
+            isSelected: isSelected,
+            textColor: textColor,
+            isEditing: $isEditingTitle
+        )
     }
 
     private var backgroundColor: Color {
@@ -190,6 +193,12 @@ struct TabItem: View {
 
     @ViewBuilder
     private var contextMenuItems: some View {
+        Button(action: { isEditingTitle = true }) {
+            Label("Rename Tab", systemImage: "pencil")
+        }
+        
+        Divider()
+        
         Button(action: onPinToggle) {
             Label(
                 tab.type == .pinned ? "Unpin Tab" : "Pin Tab",

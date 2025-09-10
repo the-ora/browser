@@ -363,7 +363,7 @@ class TabManager: ObservableObject {
         if message.name == "listener",
            let url = message.body as? String
         {
-            // You can update the active tab’s url if needed
+            // You can update the active tab's url if needed
             DispatchQueue.main.async {
                 if let validURL = URL(string: url) {
                     self.activeTab?.url = validURL
@@ -374,5 +374,11 @@ class TabManager: ObservableObject {
                 }
             }
         }
+    }
+    
+    // MARK: - Persistence
+    
+    func saveChanges() {
+        try? modelContext.save()
     }
 }
