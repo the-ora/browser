@@ -276,18 +276,17 @@ struct LauncherMain: View {
 
     var body: some View {
         if #available(macOS 26.0, *) {
-            GlassEffectContainer(spacing: 10) {
-                VStack(alignment: .leading, spacing: 10) {
-                    LauncherTextFieldContainer()
-                        .animation(nil, value: match?.color)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 10)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(8)
-                        .frame(width: 814, alignment: .leading)
-                        .glassEffect(.regular, in: .rect(cornerRadius: 16))
-                        .glassEffectID("text", in: namespace)
-
+            VStack(alignment: .leading, spacing: 10) {
+                LauncherTextFieldContainer()
+                    .animation(nil, value: match?.color)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(8)
+                    .frame(width: 814, alignment: .leading)
+                    .glassEffect(.regular.tint(theme.launcherMainBackground), in: .rect(cornerRadius: 16))
+                    .glassEffectID("text", in: namespace)
+                GlassEffectContainer(spacing: 10) {
                     if match == nil, !suggestions.isEmpty {
                         LauncherSuggestionsView(
                             text: $text,
@@ -296,12 +295,12 @@ struct LauncherMain: View {
                         )
                         .padding(8)
                         .frame(width: 814, alignment: .leading)
-                        .glassEffect(.regular, in: .rect(cornerRadius: 16))
-                        .glassEffectID("suggestions", in: namespace)
+                        .glassEffect(.regular.tint(theme.launcherMainBackground), in: .rect(cornerRadius: 16))
+                        .glassEffectTransition(.materialize)
                     }
                 }
+                .animation(.bouncy(duration: 0.3), value: suggestions.isEmpty)
             }
-            .animation(.bouncy(duration: 0.3), value: suggestions.isEmpty)
         } else {
             VStack(alignment: .leading, spacing: 6) {
                 LauncherTextFieldContainer()
