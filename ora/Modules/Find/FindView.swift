@@ -68,7 +68,7 @@ struct FindView: View {
             .padding(.vertical, 8)
             .background(textFieldBackground)
             .foregroundColor(theme.foreground)
-            .cornerRadius(8)
+            .clipShape(.rect(cornerRadius: 8))
             .overlay(textFieldBorder)
             .focused($isTextFieldFocused)
             .onChange(of: searchText) { _, newValue in
@@ -149,7 +149,7 @@ struct FindView: View {
             material: .popover,
             blendingMode: .withinWindow
         ))
-        .cornerRadius(6)
+        .clipShape(.rect(cornerRadius: 6))
     }
 
     @ViewBuilder
@@ -163,7 +163,7 @@ struct FindView: View {
                 material: .popover,
                 blendingMode: .withinWindow
             ))
-            .cornerRadius(6)
+            .clipShape(.rect(cornerRadius: 6))
     }
 
     @ViewBuilder
@@ -315,7 +315,7 @@ struct EnhancedFindButtonStyle: ButtonStyle {
         configuration.label
             .foregroundColor(buttonForegroundColor(configuration))
             .background(buttonBackgroundColor(configuration))
-            .cornerRadius(4)
+            .clipShape(.rect(cornerRadius: 4))
             .scaleEffect(configuration.isPressed && isEnabled ? 0.95 : 1.0)
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
             .animation(.easeInOut(duration: 0.15), value: isHovering)

@@ -28,7 +28,7 @@ struct GeneralSettingsView: View {
                     }
                     .padding(12)
                     .background(theme.solidWindowBackgroundColor)
-                    .cornerRadius(8)
+                    .clipShape(.rect(cornerRadius: 8))
 
                     HStack {
                         Text("Born for your Mac. Make Ora your default browser.")
@@ -38,7 +38,7 @@ struct GeneralSettingsView: View {
                     .frame(maxWidth: .infinity)
                     .padding(8)
                     .background(theme.solidWindowBackgroundColor)
-                    .cornerRadius(8)
+                    .clipShape(.rect(cornerRadius: 8))
 
                     AppearanceSelector(selection: $appearanceManager.appearance)
 

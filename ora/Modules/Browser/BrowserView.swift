@@ -235,7 +235,7 @@ struct BrowserView: View {
                                                 material: .popover,
                                                 blendingMode: .withinWindow
                                             ))
-                                            .cornerRadius(99)
+                                            .clipShape(.rect(cornerRadius: 99))
                                             .overlay(
                                                 RoundedRectangle(cornerRadius: 99, style: .continuous)
                                                     .stroke(Color(.separatorColor), lineWidth: 1)
@@ -315,7 +315,7 @@ struct BrowserContentContainer<Content: View>: View {
                                     * CGFloat((tabManager.activeTab?.loadingProgress ?? 10) / 100),
                                 height: 1.5
                             )
-                            .cornerRadius(8)
+                            .clipShape(.rect(cornerRadius: 8))
                             .offset(y: -12)  // Overlap slightly with the gradient
                             .animation(.easeOut(duration: 0.3), value: tabManager.activeTab?.loadingProgress)
 
@@ -335,7 +335,7 @@ struct BrowserContentContainer<Content: View>: View {
                 }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .cornerRadius(isFullscreen && hideState.side == .primary ? 0 : 8)
+        .clipShape(.rect(cornerRadius: isFullscreen && hideState.side == .primary ? 0 : 8))
         .padding(
             isFullscreen && hideState.side == .primary
                 ? EdgeInsets(

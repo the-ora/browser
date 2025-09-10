@@ -68,7 +68,7 @@ struct FavTabItem: View {
         .frame(maxWidth: .infinity)
         .opacity(isDragging ? 0.0 : 1.0)
         .background(backgroundColor)
-        .cornerRadius(10)
+        .clipShape(.rect(cornerRadius: 10))
         .overlay(
             isDragging
                 ? RoundedRectangle(cornerRadius: 10, style: .continuous)

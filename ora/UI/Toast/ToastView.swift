@@ -93,7 +93,7 @@ struct ToastView: View {
         }
         .padding(8)
         .background(theme.foreground)
-        .cornerRadius(10)
+        .clipShape(.rect(cornerRadius: 10))
         .shadow(radius: 10)
     }
 }

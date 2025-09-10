@@ -32,7 +32,7 @@ struct EmojiPickerView: View {
                             .font(.system(size: 16))
                             .frame(width: 32, height: 32)
                             .background(hoveredEmoji == item.emoji ? Color.gray.opacity(0.2) : Color.clear)
-                            .cornerRadius(8)
+                            .clipShape(.rect(cornerRadius: 8))
                             .onHover { hoveredEmoji = $0 ? item.emoji : nil }
                             .onTapGesture { onSelect(item.emoji) }
                     }
@@ -89,6 +89,6 @@ struct SearchBar: View {
         }
         .padding(8)
         .background(Color.gray.opacity(0.2))
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
     }
 }

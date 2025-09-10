@@ -18,7 +18,7 @@ struct EmptyFavTabItem: View {
         .frame(maxWidth: .infinity, alignment: .center)
         .frame(height: 96)
         .background(theme.invertedSolidWindowBackgroundColor.opacity(0.07))
-        .cornerRadius(10)
+        .clipShape(.rect(cornerRadius: 10))
         .overlay(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .stroke(

@@ -41,7 +41,7 @@ struct DownloadsWidget: View {
                     //         .padding(.horizontal, 6)
                     //         .padding(.vertical, 2)
                     //         .background(theme.background.opacity(0.6))
-                    //         .cornerRadius(8)
+                    //         .clipShape(.rect(cornerRadius: 8))
                     // }
 
                     // Image(systemName: downloadManager.isDownloadsPopoverOpen ? "chevron.up" : "chevron.down")
@@ -50,7 +50,7 @@ struct DownloadsWidget: View {
                 }
                 .padding(8)
                 .background(isHovered ? theme.invertedSolidWindowBackgroundColor.opacity(0.3) : .clear)
-                .cornerRadius(8)
+                .clipShape(.rect(cornerRadius: 8))
             }
             .buttonStyle(.plain)
             .onHover { hovering in

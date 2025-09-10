@@ -125,7 +125,7 @@ struct LauncherSuggestionItem: View {
                 focusedElement == suggestion.id || isHovered
                     ? defaultAI?.foregroundColor?.opacity(0.10) ?? .clear : theme.foreground.opacity(0.07)
             )
-            .cornerRadius(6)
+            .clipShape(.rect(cornerRadius: 6))
         } else if suggestion.type == .openedTab {
             HStack(alignment: .center, spacing: 8) {
                 Text("Switch to tab ")
@@ -154,7 +154,7 @@ struct LauncherSuggestionItem: View {
             // .padding(.horizontal, 8)
             // .padding(.vertical, 4)
             // .background(theme.foreground.opacity(0.07))
-            .cornerRadius(6)
+            .clipShape(.rect(cornerRadius: 6))
         }
     }
 
@@ -184,7 +184,7 @@ struct LauncherSuggestionItem: View {
         .padding(.vertical, 10)
         .frame(width: 798, alignment: .leading)
         .background(backgroundColor)
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
         .onTapGesture {
             suggestion.action()
             appState.showLauncher = false

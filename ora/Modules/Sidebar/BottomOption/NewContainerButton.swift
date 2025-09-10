@@ -24,7 +24,7 @@ struct NewContainerButton: View {
             }
             .padding(8)
             .background(isHovering ? theme.invertedSolidWindowBackgroundColor.opacity(0.3) : .clear)
-            .cornerRadius(8)
+            .clipShape(.rect(cornerRadius: 8))
         }
         .buttonStyle(.plain)
         .onHover { isHovering = $0 }
@@ -63,7 +63,7 @@ struct NewContainerButton: View {
                             .animation(.easeOut(duration: 0.1), value: emoji.isEmpty)
                     )
                     .background(isEmojiPickerHovering ? Color.gray.opacity(0.3) : Color.gray.opacity(0.2))
-                    .cornerRadius(10)
+                    .clipShape(.rect(cornerRadius: 10))
                     .buttonStyle(.plain)
                     .onHover { isEmojiPickerHovering = $0 }
 
@@ -72,7 +72,7 @@ struct NewContainerButton: View {
                         .frame(maxWidth: .infinity)
                         .padding(8)
                         .background(Color.gray.opacity(0.1))
-                        .cornerRadius(10)
+                        .clipShape(.rect(cornerRadius: 10))
                         .focused($isTextFieldFocused)
                         .onSubmit {
                             if !name.isEmpty, !emoji.isEmpty {

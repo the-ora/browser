@@ -37,12 +37,12 @@ struct DownloadProgressView: View {
                         Rectangle()
                             .fill(theme.background)
                             .frame(height: 3)
-                            .cornerRadius(1.5)
+                            .clipShape(.rect(cornerRadius: 1.5))
 
                         Rectangle()
                             .fill(progressColor)
                             .frame(width: geometry.size.width * download.displayProgress, height: 3)
-                            .cornerRadius(1.5)
+                            .clipShape(.rect(cornerRadius: 1.5))
                             .animation(.easeInOut(duration: 0.2), value: download.displayProgress)
                     }
                 }
@@ -66,7 +66,7 @@ struct DownloadProgressView: View {
         }
         .padding(8)
         .background(theme.background.opacity(0.3))
-        .cornerRadius(6)
+        .clipShape(.rect(cornerRadius: 6))
     }
 
     private var fileIcon: String {

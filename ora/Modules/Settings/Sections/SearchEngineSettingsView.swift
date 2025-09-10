@@ -45,7 +45,7 @@ struct SearchEngineSettingsView: View {
                     .frame(maxWidth: .infinity)
                     .padding(8)
                     .background(theme.solidWindowBackgroundColor)
-                    .cornerRadius(8)
+                    .clipShape(.rect(cornerRadius: 8))
 
                     if showingAddForm {
                         VStack(alignment: .leading, spacing: 16) {
@@ -97,7 +97,7 @@ struct SearchEngineSettingsView: View {
                         }
                         .padding(12)
                         .background(theme.solidWindowBackgroundColor.opacity(0.3))
-                        .cornerRadius(8)
+                        .clipShape(.rect(cornerRadius: 8))
                     }
 
                     VStack(alignment: .leading, spacing: 12) {
@@ -245,7 +245,7 @@ struct BuiltInSearchEngineRow: View {
                         .padding(.vertical, 2)
                         .background(Color.purple.opacity(0.2))
                         .foregroundColor(.purple)
-                        .cornerRadius(4)
+                        .clipShape(.rect(cornerRadius: 4))
                 }
 
                 if isDefault {
@@ -255,7 +255,7 @@ struct BuiltInSearchEngineRow: View {
                         .padding(.vertical, 2)
                         .background(Color.blue.opacity(0.2))
                         .foregroundColor(.blue)
-                        .cornerRadius(4)
+                        .clipShape(.rect(cornerRadius: 4))
                 }
             }
 
@@ -355,7 +355,7 @@ struct CustomSearchEngineRow: View {
                 }
                 .padding(12)
                 .background(Color.gray.opacity(0.1))
-                .cornerRadius(8)
+                .clipShape(.rect(cornerRadius: 8))
             } else {
                 // Normal display
                 HStack {
@@ -383,7 +383,7 @@ struct CustomSearchEngineRow: View {
                                 .padding(.vertical, 2)
                                 .background(Color.blue.opacity(0.2))
                                 .foregroundColor(.blue)
-                                .cornerRadius(4)
+                                .clipShape(.rect(cornerRadius: 4))
                         }
                     }
 

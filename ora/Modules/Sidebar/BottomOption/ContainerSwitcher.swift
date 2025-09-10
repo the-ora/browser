@@ -62,7 +62,7 @@ struct ContainerSwitcher: View {
                     ? theme.invertedSolidWindowBackgroundColor.opacity(0.2)
                     : .clear
             )
-            .cornerRadius(8)
+            .clipShape(.rect(cornerRadius: 8))
         }
         .buttonStyle(.plain)
         .animation(.easeOut(duration: 0.15), value: isActive || isHovered)

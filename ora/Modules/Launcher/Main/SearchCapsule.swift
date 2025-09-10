@@ -35,6 +35,6 @@ struct SearchEngineCapsule: View {
         .padding(.horizontal, 12)
         .frame(alignment: .leading)
         .background(faviconBackgroundColor ?? color)
-        .cornerRadius(99)
+        .clipShape(.rect(cornerRadius: 99))
     }
 }

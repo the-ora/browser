@@ -19,7 +19,7 @@ struct NewTabButton: View {
             .padding(8)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(isHovering ? theme.activeTabBackground.opacity(0.3) : .clear)
-            .cornerRadius(10)
+            .clipShape(.rect(cornerRadius: 10))
         }
         .buttonStyle(.plain)
         .onHover { isHovering = $0 }

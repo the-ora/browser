@@ -339,7 +339,7 @@ struct LauncherMain: View {
         .frame(width: 814, alignment: .leading)
         .background(theme.launcherMainBackground)
         .background(BlurEffectView(material: .popover, blendingMode: .withinWindow))
-        .cornerRadius(16)
+        .clipShape(.rect(cornerRadius: 16))
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .inset(by: 0.25)

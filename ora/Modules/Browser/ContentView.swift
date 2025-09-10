@@ -118,7 +118,7 @@ struct PiPView: View {
         VideoPlayer(player: player)
             .frame(width: 320, height: 180)
             .background(Color.black)
-            .cornerRadius(10)
+            .clipShape(.rect(cornerRadius: 10))
             .shadow(radius: 5)
             .onAppear {
                 player.play()

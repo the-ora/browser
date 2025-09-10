@@ -13,7 +13,7 @@ struct LocalFavIcon: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: 16, height: 16)
-                .cornerRadius(4)
+                .clipShape(.rect(cornerRadius: 4))
                 .grayscale(1.0)
         } else {
             Image(systemName: "globe")
@@ -128,7 +128,7 @@ struct TabItem: View {
         .padding(8)
         .opacity(isDragging ? 0.0 : 1.0)
         .background(backgroundColor)
-        .cornerRadius(10)
+        .clipShape(.rect(cornerRadius: 10))
         .overlay(
             isDragging ?
                 RoundedRectangle(cornerRadius: 10, style: .continuous)

@@ -64,7 +64,7 @@ struct DownloadsListView: View {
         }
         .frame(width: 320)
 //        .background(theme.windowBackgroundColor)
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
         .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
     }
 }
@@ -108,12 +108,12 @@ struct DownloadListItem: View {
                             Rectangle()
                                 .fill(theme.background)
                                 .frame(height: 2)
-                                .cornerRadius(1)
+                                .clipShape(.rect(cornerRadius: 1))
 
                             Rectangle()
                                 .fill(.blue)
                                 .frame(width: geometry.size.width * download.displayProgress, height: 2)
-                                .cornerRadius(1)
+                                .clipShape(.rect(cornerRadius: 1))
                                 .animation(.easeInOut(duration: 0.2), value: download.displayProgress)
                         }
                     }
