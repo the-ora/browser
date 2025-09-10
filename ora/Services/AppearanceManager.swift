@@ -8,8 +8,9 @@ enum AppAppearance: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
-class AppearanceManager: ObservableObject {
-    @Published var appearance: AppAppearance {
+@Observable @MainActor
+final class AppearanceManager {
+    var appearance: AppAppearance {
         didSet {
             updateAppearance()
             UserDefaults.standard.set(appearance.rawValue, forKey: "AppAppearance")
@@ -25,11 +26,11 @@ class AppearanceManager: ObservableObject {
     func updateAppearance() {
         switch appearance {
         case .system:
-            NSApp.appearance = nil
+            NSApplication.shared.appearance = nil
         case .light:
-            NSApp.appearance = NSAppearance(named: .aqua)
+            NSApplication.shared.appearance = NSAppearance(named: .aqua)
         case .dark:
-            NSApp.appearance = NSAppearance(named: .darkAqua)
+            NSApplication.shared.appearance = NSAppearance(named: .darkAqua)
         }
     }
 }

@@ -4,16 +4,17 @@ import SwiftUI
 
 private let logger = Logger(subsystem: "com.orabrowser.ora", category: "UpdateService")
 
-class UpdateService: NSObject, ObservableObject {
-    @Published var canCheckForUpdates = false
-    @Published var updateProgress: Double = 0.0
-    @Published var isCheckingForUpdates = false
-    @Published var updateAvailable = false
-    @Published var lastCheckResult: String?
-    @Published var lastCheckDate: Date?
+@Observable @MainActor
+final class UpdateService: NSObject {
+    var canCheckForUpdates = false
+    var updateProgress: Double = 0.0
+    var isCheckingForUpdates = false
+    var updateAvailable = false
+    var lastCheckResult: String?
+    var lastCheckDate: Date?
 
-    private var updater: SPUUpdater?
-    private var userDriver: SPUStandardUserDriver?
+    @ObservationIgnored private var updater: SPUUpdater?
+    @ObservationIgnored private var userDriver: SPUStandardUserDriver?
 
     override init() {
         super.init()
@@ -77,7 +78,8 @@ class UpdateService: NSObject, ObservableObject {
         lastCheckResult = "Checking for updates..."
         lastCheckDate = Date()
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 30) { [weak self] in
+        Task { [weak self] in
+            try await Task.sleep(for: .seconds(30))
             if self?.isCheckingForUpdates == true {
                 logger.warning("⏰ Update check timed out after 30 seconds")
                 self?.isCheckingForUpdates = false
@@ -99,32 +101,35 @@ class UpdateService: NSObject, ObservableObject {
 }
 
 extension UpdateService: SPUUpdaterDelegate {
-    func feedURLString(for updater: SPUUpdater) -> String? {
+    nonisolated func feedURLString(for updater: SPUUpdater) -> String? {
         let feedURL = "https://the-ora.github.io/browser/appcast.xml"
         logger.info("🔗 Providing feed URL: \(feedURL)")
         logger.info("🔗 Feed URL requested by Sparkle updater")
         return feedURL
     }
 
-    func updater(_ updater: SPUUpdater, didFindValidUpdate item: SUAppcastItem) {
+    nonisolated func updater(_ updater: SPUUpdater, didFindValidUpdate item: SUAppcastItem) {
         logger.info("✅ Found valid update!")
+
+        let version = item.displayVersionString
+
         logger.info("📦 Update details:")
-        logger.info("   - Version: \(item.displayVersionString)")
+        logger.info("   - Version: \(version)")
         logger.info("   - File URL: \(item.fileURL?.absoluteString ?? "none")")
         logger.info("   - Info URL: \(item.infoURL?.absoluteString ?? "none")")
         logger.info("   - Release notes: \(item.itemDescription ?? "none")")
         logger.info("   - Minimum OS: \(item.minimumSystemVersion ?? "none")")
         logger.info("   - File size: \(item.contentLength) bytes")
 
-        DispatchQueue.main.async {
+        Task { @MainActor in
             self.updateAvailable = true
             self.isCheckingForUpdates = false
-            self.lastCheckResult = "Update available: \(item.displayVersionString)"
+            self.lastCheckResult = "Update available: \(version)"
             self.lastCheckDate = Date()
         }
     }
 
-    func updaterDidNotFindUpdate(_ updater: SPUUpdater, error: Error) {
+    nonisolated func updaterDidNotFindUpdate(_ updater: SPUUpdater, error: Error) {
         logger.info("ℹ️ No update found")
         logger.error("❌ Error details: \(error.localizedDescription)")
         logger.debug("🔍 Error code: \((error as NSError).code)")
@@ -137,7 +142,7 @@ extension UpdateService: SPUUpdaterDelegate {
         let nsError = error as NSError
         logger.debug("🔍 Sparkle error userInfo: \(nsError.userInfo)")
 
-        DispatchQueue.main.async {
+        Task { @MainActor in
             self.updateAvailable = false
             self.isCheckingForUpdates = false
             self.lastCheckResult = "No updates available (current: \(currentVersion))"
@@ -145,25 +150,29 @@ extension UpdateService: SPUUpdaterDelegate {
         }
     }
 
-    func updater(_ updater: SPUUpdater, willDownloadUpdate item: SUAppcastItem, with request: NSMutableURLRequest) {
+    nonisolated func updater(
+        _ updater: SPUUpdater,
+        willDownloadUpdate item: SUAppcastItem,
+        with request: NSMutableURLRequest
+    ) {
         logger.info("⬇️ Starting download - URL: \(request.url?.absoluteString ?? "unknown")")
-        DispatchQueue.main.async {
+        Task { @MainActor in
             self.updateProgress = 0.0
         }
     }
 
-    func updater(_ updater: SPUUpdater, didDownloadUpdate item: SUAppcastItem) {
+    nonisolated func updater(_ updater: SPUUpdater, didDownloadUpdate item: SUAppcastItem) {
         logger.info("✅ Update downloaded successfully")
-        DispatchQueue.main.async {
+        Task { @MainActor in
             self.updateProgress = 1.0
         }
     }
 
-    func updater(_ updater: SPUUpdater, didExtractUpdate item: SUAppcastItem) {
+    nonisolated func updater(_ updater: SPUUpdater, didExtractUpdate item: SUAppcastItem) {
         // Update extracted, ready for installation
     }
 
-    func updater(_ updater: SPUUpdater, didFinishLoading appcast: SUAppcast) {
+    nonisolated func updater(_ updater: SPUUpdater, didFinishLoading appcast: SUAppcast) {
         logger.info("📄 Appcast loaded successfully")
         logger.info("📊 Appcast details:")
         logger.info("   - Total items: \(appcast.items.count)")
@@ -180,7 +189,7 @@ extension UpdateService: SPUUpdaterDelegate {
         }
     }
 
-    func updater(_ updater: SPUUpdater, failedToLoadAppcastWithError error: Error) {
+    nonisolated func updater(_ updater: SPUUpdater, failedToLoadAppcastWithError error: Error) {
         logger.error("❌ Failed to load appcast")
         logger.error("❌ Error: \(error.localizedDescription)")
 
@@ -189,14 +198,14 @@ extension UpdateService: SPUUpdaterDelegate {
         logger.debug("🔍 Error domain: \(nsError.domain)")
         logger.debug("🔍 Error userInfo: \(nsError.userInfo)")
 
-        DispatchQueue.main.async {
+        Task { @MainActor in
             self.isCheckingForUpdates = false
             self.lastCheckResult = "Failed to load appcast: \(error.localizedDescription)"
             self.lastCheckDate = Date()
         }
     }
 
-    func updater(_ updater: SPUUpdater, failedToDownloadUpdate item: SUAppcastItem, error: Error) {
+    nonisolated func updater(_ updater: SPUUpdater, failedToDownloadUpdate item: SUAppcastItem, error: Error) {
         logger.error("❌ Failed to download update")
         logger.error("❌ Error: \(error.localizedDescription)")
         logger.error("❌ Item version: \(item.displayVersionString)")
@@ -207,7 +216,7 @@ extension UpdateService: SPUUpdaterDelegate {
         logger.debug("🔍 Error domain: \(nsError.domain)")
         logger.debug("🔍 Error userInfo: \(nsError.userInfo)")
 
-        DispatchQueue.main.async {
+        Task { @MainActor in
             self.isCheckingForUpdates = false
             self.lastCheckResult = "Download failed: \(error.localizedDescription)"
             self.lastCheckDate = Date()
