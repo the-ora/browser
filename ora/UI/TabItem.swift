@@ -117,7 +117,7 @@ struct TabItem: View {
                         Image(systemName: tab.isMuted ? "speaker.slash.fill" : "speaker.wave.3.fill")
                             .font(.system(size: 10, weight: .semibold))
                             .foregroundColor(.secondary)
-                            .frame(width: 18, height: 18)
+                            .frame(width: 16, height: 16)
                             .background(
                                 RoundedRectangle(cornerRadius: 4, style: .continuous)
                                     .fill(isAudioButtonHovering ? theme.activeTabBackground.opacity(0.25) : .clear)
