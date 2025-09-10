@@ -1,8 +1,6 @@
 import Foundation
 import SwiftData
 import SwiftUI
-
-
 import AppKit
 
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -11,6 +9,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSWindow.allowsAutomaticWindowTabbing = false
     }
 }
+
+extension Notification.Name {
+    static let toggleSidebar = Notification.Name("ToggleSidebar")
+    static let copyAddressURL = Notification.Name("CopyAddressURL")
+}
+
 func deleteSwiftDataStore(_ loc: String) {
     let fileManager = FileManager.default
     let storeURL = URL.applicationSupportDirectory.appending(path: loc)
@@ -27,6 +31,10 @@ class AppState: ObservableObject {
     @Published var launcherSearchText: String = ""
     @Published var showFinderIn: UUID?
     @Published var isFloatingTabSwitchVisible: Bool = false
+    @Published var isToolbarHidden: Bool = false
+    @Published var showFullURL: Bool = (UserDefaults.standard.object(forKey: "showFullURL") as? Bool) ?? true {
+        didSet { UserDefaults.standard.set(showFullURL, forKey: "showFullURL") }
+    }
 }
 
 @main
@@ -165,15 +173,39 @@ struct OraApp: App {
                         appState.showFinderIn = activeTab.id
                     }
                 }
-                .keyboardShortcut(
-                    KeyboardShortcuts.Address.find
-                )
+                .keyboardShortcut(KeyboardShortcuts.Address.find)
+
+                Divider()
+
+                Button("Copy URL") {
+                    NotificationCenter.default.post(name: .copyAddressURL, object: nil)
+                }
+                .keyboardShortcut(KeyboardShortcuts.Address.copyURL)
             }
 
             CommandGroup(replacing: .sidebar) {
                 Picker("Appearance", selection: $appearanceManager.appearance) {
                     ForEach(AppAppearance.allCases) { mode in
                         Text(mode.rawValue).tag(mode)
+                    }
+                }
+            }
+
+            CommandGroup(after: .sidebar) {
+                Button("Toggle Sidebar") {
+                    NotificationCenter.default.post(name: .toggleSidebar, object: nil)
+                }
+                .keyboardShortcut(KeyboardShortcuts.App.toggleSidebar)
+
+                Divider()
+
+                if appState.showFullURL {
+                    Button("Hide Full URL") {
+                        appState.showFullURL = false
+                    }
+                } else {
+                    Button("Show Full URL") {
+                        appState.showFullURL = true
                     }
                 }
             }
@@ -244,6 +276,20 @@ struct OraApp: App {
 
                 Button("Previous Tab") {
                     appState.isFloatingTabSwitchVisible = true
+                }
+            }
+
+            CommandGroup(replacing: .toolbar) {
+                if appState.isToolbarHidden {
+                    Button("Show Toolbar") {
+                        appState.isToolbarHidden = false
+                    }
+                    .keyboardShortcut("d", modifiers: [.command, .shift])
+                } else {
+                    Button("Hide Toolbar") {
+                        appState.isToolbarHidden = true
+                    }
+                    .keyboardShortcut("d", modifiers: [.command, .shift])
                 }
             }
         }
