@@ -170,7 +170,7 @@ struct BrowserView: View {
             }
         }
         .edgesIgnoringSafeArea(.all)
-        .animation(.spring(response: 0.25, dampingFraction: 0.9), value: showFloatingSidebar)
+        .animation(.easeOut(duration: 0.1), value: showFloatingSidebar)
     }
 
     @ViewBuilder
