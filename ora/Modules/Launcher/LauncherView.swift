@@ -87,10 +87,10 @@ struct LauncherView: View {
                 color: match?.faviconBackgroundColor ?? match?.color ?? .clear,
                 trigger: match != nil
             )
-            .offset(y: isVisible ? 250 : 240)
             .scaleEffect(isVisible ? 1.0 : 0.85)
             .opacity(isVisible ? 1.0 : 0.0)
             .blur(radius: isVisible ? 0 : 2)
+            .offset(y: 250)
             .animation(
                 isVisible
                     ? .spring(response: 0.15, dampingFraction: 0.5, blendDuration: 0.2)
