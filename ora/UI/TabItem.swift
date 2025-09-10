@@ -114,18 +114,38 @@ struct TabItem: View {
                         }
                         tab.toggleMute()
                     }) {
-                        Image(systemName: tab.isMuted ? "speaker.slash.fill" : "speaker.wave.3.fill")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundColor(.secondary)
-                            .frame(width: 16, height: 16)
-                            .background(
-                                RoundedRectangle(cornerRadius: 4, style: .continuous)
-                                    .fill(isAudioButtonHovering ? theme.activeTabBackground.opacity(0.25) : .clear)
-                            )
-                            .contentShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-                            .scaleEffect(muteToggleScale)
-                            .animation(.spring(duration: 0.4), value: muteToggleScale)
-                            .animation(.spring(duration: 0.4), value: tab.isMuted)
+                        Group {
+                            if #available(macOS 14.0, *) {
+                                Image(systemName: tab.isMuted ? "speaker.slash.fill" : "speaker.wave.3.fill")
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .foregroundColor(.secondary)
+                                    .frame(width: 16, height: 16)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                            .fill(isAudioButtonHovering ? theme.activeTabBackground
+                                                .opacity(0.25) : .clear
+                                            )
+                                    )
+                                    .contentShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                                    .contentTransition(.symbolEffect(.replace))
+                                    .symbolEffect(.bounce, value: tab.isMuted)
+                            } else {
+                                Image(systemName: tab.isMuted ? "speaker.slash.fill" : "speaker.wave.3.fill")
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .foregroundColor(.secondary)
+                                    .frame(width: 16, height: 16)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                            .fill(isAudioButtonHovering ? theme.activeTabBackground
+                                                .opacity(0.25) : .clear
+                                            )
+                                    )
+                                    .contentShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                                    .scaleEffect(muteToggleScale)
+                                    .animation(.spring(duration: 0.4), value: muteToggleScale)
+                                    .animation(.spring(duration: 0.4), value: tab.isMuted)
+                            }
+                        }
                     }
                     .buttonStyle(.plain)
                     .background(
