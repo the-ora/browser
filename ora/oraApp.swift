@@ -1,6 +1,14 @@
 import Foundation
 import SwiftData
 import SwiftUI
+import AppKit
+
+class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        // Disable automatic window tabbing for all NSWindow instances
+        NSWindow.allowsAutomaticWindowTabbing = false
+    }
+}
 
 extension Notification.Name {
     static let toggleSidebar = Notification.Name("ToggleSidebar")
@@ -39,6 +47,7 @@ struct OraApp: App {
     @StateObject private var tabManager: TabManager
     @StateObject private var historyManager: HistoryManager
     @StateObject private var downloadManager: DownloadManager
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     let tabContext: ModelContext
     let historyContext: ModelContext
