@@ -9,9 +9,9 @@ struct FloatingSidebar: View {
             SidebarView(isFullscreen: isFullscreen)
                 .background(theme.subtleWindowBackgroundColor)
                 .background(BlurEffectView(material: .popover, blendingMode: .withinWindow))
-                .cornerRadius(12)
+                .cornerRadius(8)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
                         .stroke(theme.invertedSolidWindowBackgroundColor.opacity(0.3), lineWidth: 1)
                 )
         }
