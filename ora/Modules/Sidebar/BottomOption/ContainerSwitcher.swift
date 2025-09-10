@@ -35,7 +35,7 @@ struct ContainerSwitcher: View {
         .alert("Cannot delete Container", isPresented: $didFailToDeleteContainer) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("Cannot delete the last remaining container. At least one container must exist.")
+            Text("Something went wrong while trying to delete the container.")
         }
     }
 
@@ -81,12 +81,14 @@ struct ContainerSwitcher: View {
             Button("Rename Container") {
                 // tabManager.renameContainer(container, name: "New Name", emoji: "💩")
             }
-            Button("Delete Container") {
-                let success = tabManager.deleteContainer(container)
+            if tabManager.canDeleteContainers {
+                Button("Delete Container") {
+                    let success = tabManager.deleteContainer(container)
 
-                if !success {
-                    print("Failed to delete container!")
-                    didFailToDeleteContainer = true
+                    if !success {
+                        print("Failed to delete container!")
+                        didFailToDeleteContainer = true
+                    }
                 }
             }
         }

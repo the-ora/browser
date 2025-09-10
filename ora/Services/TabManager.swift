@@ -13,6 +13,17 @@ class TabManager: ObservableObject {
 
     @Query(sort: \TabContainer.lastAccessedAt, order: .reverse) var containers: [TabContainer]
 
+    var canDeleteContainers: Bool {
+        do {
+            let descriptor = FetchDescriptor<TabContainer>()
+            let containers = try modelContext.fetch(descriptor)
+            return containers.count > 1
+        } catch {
+            print("Error fetching containers: \(error)")
+            return false
+        }
+    }
+
     init(
         modelContainer: ModelContainer,
         modelContext: ModelContext
@@ -188,25 +199,26 @@ class TabManager: ObservableObject {
             let descriptor = FetchDescriptor<TabContainer>()
             let containers = try modelContext.fetch(descriptor)
 
-            // Don't delete the container, if we only have one!
-            if containers.count == 1 {
-                return false
-            }
-
+            // pick a fallback container, so so we're sure the app has a different container to switch to
             guard let fallback = containers.first(where: { $0.id != container.id }) else {
                 return false
             }
 
+            // if the container we're deleting is active rn switch to the fallback and pick it's last opened tab
             if activeContainer?.id == container.id {
                 if let tab = fallback.tabs
                     .sorted(by: { ($0.lastAccessedAt ?? .distantPast) > ($1.lastAccessedAt ?? .distantPast) }).first
                 {
                     activateTab(tab)
                 } else {
+                    // if there are no tabs just activate that container
                     activateContainer(fallback)
                 }
             }
 
+            // this could be improved, but it should do for now
+            // in order for this to cause issues, the user would need to have 1000+ tabs open, and then try to delete
+            // the entire container
             for tab in container.tabs {
                 modelContext.delete(tab)
             }
@@ -217,11 +229,13 @@ class TabManager: ObservableObject {
 
             try modelContext.save()
 
+            // finally delete the container
             modelContext.delete(container)
             try modelContext.save()
 
         } catch {
-            print("Error: \(error)")
+            print("Error deleting container: \(error.localizedDescription)")
+            return false
         }
 
         return true
