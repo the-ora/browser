@@ -141,7 +141,7 @@ struct TestSchemeView: View {
     let url: URL
     let conversationId: UUID?
     let query: String?
-    let instanceId = UUID().uuidString.prefix(8) // Random instance ID for persistence testing
+    @State private var instanceId = UUID() // Random instance ID for persistence testing
 
     var body: some View {
         VStack(spacing: 20) {
@@ -154,7 +154,7 @@ struct TestSchemeView: View {
                 .bold()
 
             VStack(alignment: .leading, spacing: 10) {
-                Text("Instance ID: \(instanceId)")
+                Text("Instance ID: \(instanceId.uuidString.prefix(8))")
                     .font(.caption)
                     .foregroundColor(.purple)
                     .bold()
