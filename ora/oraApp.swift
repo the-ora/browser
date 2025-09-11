@@ -58,6 +58,7 @@ struct OraApp: App {
         schema: Schema([TabContainer.self, History.self, Download.self]),
         url: URL.applicationSupportDirectory.appending(path: "OraData.sqlite")
     )
+
     init() {
         // #if DEBUG
         //        deleteSwiftDataStore("OraData.sqlite")
@@ -73,6 +74,7 @@ struct OraApp: App {
             )
             modelContext = ModelContext(container)
         } catch {
+            deleteSwiftDataStore("OraData.sqlite")
             fatalError("Failed to initialize ModelContainer: \(error)")
         }
 

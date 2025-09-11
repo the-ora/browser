@@ -48,22 +48,27 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         }
     }
 
-    func defaultWKConfig() -> WKWebViewConfiguration {
+    func customWKConfig(containerId: UUID,temporaryStorage:Bool=false) -> WKWebViewConfiguration {
         // Configure WebView for performance
         let configuration = WKWebViewConfiguration()
         let userAgent =
             "Mozilla/5.0 (Macintosh; arm64 Mac OS X 14_5) AppleWebKit/616.1.1 (KHTML, like Gecko) Version/18.5 Safari/616.1.1 Ora/1.0"
-//        let userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko)
-//        Chrome/133.0.0.0 Safari/537.36"
         configuration.applicationNameForUserAgent = userAgent
 
         // Enable JavaScript
-        configuration.preferences.setValue(true, forKey: "developerExtrasEnabled") // This is key
+        configuration.preferences.setValue(true, forKey: "developerExtrasEnabled")
         configuration.preferences.setValue(true, forKey: "allowsPictureInPictureMediaPlayback")
         configuration.preferences.setValue(true, forKey: "javaScriptEnabled")
         configuration.preferences.setValue(true, forKey: "javaScriptCanOpenWindowsAutomatically")
-        configuration.websiteDataStore = WKWebsiteDataStore.default()
-
+        if temporaryStorage {
+            configuration.websiteDataStore = WKWebsiteDataStore.nonPersistent()
+        }else{
+            configuration.websiteDataStore = WKWebsiteDataStore(
+                forIdentifier: containerId
+            )
+        }
+      
+        
         // Performance optimizations
         configuration.allowsAirPlayForMediaPlayback = true
         configuration.preferences.javaScriptCanOpenWindowsAutomatically = false
@@ -82,9 +87,6 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         // Enable media playback without user interaction
         configuration.mediaTypesRequiringUserActionForPlayback = []
 
-        // Set up caching
-        let websiteDataStore = WKWebsiteDataStore.default()
-        configuration.websiteDataStore = websiteDataStore
 
         // GPU acceleration settings
         let preferences = WKWebpagePreferences()
