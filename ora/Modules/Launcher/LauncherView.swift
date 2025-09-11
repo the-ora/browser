@@ -6,6 +6,7 @@ struct LauncherView: View {
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var historyManager: HistoryManager
     @EnvironmentObject var downloadManager: DownloadManager
+    @EnvironmentObject var privacyMode: PrivacyMode
     @Environment(\.theme) private var theme
     @StateObject private var searchEngineService = SearchEngineService()
     @StateObject private var faviconService = FaviconService()
@@ -54,7 +55,8 @@ struct LauncherView: View {
                 .openTab(
                     url: url,
                     historyManager: historyManager,
-                    downloadManager: downloadManager
+                    downloadManager: downloadManager,
+                    isPrivate: privacyMode.isPrivate
                 )
         }
         appState.showLauncher = false

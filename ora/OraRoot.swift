@@ -1,7 +1,13 @@
 import Foundation
 import SwiftData
 import SwiftUI
-
+final class PrivacyMode: ObservableObject {
+    @Published var isPrivate: Bool
+    
+    init(isPrivate: Bool) {
+        self.isPrivate = isPrivate
+    }
+}
 struct OraRoot: View {
     @StateObject private var appState = AppState()
     @StateObject private var keyModifierListener = KeyModifierListener()
@@ -10,14 +16,16 @@ struct OraRoot: View {
     @StateObject private var tabManager: TabManager
     @StateObject private var historyManager: HistoryManager
     @StateObject private var downloadManager: DownloadManager
-
+    @StateObject private var privacyMode: PrivacyMode
+    
     let tabContext: ModelContext
     let historyContext: ModelContext
     let downloadContext: ModelContext
     @State private var window: NSWindow?
-
-    init() {
-        let modelConfiguration = ModelConfiguration(
+  
+    init(isPrivate: Bool = false) {
+        _privacyMode = StateObject(wrappedValue: PrivacyMode(isPrivate: isPrivate))
+        let modelConfiguration = isPrivate ? ModelConfiguration(isStoredInMemoryOnly: true) : ModelConfiguration(
             "OraData",
             schema: Schema([TabContainer.self, History.self, Download.self]),
             url: URL.applicationSupportDirectory.appending(path: "OraData.sqlite")
@@ -46,6 +54,7 @@ struct OraRoot: View {
     }
 
     var body: some View {
+       
         BrowserView()
             .background(WindowReader(window: $window))
             .environmentObject(appState)
@@ -55,6 +64,7 @@ struct OraRoot: View {
             .environmentObject(appearanceManager)
             .environmentObject(downloadManager)
             .environmentObject(updateService)
+            .environmentObject(privacyMode)
             .modelContext(tabContext)
             .modelContext(historyContext)
             .modelContext(downloadContext)

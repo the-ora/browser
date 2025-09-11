@@ -1,15 +1,16 @@
 import AppKit
 import SwiftUI
-import WebKit
+@preconcurrency import WebKit
 
 struct WebView: NSViewRepresentable {
     let webView: WKWebView
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var historyManager: HistoryManager
     @EnvironmentObject var downloadManager: DownloadManager
+    @EnvironmentObject var privacyMode: PrivacyMode
 
     func makeCoordinator() -> Coordinator {
-        return Coordinator(tabManager: tabManager, historyManager: historyManager, downloadManager: downloadManager)
+        return Coordinator(tabManager: tabManager, historyManager: historyManager, downloadManager: downloadManager,privacyMode: privacyMode)
     }
 
     func makeNSView(context: Context) -> WKWebView {
@@ -42,13 +43,15 @@ struct WebView: NSViewRepresentable {
         weak var tabManager: TabManager?
         weak var historyManager: HistoryManager?
         weak var downloadManager: DownloadManager?
+        weak var privacyMode: PrivacyMode?
         private var mouseEventMonitor: Any?
         private weak var webView: WKWebView?
 
-        init(tabManager: TabManager?, historyManager: HistoryManager?, downloadManager: DownloadManager?) {
+        init(tabManager: TabManager?, historyManager: HistoryManager?, downloadManager: DownloadManager?,privacyMode:PrivacyMode) {
             self.tabManager = tabManager
             self.historyManager = historyManager
             self.downloadManager = downloadManager
+            self.privacyMode = privacyMode
         }
 
         deinit {
@@ -94,7 +97,6 @@ struct WebView: NSViewRepresentable {
         }
 
         private func isEventInWebView(_ event: NSEvent, webView: WKWebView) -> Bool {
-            guard let window = webView.window else { return false }
 
             // Convert the event location to the web view's coordinate system
             let locationInWindow = event.locationInWindow
@@ -149,10 +151,11 @@ struct WebView: NSViewRepresentable {
 
             // Create a new tab in the background for the target URL
             DispatchQueue.main.async {
-                _ = tabManager.openTab(
+                tabManager.openTab(
                     url: url,
                     historyManager: historyManager,
-                    downloadManager: self.downloadManager
+                    downloadManager: self.downloadManager,
+                    isPrivate: self.privacyMode?.isPrivate ?? false
                 )
             }
 

@@ -50,6 +50,7 @@ class Tab: ObservableObject, Identifiable {
     @Transient @Published var navigationError: Error?
     @Transient @Published var failedURL: URL?
     @Transient @Published var hoveredLinkURL: String?
+    @Transient var isPrivate: Bool = false
 
     @Relationship(inverse: \TabContainer.tabs) var container: TabContainer
 
@@ -64,7 +65,8 @@ class Tab: ObservableObject, Identifiable {
         order: Int,
         historyManager: HistoryManager? = nil,
         downloadManager: DownloadManager? = nil,
-        tabManager: TabManager
+        tabManager: TabManager,
+        isPrivate: Bool
     ) {
         let nowDate = Date()
         self.id = id
@@ -85,13 +87,14 @@ class Tab: ObservableObject, Identifiable {
         self.webView = WKWebView(
             frame: .zero,
             configuration: config
-                .customWKConfig(containerId: container.id)
+                .customWKConfig(containerId: container.id, temporaryStorage: isPrivate) // if private it's gonna use i- memory storage
         )
 
         self.order = order
         self.historyManager = historyManager
         self.downloadManager = downloadManager
         self.tabManager = tabManager
+        self.isPrivate = isPrivate
 
         config.tab = self
         // Configure WebView for performance
@@ -245,7 +248,8 @@ class Tab: ObservableObject, Identifiable {
     func restoreTransientState(
         historyManger: HistoryManager,
         downloadManager: DownloadManager,
-        tabManager: TabManager
+        tabManager: TabManager,
+        isPrivate: Bool
     ) {
         // Avoid double initialization
         if webView.url != nil { return }
@@ -258,7 +262,8 @@ class Tab: ObservableObject, Identifiable {
             frame: .zero,
             configuration:config
                 .customWKConfig(
-                    containerId:self.container.id
+                    containerId:self.container.id,
+                    temporaryStorage: isPrivate
                 )
         )
         webView.allowsMagnification = true

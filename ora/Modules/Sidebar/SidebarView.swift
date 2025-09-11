@@ -8,6 +8,8 @@ struct SidebarView: View {
     @EnvironmentObject var historyManger: HistoryManager
     @EnvironmentObject var downloadManager: DownloadManager
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var privacyMode: PrivacyMode
+
     @Query var containers: [TabContainer]
     @Query(filter: nil, sort: [.init(\History.lastAccessedAt, order: .reverse)]) var histories:
         [History]
@@ -55,15 +57,16 @@ struct SidebarView: View {
                 .environmentObject(downloadManager)
                 .environmentObject(appState)
             }
-
-            HStack {
-                DownloadsWidget()
-                Spacer()
-                ContainerSwitcher(onContainerSelected: onContainerSelected)
-                Spacer()
-                NewContainerButton()
+            if !privacyMode.isPrivate {
+                HStack {
+                    DownloadsWidget()
+                    Spacer()
+                    ContainerSwitcher(onContainerSelected: onContainerSelected)
+                    Spacer()
+                    NewContainerButton()
+                }
+                .padding(.horizontal, 10)
             }
-            .padding(.horizontal, 10)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(

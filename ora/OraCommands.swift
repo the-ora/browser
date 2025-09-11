@@ -5,15 +5,15 @@ struct OraCommands: Commands {
     @AppStorage("AppAppearance") private var appearanceRaw: String = AppAppearance.system.rawValue
 
     var body: some Commands {
-        CommandGroup(after: .newItem) {
-            Button("New Tab") { NotificationCenter.default.post(name: .showLauncher, object: NSApp.keyWindow) }
-                .keyboardShortcut(KeyboardShortcuts.Tabs.new)
-
-            Button("Close Tab") { NotificationCenter.default.post(name: .closeActiveTab, object: NSApp.keyWindow) }
-                .keyboardShortcut(KeyboardShortcuts.Tabs.close)
-
-            ImportDataButton()
-        }
+//        CommandGroup(after: .newItem) {
+//            Button("New Tab") { NotificationCenter.default.post(name: .showLauncher, object: NSApp.keyWindow) }
+//                .keyboardShortcut(KeyboardShortcuts.Tabs.new)
+//
+//            Button("Close Tab") { NotificationCenter.default.post(name: .closeActiveTab, object: NSApp.keyWindow) }
+//                .keyboardShortcut(KeyboardShortcuts.Tabs.close)
+//
+//            ImportDataButton()
+//        }
 
         CommandGroup(after: .pasteboard) {
             Button("Restore") { NotificationCenter.default.post(name: .restoreLastTab, object: NSApp.keyWindow) }
