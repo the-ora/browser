@@ -172,6 +172,7 @@ class TabManager: ObservableObject {
         let newContainer = TabContainer(name: name, emoji: emoji)
         modelContext.insert(newContainer)
         activeContainer = newContainer
+        self.activeTab = nil
         try? modelContext.save()
         //        _ = fetchContainers() // Refresh containers
         return newContainer
@@ -323,22 +324,23 @@ class TabManager: ObservableObject {
         try? modelContext.save() // Persist the undo operation
     }
 
-    func activateContainer(_ container: TabContainer) {
+    func activateContainer(_ container: TabContainer, activateLastAccessedTab: Bool = true) {
         activeContainer = container
         container.lastAccessedAt = Date()
+
         // Set the most recently accessed tab in the container
         if let lastAccessedTab = container.tabs
-            .sorted(by: { $0.lastAccessedAt ?? Date() > $1.lastAccessedAt ?? Date() }).first
+            .sorted(by: { $0.lastAccessedAt ?? Date() > $1.lastAccessedAt ?? Date() }).first,
+            lastAccessedTab.isWebViewReady
         {
-            if !lastAccessedTab.isWebViewReady {
-                activeTab = nil
-            } else {
-                activeTab?.maybeIsActive = false
-                activeTab = lastAccessedTab
-                activeTab?.maybeIsActive = true
-                lastAccessedTab.lastAccessedAt = Date()
-            }
+            activeTab?.maybeIsActive = false
+            activeTab = lastAccessedTab
+            activeTab?.maybeIsActive = true
+            lastAccessedTab.lastAccessedAt = Date()
+        } else {
+            activeTab = nil
         }
+
         try? modelContext.save()
     }
 

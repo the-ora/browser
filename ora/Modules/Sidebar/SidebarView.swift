@@ -14,6 +14,8 @@ struct SidebarView: View {
     private let columns = Array(repeating: GridItem(spacing: 10), count: 3)
     let isFullscreen: Bool
 
+    @State private var editingURLString: String = ""
+
     private var selectedContainerIndex: Binding<Int> {
         Binding(
             get: {
@@ -29,6 +31,18 @@ struct SidebarView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
+            // URL display when toolbar is hidden
+            if appState.isToolbarHidden, let tab = tabManager.activeTab {
+                SidebarURLDisplay(
+                    tab: tab,
+                    editingURLString: $editingURLString
+                )
+                .transition(.asymmetric(
+                    insertion: .push(from: .top).combined(with: .opacity),
+                    removal: .push(from: .bottom).combined(with: .opacity)
+                ))
+            }
+
             NSPageView(
                 selection: selectedContainerIndex,
                 pageObjects: containers,

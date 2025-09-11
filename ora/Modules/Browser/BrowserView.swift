@@ -11,7 +11,7 @@ struct BrowserView: View {
 
     @StateObject var sidebarVisibility = SideHolder()
 
-    func sidebarToggle() {
+    private func toggleSidebar() {
         withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
             sidebarVisibility.toggle(.primary)
         }
@@ -31,7 +31,7 @@ struct BrowserView: View {
                     } else {
                         // Start page (visible when no tab is active)
                         BrowserContentContainer(isFullscreen: isFullscreen, hideState: sidebarVisibility) {
-                            HomeView(sidebarToggle: sidebarToggle)
+                            HomeView(sidebarToggle: toggleSidebar)
                         }
                     }
                 }
@@ -130,18 +130,23 @@ struct BrowserView: View {
         }
         .edgesIgnoringSafeArea(.all)
         .animation(.easeOut(duration: 0.1), value: showFloatingSidebar)
+        .onReceive(NotificationCenter.default.publisher(for: .toggleSidebar)) { _ in
+            toggleSidebar()
+        }
     }
 
     @ViewBuilder
     private var webView: some View {
         VStack(alignment: .leading, spacing: 0) {
-            URLBar(
-                onSidebarToggle: {
-                    withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
-                        sidebarVisibility.toggle(.primary)  // Toggle sidebar with Cmd+S
-                    }
-                }
-            )
+            if !appState.isToolbarHidden {
+                URLBar(
+                    onSidebarToggle: { toggleSidebar() }
+                )
+                .transition(.asymmetric(
+                    insertion: .push(from: .top),
+                    removal: .push(from: .bottom)
+                ))
+            }
             if let tab = tabManager.activeTab {
                 if tab.isWebViewReady {
                     if tab.hasNavigationError, let error = tab.navigationError {
