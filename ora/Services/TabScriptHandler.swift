@@ -48,7 +48,7 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         }
     }
 
-    func customWKConfig(containerId: UUID,temporaryStorage:Bool=false) -> WKWebViewConfiguration {
+    func customWKConfig(containerId: UUID, temporaryStorage: Bool = false) -> WKWebViewConfiguration {
         // Configure WebView for performance
         let configuration = WKWebViewConfiguration()
         let userAgent =
@@ -62,13 +62,12 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         configuration.preferences.setValue(true, forKey: "javaScriptCanOpenWindowsAutomatically")
         if temporaryStorage {
             configuration.websiteDataStore = WKWebsiteDataStore.nonPersistent()
-        }else{
+        } else {
             configuration.websiteDataStore = WKWebsiteDataStore(
                 forIdentifier: containerId
             )
         }
-      
-        
+
         // Performance optimizations
         configuration.allowsAirPlayForMediaPlayback = true
         configuration.preferences.javaScriptCanOpenWindowsAutomatically = false
@@ -86,7 +85,6 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
 
         // Enable media playback without user interaction
         configuration.mediaTypesRequiringUserActionForPlayback = []
-
 
         // GPU acceleration settings
         let preferences = WKWebpagePreferences()

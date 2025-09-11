@@ -324,23 +324,23 @@ class TabManager: ObservableObject {
         try? modelContext.save() // Persist the undo operation
     }
 
-    func activateContainer(_ container: TabContainer,activateLastAccessedTab:Bool=true) {
+    func activateContainer(_ container: TabContainer, activateLastAccessedTab: Bool = true) {
         activeContainer = container
         container.lastAccessedAt = Date()
 
-            // Set the most recently accessed tab in the container
-            if let lastAccessedTab = container.tabs
-                .sorted(by: { $0.lastAccessedAt ?? Date() > $1.lastAccessedAt ?? Date() }).first,
-               lastAccessedTab.isWebViewReady
-            {
-                    activeTab?.maybeIsActive = false
-                    activeTab = lastAccessedTab
-                    activeTab?.maybeIsActive = true
-                    lastAccessedTab.lastAccessedAt = Date()
-            }else{
-                activeTab = nil
-            }
-        
+        // Set the most recently accessed tab in the container
+        if let lastAccessedTab = container.tabs
+            .sorted(by: { $0.lastAccessedAt ?? Date() > $1.lastAccessedAt ?? Date() }).first,
+            lastAccessedTab.isWebViewReady
+        {
+            activeTab?.maybeIsActive = false
+            activeTab = lastAccessedTab
+            activeTab?.maybeIsActive = true
+            lastAccessedTab.lastAccessedAt = Date()
+        } else {
+            activeTab = nil
+        }
+
         try? modelContext.save()
     }
 
