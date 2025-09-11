@@ -130,6 +130,11 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
         if !isDownloadNavigation {
             onTitleChange?(webView.title)
             onProgressChange?(webView.estimatedProgress * 100.0)
+            // Re-apply forced mute state on commit to ensure new media respects tab mute
+            if let muted = tab?.isMuted {
+                let js = "if (window.__oraSetForcedMute) { window.__oraSetForcedMute(\(muted ? "true" : "false")); }"
+                webView.evaluateJavaScript(js, completionHandler: nil)
+            }
         }
     }
 
@@ -141,6 +146,11 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
             onChange?(webView.title, webView.url)
             onProgressChange?(webView.estimatedProgress * 100.0)
             webView.evaluateJavaScript(navigationScript, completionHandler: nil)
+            // Re-apply forced mute state on finish to catch late-loaded players
+            if let muted = tab?.isMuted {
+                let js = "if (window.__oraSetForcedMute) { window.__oraSetForcedMute(\(muted ? "true" : "false")); }"
+                webView.evaluateJavaScript(js, completionHandler: nil)
+            }
             takeSnapshotAfterLoad(webView)
             originalURL = nil // Clear stored URL after successful navigation
         }

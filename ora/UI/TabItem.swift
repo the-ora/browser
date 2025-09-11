@@ -73,6 +73,8 @@ struct FavIcon: View {
     }
 }
 
+// (moved) Tooltip is rendered at ContainerView level using AudioTooltipPreferenceKey
+
 struct TabItem: View {
     let tab: Tab
     let isSelected: Bool
@@ -89,6 +91,10 @@ struct TabItem: View {
 
     @Environment(\.theme) private var theme
     @State private var isHovering = false
+    @State private var isAudioButtonHovering = false
+    @State private var showAudioTooltip = false
+    @State private var audioHoverWorkItem: DispatchWorkItem?
+    @State private var muteToggleScale: CGFloat = 1.0
 
     var body: some View {
         HStack {
@@ -98,10 +104,83 @@ struct TabItem: View {
                 faviconLocalFile: tab.faviconLocalFile,
                 textColor: textColor
             )
+
+            // Audio indicator button
+            if tab.isMediaActive {
+                ZStack(alignment: .top) {
+                    Button(action: {
+                        withAnimation(.easeOut(duration: 0.15).repeatCount(1, autoreverses: true)) {
+                            muteToggleScale = 1.2
+                        }
+                        tab.toggleMute()
+                    }) {
+                        Group {
+                            if #available(macOS 14.0, *) {
+                                Image(systemName: tab.isMuted ? "speaker.slash.fill" : "speaker.wave.3.fill")
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .foregroundColor(.secondary)
+                                    .frame(width: 16, height: 16)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                            .fill(isAudioButtonHovering ? theme.activeTabBackground
+                                                .opacity(0.25) : .clear
+                                            )
+                                    )
+                                    .contentShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                                    .contentTransition(.symbolEffect(.replace))
+                                    .symbolEffect(.bounce, value: tab.isMuted)
+                            } else {
+                                Image(systemName: tab.isMuted ? "speaker.slash.fill" : "speaker.wave.3.fill")
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .foregroundColor(.secondary)
+                                    .frame(width: 16, height: 16)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                            .fill(isAudioButtonHovering ? theme.activeTabBackground
+                                                .opacity(0.25) : .clear
+                                            )
+                                    )
+                                    .contentShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                                    .scaleEffect(muteToggleScale)
+                                    .animation(.spring(duration: 0.4), value: muteToggleScale)
+                                    .animation(.spring(duration: 0.4), value: tab.isMuted)
+                            }
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .background(
+                        GeometryReader { proxy in
+                            Color.clear
+                                .preference(
+                                    key: AudioTooltipPreferenceKey.self,
+                                    value: showAudioTooltip ? AudioTooltip(
+                                        rect: proxy.frame(in: .global),
+                                        text: tab.isMuted ? "Unmute this tab" : "Mute this tab"
+                                    ) : nil
+                                )
+                        }
+                    )
+                }
+                .zIndex(1)
+                .onHover { hovering in
+                    isAudioButtonHovering = hovering
+                    audioHoverWorkItem?.cancel()
+                    if hovering {
+                        let work = DispatchWorkItem { self.showAudioTooltip = true }
+                        audioHoverWorkItem = work
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: work)
+                    } else {
+                        showAudioTooltip = false
+                        audioHoverWorkItem = nil
+                    }
+                }
+            }
+
             tabTitle
             Spacer()
             actionButton
         }
+        // Tooltip drawn at ContainerView overlay via preference
         .onAppear {
             if tabManager.isActive(tab) {
                 tab
@@ -127,8 +206,10 @@ struct TabItem: View {
         }
         .padding(8)
         .opacity(isDragging ? 0.0 : 1.0)
-        .background(backgroundColor)
-        .cornerRadius(10)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(backgroundColor)
+        )
         .overlay(
             isDragging ?
                 RoundedRectangle(cornerRadius: 10, style: .continuous)

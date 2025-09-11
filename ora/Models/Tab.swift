@@ -27,7 +27,10 @@ class Tab: ObservableObject, Identifiable {
     var favicon: URL? // Add favicon property
     var createdAt: Date
     var lastAccessedAt: Date?
-    var isPlayingMedia: Bool
+    @Transient @Published var isPlayingMedia: Bool = false
+    // Indicates media is playing regardless of mute (used to show a muted indicator while playback is ongoing)
+    @Transient @Published var isMediaActive: Bool = false
+    @Transient @Published var isMuted: Bool = false
     var isLoading: Bool = false
     var type: TabType
     var order: Int
@@ -280,6 +283,18 @@ class Tab: ObservableObject, Identifiable {
             self.webView.load(URLRequest(url: self.url))
             self.isWebViewReady = true
         }
+    }
+
+    // MARK: - Tab Audio Controls
+
+    func setMuted(_ muted: Bool) {
+        isMuted = muted
+        let js = "if (window.__oraSetForcedMute) { window.__oraSetForcedMute(\(muted ? "true" : "false")); }"
+        webView.evaluateJavaScript(js, completionHandler: nil)
+    }
+
+    func toggleMute() {
+        setMuted(!isMuted)
     }
 
     func stopMedia(completed: @escaping () -> Void) {
