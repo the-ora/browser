@@ -91,12 +91,12 @@ struct LauncherView: View {
             .scaleEffect(isVisible ? 1.0 : 0.85)
             .opacity(isVisible ? 1.0 : 0.0)
             .blur(radius: isVisible ? 0 : 2)
-            .animation(
-                isVisible
-                    ? .spring(response: 0.15, dampingFraction: 0.5, blendDuration: 0.2)
-                    : .easeOut(duration: 0.1),
-                value: isVisible
-            )
+            // .animation(
+            //     isVisible
+            //         ? .spring(response: 0.05, dampingFraction: 0.6, blendDuration: 0.2)
+            //         : .easeOut(duration: 0.05),
+            //     value: isVisible
+            // )
             .onAppear {
                 isVisible = true
                 isTextFieldFocused = true

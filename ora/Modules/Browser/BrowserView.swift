@@ -1,8 +1,6 @@
 import AppKit
 import SwiftUI
 
-// MARK: - BrowserView
-
 struct BrowserView: View {
     @EnvironmentObject var tabManager: TabManager
     @Environment(\.theme) var theme
@@ -12,11 +10,6 @@ struct BrowserView: View {
     @StateObject private var sidebarFraction = FractionHolder.usingUserDefaults(0.2, key: "ui.sidebar.fraction")
 
     @StateObject var sidebarVisibility = SideHolder()
-
-    private func getAppVersion() -> String {
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
-        return "Ora \(version)"
-    }
 
     func sidebarToggle() {
         withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
@@ -152,7 +145,6 @@ struct BrowserView: View {
             if let tab = tabManager.activeTab {
                 if tab.isWebViewReady {
                     if tab.hasNavigationError, let error = tab.navigationError {
-                        // Show status page for navigation errors
                         StatusPageView(
                             error: error,
                             failedURL: tab.failedURL,
@@ -167,12 +159,10 @@ struct BrowserView: View {
                         )
                         .id(tab.id)
                     } else {
-                        // Show normal web view
                         ZStack(alignment: .topTrailing) {
                             WebView(webView: tab.webView)
                                 .id(tab.id)
 
-                            // Floating find view overlay
                             if appState.showFinderIn == tab.id {
                                 FindView(webView: tab.webView)
                                     .padding(.top, 16)
@@ -180,52 +170,8 @@ struct BrowserView: View {
                                     .zIndex(1000)
                             }
 
-                            // Hovered link URL overlay (bottom-left)
                             if let hovered = tab.hoveredLinkURL, !hovered.isEmpty {
-                                VStack {
-                                    Spacer()
-                                    HStack {
-                                        Text(hovered)
-                                            .font(.system(size: 12, weight: .regular))
-                                            .foregroundStyle(theme.foreground)
-                                            .lineLimit(1)
-                                            .truncationMode(.middle)
-                                            .multilineTextAlignment(.leading)
-                                            .padding(.horizontal, 10)
-                                            .padding(.vertical, 6)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                                    .fill(theme.background)
-                                            )
-                                            .background(BlurEffectView(
-                                                material: .popover,
-                                                blendingMode: .withinWindow
-                                            ))
-                                            .cornerRadius(99)
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 99, style: .continuous)
-                                                    .stroke(Color(.separatorColor), lineWidth: 1)
-                                            )
-                                            .padding(.leading, 12)
-                                        Spacer()
-
-                                        // Version indicator (bottom-right)
-                                        Text(getAppVersion())
-                                            .font(.system(size: 10, weight: .regular))
-                                            .foregroundStyle(Color.white.opacity(0.6))
-                                            .padding(.horizontal, 8)
-                                            .padding(.vertical, 4)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                                    .fill(Color.black.opacity(0.2))
-                                            )
-                                            .padding(.trailing, 12)
-                                    }
-                                    .padding(.bottom, 12)
-                                }
-                                .transition(.opacity)
-                                .animation(.easeOut(duration: 0.1), value: tab.hoveredLinkURL)
-                                .zIndex(900)
+                                LinkPreview(text: hovered)
                             }
                         }
                     }
