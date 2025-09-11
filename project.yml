@@ -1,10 +1,12 @@
 name: Ora
 options:
   bundleIdPrefix: com.orabrowser
+
 packages:
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
     from: 2.6.0
+
 targets:
   ora:
     type: application
@@ -47,15 +49,34 @@ targets:
         SUFeedURL: "https://the-ora.github.io/browser/appcast.xml"
         SUPublicEDKey: "Ozj+rezzbJAD76RfajtfQ7rFojJbpFSCl/0DcFSBCTI="
         SUEnableAutomaticChecks: YES
+        
+    entitlements:
+      path: ora/ora.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.assets.movies.read-only: true
+        com.apple.developer.authentication-services.autofill-credential-provider: true
+        com.apple.security.assets.music.read-only: true
+        com.apple.security.assets.pictures.read-only: true
+        com.apple.security.cs.allow-jit: true
+        com.apple.security.device.audio-input: true
+        com.apple.security.device.camera: true
+        com.apple.security.files.downloads.read-write: true
+        com.apple.security.files.user-selected.read-write: true
+        com.apple.security.network.client: true
+        com.apple.security.print: true
+        keychain-access-groups:
+          - "$(AppIdentifierPrefix)com.orabrowser.app"
 
     settings:
       base:
         SWIFT_VERSION: 5.9
         CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_ENTITLEMENTS: ora/ora.entitlements
         MARKETING_VERSION: 0.1.8
         CURRENT_PROJECT_VERSION: 78
         PRODUCT_NAME: Ora
-        PRODUCT_BUNDLE_IDENTIFIER: com.orabrowser.ora
+        PRODUCT_BUNDLE_IDENTIFIER: com.orabrowser.app
         GENERATE_INFOPLIST_FILE: YES
         SUFeedURL: "https://the-ora.github.io/browser/appcast.xml"
         SUPublicEDKey: "Ozj+rezzbJAD76RfajtfQ7rFojJbpFSCl/0DcFSBCTI="

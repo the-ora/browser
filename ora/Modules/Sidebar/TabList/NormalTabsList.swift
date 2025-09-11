@@ -19,7 +19,7 @@ struct NormalTabsList: View {
     @EnvironmentObject var tabManager: TabManager
 
     var body: some View {
-        Section {
+        VStack(spacing: 8) {
             NewTabButton(addNewTab: onAddNewTab)
             ForEach(tabs) { tab in
                 TabItem(
@@ -54,5 +54,6 @@ struct NormalTabsList: View {
             )
         )
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: tabs.map(\.id))
+        .padding(0)
     }
 }

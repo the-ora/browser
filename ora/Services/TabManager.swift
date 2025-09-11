@@ -330,10 +330,14 @@ class TabManager: ObservableObject {
         if let lastAccessedTab = container.tabs
             .sorted(by: { $0.lastAccessedAt ?? Date() > $1.lastAccessedAt ?? Date() }).first
         {
-            activeTab?.maybeIsActive = false
-            activeTab = lastAccessedTab
-            activeTab?.maybeIsActive = true
-            lastAccessedTab.lastAccessedAt = Date()
+            if !lastAccessedTab.isWebViewReady {
+                activeTab = nil
+            } else {
+                activeTab?.maybeIsActive = false
+                activeTab = lastAccessedTab
+                activeTab?.maybeIsActive = true
+                lastAccessedTab.lastAccessedAt = Date()
+            }
         }
         try? modelContext.save()
     }
