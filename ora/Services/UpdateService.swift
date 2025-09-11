@@ -131,24 +131,6 @@ extension UpdateService: SPUUpdaterDelegate {
         // Update extracted, ready for installation
     }
 
-//    func updater(_ updater: SPUUpdater, didFinishLoading appcast: SUAppcast) {
-//        logger.info("📄 Appcast loaded successfully")
-//        logger.info("📊 Appcast details:")
-//        logger.info("   - Total items: \(appcast.items.count)")
-//
-//        // Log details of each item
-//        for (index, item) in appcast.items.enumerated() {
-//            logger.info("📦 Item \(index + 1):")
-//            let version = item.displayVersionString ?? item.versionString
-//            logger.info("   - Version: \(version)")
-//            logger.info("   - File URL: \(item.fileURL?.absoluteString ?? "none")")
-//            logger.info("   - Info URL: \(item.infoURL?.absoluteString ?? "none")")
-//            logger.info("   - File size: \(item.contentLength) bytes")
-//            logger.info("   - Minimum OS: \(item.minimumSystemVersion ?? "none")")
-//            logger.info("   - Release date: \(item.dateString ?? "none")")
-//        }
-//    }
-
     func updater(_ updater: SPUUpdater, failedToLoadAppcastWithError error: Error) {
         logger.error("❌ Error: \(error.localizedDescription)")
 
