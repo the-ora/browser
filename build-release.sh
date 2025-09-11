@@ -4,6 +4,36 @@ set -e
 # Ora Browser Release Build Script
 # This script builds a release version of Ora Browser for distribution
 
+# Load environment variables from .env file
+load_env() {
+    if [ -f ".env" ]; then
+        echo "📝 Loading environment variables from .env..."
+        export $(grep -v '^#' .env | xargs)
+    else
+        echo "❌ .env file not found!"
+        echo "   Please create a .env file with the following keys:"
+        echo "   APPLE_ID=your-apple-id@example.com"
+        echo "   TEAM_ID=your-team-id"
+        echo "   APP_SPECIFIC_PASSWORD_KEYCHAIN=your-keychain-item-name"
+        echo "   SIGNING_IDENTITY=\"Developer ID Application: Your Name (YOUR_TEAM_ID)\""
+        exit 1
+    fi
+
+    # Validate required environment variables
+    REQUIRED_VARS=("APPLE_ID" "TEAM_ID" "APP_SPECIFIC_PASSWORD_KEYCHAIN" "SIGNING_IDENTITY")
+    for var in "${REQUIRED_VARS[@]}"; do
+        if [ -z "${!var}" ]; then
+            echo "❌ Missing required environment variable: $var"
+            echo "   Ensure it is defined in .env"
+            exit 1
+        fi
+    done
+    echo "✅ Environment variables loaded successfully"
+}
+
+# Call the function to load .env
+load_env
+
 echo "🏗️  Building Ora Browser Release..."
 
 # Clean previous builds but preserve DSA keys and appcast
@@ -54,19 +84,21 @@ DMG_NAME="Ora-Browser-${VERSION}.dmg"
 
 # Create export options plist
 echo "⚙️  Creating export options..."
-cat > build/exportOptions.plist << 'EOF'
+cat > build/exportOptions.plist << EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
     <key>method</key>
-    <string>mac-application</string>
+    <string>developer-id</string>
     <key>teamID</key>
-    <string></string>
+    <string>$TEAM_ID</string>
     <key>destination</key>
     <string>export</string>
     <key>signingStyle</key>
-    <string>automatic</string>
+    <string>manual</string>
+    <key>signingCertificate</key>
+    <string>$SIGNING_IDENTITY</string>
     <key>stripSwiftSymbols</key>
     <true/>
 </dict>
@@ -96,21 +128,27 @@ else
     exit 1
 fi
 
+# Sign the app bundle
+echo "🔐 Signing app bundle with Developer ID..."
+codesign -f -o runtime --timestamp -s "$SIGNING_IDENTITY" "build/Ora.app"
+if [ $? -eq 0 ]; then
+    echo "✅ App bundle signed successfully"
+else
+    echo "❌ Failed to sign app bundle"
+    exit 1
+fi
+
 # Create DMG if create-dmg is available
 if command -v create-dmg &> /dev/null; then
     if [ -d "build/Ora.app" ]; then
         echo "💿 Creating DMG..."
         # Remove any existing DMG first
         rm -f "build/${DMG_NAME}"
-        # Use simpler create-dmg command to avoid parsing issues
-            # --window-pos 200 120 \
-            # --icon-size 100 \
-            # --icon "build/Ora.app" 200 190 \
-            # --volname "Ora Browser" \
-            # --hide-extension "build/Ora.app" \
+        # Create DMG with signed app
         create-dmg \
             --app-drop-link 600 185 \
             --window-size 800 400 \
+            --volname "Ora Browser" \
             "build/${DMG_NAME}" \
             "build/Ora.app" 2>/dev/null || {
                 echo "⚠️  create-dmg had warnings but continuing..."
@@ -123,9 +161,43 @@ if command -v create-dmg &> /dev/null; then
 
         # Verify DMG was created
         if [ -f "build/${DMG_NAME}" ]; then
-            echo "✅ DMG created successfully!"
+            echo "✅ DMG created successfully"
         else
             echo "❌ DMG creation failed!"
+            exit 1
+        fi
+
+        # Sign the DMG
+        echo "🔐 Signing DMG with Developer ID..."
+        codesign -f --timestamp -s "$SIGNING_IDENTITY" "build/${DMG_NAME}"
+        if [ $? -eq 0 ]; then
+            echo "✅ DMG signed successfully"
+        else
+            echo "❌ Failed to sign DMG"
+            exit 1
+        fi
+
+        # Notarize the DMG
+        echo "📜 Notarizing DMG with Apple..."
+        xcrun notarytool submit "build/${DMG_NAME}" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$TEAM_ID" \
+            --password "@keychain:$APP_SPECIFIC_PASSWORD_KEYCHAIN" \
+            --wait
+        if [ $? -eq 0 ]; then
+            echo "✅ DMG notarized successfully"
+        else
+            echo "❌ Notarization failed"
+            exit 1
+        fi
+
+        # Staple the notarization ticket
+        echo "📌 Stapling notarization ticket to DMG..."
+        xcrun stapler staple "build/${DMG_NAME}"
+        if [ $? -eq 0 ]; then
+            echo "✅ Notarization ticket stapled successfully"
+        else
+            echo "❌ Failed to staple notarization ticket"
             exit 1
         fi
     else
@@ -135,6 +207,7 @@ if command -v create-dmg &> /dev/null; then
 else
     echo "⚠️  create-dmg not found. Skipping DMG creation."
     echo "Install with: brew install create-dmg"
+    exit 1
 fi
 
 # Verify DMG creation
@@ -150,3 +223,14 @@ else
     echo "❌ DMG creation failed!"
     exit 1
 fi
+
+# Security check - ensure .env is not committed
+echo "🔒 Security Check:"
+if git ls-files 2>/dev/null | grep -q "\.env$"; then
+    echo "❌ SECURITY VIOLATION: .env file is tracked by git!"
+    echo "   This contains sensitive credentials! Run:"
+    echo "   git rm --cached .env"
+    echo "   git commit -m 'Remove .env from tracking'"
+    exit 1
+fi
+echo "✅ Security check passed - .env not committed"
