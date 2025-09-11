@@ -163,7 +163,7 @@ extension UpdateService: SPUUpdaterDelegate {
     func updater(_ updater: SPUUpdater, failedToDownloadUpdate item: SUAppcastItem, error: Error) {
 
         logger.error("❌ Error: \(error.localizedDescription)")
-        let version = item.displayVersionString
+        let version = item.displayVersionString ?? item.versionString
         logger.error("❌ Item version: \(version)")
 
         DispatchQueue.main.async {
