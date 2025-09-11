@@ -60,7 +60,7 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         configuration.preferences.setValue(true, forKey: "allowsPictureInPictureMediaPlayback")
         configuration.preferences.setValue(true, forKey: "javaScriptEnabled")
         configuration.preferences.setValue(true, forKey: "javaScriptCanOpenWindowsAutomatically")
-        if(temporaryStorage){
+        if temporaryStorage {
             configuration.websiteDataStore = WKWebsiteDataStore.nonPersistent()
         }else{
             configuration.websiteDataStore = WKWebsiteDataStore(

@@ -256,9 +256,9 @@ class Tab: ObservableObject, Identifiable {
         config.tab = self
         self.webView = WKWebView(
             frame: .zero,
-            configuration:config
+            configuration: config
                 .customWKConfig(
-                    containerId:self.container.id
+                    containerId: self.container.id
                 )
         )
         webView.allowsMagnification = true
