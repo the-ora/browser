@@ -9,14 +9,19 @@ struct BrowserView: View {
     @EnvironmentObject private var appState: AppState
     @State private var isFullscreen = false
     @State private var showFloatingSidebar = false
-    // Persisted sidebar fraction for width across modes/sessions
     @StateObject private var sidebarFraction = FractionHolder.usingUserDefaults(0.2, key: "ui.sidebar.fraction")
 
-    @StateObject var hide = SideHolder()
+    @StateObject var sidebarVisibility = SideHolder()
 
     private func getAppVersion() -> String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
         return "Ora \(version)"
+    }
+
+    func sidebarToggle() {
+        withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
+            sidebarVisibility.toggle(.primary)
+        }
     }
 
     var body: some View {
@@ -27,57 +32,18 @@ struct BrowserView: View {
                 },
                 right: {
                     if tabManager.activeTab != nil {
-                        BrowserContentContainer(isFullscreen: isFullscreen, hideState: hide) {
+                        BrowserContentContainer(isFullscreen: isFullscreen, hideState: sidebarVisibility) {
                             webView
                         }
                     } else {
                         // Start page (visible when no tab is active)
-                        BrowserContentContainer(isFullscreen: isFullscreen, hideState: hide) {
-                            ZStack(alignment: .top) {
-                                Color.clear
-                                    .ignoresSafeArea(.all)
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                    .contentShape(Rectangle())
-                                    .background(theme.background.opacity(0.65))
-                                    .background(
-                                        BlurEffectView(material: .underWindowBackground, blendingMode: .behindWindow)
-                                    )
-
-                                NavigationButton(
-                                    systemName: "sidebar.left",
-                                    isEnabled: true,
-                                    foregroundColor: theme.foreground.opacity(0.3),
-                                    action: {
-                                        withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
-                                            hide.toggle(.primary)
-                                        }
-                                    }
-                                )
-                                .keyboardShortcut(KeyboardShortcuts.App.toggleSidebar)
-                                .position(x: 24, y: 24)
-                                .zIndex(3)
-
-                                VStack(alignment: .center, spacing: 16) {
-                                    Image("ora-logo-plain")
-                                        .resizable()
-                                        .renderingMode(.template)
-                                        .frame(width: 50, height: 50)
-                                        .foregroundColor(theme.foreground.opacity(0.3))
-
-                                    Text("Less noise, more browsing.")
-                                        .font(.system(size: 16, weight: .semibold))
-                                        .foregroundColor(theme.foreground.opacity(0.3))
-                                }
-                                .offset(x: -10, y: 120)
-                                .zIndex(2)
-
-                                LauncherView(clearOverlay: true)
-                            }
+                        BrowserContentContainer(isFullscreen: isFullscreen, hideState: sidebarVisibility) {
+                            HomeView(sidebarToggle: sidebarToggle)
                         }
                     }
                 }
             )
-            .hide(hide)
+            .hide(sidebarVisibility)
             .splitter { Splitter.invisible() }
             .fraction(sidebarFraction)
             .constraints(
@@ -98,7 +64,7 @@ struct BrowserView: View {
             )
             .background(
                 WindowAccessor(
-                    isSidebarHidden: hide.side == .primary,
+                    isSidebarHidden: sidebarVisibility.side == .primary,
                     isFloatingSidebar: $showFloatingSidebar,
                     isFullscreen: $isFullscreen
                 )
@@ -115,7 +81,7 @@ struct BrowserView: View {
                 }
             }
 
-            if hide.side == .primary {
+            if sidebarVisibility.side == .primary {
                 // Floating sidebar with resizable width based on persisted fraction
                 GeometryReader { geo in
                     let totalWidth = geo.size.width
@@ -179,7 +145,7 @@ struct BrowserView: View {
             URLBar(
                 onSidebarToggle: {
                     withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
-                        hide.toggle(.primary)  // Toggle sidebar with Cmd+S
+                        sidebarVisibility.toggle(.primary)  // Toggle sidebar with Cmd+S
                     }
                 }
             )
@@ -274,84 +240,5 @@ struct BrowserView: View {
                 }
             }
         }
-    }
-}
-
-struct BrowserContentContainer<Content: View>: View {
-    @EnvironmentObject var tabManager: TabManager
-    let content: () -> Content
-    let isFullscreen: Bool
-    let hideState: SideHolder
-
-    init(isFullscreen: Bool, hideState: SideHolder, @ViewBuilder content: @escaping () -> Content) {
-        self.isFullscreen = isFullscreen
-        self.hideState = hideState
-        self.content = content
-    }
-
-    var body: some View {
-        GeometryReader { geometry in
-            content()
-                .overlay {
-                    VStack(alignment: .leading, spacing: 0) {
-                        LinearGradient(
-                            gradient: Gradient(colors: [
-                                Color(hex: "FF5F57").opacity(0.3),
-                                Color(hex: "FF5F57").opacity(0.8)
-                            ]),
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                        .frame(
-                            width: geometry.size.width
-                                * CGFloat((tabManager.activeTab?.loadingProgress ?? 10) / 100), height: 12
-                        )
-                        .blur(radius: 12)
-                        .animation(.easeOut(duration: 0.3), value: tabManager.activeTab?.loadingProgress)
-
-                        Color.red
-                            .frame(
-                                width: geometry.size.width
-                                    * CGFloat((tabManager.activeTab?.loadingProgress ?? 10) / 100),
-                                height: 1.5
-                            )
-                            .cornerRadius(8)
-                            .offset(y: -12)  // Overlap slightly with the gradient
-                            .animation(.easeOut(duration: 0.3), value: tabManager.activeTab?.loadingProgress)
-
-                        Spacer()
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .clipShape(
-                        RoundedRectangle(
-                            cornerRadius: isFullscreen && hideState.side == .primary ? 0 : 9, style: .continuous
-                        )
-                    )
-                    .opacity(tabManager.activeTab?.isLoading == true ? 1 : 0)
-                    .animation(
-                        .easeOut(duration: 0.3).delay(tabManager.activeTab?.isLoading == true ? 0 : 0.5),
-                        value: tabManager.activeTab?.isLoading
-                    )
-                }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .cornerRadius(isFullscreen && hideState.side == .primary ? 0 : 6)
-        .padding(
-            isFullscreen && hideState.side == .primary
-                ? EdgeInsets(
-                    top: 0,
-                    leading: 0,
-                    bottom: 0,
-                    trailing: 0
-                )
-                : EdgeInsets(
-                    top: 6,
-                    leading: hideState.side == .primary ? 6 : 0,
-                    bottom: 6,
-                    trailing: 6
-                )
-        )
-        .shadow(color: .black.opacity(0.15), radius: 6, x: 0, y: 2)
-        .ignoresSafeArea(.all)
     }
 }

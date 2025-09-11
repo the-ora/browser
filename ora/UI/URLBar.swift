@@ -56,11 +56,9 @@ struct URLBar: View {
     }
 
     var body: some View {
-        HStack(spacing: 12) {
-            // Navigation buttons
+        HStack {
             if let tab = tabManager.activeTab {
                 HStack(spacing: 8) {
-                    // Sidebar button, always shown with fallback color if no active tab
                     NavigationButton(
                         systemName: "sidebar.left",
                         isEnabled: true,
@@ -214,36 +212,25 @@ struct URLBar: View {
                         .keyboardShortcut(KeyboardShortcuts.Address.focus)
                         .opacity(0)
                     )
-
                     Spacer()
-
-                    // Action buttons
-                    HStack(spacing: 8) {
-                        ShareButton(
-                            foregroundColor: buttonForegroundColor,
-                            onShare: { sourceView, sourceRect in
-                                if let activeTab = tabManager.activeTab {
-                                    shareCurrentPage(tab: activeTab, sourceView: sourceView, sourceRect: sourceRect)
-                                }
+                    ShareButton(
+                        foregroundColor: buttonForegroundColor,
+                        onShare: { sourceView, sourceRect in
+                            if let activeTab = tabManager.activeTab {
+                                shareCurrentPage(tab: activeTab, sourceView: sourceView, sourceRect: sourceRect)
                             }
-                        )
-                        .frame(width: 32, height: 32)
+                        }
+                    )
+                    .frame(width: 32, height: 32)
 
-                        NavigationButton(
-                            systemName: "ellipsis",
-                            isEnabled: true,
-                            foregroundColor: buttonForegroundColor,
-                            action: {}
-                        )
-                    }
+                    NavigationButton(
+                        systemName: "ellipsis",
+                        isEnabled: true,
+                        foregroundColor: buttonForegroundColor,
+                        action: {}
+                    )
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                //            .onReceive(tab.$url) { newURL in
-                //                if !isEditing {
-                //                    editingURLString = newURL.absoluteString
-                //                }
-                //            }
+                .padding(4)
                 .onAppear {
                     editingURLString = tab.url.absoluteString
                     DispatchQueue.main.async {

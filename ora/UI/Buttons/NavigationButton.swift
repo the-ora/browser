@@ -18,7 +18,7 @@ struct NavigationButton: View {
                 )
                 .frame(width: 32, height: 32)
                 .background(
-                    Circle()
+                    RoundedRectangle(cornerRadius: 4)
                         .fill(isHovering && isEnabled ? foregroundColor.opacity(0.1) : Color.clear)
                 )
         }
