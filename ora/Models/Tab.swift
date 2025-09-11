@@ -88,6 +88,7 @@ class Tab: ObservableObject, Identifiable {
             frame: .zero,
             configuration: config
                 .customWKConfig(containerId: container.id, temporaryStorage: isPrivate) // if private it's gonna use in-memory storage
+
         )
 
         self.order = order

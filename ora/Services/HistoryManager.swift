@@ -68,6 +68,7 @@ class HistoryManager: ObservableObject {
                 (history.urlString.localizedStandardContains(trimmedText) ||
                     history.title.localizedStandardContains(trimmedText)
                 ) && history.container != nil && history.container!.id == activeContainerId
+
             }
         }
 
