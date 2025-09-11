@@ -87,7 +87,7 @@ class Tab: ObservableObject, Identifiable {
         self.webView = WKWebView(
             frame: .zero,
             configuration: config
-                .customWKConfig(containerId: container.id, temporaryStorage: isPrivate) // if private it's gonna use i- memory storage
+                .customWKConfig(containerId: container.id, temporaryStorage: isPrivate) // if private it's gonna use in-memory storage
         )
 
         self.order = order
