@@ -184,6 +184,10 @@ struct BrowserView: View {
                 URLBar(
                     onSidebarToggle: { toggleSidebar() }
                 )
+                .transition(.asymmetric(
+                    insertion: .push(from: .top),
+                    removal: .push(from: .bottom)
+                ))
             }
             if let tab = tabManager.activeTab {
                 if tab.isWebViewReady {
