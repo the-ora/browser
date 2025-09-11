@@ -5,6 +5,7 @@ import SwiftUI
 private let logger = Logger(subsystem: "com.orabrowser.ora", category: "UpdateService")
 
 class UpdateService: NSObject, ObservableObject {
+    static let shared = UpdateService()
     @Published var canCheckForUpdates = false
     @Published var updateProgress: Double = 0.0
     @Published var isCheckingForUpdates = false
