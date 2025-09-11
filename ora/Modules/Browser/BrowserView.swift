@@ -335,7 +335,7 @@ struct BrowserContentContainer<Content: View>: View {
                 }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .cornerRadius(isFullscreen && hideState.side == .primary ? 0 : 8)
+        .cornerRadius(isFullscreen && hideState.side == .primary ? 0 : 6)
         .padding(
             isFullscreen && hideState.side == .primary
                 ? EdgeInsets(
@@ -351,7 +351,7 @@ struct BrowserContentContainer<Content: View>: View {
                     trailing: 6
                 )
         )
-        .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 2)
+        .shadow(color: .black.opacity(0.15), radius: 6, x: 0, y: 2)
         .ignoresSafeArea(.all)
     }
 }
