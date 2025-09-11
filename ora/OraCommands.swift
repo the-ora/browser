@@ -3,17 +3,26 @@ import AppKit
 
 struct OraCommands: Commands {
     @AppStorage("AppAppearance") private var appearanceRaw: String = AppAppearance.system.rawValue
-
+    @Environment(\.openWindow) private var openWindow
     var body: some Commands {
-//        CommandGroup(after: .newItem) {
-//            Button("New Tab") { NotificationCenter.default.post(name: .showLauncher, object: NSApp.keyWindow) }
-//                .keyboardShortcut(KeyboardShortcuts.Tabs.new)
-//
-//            Button("Close Tab") { NotificationCenter.default.post(name: .closeActiveTab, object: NSApp.keyWindow) }
-//                .keyboardShortcut(KeyboardShortcuts.Tabs.close)
-//
-//            ImportDataButton()
-//        }
+
+        CommandGroup(replacing: .newItem) {
+            Button("New Window") {
+                          openWindow(id: "normal")
+                      }
+                        .keyboardShortcut(KeyboardShortcuts.Window.new)
+                      Button("New Private Window") {
+                          openWindow(id: "private")
+                      }
+                      .keyboardShortcut(KeyboardShortcuts.Window.newPrivate)
+            Button("New Tab") { NotificationCenter.default.post(name: .showLauncher, object: NSApp.keyWindow) }
+                .keyboardShortcut(KeyboardShortcuts.Tabs.new)
+
+            Button("Close Tab") { NotificationCenter.default.post(name: .closeActiveTab, object: NSApp.keyWindow) }
+                .keyboardShortcut(KeyboardShortcuts.Tabs.close)
+
+            ImportDataButton()
+        }
 
         CommandGroup(after: .pasteboard) {
             Button("Restore") { NotificationCenter.default.post(name: .restoreLastTab, object: NSApp.keyWindow) }

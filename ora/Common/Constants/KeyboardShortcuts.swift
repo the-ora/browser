@@ -39,9 +39,11 @@ enum KeyboardShortcuts {
 
     enum Window {
         static let new = KeyboardShortcut("n", modifiers: [.command])
+        static let newPrivate = KeyboardShortcut("n", modifiers: [.shift, .command])
         static let close = KeyboardShortcut("w", modifiers: [.command, .shift])
         static let fullscreen = KeyboardShortcut("f", modifiers: [.command, .control])
     }
+    
 
     enum Address {
         static let copyURL = KeyboardShortcut("c", modifiers: [.command, .shift])

@@ -321,6 +321,8 @@ class TabManager: ObservableObject {
     func closeActiveTab() {
         if let tab = activeTab {
             closeTab(tab: tab)
+        } else {
+            NSApp.keyWindow?.close()
         }
     }
 
