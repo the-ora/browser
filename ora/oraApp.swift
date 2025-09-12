@@ -43,6 +43,7 @@ struct OraApp: App {
     @StateObject private var keyModifierListener = KeyModifierListener()
     @StateObject private var appearanceManager = AppearanceManager()
     @StateObject private var updateService = UpdateService()
+    @StateObject private var mediaController: MediaController
     // Pass it to TabManager
     @StateObject private var tabManager: TabManager
     @StateObject private var historyManager: HistoryManager
@@ -88,10 +89,15 @@ struct OraApp: App {
             )
         )
         _historyManager = historyManagerObj
+
+        let media = MediaController()
+        _mediaController = StateObject(wrappedValue: media)
+
         _tabManager = StateObject(
             wrappedValue: TabManager(
                 modelContainer: container,
-                modelContext: modelContext
+                modelContext: modelContext,
+                mediaController: media
             )
         )
 
@@ -109,6 +115,7 @@ struct OraApp: App {
                 .environmentObject(appState)
                 .environmentObject(tabManager)
                 .environmentObject(historyManager)
+                .environmentObject(mediaController)
                 .environmentObject(keyModifierListener)
                 .environmentObject(appearanceManager)
                 .environmentObject(downloadManager)
