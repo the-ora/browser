@@ -329,8 +329,8 @@ struct BrowserContentContainer<Content: View>: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .clipShape(
-                        RoundedRectangle(
-                            cornerRadius: isFullscreen && hideState.side == .primary ? 0 : 9, style: .continuous
+                        ConditionallyConcentricRectangle(
+                            cornerRadius: isFullscreen && hideState.side == .primary ? 0 : 9
                         )
                     )
                     .opacity(tabManager.activeTab?.isLoading == true ? 1 : 0)
@@ -341,7 +341,11 @@ struct BrowserContentContainer<Content: View>: View {
                 }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .cornerRadius(isFullscreen && hideState.side == .primary ? 0 : 8)
+        .clipShape(
+            ConditionallyConcentricRectangle(
+                cornerRadius: isFullscreen && hideState.side == .primary ? 0 : 8
+            )
+        )
         .padding(
             isFullscreen && hideState.side == .primary
                 ? EdgeInsets(
