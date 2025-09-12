@@ -1,10 +1,3 @@
-//
-//  NSPageView.swift
-//  MyerList
-//
-//  Created by Photon Juniper on 2023/2/17.
-//
-
 import SwiftUI
 
 #if canImport(AppKit) && !targetEnvironment(macCatalyst)

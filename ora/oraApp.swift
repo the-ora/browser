@@ -59,6 +59,7 @@ struct OraApp: App {
         schema: Schema([TabContainer.self, History.self, Download.self]),
         url: URL.applicationSupportDirectory.appending(path: "OraData.sqlite")
     )
+
     init() {
         // #if DEBUG
         //        deleteSwiftDataStore("OraData.sqlite")
@@ -74,6 +75,7 @@ struct OraApp: App {
             )
             modelContext = ModelContext(container)
         } catch {
+            deleteSwiftDataStore("OraData.sqlite")
             fatalError("Failed to initialize ModelContainer: \(error)")
         }
 
@@ -289,12 +291,16 @@ struct OraApp: App {
             CommandGroup(replacing: .toolbar) {
                 if appState.isToolbarHidden {
                     Button("Show Toolbar") {
-                        appState.isToolbarHidden = false
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            appState.isToolbarHidden = false
+                        }
                     }
                     .keyboardShortcut("d", modifiers: [.command, .shift])
                 } else {
                     Button("Hide Toolbar") {
-                        appState.isToolbarHidden = true
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            appState.isToolbarHidden = true
+                        }
                     }
                     .keyboardShortcut("d", modifiers: [.command, .shift])
                 }
