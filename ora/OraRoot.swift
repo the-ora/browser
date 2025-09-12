@@ -13,10 +13,12 @@ struct OraRoot: View {
     @StateObject private var keyModifierListener = KeyModifierListener()
     @StateObject private var appearanceManager = AppearanceManager()
     @StateObject private var updateService = UpdateService()
+    @StateObject private var mediaController: MediaController
     @StateObject private var tabManager: TabManager
     @StateObject private var historyManager: HistoryManager
     @StateObject private var downloadManager: DownloadManager
     @StateObject private var privacyMode: PrivacyMode
+    
     
     let tabContext: ModelContext
     let historyContext: ModelContext
@@ -44,13 +46,34 @@ struct OraRoot: View {
             fatalError("Failed to initialize ModelContainer: \(error)")
         }
 
-        tabContext = modelContext
-        historyContext = modelContext
-        downloadContext = modelContext
+        self.tabContext = modelContext
+           self.downloadContext = modelContext
+           self.historyContext = modelContext
+           let historyManagerObj = StateObject(
+               wrappedValue: HistoryManager(
+                   modelContainer: container,
+                   modelContext: modelContext
+               )
+           )
+           _historyManager = historyManagerObj
 
-        _tabManager = StateObject(wrappedValue: TabManager(modelContainer: container, modelContext: modelContext))
-        _historyManager = StateObject(wrappedValue: HistoryManager(modelContainer: container, modelContext: modelContext))
-        _downloadManager = StateObject(wrappedValue: DownloadManager(modelContainer: container, modelContext: modelContext))
+           let media = MediaController()
+           _mediaController = StateObject(wrappedValue: media)
+
+           _tabManager = StateObject(
+               wrappedValue: TabManager(
+                   modelContainer: container,
+                   modelContext: modelContext,
+                   mediaController: media
+               )
+           )
+
+           _downloadManager = StateObject(
+               wrappedValue: DownloadManager(
+                   modelContainer: container,
+                   modelContext: modelContext
+               )
+           )
     }
 
     var body: some View {
