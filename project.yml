@@ -52,8 +52,8 @@ targets:
       base:
         SWIFT_VERSION: 5.9
         CODE_SIGN_STYLE: Automatic
-        MARKETING_VERSION: 0.1.13
-        CURRENT_PROJECT_VERSION: 83
+        MARKETING_VERSION: 0.2.0
+        CURRENT_PROJECT_VERSION: 87
         PRODUCT_NAME: Ora
         PRODUCT_BUNDLE_IDENTIFIER: com.orabrowser.ora
         GENERATE_INFOPLIST_FILE: YES
@@ -65,3 +65,20 @@ targets:
           ASSETCATALOG_COMPILER_APPICON_NAME: OraIconDev
         Release:
           ASSETCATALOG_COMPILER_APPICON_NAME: OraIcon
+
+schemes:
+  ora:
+    shared: true
+    build:
+      targets:
+        ora: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release
