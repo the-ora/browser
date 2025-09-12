@@ -27,6 +27,15 @@ final class MediaController: ObservableObject {
     }
 
     private var tabRefs: [UUID: WeakTab] = [:]
+    private var titleSyncTimer: Timer?
+
+    init() {
+        startPeriodicTitleSync()
+    }
+
+    deinit {
+        titleSyncTimer?.invalidate()
+    }
 
     // MARK: - Public accessors
 
@@ -87,6 +96,13 @@ final class MediaController: ObservableObject {
         case "ended":
             if let idx = sessions.firstIndex(where: { $0.tabID == id }) {
                 sessions[idx].isPlaying = false
+            }
+
+        case "titleChange":
+            if let idx = sessions.firstIndex(where: { $0.tabID == id }),
+               let newTitle = event.title, !newTitle.isEmpty
+            {
+                sessions[idx].title = newTitle
             }
 
         default:
@@ -163,7 +179,35 @@ final class MediaController: ObservableObject {
 
     private func clamp(_ value: Double) -> Double { max(0, min(1, value)) }
 
+    private func startPeriodicTitleSync() {
+        titleSyncTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                self?.syncTitlesForPlayingSessions()
+            }
+        }
+    }
+
+    private func syncTitlesForPlayingSessions() {
+        let playingSessions = sessions.filter(\.isPlaying)
+        for session in playingSessions {
+            fetchDocumentTitle(for: session.tabID) { [weak self] newTitle in
+                guard let self, let title = newTitle, !title.isEmpty,
+                      let idx = self.sessions.firstIndex(where: { $0.tabID == session.tabID }),
+                      title != self.sessions[idx].title
+                else { return }
+
+                self.sessions[idx].title = title
+            }
+        }
+    }
+
     // MARK: - Title sync helpers
+
+    func syncTitleForTab(_ tabID: UUID, newTitle: String) {
+        if let idx = sessions.firstIndex(where: { $0.tabID == tabID }) {
+            sessions[idx].title = newTitle
+        }
+    }
 
     private func scheduleTitleSync(for tabID: UUID, attempts: Int = 6, delay: TimeInterval = 0.25) {
         guard attempts > 0 else { return }

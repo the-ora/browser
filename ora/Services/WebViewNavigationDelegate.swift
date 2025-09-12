@@ -116,6 +116,19 @@ let navigationScript = """
         title: document.title
     });
 
+    // Enhanced title change monitoring for media sessions
+    let lastMediaTitle = document.title;
+    function checkTitleChange() {
+        if (document.title !== lastMediaTitle) {
+            lastMediaTitle = document.title;
+            // If any media is currently playing, send a title update
+            const activeMedia = document.querySelector('video:not([paused]), audio:not([paused])');
+            if (activeMedia) {
+                post({ type: 'titleChange', title: document.title });
+            }
+        }
+    }
+
     function attach(el) {
         if (!el || el.__oraAttached) return;
         el.__oraAttached = true;
@@ -138,6 +151,9 @@ let navigationScript = """
     const mo = new MutationObserver(scan);
     mo.observe(document.documentElement, { childList: true, subtree: true });
     scan();
+
+    // Set up periodic title checking for active media
+    setInterval(checkTitleChange, 1000);
 
     window.__oraMedia = {
         active: null,

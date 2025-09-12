@@ -26,6 +26,7 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
                 let update = try JSONDecoder().decode(URLUpdate.self, from: jsonData)
                 DispatchQueue.main.async {
                     guard let tab = self.tab else { return }
+                    let oldTitle = tab.title
                     tab.title = update.title
                     tab.url = URL(string: update.href) ?? tab.url
                     tab
@@ -33,6 +34,11 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
                             faviconURLDefault: URL(string: update.favicon)
                         )
                     tab.updateHistory()
+
+                    // If title changed and there are active media sessions, update them
+                    if oldTitle != update.title, !update.title.isEmpty {
+                        self.mediaController?.syncTitleForTab(tab.id, newTitle: update.title)
+                    }
                 }
 
             } catch {
