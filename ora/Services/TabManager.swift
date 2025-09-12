@@ -324,6 +324,7 @@ class TabManager: ObservableObject {
         try? modelContext.save() // Persist the undo operation
     }
 
+
     func activateContainer(_ container: TabContainer, activateLastAccessedTab: Bool = true) {
         activeContainer = container
         container.lastAccessedAt = Date()

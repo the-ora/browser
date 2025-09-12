@@ -21,6 +21,7 @@ class UpdateService: NSObject, ObservableObject {
     }
 
     private func setupUpdater() {
+
         let hostBundle = Bundle.main
         let applicationBundle = hostBundle
         let userDriver = SPUStandardUserDriver(hostBundle: hostBundle, delegate: nil)

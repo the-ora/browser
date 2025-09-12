@@ -190,7 +190,8 @@ class Tab: ObservableObject, Identifiable {
         }
     }
 
-    func setupNavigationDelegate() {
+    public func setupNavigationDelegate() {
+
         let delegate = WebViewNavigationDelegate()
         delegate.tab = self
         delegate.onStart = { [weak self] in

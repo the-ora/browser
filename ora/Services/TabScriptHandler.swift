@@ -48,6 +48,7 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         }
     }
 
+
     func customWKConfig(containerId: UUID, temporaryStorage: Bool = false) -> WKWebViewConfiguration {
         // Configure WebView for performance
         let configuration = WKWebViewConfiguration()
