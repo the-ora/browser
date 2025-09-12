@@ -10,15 +10,18 @@ class TabManager: ObservableObject {
     @Published var activeTab: Tab?
     let modelContainer: ModelContainer
     let modelContext: ModelContext
+    let mediaController: MediaController
 
     @Query(sort: \TabContainer.lastAccessedAt, order: .reverse) var containers: [TabContainer]
 
     init(
         modelContainer: ModelContainer,
-        modelContext: ModelContext
+        modelContext: ModelContext,
+        mediaController: MediaController
     ) {
         self.modelContainer = modelContainer
         self.modelContext = modelContext
+        self.mediaController = mediaController
 
         self.modelContext.undoManager = UndoManager()
         initializeActiveContainerAndTab()
@@ -354,6 +357,19 @@ class TabManager: ObservableObject {
         tab.container.lastAccessedAt = Date()
         tab.updateHeaderColor()
         try? modelContext.save()
+    }
+
+    // Activate a tab by its persistent id. If the tab is in a
+    // different container, also activate that container.
+    func activateTab(id: UUID) {
+        let allContainers = fetchContainers()
+        for container in allContainers {
+            if let tab = container.tabs.first(where: { $0.id == id }) {
+                activateContainer(container)
+                activateTab(tab)
+                return
+            }
+        }
     }
 
     private func fetchContainers() -> [TabContainer] {
