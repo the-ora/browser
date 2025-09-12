@@ -80,6 +80,7 @@ dsa_pub.pem     # Public key (safe to commit if needed)
 *.xctimeline
 *.trace
 *.log
+codesign*
 
 # Release artifacts (keep in build/ folder)
 # Uncomment these if you want to commit release artifacts:

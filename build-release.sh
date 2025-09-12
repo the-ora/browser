@@ -8,7 +8,11 @@ set -e
 load_env() {
     if [ -f ".env" ]; then
         echo "📝 Loading environment variables from .env..."
-        export $(grep -v '^#' .env | xargs)
+        # Use export-all mode to safely source values with spaces/parentheses
+        set -a
+        # shellcheck disable=SC1091
+        . ./.env
+        set +a
     else
         echo "❌ .env file not found!"
         echo "   Please create a .env file with the following keys:"
@@ -33,6 +37,9 @@ load_env() {
 
 # Call the function to load .env
 load_env
+
+# Export development team for xcodegen
+export DEVELOPMENT_TEAM="$TEAM_ID"
 
 echo "🏗️  Building Ora Browser Release..."
 
@@ -78,7 +85,7 @@ fi
 # Clean up any leftover DMG files
 rm -f *.dmg
 
-# Get version from project.yml
+# # Get version from project.yml
 VERSION=$(grep "MARKETING_VERSION:" project.yml | sed 's/.*MARKETING_VERSION: //' | tr -d ' ')
 DMG_NAME="Ora-Browser-${VERSION}.dmg"
 
@@ -116,27 +123,34 @@ xcodebuild build \
     -configuration Release \
     -destination "platform=macOS" \
     -derivedDataPath "build/DerivedData" \
-    > /dev/null 2>&1
+        > /dev/null 2>&1
 
 # Copy the built app to build directory
 echo "📦 Copying built app..."
 if [ -d "build/DerivedData/Build/Products/Release/Ora.app" ]; then
-    cp -r "build/DerivedData/Build/Products/Release/Ora.app" "build/"
+    ditto "build/DerivedData/Build/Products/Release/Ora.app" "build/Ora.app"
     echo "✅ App copied to build directory"
 else
     echo "❌ Built app not found in expected location"
     exit 1
 fi
 
-# Sign the app bundle
-echo "🔐 Signing app bundle with Developer ID..."
-codesign -f -o runtime --timestamp -s "$SIGNING_IDENTITY" "build/Ora.app"
+# Sign the entire app bundle (with deep)
+echo "🔐 Signing app bundle with Developer ID (deep)..."
+codesign --force --deep --options runtime --timestamp --sign "$SIGNING_IDENTITY" "build/Ora.app"
+
+
 if [ $? -eq 0 ]; then
     echo "✅ App bundle signed successfully"
 else
     echo "❌ Failed to sign app bundle"
     exit 1
 fi
+
+echo "✅ codesign"
+codesign --verify --deep --strict --verbose=2 build/Ora.app
+echo "✅ spctl"
+spctl --assess --type execute --verbose=4 build/Ora.app
 
 # Create DMG if create-dmg is available
 if command -v create-dmg &> /dev/null; then
@@ -177,29 +191,7 @@ if command -v create-dmg &> /dev/null; then
             exit 1
         fi
 
-        # Notarize the DMG
-        echo "📜 Notarizing DMG with Apple..."
-        xcrun notarytool submit "build/${DMG_NAME}" \
-            --apple-id "$APPLE_ID" \
-            --team-id "$TEAM_ID" \
-            --password "@keychain:$APP_SPECIFIC_PASSWORD_KEYCHAIN" \
-            --wait
-        if [ $? -eq 0 ]; then
-            echo "✅ DMG notarized successfully"
-        else
-            echo "❌ Notarization failed"
-            exit 1
-        fi
-
-        # Staple the notarization ticket
-        echo "📌 Stapling notarization ticket to DMG..."
-        xcrun stapler staple "build/${DMG_NAME}"
-        if [ $? -eq 0 ]; then
-            echo "✅ Notarization ticket stapled successfully"
-        else
-            echo "❌ Failed to staple notarization ticket"
-            exit 1
-        fi
+       
     else
         echo "❌ Ora.app not found in build directory. Cannot create DMG."
         exit 1
@@ -223,6 +215,18 @@ else
     echo "❌ DMG creation failed!"
     exit 1
 fi
+
+echo "🚀 Uploading for notarization..."
+xcrun notarytool submit "build/${DMG_NAME}" \
+  --apple-id "$APPLE_ID" \
+  --team-id "$TEAM_ID" \
+  --password "${APP_SPECIFIC_PASSWORD_KEYCHAIN}" \
+  --wait
+
+# Staple the ticket to the DMG
+xcrun stapler staple "build/${DMG_NAME}"
+xcrun stapler staple "build/Ora.app"
+echo "✅ Stapled notarization ticket"
 
 # Security check - ensure .env is not committed
 echo "🔒 Security Check:"
