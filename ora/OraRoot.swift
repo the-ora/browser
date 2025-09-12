@@ -83,6 +83,7 @@ struct OraRoot: View {
             .environmentObject(appState)
             .environmentObject(tabManager)
             .environmentObject(historyManager)
+            .environmentObject(mediaController)
             .environmentObject(keyModifierListener)
             .environmentObject(appearanceManager)
             .environmentObject(downloadManager)
