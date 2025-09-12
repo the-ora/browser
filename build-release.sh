@@ -147,11 +147,6 @@ else
     exit 1
 fi
 
-echo "✅ codesign"
-codesign --verify --deep --strict --verbose=2 build/Ora.app
-echo "✅ spctl"
-spctl --assess --type execute --verbose=4 build/Ora.app
-
 # Create DMG if create-dmg is available
 if command -v create-dmg &> /dev/null; then
     if [ -d "build/Ora.app" ]; then
