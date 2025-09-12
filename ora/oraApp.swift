@@ -1,7 +1,7 @@
+import AppKit
 import Foundation
 import SwiftData
 import SwiftUI
-import AppKit
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -284,12 +284,16 @@ struct OraApp: App {
             CommandGroup(replacing: .toolbar) {
                 if appState.isToolbarHidden {
                     Button("Show Toolbar") {
-                        appState.isToolbarHidden = false
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            appState.isToolbarHidden = false
+                        }
                     }
                     .keyboardShortcut("d", modifiers: [.command, .shift])
                 } else {
                     Button("Hide Toolbar") {
-                        appState.isToolbarHidden = true
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            appState.isToolbarHidden = true
+                        }
                     }
                     .keyboardShortcut("d", modifiers: [.command, .shift])
                 }

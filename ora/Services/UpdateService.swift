@@ -41,15 +41,12 @@ class UpdateService: NSObject, ObservableObject {
 
         } catch {
             logger.error("❌ Failed to start updater - Error: \(error.localizedDescription)")
-
         }
 
         self.canCheckForUpdates = true // Force enable for development
-
     }
 
     func checkForUpdates() {
-
         guard let updater, canCheckForUpdates else {
             logger
                 .error(
@@ -90,7 +87,6 @@ extension UpdateService: SPUUpdaterDelegate {
     }
 
     func updater(_ updater: SPUUpdater, didFindValidUpdate item: SUAppcastItem) {
-
         let version = item.displayVersionString
 
         DispatchQueue.main.async {
@@ -102,7 +98,6 @@ extension UpdateService: SPUUpdaterDelegate {
     }
 
     func updaterDidNotFindUpdate(_ updater: SPUUpdater, error: Error) {
-
         logger.error("❌ Error details: \(error.localizedDescription)")
         let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
 
@@ -151,7 +146,6 @@ extension UpdateService: SPUUpdaterDelegate {
     func updater(_ updater: SPUUpdater, failedToLoadAppcastWithError error: Error) {
         logger.error("❌ Error: \(error.localizedDescription)")
 
-
         DispatchQueue.main.async {
             self.isCheckingForUpdates = false
             self.lastCheckResult = "Failed to load appcast: \(error.localizedDescription)"
@@ -160,7 +154,6 @@ extension UpdateService: SPUUpdaterDelegate {
     }
 
     func updater(_ updater: SPUUpdater, failedToDownloadUpdate item: SUAppcastItem, error: Error) {
-
         logger.error("❌ Error: \(error.localizedDescription)")
         let version = item.displayVersionString
         logger.error("❌ Item version: \(version)")

@@ -191,6 +191,7 @@ class Tab: ObservableObject, Identifiable {
     }
 
     public func setupNavigationDelegate() {
+
         let delegate = WebViewNavigationDelegate()
         delegate.tab = self
         delegate.onStart = { [weak self] in
@@ -251,8 +252,7 @@ class Tab: ObservableObject, Identifiable {
         if webView.url != nil { return }
 
         let config = TabScriptHandler()
-        
-       
+
         config.tab = self
         self.webView = WKWebView(
             frame: .zero,

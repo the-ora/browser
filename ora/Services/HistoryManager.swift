@@ -85,6 +85,7 @@ class HistoryManager: ObservableObject {
             return []
         }
     }
+
     func clearContainerHistory(_ container: TabContainer) {
         let containerId = container.id
         let descriptor = FetchDescriptor<History>(
@@ -97,7 +98,7 @@ class HistoryManager: ObservableObject {
             for history in histories {
                 modelContext.delete(history)
             }
-            
+
             try modelContext.save()
         } catch {
             logger.error("Failed to clear history for container \(container.id): \(error.localizedDescription)")

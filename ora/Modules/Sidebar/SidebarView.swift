@@ -37,6 +37,10 @@ struct SidebarView: View {
                     tab: tab,
                     editingURLString: $editingURLString
                 )
+                .transition(.asymmetric(
+                    insertion: .push(from: .top).combined(with: .opacity),
+                    removal: .push(from: .bottom).combined(with: .opacity)
+                ))
             }
 
             NSPageView(
