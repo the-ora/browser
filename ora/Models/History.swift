@@ -14,7 +14,7 @@ final class History {
     var visitCount: Int
     var lastAccessedAt: Date
 
-    @Relationship(inverse: \TabContainer.history) var container: TabContainer?
+    @Relationship(inverse: \TabContainer.history) var container: TabContainer? = nil
 
     init(
         id: UUID = UUID(),
