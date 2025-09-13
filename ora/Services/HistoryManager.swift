@@ -67,7 +67,7 @@ class HistoryManager: ObservableObject {
             predicate = #Predicate { history in
                 (history.urlString.localizedStandardContains(trimmedText) ||
                     history.title.localizedStandardContains(trimmedText)
-                ) && history.container.id == activeContainerId
+                ) && history.container?.id == activeContainerId
             }
         }
 
@@ -83,6 +83,25 @@ class HistoryManager: ObservableObject {
         } catch {
             logger.error("Error fetching history: \(error.localizedDescription)")
             return []
+        }
+    }
+
+    func clearContainerHistory(_ container: TabContainer) {
+        let containerId = container.id
+        let descriptor = FetchDescriptor<History>(
+            predicate: #Predicate { $0.container?.id == containerId }
+        )
+
+        do {
+            let histories = try modelContext.fetch(descriptor)
+
+            for history in histories {
+                modelContext.delete(history)
+            }
+
+            try modelContext.save()
+        } catch {
+            logger.error("Failed to clear history for container \(container.id): \(error.localizedDescription)")
         }
     }
 }

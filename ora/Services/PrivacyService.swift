@@ -9,25 +9,32 @@ enum CookiesPolicy: String, CaseIterable, Identifiable, Codable {
 }
 
 class PrivacyService {
-    static func clearCookies(completion: (() -> Void)? = nil) {
+    private static func clearData(_ container: TabContainer, _ types: Set<String>, _ completion: (() -> Void)?) {
+        let dataStore =  WKWebsiteDataStore(forIdentifier: container.id)
+        dataStore
+            .removeData(
+                ofTypes: types,
+                modifiedSince: .distantPast
+            ) {
+                completion?()
+            }
+    }
+
+    static func clearCookies(_ container: TabContainer, completion: (() -> Void)? = nil) {
         let types: Set<String> = [WKWebsiteDataTypeCookies]
-        WKWebsiteDataStore.default().removeData(ofTypes: types, modifiedSince: .distantPast) {
-            completion?()
-        }
+        self.clearData(
+            container,
+            types,
+            completion
+        )
     }
 
-    static func clearCache(completion: (() -> Void)? = nil) {
-        let types: Set<String> = [WKWebsiteDataTypeDiskCache, WKWebsiteDataTypeMemoryCache]
-        WKWebsiteDataStore.default().removeData(ofTypes: types, modifiedSince: .distantPast) {
-            completion?()
-        }
-    }
-
-    static func clearAllWebsiteData(completion: (() -> Void)? = nil) {
-        WKWebsiteDataStore.default().removeData(
-            ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), modifiedSince: .distantPast
-        ) {
-            completion?()
-        }
+    static func clearCache(_ container: TabContainer, completion: (() -> Void)? = nil) {
+        let types: Set<String> = WKWebsiteDataStore.allWebsiteDataTypes()
+        self.clearData(
+            container,
+            types,
+            completion
+        )
     }
 }

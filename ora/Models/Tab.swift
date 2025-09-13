@@ -85,7 +85,7 @@ class Tab: ObservableObject, Identifiable {
         self.webView = WKWebView(
             frame: .zero,
             configuration: config
-                .defaultWKConfig()
+                .customWKConfig(containerId: container.id)
         )
 
         self.order = order
@@ -94,6 +94,7 @@ class Tab: ObservableObject, Identifiable {
         self.tabManager = tabManager
 
         config.tab = self
+        config.mediaController = tabManager.mediaController
         // Configure WebView for performance
         webView.allowsMagnification = true
         webView.allowsBackForwardNavigationGestures = true
@@ -190,7 +191,7 @@ class Tab: ObservableObject, Identifiable {
         }
     }
 
-    private func setupNavigationDelegate() {
+    func setupNavigationDelegate() {
         let delegate = WebViewNavigationDelegate()
         delegate.tab = self
         delegate.onStart = { [weak self] in
@@ -251,9 +252,16 @@ class Tab: ObservableObject, Identifiable {
         if webView.url != nil { return }
 
         let config = TabScriptHandler()
-        self.webView = WKWebView(frame: .zero, configuration: config.defaultWKConfig())
-        config.tab = self
 
+        config.tab = self
+        config.mediaController = tabManager.mediaController
+        self.webView = WKWebView(
+            frame: .zero,
+            configuration: config
+                .customWKConfig(
+                    containerId: self.container.id
+                )
+        )
         webView.allowsMagnification = true
         webView.allowsBackForwardNavigationGestures = true
 
@@ -297,16 +305,28 @@ class Tab: ObservableObject, Identifiable {
     }
 
     func loadURL(_ urlString: String) {
-        var finalURLString = urlString
+        let input = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        // Add https:// if no protocol specified
-        if !urlString.contains("://") {
-            finalURLString = "https://" + urlString
+        // 1) Try to construct a direct URL (has scheme or valid domain+TLD/IP)
+        if let directURL = constructURL(from: input) {
+            webView.load(URLRequest(url: directURL))
+            return
         }
 
-        if let url = URL(string: finalURLString) {
-            let request = URLRequest(url: url)
-            webView.load(request)
+        // 2) Otherwise, treat as a search query using the selected search engine
+        let searchEngineService = SearchEngineService()
+        if let engine = searchEngineService.getDefaultSearchEngine(for: self.container.id),
+           let searchURL = searchEngineService.createSearchURL(for: engine, query: input)
+        {
+            webView.load(URLRequest(url: searchURL))
+            return
+        }
+
+        // 3) Fallback to Google if for some reason engine lookup fails
+        if let fallbackURL = URL(string: "https://www.google.com/search?client=safari&rls=en&ie=UTF-8&oe=UTF-8&q="
+            + (input.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")
+        ) {
+            webView.load(URLRequest(url: fallbackURL))
         }
     }
 

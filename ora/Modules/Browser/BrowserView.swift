@@ -19,6 +19,12 @@ struct BrowserView: View {
         return "Ora \(version)"
     }
 
+    private func toggleSidebar() {
+        withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
+            hide.toggle(.primary)
+        }
+    }
+
     var body: some View {
         ZStack(alignment: .leading) {
             HSplit(
@@ -47,13 +53,8 @@ struct BrowserView: View {
                                     systemName: "sidebar.left",
                                     isEnabled: true,
                                     foregroundColor: theme.foreground.opacity(0.3),
-                                    action: {
-                                        withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
-                                            hide.toggle(.primary)
-                                        }
-                                    }
+                                    action: { toggleSidebar() }
                                 )
-                                .keyboardShortcut(KeyboardShortcuts.App.toggleSidebar)
                                 .position(x: 24, y: 24)
                                 .zIndex(3)
 
@@ -170,19 +171,24 @@ struct BrowserView: View {
             }
         }
         .edgesIgnoringSafeArea(.all)
-        .animation(.spring(response: 0.25, dampingFraction: 0.9), value: showFloatingSidebar)
+        .animation(.easeOut(duration: 0.1), value: showFloatingSidebar)
+        .onReceive(NotificationCenter.default.publisher(for: .toggleSidebar)) { _ in
+            toggleSidebar()
+        }
     }
 
     @ViewBuilder
     private var webView: some View {
         VStack(alignment: .leading, spacing: 0) {
-            URLBar(
-                onSidebarToggle: {
-                    withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
-                        hide.toggle(.primary)  // Toggle sidebar with Cmd+S
-                    }
-                }
-            )
+            if !appState.isToolbarHidden {
+                URLBar(
+                    onSidebarToggle: { toggleSidebar() }
+                )
+                .transition(.asymmetric(
+                    insertion: .push(from: .top),
+                    removal: .push(from: .bottom)
+                ))
+            }
             if let tab = tabManager.activeTab {
                 if tab.isWebViewReady {
                     if tab.hasNavigationError, let error = tab.navigationError {
@@ -222,6 +228,9 @@ struct BrowserView: View {
                                         Text(hovered)
                                             .font(.system(size: 12, weight: .regular))
                                             .foregroundStyle(theme.foreground)
+                                            .lineLimit(1)
+                                            .truncationMode(.middle)
+                                            .multilineTextAlignment(.leading)
                                             .padding(.horizontal, 10)
                                             .padding(.vertical, 6)
                                             .background(
@@ -342,10 +351,10 @@ struct BrowserContentContainer<Content: View>: View {
                     trailing: 0
                 )
                 : EdgeInsets(
-                    top: 10,
-                    leading: hideState.side == .primary ? 10 : 0,
-                    bottom: 10,
-                    trailing: 10
+                    top: 6,
+                    leading: hideState.side == .primary ? 6 : 0,
+                    bottom: 6,
+                    trailing: 6
                 )
         )
         .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 2)

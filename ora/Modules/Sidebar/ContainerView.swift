@@ -50,6 +50,7 @@ struct ContainerView: View {
                 }
             }
         }
+        .modifier(OraWindowDragGesture())
     }
 
     private var favoriteTabs: [Tab] {
@@ -112,6 +113,34 @@ struct ContainerView: View {
 
     private func dropTab(_ tabId: String) {
         draggedItem = nil
+    }
+}
+
+private struct OraWindowDragGesture: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(macOS 15.0, *) {
+            content.gesture(WindowDragGesture())
+        } else {
+            content.gesture(BackportWindowDragGesture())
+        }
+    }
+}
+
+private struct BackportWindowDragGesture: Gesture {
+    struct Value: Equatable {
+        static func == (lhs: Value, rhs: Value) -> Bool { true }
+    }
+
+    init() {}
+
+    var body: some Gesture<Value> {
+        DragGesture()
+            .onChanged { _ in
+                if let nsWindow = NSApp.keyWindow, let event = NSApp.currentEvent {
+                    nsWindow.performDrag(with: event)
+                }
+            }
+            .map { _ in Value() }
     }
 }
 

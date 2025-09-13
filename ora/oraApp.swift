@@ -1,6 +1,19 @@
+import AppKit
 import Foundation
 import SwiftData
 import SwiftUI
+
+class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        // Disable automatic window tabbing for all NSWindow instances
+        NSWindow.allowsAutomaticWindowTabbing = false
+    }
+}
+
+extension Notification.Name {
+    static let toggleSidebar = Notification.Name("ToggleSidebar")
+    static let copyAddressURL = Notification.Name("CopyAddressURL")
+}
 
 func deleteSwiftDataStore(_ loc: String) {
     let fileManager = FileManager.default
@@ -18,6 +31,10 @@ class AppState: ObservableObject {
     @Published var launcherSearchText: String = ""
     @Published var showFinderIn: UUID?
     @Published var isFloatingTabSwitchVisible: Bool = false
+    @Published var isToolbarHidden: Bool = false
+    @Published var showFullURL: Bool = (UserDefaults.standard.object(forKey: "showFullURL") as? Bool) ?? true {
+        didSet { UserDefaults.standard.set(showFullURL, forKey: "showFullURL") }
+    }
 }
 
 @main
@@ -26,10 +43,12 @@ struct OraApp: App {
     @StateObject private var keyModifierListener = KeyModifierListener()
     @StateObject private var appearanceManager = AppearanceManager()
     @StateObject private var updateService = UpdateService()
+    @StateObject private var mediaController: MediaController
     // Pass it to TabManager
     @StateObject private var tabManager: TabManager
     @StateObject private var historyManager: HistoryManager
     @StateObject private var downloadManager: DownloadManager
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     let tabContext: ModelContext
     let historyContext: ModelContext
@@ -40,6 +59,7 @@ struct OraApp: App {
         schema: Schema([TabContainer.self, History.self, Download.self]),
         url: URL.applicationSupportDirectory.appending(path: "OraData.sqlite")
     )
+
     init() {
         // #if DEBUG
         //        deleteSwiftDataStore("OraData.sqlite")
@@ -55,6 +75,7 @@ struct OraApp: App {
             )
             modelContext = ModelContext(container)
         } catch {
+            deleteSwiftDataStore("OraData.sqlite")
             fatalError("Failed to initialize ModelContainer: \(error)")
         }
 
@@ -68,10 +89,15 @@ struct OraApp: App {
             )
         )
         _historyManager = historyManagerObj
+
+        let media = MediaController()
+        _mediaController = StateObject(wrappedValue: media)
+
         _tabManager = StateObject(
             wrappedValue: TabManager(
                 modelContainer: container,
-                modelContext: modelContext
+                modelContext: modelContext,
+                mediaController: media
             )
         )
 
@@ -89,6 +115,7 @@ struct OraApp: App {
                 .environmentObject(appState)
                 .environmentObject(tabManager)
                 .environmentObject(historyManager)
+                .environmentObject(mediaController)
                 .environmentObject(keyModifierListener)
                 .environmentObject(appearanceManager)
                 .environmentObject(downloadManager)
@@ -155,9 +182,14 @@ struct OraApp: App {
                         appState.showFinderIn = activeTab.id
                     }
                 }
-                .keyboardShortcut(
-                    KeyboardShortcuts.Address.find
-                )
+                .keyboardShortcut(KeyboardShortcuts.Address.find)
+
+                Divider()
+
+                Button("Copy URL") {
+                    NotificationCenter.default.post(name: .copyAddressURL, object: nil)
+                }
+                .keyboardShortcut(KeyboardShortcuts.Address.copyURL)
             }
 
             CommandGroup(replacing: .sidebar) {
@@ -168,9 +200,32 @@ struct OraApp: App {
                 }
             }
 
+            CommandGroup(after: .sidebar) {
+                Button("Toggle Sidebar") {
+                    NotificationCenter.default.post(name: .toggleSidebar, object: nil)
+                }
+                .keyboardShortcut(KeyboardShortcuts.App.toggleSidebar)
+
+                Divider()
+
+                if appState.showFullURL {
+                    Button("Hide Full URL") {
+                        appState.showFullURL = false
+                    }
+                } else {
+                    Button("Show Full URL") {
+                        appState.showFullURL = true
+                    }
+                }
+            }
+
             CommandGroup(replacing: .appInfo) {
                 Button("About Ora") {
                     showAboutWindow()
+                }
+
+                Button("Check for Updates") {
+                    updateService.checkForUpdates()
                 }
             }
 
@@ -230,6 +285,24 @@ struct OraApp: App {
 
                 Button("Previous Tab") {
                     appState.isFloatingTabSwitchVisible = true
+                }
+            }
+
+            CommandGroup(replacing: .toolbar) {
+                if appState.isToolbarHidden {
+                    Button("Show Toolbar") {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            appState.isToolbarHidden = false
+                        }
+                    }
+                    .keyboardShortcut("d", modifiers: [.command, .shift])
+                } else {
+                    Button("Hide Toolbar") {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            appState.isToolbarHidden = true
+                        }
+                    }
+                    .keyboardShortcut("d", modifiers: [.command, .shift])
                 }
             }
         }

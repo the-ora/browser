@@ -8,11 +8,23 @@ struct SidebarView: View {
     @EnvironmentObject var historyManger: HistoryManager
     @EnvironmentObject var downloadManager: DownloadManager
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var media: MediaController
     @Query var containers: [TabContainer]
     @Query(filter: nil, sort: [.init(\History.lastAccessedAt, order: .reverse)]) var histories:
         [History]
     private let columns = Array(repeating: GridItem(spacing: 10), count: 3)
     let isFullscreen: Bool
+
+    private var shouldShowMediaWidget: Bool {
+        let activeId = tabManager.activeTab?.id
+        let others = media.visibleSessions.filter { session in
+            guard let activeId else { return true }
+            return session.tabID != activeId
+        }
+        return media.isVisible && !others.isEmpty
+    }
+
+    @State private var editingURLString: String = ""
 
     private var selectedContainerIndex: Binding<Int> {
         Binding(
@@ -29,6 +41,18 @@ struct SidebarView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
+            // URL display when toolbar is hidden
+            if appState.isToolbarHidden, let tab = tabManager.activeTab {
+                SidebarURLDisplay(
+                    tab: tab,
+                    editingURLString: $editingURLString
+                )
+                .transition(.asymmetric(
+                    insertion: .push(from: .top).combined(with: .opacity),
+                    removal: .push(from: .bottom).combined(with: .opacity)
+                ))
+            }
+
             NSPageView(
                 selection: selectedContainerIndex,
                 pageObjects: containers,
@@ -44,6 +68,14 @@ struct SidebarView: View {
                 .environmentObject(historyManger)
                 .environmentObject(downloadManager)
                 .environmentObject(appState)
+            }
+
+            // Show player if there is at least one playing session not belonging to the active tab
+            if shouldShowMediaWidget {
+                GlobalMediaPlayer()
+                    .environmentObject(media)
+                    .padding(.horizontal, 10)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
             }
 
             HStack {
