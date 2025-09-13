@@ -41,7 +41,7 @@ public struct Splitter: SplitDivider {
     public static var defaultColor: Color = .gray
     public static var defaultInset: CGFloat = 6
     public static var defaultVisibleThickness: CGFloat = 0
-    public static var defaultInvisibleThickness: CGFloat = 30
+    public static var defaultInvisibleThickness: CGFloat = 16
 
     public var body: some View {
         ZStack {
