@@ -5,15 +5,16 @@ import SwiftData
 
 @Model
 class TabContainer: ObservableObject, Identifiable {
-    var id: UUID
+    @Attribute(.unique) var id: UUID
     var name: String
     var emoji: String
     var createdAt: Date
     var lastAccessedAt: Date
 
-    @Relationship(deleteRule: .cascade) var tabs: [Tab] = []
+    @Relationship(deleteRule: .cascade)
+    var tabs: [Tab] = []
     @Relationship(deleteRule: .cascade) var folders: [Folder] = []
-    @Relationship() var history: [History] = []
+    @Relationship(deleteRule: .cascade) var history: [History] = []
 
     init(
         id: UUID = UUID(),
