@@ -214,7 +214,10 @@ struct URLBar: View {
                             .fill(getUrlFieldColor(tab).opacity(0.12))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 4, style: .continuous)
-                                    .stroke(isEditing ? getUrlFieldColor(tab).opacity(0.1) : Color.clear, lineWidth: 1.2)
+                                    .stroke(
+                                        isEditing ? getUrlFieldColor(tab).opacity(0.1) : Color.clear,
+                                        lineWidth: 1.2
+                                    )
                             )
                     )
                     .overlay(
