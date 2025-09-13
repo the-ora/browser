@@ -70,6 +70,13 @@ struct SidebarView: View {
                 .environmentObject(downloadManager)
                 .environmentObject(appState)
             }
+            // Show player if there is at least one playing session not belonging to the active tab
+            if shouldShowMediaWidget {
+                GlobalMediaPlayer()
+                    .environmentObject(media)
+                    .padding(.horizontal, 10)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
             if !privacyMode.isPrivate {
                 HStack {
                     DownloadsWidget()
@@ -82,13 +89,7 @@ struct SidebarView: View {
             }
 
 
-            // Show player if there is at least one playing session not belonging to the active tab
-            if shouldShowMediaWidget {
-                GlobalMediaPlayer()
-                    .environmentObject(media)
-                    .padding(.horizontal, 10)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
+           
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(
