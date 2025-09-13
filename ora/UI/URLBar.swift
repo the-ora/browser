@@ -207,13 +207,13 @@ struct URLBar: View {
                         .accessibilityLabel(Text("Copy URL"))
                         .keyboardShortcut(KeyboardShortcuts.Address.copyURL)
                     }
-                    .frame(height: 32)
-                    .padding(.horizontal, 12)
+                    .frame(height: 30)
+                    .padding(.horizontal, 8)
                     .background(
-                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
                             .fill(getUrlFieldColor(tab).opacity(0.12))
                             .overlay(
-                                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
                                     .stroke(
                                         isEditing ? getUrlFieldColor(tab).opacity(0.1) : Color.clear,
                                         lineWidth: 1.2
@@ -239,7 +239,6 @@ struct URLBar: View {
                             }
                         }
                     )
-                    .frame(width: 32, height: 32)
 
                     URLBarButton(
                         systemName: "ellipsis",
