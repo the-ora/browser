@@ -9,6 +9,7 @@ enum AppAppearance: String, CaseIterable, Identifiable {
 }
 
 class AppearanceManager: ObservableObject {
+    static let shared = AppearanceManager()
     @Published var appearance: AppAppearance {
         didSet {
             updateAppearance()

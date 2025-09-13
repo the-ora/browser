@@ -7,35 +7,58 @@ struct ContainerView: View {
 
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var tabManager: TabManager
+    @EnvironmentObject var privacyMode: PrivacyMode
     @State private var draggedItem: UUID?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            FavTabsGrid(
-                tabs: favoriteTabs,
-                draggedItem: $draggedItem,
-                onDrag: dragTab,
-                selectedContainerId: selectedContainer,
-                onSelect: selectTab,
-                onFavoriteToggle: toggleFavorite,
-                onClose: removeTab,
-                onMoveToContainer: moveTab
-            )
+            if !privacyMode.isPrivate {
+                FavTabsGrid(
+                    tabs: favoriteTabs,
+                    draggedItem: $draggedItem,
+                    onDrag: dragTab,
+                    selectedContainerId: selectedContainer,
+                    onSelect: selectTab,
+                    onFavoriteToggle: toggleFavorite,
+                    onClose: removeTab,
+                    onMoveToContainer: moveTab
+                )
+            } else {
+                VStack(alignment: .center, spacing: 8) {
+                    Text("Private Browsing")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
+
+                    Text("Your activity is not being saved")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.gray.opacity(0.1))
+                )
+                .padding(.horizontal)
+            }
 
             VerticalScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    PinnedTabsList(
-                        tabs: pinnedTabs,
-                        draggedItem: $draggedItem,
-                        onDrag: dragTab,
-                        onSelect: selectTab,
-                        onPinToggle: togglePin,
-                        onFavoriteToggle: toggleFavorite,
-                        onClose: removeTab,
-                        onMoveToContainer: moveTab,
-                        containers: containers
-                    )
-                    Divider()
+                    if !privacyMode.isPrivate {
+                        PinnedTabsList(
+                            tabs: pinnedTabs,
+                            draggedItem: $draggedItem,
+                            onDrag: dragTab,
+                            onSelect: selectTab,
+                            onPinToggle: togglePin,
+                            onFavoriteToggle: toggleFavorite,
+                            onClose: removeTab,
+                            onMoveToContainer: moveTab,
+                            containers: containers
+                        )
+                        Divider()
+                    }
                     NormalTabsList(
                         tabs: normalTabs,
                         draggedItem: $draggedItem,
@@ -50,7 +73,7 @@ struct ContainerView: View {
                 }
             }
         }
-        .modifier(WindowDragIfAvailable())
+        .modifier(OraWindowDragGesture())
     }
 
     private var favoriteTabs: [Tab] {
@@ -116,13 +139,31 @@ struct ContainerView: View {
     }
 }
 
-private struct WindowDragIfAvailable: ViewModifier {
+private struct OraWindowDragGesture: ViewModifier {
     func body(content: Content) -> some View {
         if #available(macOS 15.0, *) {
             content.gesture(WindowDragGesture())
         } else {
-            content
+            content.gesture(BackportWindowDragGesture())
         }
+    }
+}
+
+private struct BackportWindowDragGesture: Gesture {
+    struct Value: Equatable {
+        static func == (lhs: Value, rhs: Value) -> Bool { true }
+    }
+
+    init() {}
+
+    var body: some Gesture<Value> {
+        DragGesture()
+            .onChanged { _ in
+                if let nsWindow = NSApp.keyWindow, let event = NSApp.currentEvent {
+                    nsWindow.performDrag(with: event)
+                }
+            }
+            .map { _ in Value() }
     }
 }
 

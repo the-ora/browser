@@ -95,13 +95,14 @@ class TabManager: ObservableObject {
     func openFromEngine(
         engineName: SearchEngineID,
         query: String,
-        historyManager: HistoryManager
+        historyManager: HistoryManager,
+        isPrivate: Bool
     ) {
         if let url = SearchEngineService().getSearchURLForEngine(
             engineName: engineName,
             query: query
         ) {
-            openTab(url: url, historyManager: historyManager)
+            openTab(url: url, historyManager: historyManager, isPrivate: isPrivate)
         }
     }
 
@@ -197,7 +198,8 @@ class TabManager: ObservableObject {
         container: TabContainer,
         favicon: URL? = nil,
         historyManager: HistoryManager? = nil,
-        downloadManager: DownloadManager? = nil
+        downloadManager: DownloadManager? = nil,
+        isPrivate: Bool
     ) -> Tab {
         let cleanHost: String? = {
             guard let host = url.host else { return nil }
@@ -213,7 +215,8 @@ class TabManager: ObservableObject {
             order: container.tabs.count + 1,
             historyManager: historyManager,
             downloadManager: downloadManager,
-            tabManager: self
+            tabManager: self,
+            isPrivate: isPrivate
         )
         modelContext.insert(newTab)
         container.tabs.append(newTab)
@@ -229,7 +232,8 @@ class TabManager: ObservableObject {
     func openTab(
         url: URL,
         historyManager: HistoryManager,
-        downloadManager: DownloadManager? = nil
+        downloadManager: DownloadManager? = nil,
+        isPrivate: Bool
     ) {
         if let container = activeContainer {
             if let host = url.host {
@@ -247,7 +251,8 @@ class TabManager: ObservableObject {
                     order: container.tabs.count + 1,
                     historyManager: historyManager,
                     downloadManager: downloadManager,
-                    tabManager: self
+                    tabManager: self,
+                    isPrivate: isPrivate
                 )
                 modelContext.insert(newTab)
                 container.tabs.append(newTab)
@@ -297,7 +302,8 @@ class TabManager: ObservableObject {
                 .restoreTransientState(
                     historyManger: historyManager,
                     downloadManager: downloadManager,
-                    tabManager: tabManager
+                    tabManager: tabManager,
+                    isPrivate: tab.isPrivate
                 )
         }
         tab.stopMedia { [weak self] in
@@ -318,6 +324,8 @@ class TabManager: ObservableObject {
     func closeActiveTab() {
         if let tab = activeTab {
             closeTab(tab: tab)
+        } else {
+            NSApp.keyWindow?.close()
         }
     }
 

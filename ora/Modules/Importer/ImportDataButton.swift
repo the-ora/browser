@@ -4,6 +4,7 @@ struct ImportDataButton: View {
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var historyManger: HistoryManager
     @EnvironmentObject var downloadManager: DownloadManager
+    @EnvironmentObject var privacyMode: PrivacyMode
 
     func importArc() {
         if let root = getRoot() {
@@ -36,7 +37,8 @@ struct ImportDataButton: View {
                                     url: url,
                                     container: container,
                                     historyManager: historyManger,
-                                    downloadManager: downloadManager
+                                    downloadManager: downloadManager,
+                                    isPrivate: privacyMode.isPrivate
                                 )
 
                         tabManager
@@ -72,7 +74,8 @@ struct ImportDataButton: View {
                                         url: url,
                                         container: container,
                                         historyManager: historyManger,
-                                        downloadManager: downloadManager
+                                        downloadManager: downloadManager,
+                                        isPrivate: privacyMode.isPrivate
                                     )
                             tabManager
                                 .toggleFavTab(
