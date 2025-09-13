@@ -210,7 +210,6 @@ struct URLBar: View {
                         .buttonStyle(.plain)
                         .help("Copy URL (⇧⌘C)")
                         .accessibilityLabel(Text("Copy URL"))
-                        .keyboardShortcut(KeyboardShortcuts.Address.copyURL)
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
