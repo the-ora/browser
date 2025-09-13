@@ -21,24 +21,19 @@ struct LinkPreview: View {
                         .truncationMode(.middle)
                         .multilineTextAlignment(.leading)
                 }
-                .padding(6)
-                .frame(minWidth: 1, idealWidth: 1, maxWidth: 500, alignment: .leading)
+                .padding(.vertical, 6)
+                .padding(.horizontal, 8)
                 .background(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(theme.background)
-                )
-                .background(BlurEffectView(
-                    material: .popover,
-                    blendingMode: .withinWindow
-                ))
-                .overlay(
                     RoundedRectangle(cornerRadius: 99, style: .continuous)
-                        .stroke(Color(.separatorColor), lineWidth: 1)
+                        .fill(Color(.windowBackgroundColor))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 99, style: .continuous)
+                                .stroke(Color(.separatorColor), lineWidth: 1)
+                        )
                 )
-                .cornerRadius(99)
+
                 Spacer()
 
-                // Version indicator (bottom-right)
                 Text(getAppVersion())
                     .font(.system(size: 10, weight: .regular))
                     .foregroundStyle(Color.white.opacity(0.6))
