@@ -129,6 +129,7 @@ struct WebView: NSViewRepresentable {
                     tabManager.openTab(
                         url: url,
                         historyManager: historyManager,
+                        focusAfterOpening: false,
                         isPrivate: self?.privacyMode?.isPrivate ?? false
                     )
                 }

@@ -233,6 +233,7 @@ class TabManager: ObservableObject {
         url: URL,
         historyManager: HistoryManager,
         downloadManager: DownloadManager? = nil,
+        focusAfterOpening: Bool = true,
         isPrivate: Bool
     ) {
         if let container = activeContainer {
@@ -256,10 +257,14 @@ class TabManager: ObservableObject {
                 )
                 modelContext.insert(newTab)
                 container.tabs.append(newTab)
-                activeTab?.maybeIsActive  = false
-                activeTab = newTab
-                activeTab?.maybeIsActive = true
-                newTab.lastAccessedAt = Date()
+
+                if focusAfterOpening {
+                    activeTab?.maybeIsActive  = false
+                    activeTab = newTab
+                    activeTab?.maybeIsActive = true
+                    newTab.lastAccessedAt = Date()
+                }
+
                 container.lastAccessedAt = Date()
                 try? modelContext.save()
             }
