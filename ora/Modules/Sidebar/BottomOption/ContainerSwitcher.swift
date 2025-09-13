@@ -11,6 +11,8 @@ struct ContainerSwitcher: View {
     @State private var hoveredContainer: UUID?
 
     private let normalButtonWidth: CGFloat = 28
+    let defaultEmoji = "•"
+    // Never used
     private let compactButtonWidth: CGFloat = 12
 
     var body: some View {
@@ -34,15 +36,17 @@ struct ContainerSwitcher: View {
     }
 
     @ViewBuilder
-    private func containerButton(for container: TabContainer, isCompact: Bool) -> some View {
+    private func containerButton(for container: TabContainer, isCompact: Bool)
+        -> some View
+    {
         let isActive = tabManager.activeContainer?.id == container.id
         let isHovered = hoveredContainer == container.id
-        let displayEmoji =
-            isCompact && !isActive ? (isHovered ? container.emoji : "•") : container.emoji
-        let buttonSize =
-            isCompact && !isActive
-                ? (isHovered ? compactButtonWidth + 4 : compactButtonWidth) : normalButtonWidth
-        let fontSize: CGFloat = isCompact && !isActive ? (isHovered ? 12 : 12) : 12
+        let displayEmoji = isCompact && !isActive ? (isHovered ? container.emoji : defaultEmoji) : container.emoji
+        let buttonSize = isCompact && !isActive ? (isHovered ? compactButtonWidth + 4 : compactButtonWidth) :
+            normalButtonWidth
+        let fontSize: CGFloat = isCompact && !isActive ? (isHovered ? (container.emoji == defaultEmoji ? 24 : 12) : 12
+        ) :
+            (container.emoji == defaultEmoji ? 24 : 12)
 
         Button(action: {
             onContainerSelected(container)
@@ -50,11 +54,11 @@ struct ContainerSwitcher: View {
             HStack {
                 Text(displayEmoji)
                     .font(.system(size: fontSize))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(displayEmoji == defaultEmoji ? .primary : .secondary)
             }
             .frame(width: buttonSize, height: buttonSize)
             .grayscale(!isActive && !isHovered ? 0.5 : 0)
-            .opacity(!isCompact && !isActive && !isHovered ? 0.5 : 1)
+            .opacity(!isActive ? 0.5 : 1)
             .background(
                 !isCompact && isHovered
                     ? theme.invertedSolidWindowBackgroundColor.opacity(0.3)
@@ -78,6 +82,7 @@ struct ContainerSwitcher: View {
             Button("Delete Container") {
                 tabManager.deleteContainer(container)
             }
+            .disabled(containers.count == 1) // disabled to avoid crashes
         }
     }
 }
