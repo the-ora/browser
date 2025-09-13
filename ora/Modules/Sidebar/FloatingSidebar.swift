@@ -3,7 +3,7 @@ import SwiftUI
 struct FloatingSidebar: View {
     let isFullscreen: Bool
     @Environment(\.theme) var theme
-    let sidebarCornerRadius: CGFloat = 8
+    let sidebarCornerRadius: CGFloat = 6
 
     var body: some View {
         ZStack(alignment: .leading) {

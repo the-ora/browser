@@ -85,6 +85,7 @@ struct TabItem: View {
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var historyManager: HistoryManager
     @EnvironmentObject var downloadManager: DownloadManager
+    @EnvironmentObject var privacyMode: PrivacyMode
     let availableContainers: [TabContainer]
 
     @Environment(\.theme) private var theme
@@ -108,7 +109,8 @@ struct TabItem: View {
                     .restoreTransientState(
                         historyManger: historyManager,
                         downloadManager: downloadManager,
-                        tabManager: tabManager
+                        tabManager: tabManager,
+                        isPrivate: privacyMode.isPrivate
                     )
             }
         }
@@ -120,7 +122,8 @@ struct TabItem: View {
                         .restoreTransientState(
                             historyManger: historyManager,
                             downloadManager: downloadManager,
-                            tabManager: tabManager
+                            tabManager: tabManager,
+                            isPrivate: privacyMode.isPrivate
                         )
                 }
             }
@@ -146,12 +149,12 @@ struct TabItem: View {
                         .restoreTransientState(
                             historyManger: historyManager,
                             downloadManager: downloadManager,
-                            tabManager: tabManager
+                            tabManager: tabManager,
+                            isPrivate: privacyMode.isPrivate
                         )
                 }
             }
         }
-//        .onTapGesture(perform: onTap)
         .onHover { isHovering = $0 }
         .contextMenu { contextMenuItems }
         .animation(.spring(response: 0.2, dampingFraction: 0.8), value: isDragging)

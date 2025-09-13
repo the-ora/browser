@@ -16,6 +16,7 @@ struct FavTabItem: View {
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var historyManager: HistoryManager
     @EnvironmentObject var downloadManager: DownloadManager
+    @EnvironmentObject var privacyMode: PrivacyMode
 
     @State private var isHovering = false
 
@@ -49,7 +50,8 @@ struct FavTabItem: View {
                     .restoreTransientState(
                         historyManger: historyManager,
                         downloadManager: downloadManager,
-                        tabManager: tabManager
+                        tabManager: tabManager,
+                        isPrivate: privacyMode.isPrivate
                     )
             }
         }
@@ -59,7 +61,8 @@ struct FavTabItem: View {
                     .restoreTransientState(
                         historyManger: historyManager,
                         downloadManager: downloadManager,
-                        tabManager: tabManager
+                        tabManager: tabManager,
+                        isPrivate: privacyMode.isPrivate
                     )
             }
         }
@@ -91,7 +94,8 @@ struct FavTabItem: View {
                     .restoreTransientState(
                         historyManger: historyManager,
                         downloadManager: downloadManager,
-                        tabManager: tabManager
+                        tabManager: tabManager,
+                        isPrivate: privacyMode.isPrivate
                     )
             }
         }
