@@ -69,6 +69,7 @@ struct SidebarView: View {
                 .environmentObject(historyManger)
                 .environmentObject(downloadManager)
                 .environmentObject(appState)
+                .environmentObject(privacyMode)
             }
             // Show player if there is at least one playing session not belonging to the active tab
             if shouldShowMediaWidget {
