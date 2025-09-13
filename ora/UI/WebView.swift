@@ -129,9 +129,15 @@ struct WebView: NSViewRepresentable {
                 })();
             """
 
-            webView.evaluateJavaScript(jsCode) { [weak self] result, _ in
+            webView.evaluateJavaScript(jsCode) { [weak self] result, error in
+                guard error == nil else {
+                    print("Error evaluating JavaScript for middle-click link detection: \(error!.localizedDescription)")
+                    return
+                }
+
                 if let urlString = result as? String, let url = URL(string: urlString),
-                   let tabManager = self?.tabManager, let historyManager = self?.historyManager
+                   let tabManager = self?.tabManager, let historyManager = self?.historyManager,
+                   ["http", "https"].contains(url.scheme?.lowercased() ?? "")
                 {
                     DispatchQueue.main.async {
                         tabManager.openTab(
