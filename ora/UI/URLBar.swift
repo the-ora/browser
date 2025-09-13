@@ -158,8 +158,8 @@ struct URLBar: View {
                                 }
                                 .opacity(showCopiedAnimation ? 0 : 1)
                                 .offset(y: showCopiedAnimation ? (startWheelAnimation ? -12 : 12) : 0)
-                                .animation(.easeInOut(duration: 0.3), value: showCopiedAnimation)
-                                .animation(.easeInOut(duration: 0.3), value: startWheelAnimation)
+                                .animation(.easeOut(duration: 0.3), value: showCopiedAnimation)
+                                .animation(.easeOut(duration: 0.3), value: startWheelAnimation)
 
                             CopiedURLOverlay(
                                 foregroundColor: getUrlFieldColor(tab),
