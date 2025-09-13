@@ -1,8 +1,7 @@
 import SwiftUI
+import AppKit
 
-// MARK: - Navigation Button
-
-struct NavigationButton: View {
+struct URLBarButton: View {
     let systemName: String
     let isEnabled: Bool
     let foregroundColor: Color

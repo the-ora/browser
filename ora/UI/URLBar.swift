@@ -83,7 +83,7 @@ struct URLBar: View {
         HStack {
             if let tab = tabManager.activeTab {
                 HStack(spacing: 8) {
-                    NavigationButton(
+                    URLBarButton(
                         systemName: "sidebar.left",
                         isEnabled: true,
                         foregroundColor: buttonForegroundColor,
@@ -91,7 +91,7 @@ struct URLBar: View {
                     )
 
                     // Back button
-                    NavigationButton(
+                    URLBarButton(
                         systemName: "chevron.left",
                         isEnabled: tabManager.activeTab?.webView.canGoBack ?? false,
                         foregroundColor: buttonForegroundColor,
@@ -104,7 +104,7 @@ struct URLBar: View {
                     .keyboardShortcut(KeyboardShortcuts.Navigation.back)
 
                     // Forward button
-                    NavigationButton(
+                    URLBarButton(
                         systemName: "chevron.right",
                         isEnabled: tabManager.activeTab?.webView.canGoForward ?? false,
                         foregroundColor: buttonForegroundColor,
@@ -117,7 +117,7 @@ struct URLBar: View {
                     .keyboardShortcut(KeyboardShortcuts.Navigation.forward)
 
                     // Reload button
-                    NavigationButton(
+                    URLBarButton(
                         systemName: "arrow.clockwise",
                         isEnabled: tabManager.activeTab != nil,
                         foregroundColor: buttonForegroundColor,
@@ -160,6 +160,7 @@ struct URLBar: View {
                                 .offset(y: showCopiedAnimation ? (startWheelAnimation ? -12 : 12) : 0)
                                 .animation(.easeInOut(duration: 0.3), value: showCopiedAnimation)
                                 .animation(.easeInOut(duration: 0.3), value: startWheelAnimation)
+                            
                             CopiedURLOverlay(
                                 foregroundColor: getUrlFieldColor(tab),
                                 showCopiedAnimation: $showCopiedAnimation,
@@ -225,8 +226,9 @@ struct URLBar: View {
                         .opacity(0)
                         .allowsHitTesting(false)
                     )
-                    Spacer()
-                    ShareButton(
+                    
+                    ShareLinkButton(
+                        isEnabled: true, // or your enabled condition
                         foregroundColor: buttonForegroundColor,
                         onShare: { sourceView, sourceRect in
                             if let activeTab = tabManager.activeTab {
@@ -236,7 +238,7 @@ struct URLBar: View {
                     )
                     .frame(width: 32, height: 32)
 
-                    NavigationButton(
+                    URLBarButton(
                         systemName: "ellipsis",
                         isEnabled: true,
                         foregroundColor: buttonForegroundColor,
@@ -285,43 +287,6 @@ struct URLBar: View {
                         .fill(tab.backgroundColor)
                 )
             }
-        }
-    }
-}
-
-struct ShareButton: NSViewRepresentable {
-    let foregroundColor: Color
-    let onShare: (NSView, NSRect) -> Void
-
-    func makeNSView(context: Context) -> NSButton {
-        let button = NSButton()
-        button.image = NSImage(systemSymbolName: "square.and.arrow.up", accessibilityDescription: "Share")
-        button.isBordered = false
-        button.bezelStyle = .regularSquare
-        button.imagePosition = .imageOnly
-        button.target = context.coordinator
-        button.action = #selector(Coordinator.buttonTapped)
-        return button
-    }
-
-    func updateNSView(_ nsView: NSButton, context: Context) {
-        context.coordinator.onShare = onShare
-    }
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(onShare: onShare)
-    }
-
-    class Coordinator: NSObject {
-        var onShare: (NSView, NSRect) -> Void
-
-        init(onShare: @escaping (NSView, NSRect) -> Void) {
-            self.onShare = onShare
-        }
-
-        @objc func buttonTapped(_ sender: NSButton) {
-            let rect = sender.bounds
-            onShare(sender, rect)
         }
     }
 }
