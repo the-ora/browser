@@ -19,7 +19,11 @@ struct SidebarURLDisplay: View {
     }
 
     private func triggerCopy(_ text: String) {
-        ClipboardUtils.triggerCopy(text, showCopiedAnimation: $showCopiedAnimation, startWheelAnimation: $startWheelAnimation)
+        ClipboardUtils.triggerCopy(
+            text,
+            showCopiedAnimation: $showCopiedAnimation,
+            startWheelAnimation: $startWheelAnimation
+        )
     }
 
     var body: some View {

@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 /// Utility functions for clipboard operations
-struct ClipboardUtils {
+enum ClipboardUtils {
     /// Copies the given text to the system clipboard
     static func copyToClipboard(_ text: String) {
         let pasteboard = NSPasteboard.general
