@@ -68,7 +68,7 @@ struct URLBar: View {
     var body: some View {
         HStack {
             if let tab = tabManager.activeTab {
-                HStack(spacing: 8) {
+                HStack(spacing: 4) {
                     URLBarButton(
                         systemName: "sidebar.left",
                         isEnabled: true,
