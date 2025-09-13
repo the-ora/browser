@@ -171,7 +171,9 @@ struct URLBar: View {
                         .font(.system(size: 14))
                         .foregroundColor(getUrlFieldColor(tab))
                         .onTapGesture {
-                            editingURLString = tab.url.absoluteString
+                            if let activeTab = tabManager.activeTab {
+                                editingURLString = activeTab.url.absoluteString
+                            }
                             isEditing = true
                         }
                         .onKeyPress(.escape) {
@@ -196,7 +198,9 @@ struct URLBar: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
 
                         Button {
-                            triggerCopy(tab.url.absoluteString)
+                            if let activeTab = tabManager.activeTab {
+                                triggerCopy(activeTab.url.absoluteString)
+                            }
                         } label: {
                             Image(systemName: "link")
                                 .font(.system(size: 12, weight: .regular))
