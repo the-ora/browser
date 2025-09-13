@@ -8,6 +8,7 @@ struct SidebarView: View {
     @EnvironmentObject var historyManger: HistoryManager
     @EnvironmentObject var downloadManager: DownloadManager
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var privacyMode: PrivacyMode
     @EnvironmentObject var media: MediaController
     @Query var containers: [TabContainer]
     @Query(filter: nil, sort: [.init(\History.lastAccessedAt, order: .reverse)]) var histories:
@@ -68,8 +69,8 @@ struct SidebarView: View {
                 .environmentObject(historyManger)
                 .environmentObject(downloadManager)
                 .environmentObject(appState)
+                .environmentObject(privacyMode)
             }
-
             // Show player if there is at least one playing session not belonging to the active tab
             if shouldShowMediaWidget {
                 GlobalMediaPlayer()
@@ -77,15 +78,19 @@ struct SidebarView: View {
                     .padding(.horizontal, 10)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
-
-            HStack {
-                DownloadsWidget()
-                Spacer()
-                ContainerSwitcher(onContainerSelected: onContainerSelected)
-                Spacer()
-                NewContainerButton()
+            if !privacyMode.isPrivate {
+                HStack {
+                    DownloadsWidget()
+                    Spacer()
+                    ContainerSwitcher(onContainerSelected: onContainerSelected)
+                    Spacer()
+                    NewContainerButton()
+                }
+                .padding(.horizontal, 10)
             }
-            .padding(.horizontal, 10)
+
+
+           
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(

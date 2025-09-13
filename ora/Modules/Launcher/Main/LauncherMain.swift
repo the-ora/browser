@@ -48,6 +48,7 @@ struct LauncherMain: View {
     @EnvironmentObject var downloadManager: DownloadManager
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var privacyMode: PrivacyMode
     @State var focusedElement: UUID = .init()
     @StateObject private var faviconService = FaviconService()
     @StateObject private var searchEngineService = SearchEngineService()
@@ -77,7 +78,8 @@ struct LauncherMain: View {
                 tabManager.openFromEngine(
                     engineName: engineName,
                     query: query ?? text,
-                    historyManager: historyManager
+                    historyManager: historyManager,
+                    isPrivate: privacyMode.isPrivate
                 )
             }
         )
@@ -147,7 +149,8 @@ struct LauncherMain: View {
                             tab.restoreTransientState(
                                 historyManger: historyManager,
                                 downloadManager: downloadManager,
-                                tabManager: tabManager
+                                tabManager: tabManager,
+                                isPrivate: privacyMode.isPrivate
                             )
                         }
                         tabManager.activateTab(tab)
@@ -177,7 +180,8 @@ struct LauncherMain: View {
                     tabManager.openTab(
                         url: url,
                         historyManager: historyManager,
-                        downloadManager: downloadManager
+                        downloadManager: downloadManager,
+                        isPrivate: privacyMode.isPrivate
                     )
                 }
             )
@@ -238,7 +242,8 @@ struct LauncherMain: View {
                     action: {
                         tabManager.openTab(
                             url: history.url,
-                            historyManager: historyManager
+                            historyManager: historyManager,
+                            isPrivate: privacyMode.isPrivate
                         )
                     }
                 )
