@@ -6,19 +6,19 @@ struct Theme: Equatable {
     let colorScheme: ColorScheme
 
     var primary: Color {
-        Color(hex: "f3e5d6")
+        Color(hex: "#f3e5d6")
     }
 
     var primaryDark: Color {
-        Color(hex: "63411D")
+        Color(hex: "#63411D")
     }
 
     var accent: Color {
-        Color(hex: "FF5F57")
+        Color(hex: "#FF5F57")
     }
 
     var background: Color {
-        colorScheme == .dark ? Color(hex: "#141414") : .white
+        colorScheme == .dark ? Color(hex: "#0F0E0E") : .white
     }
 
     var foreground: Color {
@@ -26,7 +26,7 @@ struct Theme: Equatable {
     }
 
     var subtleWindowBackgroundColor: Color {
-        colorScheme == .dark ? self.primaryDark.opacity(0.3) : self.primary.opacity(0.8)
+        colorScheme == .dark ? self.primaryDark.opacity(0.3) : self.primary.opacity(0.3)
     }
 
     var solidWindowBackgroundColor: Color {

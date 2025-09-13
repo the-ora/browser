@@ -317,8 +317,8 @@ struct EnhancedFindButtonStyle: ButtonStyle {
             .background(buttonBackgroundColor(configuration))
             .cornerRadius(4)
             .scaleEffect(configuration.isPressed && isEnabled ? 0.95 : 1.0)
-            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
-            .animation(.easeInOut(duration: 0.15), value: isHovering)
+            .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
+            .animation(.easeOut(duration: 0.15), value: isHovering)
             .onHover { hovering in
                 if isEnabled {
                     isHovering = hovering

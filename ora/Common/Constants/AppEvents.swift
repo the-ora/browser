@@ -21,5 +21,3 @@ extension Notification.Name {
     static let setAppearance = Notification.Name("SetAppearance") // userInfo: ["appearance": String]
     static let checkForUpdates = Notification.Name("CheckForUpdates")
 }
-
-

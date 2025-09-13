@@ -54,7 +54,7 @@ struct DownloadsWidget: View {
             }
             .buttonStyle(.plain)
             .onHover { hovering in
-                withAnimation(.easeInOut(duration: 0.15)) {
+                withAnimation(.easeOut(duration: 0.15)) {
                     isHovered = hovering
                 }
             }

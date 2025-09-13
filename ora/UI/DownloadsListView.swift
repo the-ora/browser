@@ -114,7 +114,7 @@ struct DownloadListItem: View {
                                 .fill(.blue)
                                 .frame(width: geometry.size.width * download.displayProgress, height: 2)
                                 .cornerRadius(1)
-                                .animation(.easeInOut(duration: 0.2), value: download.displayProgress)
+                                .animation(.easeOut(duration: 0.2), value: download.displayProgress)
                         }
                     }
                     .frame(height: 2)

@@ -102,7 +102,7 @@ class TabManager: ObservableObject {
             engineName: engineName,
             query: query
         ) {
-            openTab(url: url, historyManager: historyManager,isPrivate: isPrivate)
+            openTab(url: url, historyManager: historyManager, isPrivate: isPrivate)
         }
     }
 

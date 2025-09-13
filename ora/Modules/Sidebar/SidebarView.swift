@@ -88,9 +88,6 @@ struct SidebarView: View {
                 }
                 .padding(.horizontal, 10)
             }
-
-
-           
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(

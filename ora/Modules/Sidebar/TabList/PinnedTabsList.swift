@@ -15,33 +15,39 @@ struct PinnedTabsList: View {
     @Environment(\.theme) var theme
 
     var body: some View {
-        Section(
-            header: Text("Pinned").font(.callout).foregroundColor(theme.mutedForeground).padding(.top, 8)
-        ) {
-            ForEach(tabs) { tab in
-                TabItem(
-                    tab: tab,
-                    isSelected: tabManager.isActive(tab),
-                    isDragging: draggedItem == tab.id,
-                    onTap: { onSelect(tab) },
-                    onPinToggle: { onPinToggle(tab) },
-                    onFavoriteToggle: { onFavoriteToggle(tab) },
-                    onClose: { onClose(tab) },
-                    onMoveToContainer: { onMoveToContainer(tab, $0) },
-                    availableContainers: containers
-                )
-                .onDrag { onDrag(tab.id) }
-                .onDrop(
-                    of: [.text],
-                    delegate: TabDropDelegate(
-                        item: tab,
-                        draggedItem: $draggedItem,
-                        targetSection: .pinned
+        VStack(spacing: 8) {
+            Text("Pinned")
+                .font(.callout)
+                .foregroundColor(theme.mutedForeground)
+                .padding(.top, 8)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            if tabs.isEmpty {
+                EmptyPinnedTabs()
+            } else {
+                ForEach(tabs) { tab in
+                    TabItem(
+                        tab: tab,
+                        isSelected: tabManager.isActive(tab),
+                        isDragging: draggedItem == tab.id,
+                        onTap: { onSelect(tab) },
+                        onPinToggle: { onPinToggle(tab) },
+                        onFavoriteToggle: { onFavoriteToggle(tab) },
+                        onClose: { onClose(tab) },
+                        onMoveToContainer: { onMoveToContainer(tab, $0) },
+                        availableContainers: containers
                     )
-                )
+                    .onDrag { onDrag(tab.id) }
+                    .onDrop(
+                        of: [.text],
+                        delegate: TabDropDelegate(
+                            item: tab,
+                            draggedItem: $draggedItem,
+                            targetSection: .pinned
+                        )
+                    )
+                }
             }
         }
-        .frame(height: tabs.isEmpty ? 20 : nil)
         .frame(maxWidth: .infinity, alignment: .leading)
         .onDrop(
             of: [.text],

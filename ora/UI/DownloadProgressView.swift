@@ -43,7 +43,7 @@ struct DownloadProgressView: View {
                             .fill(progressColor)
                             .frame(width: geometry.size.width * download.displayProgress, height: 3)
                             .cornerRadius(1.5)
-                            .animation(.easeInOut(duration: 0.2), value: download.displayProgress)
+                            .animation(.easeOut(duration: 0.2), value: download.displayProgress)
                     }
                 }
                 .frame(height: 3)

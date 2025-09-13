@@ -10,7 +10,12 @@ struct WebView: NSViewRepresentable {
     @EnvironmentObject var privacyMode: PrivacyMode
 
     func makeCoordinator() -> Coordinator {
-        return Coordinator(tabManager: tabManager, historyManager: historyManager, downloadManager: downloadManager,privacyMode: privacyMode)
+        return Coordinator(
+            tabManager: tabManager,
+            historyManager: historyManager,
+            downloadManager: downloadManager,
+            privacyMode: privacyMode
+        )
     }
 
     func makeNSView(context: Context) -> WKWebView {
@@ -47,7 +52,12 @@ struct WebView: NSViewRepresentable {
         private var mouseEventMonitor: Any?
         private weak var webView: WKWebView?
 
-        init(tabManager: TabManager?, historyManager: HistoryManager?, downloadManager: DownloadManager?,privacyMode:PrivacyMode) {
+        init(
+            tabManager: TabManager?,
+            historyManager: HistoryManager?,
+            downloadManager: DownloadManager?,
+            privacyMode: PrivacyMode
+        ) {
             self.tabManager = tabManager
             self.historyManager = historyManager
             self.downloadManager = downloadManager
@@ -97,7 +107,6 @@ struct WebView: NSViewRepresentable {
         }
 
         private func isEventInWebView(_ event: NSEvent, webView: WKWebView) -> Bool {
-
             // Convert the event location to the web view's coordinate system
             let locationInWindow = event.locationInWindow
             let locationInWebView = webView.convert(locationInWindow, from: nil)

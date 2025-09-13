@@ -39,22 +39,22 @@ struct OraApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {
-        WindowGroup(id:"normal") {
+        WindowGroup(id: "normal") {
             OraRoot()
                 .frame(minWidth: 500, minHeight: 360)
         }
         .defaultSize(width: 1440, height: 900)
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentMinSize)
-        
-        WindowGroup("Private",id:"private") {
+
+        WindowGroup("Private", id: "private") {
             OraRoot(isPrivate: true)
                 .frame(minWidth: 500, minHeight: 360)
         }
         .defaultSize(width: 1440, height: 900)
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentMinSize)
-        
+
         Settings {
             SettingsContentView()
                 .environmentObject(AppearanceManager.shared)
@@ -62,5 +62,4 @@ struct OraApp: App {
                 .withTheme()
         }.commands { OraCommands() }
     }
-    
 }
