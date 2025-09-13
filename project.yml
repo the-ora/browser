@@ -53,7 +53,6 @@ targets:
     entitlements:
       path: ora/ora.entitlements
       properties:
-        com.apple.developer.authentication-services.autofill-credential-provider: true
         com.apple.security.app-sandbox: true
         com.apple.security.assets.movies.read-only: true
         com.apple.security.assets.music.read-only: true
@@ -65,8 +64,6 @@ targets:
         com.apple.security.files.user-selected.read-write: true
         com.apple.security.network.client: true
         com.apple.security.print: true
-        keychain-access-groups:
-              - "$(AppIdentifierPrefix)com.orabrowser.app"
 
     settings:
       base:
