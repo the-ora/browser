@@ -33,7 +33,11 @@ struct URLBar: View {
     }
 
     private func triggerCopy(_ text: String) {
-        ClipboardUtils.triggerCopy(text, showCopiedAnimation: $showCopiedAnimation, startWheelAnimation: $startWheelAnimation)
+        ClipboardUtils.triggerCopy(
+            text,
+            showCopiedAnimation: $showCopiedAnimation,
+            startWheelAnimation: $startWheelAnimation
+        )
     }
 
     var buttonForegroundColor: Color {
