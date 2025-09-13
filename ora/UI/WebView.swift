@@ -133,12 +133,14 @@ struct WebView: NSViewRepresentable {
                 if let urlString = result as? String, let url = URL(string: urlString),
                    let tabManager = self?.tabManager, let historyManager = self?.historyManager
                 {
-                    tabManager.openTab(
-                        url: url,
-                        historyManager: historyManager,
-                        focusAfterOpening: false,
-                        isPrivate: self?.privacyMode?.isPrivate ?? false
-                    )
+                    DispatchQueue.main.async {
+                        tabManager.openTab(
+                            url: url,
+                            historyManager: historyManager,
+                            focusAfterOpening: false,
+                            isPrivate: self?.privacyMode?.isPrivate ?? false
+                        )
+                    }
                 }
             }
         }
