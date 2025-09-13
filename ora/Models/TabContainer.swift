@@ -14,7 +14,8 @@ class TabContainer: ObservableObject, Identifiable {
     @Relationship(deleteRule: .cascade)
     var tabs: [Tab] = []
     @Relationship(deleteRule: .cascade) var folders: [Folder] = []
-    @Relationship(deleteRule: .cascade) var history: [History] = []
+    @Relationship
+    var history: [History] = []
 
     init(
         id: UUID = UUID(),

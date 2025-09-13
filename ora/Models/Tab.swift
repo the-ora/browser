@@ -51,7 +51,8 @@ class Tab: ObservableObject, Identifiable {
     @Transient @Published var failedURL: URL?
     @Transient @Published var hoveredLinkURL: String?
 
-    @Relationship(inverse: \TabContainer.tabs) var container: TabContainer
+    @Relationship(inverse: \TabContainer.tabs)
+    var container: TabContainer
 
     init(
         id: UUID = UUID(),

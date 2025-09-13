@@ -194,7 +194,7 @@ class TabManager: ObservableObject {
         try? modelContext.save()
     }
 
-    func deleteContainer(_ container: TabContainer) -> Bool {
+    func deleteContainer(_ container: TabContainer, deleteHistory: Bool = false) -> Bool {
         do {
             let descriptor = FetchDescriptor<TabContainer>()
             let containers = try modelContext.fetch(descriptor)
@@ -223,8 +223,16 @@ class TabManager: ObservableObject {
                 modelContext.delete(tab)
             }
 
-            for history in container.history {
-                modelContext.delete(history)
+            // delete or keep history
+            if deleteHistory {
+                for h in container.history {
+                    modelContext.delete(h)
+                }
+            } else {
+                // detach history
+                for h in container.history {
+                    h.container = nil
+                }
             }
 
             try modelContext.save()

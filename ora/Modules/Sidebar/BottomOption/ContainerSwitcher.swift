@@ -11,6 +11,10 @@ struct ContainerSwitcher: View {
     @State private var hoveredContainer: UUID?
     @State private var didFailToDeleteContainer: Bool = false
 
+    // New state for confirmation
+    @State private var containerToDelete: TabContainer?
+    @State private var showDeleteConfirmation = false
+
     private let normalButtonWidth: CGFloat = 28
     private let compactButtonWidth: CGFloat = 12
 
@@ -18,8 +22,7 @@ struct ContainerSwitcher: View {
         GeometryReader { geometry in
             let availableWidth = geometry.size.width
             let totalWidth =
-                CGFloat(containers.count) * normalButtonWidth + CGFloat(max(0, containers.count - 1))
-                    * 2
+                CGFloat(containers.count) * normalButtonWidth + CGFloat(max(0, containers.count - 1)) * 2
             let isCompact = totalWidth > availableWidth
 
             HStack(alignment: .center, spacing: isCompact ? 4 : 2) {
@@ -37,6 +40,23 @@ struct ContainerSwitcher: View {
         } message: {
             Text("Something went wrong while trying to delete the container.")
         }
+        .alert("Delete Container?", isPresented: $showDeleteConfirmation) {
+            Button("Delete Container Only") {
+                if let container = containerToDelete {
+                    let success = tabManager.deleteContainer(container)
+                    if !success { didFailToDeleteContainer = true }
+                }
+            }
+            Button("Delete Container + History") {
+                if let container = containerToDelete {
+                    let success = tabManager.deleteContainer(container, deleteHistory: true)
+                    if !success { didFailToDeleteContainer = true }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Do you also want to delete the browsing history for this container?")
+        }
     }
 
     @ViewBuilder
@@ -47,7 +67,8 @@ struct ContainerSwitcher: View {
             isCompact && !isActive ? (isHovered ? container.emoji : "•") : container.emoji
         let buttonSize =
             isCompact && !isActive
-                ? (isHovered ? compactButtonWidth + 4 : compactButtonWidth) : normalButtonWidth
+                ? (isHovered ? compactButtonWidth + 4 : compactButtonWidth)
+                : normalButtonWidth
         let fontSize: CGFloat = isCompact && !isActive ? (isHovered ? 12 : 12) : 12
 
         Button(action: {
@@ -82,13 +103,9 @@ struct ContainerSwitcher: View {
                 // tabManager.renameContainer(container, name: "New Name", emoji: "💩")
             }
             if tabManager.canDeleteContainers {
-                Button("Delete Container") {
-                    let success = tabManager.deleteContainer(container)
-
-                    if !success {
-                        print("Failed to delete container!")
-                        didFailToDeleteContainer = true
-                    }
+                Button("Delete Container", role: .destructive) {
+                    containerToDelete = container
+                    showDeleteConfirmation = true
                 }
             }
         }

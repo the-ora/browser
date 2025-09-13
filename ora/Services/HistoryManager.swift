@@ -67,7 +67,7 @@ class HistoryManager: ObservableObject {
             predicate = #Predicate { history in
                 (history.urlString.localizedStandardContains(trimmedText) ||
                     history.title.localizedStandardContains(trimmedText)
-                ) && history.container.id == activeContainerId
+                ) && history.container?.id == activeContainerId
             }
         }
 
