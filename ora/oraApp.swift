@@ -154,7 +154,9 @@ struct OraApp: App {
         .commands {
             CommandGroup(after: .newItem) {
                 Button("New Tab") {
-                    appState.showLauncher = true
+                    if tabManager.activeTab != nil {
+                        appState.showLauncher.toggle()
+                    }
                 }
                 .keyboardShortcut(KeyboardShortcuts.Tabs.new)
 
