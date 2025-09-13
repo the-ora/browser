@@ -52,6 +52,7 @@ class Tab: ObservableObject, Identifiable {
     @Transient @Published var hoveredLinkURL: String?
 
     @Relationship(inverse: \TabContainer.tabs) var container: TabContainer
+    @Relationship(inverse: \Folder.tabs) var folder: Folder?
 
     init(
         id: UUID = UUID(),

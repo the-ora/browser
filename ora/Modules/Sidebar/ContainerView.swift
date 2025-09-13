@@ -8,6 +8,8 @@ struct ContainerView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var tabManager: TabManager
     @State private var draggedItem: UUID?
+    @State private var showCreateFolderDialog = false
+    @State private var newFolderName = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -36,8 +38,24 @@ struct ContainerView: View {
                         containers: containers
                     )
                     Divider()
+                    
+                    // Display folders
+                    ForEach(folders) { folder in
+                        FolderView(
+                            folder: folder,
+                            draggedItem: $draggedItem,
+                            onDrag: dragTab,
+                            onSelect: selectTab,
+                            onPinToggle: togglePin,
+                            onFavoriteToggle: toggleFavorite,
+                            onClose: removeTab,
+                            onMoveToContainer: moveTab,
+                            availableContainers: containers
+                        )
+                    }
+                    
                     NormalTabsList(
-                        tabs: normalTabs,
+                        tabs: normalTabsNotInFolders,
                         draggedItem: $draggedItem,
                         onDrag: dragTab,
                         onSelect: selectTab,
@@ -51,6 +69,23 @@ struct ContainerView: View {
             }
         }
         .modifier(WindowDragIfAvailable())
+        .contextMenu {
+            Button("Create New Folder") {
+                showCreateFolderDialog = true
+            }
+        }
+        .sheet(isPresented: $showCreateFolderDialog) {
+            CreateFolderSheet(
+                isPresented: $showCreateFolderDialog,
+                folderName: $newFolderName,
+                onCreate: {
+                    if !newFolderName.isEmpty {
+                        _ = tabManager.createFolder(name: newFolderName, in: container)
+                        newFolderName = ""
+                    }
+                }
+            )
+        }
     }
 
     private var favoriteTabs: [Tab] {
@@ -69,6 +104,17 @@ struct ContainerView: View {
         return container.tabs
             .sorted(by: { $0.order > $1.order })
             .filter { $0.type == .normal }
+    }
+    
+    private var normalTabsNotInFolders: [Tab] {
+        return container.tabs
+            .sorted(by: { $0.order > $1.order })
+            .filter { $0.type == .normal && $0.folder == nil }
+    }
+    
+    private var folders: [Folder] {
+        return container.folders
+            .sorted(by: { $0.order < $1.order })
     }
 
     private func addNewTab() {
