@@ -137,7 +137,7 @@ private struct MediaPlayerCard: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(theme.background.opacity(0.85))
+                .fill(.black.opacity(0.85))
                 .shadow(color: .black.opacity(0.18), radius: 8, x: 0, y: 3)
         )
         .overlay(
