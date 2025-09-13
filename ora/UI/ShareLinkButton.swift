@@ -1,13 +1,13 @@
-import SwiftUI
 import AppKit
+import SwiftUI
 
 struct ShareLinkButton: View {
     let isEnabled: Bool
     let foregroundColor: Color
     let onShare: (NSView, NSRect) -> Void
-    
+
     @State private var shareSourceView: NSView?
-    
+
     var body: some View {
         URLBarButton(
             systemName: "square.and.arrow.up",
@@ -30,7 +30,7 @@ struct ShareLinkButton: View {
 
 private struct ShareSourceView: NSViewRepresentable {
     let onViewCreated: (NSView) -> Void
-    
+
     func makeNSView(context: Context) -> NSView {
         let view = NSView()
         view.wantsLayer = true
@@ -40,7 +40,7 @@ private struct ShareSourceView: NSViewRepresentable {
         }
         return view
     }
-    
+
     func updateNSView(_ nsView: NSView, context: Context) {
         // Nothing to update
     }

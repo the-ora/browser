@@ -160,7 +160,7 @@ struct URLBar: View {
                                 .offset(y: showCopiedAnimation ? (startWheelAnimation ? -12 : 12) : 0)
                                 .animation(.easeInOut(duration: 0.3), value: showCopiedAnimation)
                                 .animation(.easeInOut(duration: 0.3), value: startWheelAnimation)
-                            
+
                             CopiedURLOverlay(
                                 foregroundColor: getUrlFieldColor(tab),
                                 showCopiedAnimation: $showCopiedAnimation,
@@ -226,9 +226,9 @@ struct URLBar: View {
                         .opacity(0)
                         .allowsHitTesting(false)
                     )
-                    
+
                     ShareLinkButton(
-                        isEnabled: true, // or your enabled condition
+                        isEnabled: true,
                         foregroundColor: buttonForegroundColor,
                         onShare: { sourceView, sourceRect in
                             if let activeTab = tabManager.activeTab {

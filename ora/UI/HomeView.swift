@@ -15,7 +15,7 @@ struct HomeView: View {
                     BlurEffectView(material: .underWindowBackground, blendingMode: .behindWindow)
                 )
 
-            NavigationButton(
+            URLBarButton(
                 systemName: "sidebar.left",
                 isEnabled: true,
                 foregroundColor: theme.foreground.opacity(0.3),
