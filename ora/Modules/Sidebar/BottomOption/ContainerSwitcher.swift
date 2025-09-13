@@ -72,9 +72,9 @@ struct ContainerSwitcher: View {
             }
         }
         .contextMenu {
-            Button("Rename Container") {
-                // tabManager.renameContainer(container, name: "New Name", emoji: "💩")
-            }
+            // Button("Rename Container") {
+            // tabManager.renameContainer(container, name: "New Name", emoji: "💩")
+            // }
             Button("Delete Container") {
                 tabManager.deleteContainer(container)
             }

@@ -62,12 +62,10 @@ struct URLBar: View {
     }
 
     var body: some View {
-        HStack(spacing: 12) {
-            // Navigation buttons
+        HStack {
             if let tab = tabManager.activeTab {
                 HStack(spacing: 8) {
-                    // Sidebar button, always shown with fallback color if no active tab
-                    NavigationButton(
+                    URLBarButton(
                         systemName: "sidebar.left",
                         isEnabled: true,
                         foregroundColor: buttonForegroundColor,
@@ -75,7 +73,7 @@ struct URLBar: View {
                     )
 
                     // Back button
-                    NavigationButton(
+                    URLBarButton(
                         systemName: "chevron.left",
                         isEnabled: tabManager.activeTab?.webView.canGoBack ?? false,
                         foregroundColor: buttonForegroundColor,
@@ -88,7 +86,7 @@ struct URLBar: View {
                     .keyboardShortcut(KeyboardShortcuts.Navigation.back)
 
                     // Forward button
-                    NavigationButton(
+                    URLBarButton(
                         systemName: "chevron.right",
                         isEnabled: tabManager.activeTab?.webView.canGoForward ?? false,
                         foregroundColor: buttonForegroundColor,
@@ -101,7 +99,7 @@ struct URLBar: View {
                     .keyboardShortcut(KeyboardShortcuts.Navigation.forward)
 
                     // Reload button
-                    NavigationButton(
+                    URLBarButton(
                         systemName: "arrow.clockwise",
                         isEnabled: tabManager.activeTab != nil,
                         foregroundColor: buttonForegroundColor,
@@ -142,8 +140,9 @@ struct URLBar: View {
                                 }
                                 .opacity(showCopiedAnimation ? 0 : 1)
                                 .offset(y: showCopiedAnimation ? (startWheelAnimation ? -12 : 12) : 0)
-                                .animation(.easeInOut(duration: 0.3), value: showCopiedAnimation)
-                                .animation(.easeInOut(duration: 0.3), value: startWheelAnimation)
+                                .animation(.easeOut(duration: 0.3), value: showCopiedAnimation)
+                                .animation(.easeOut(duration: 0.3), value: startWheelAnimation)
+
                             CopiedURLOverlay(
                                 foregroundColor: getUrlFieldColor(tab),
                                 showCopiedAnimation: $showCopiedAnimation,
@@ -193,14 +192,17 @@ struct URLBar: View {
                         .help("Copy URL (⇧⌘C)")
                         .accessibilityLabel(Text("Copy URL"))
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
+                    .frame(height: 30)
+                    .padding(.horizontal, 8)
                     .background(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(getUrlFieldColor(tab).opacity(isEditing ? 0.1 : 0.09))
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .fill(getUrlFieldColor(tab).opacity(0.12))
                             .overlay(
-                                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .stroke(isEditing ? getUrlFieldColor(tab).opacity(0.5) : Color.clear, lineWidth: 1)
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .stroke(
+                                        isEditing ? getUrlFieldColor(tab).opacity(0.1) : Color.clear,
+                                        lineWidth: 1.2
+                                    )
                             )
                     )
                     .overlay(
@@ -213,35 +215,24 @@ struct URLBar: View {
                         .allowsHitTesting(false)
                     )
 
-                    Spacer()
-
-                    // Action buttons
-                    HStack(spacing: 8) {
-                        ShareButton(
-                            foregroundColor: buttonForegroundColor,
-                            onShare: { sourceView, sourceRect in
-                                if let activeTab = tabManager.activeTab {
-                                    shareCurrentPage(tab: activeTab, sourceView: sourceView, sourceRect: sourceRect)
-                                }
+                    ShareLinkButton(
+                        isEnabled: true,
+                        foregroundColor: buttonForegroundColor,
+                        onShare: { sourceView, sourceRect in
+                            if let activeTab = tabManager.activeTab {
+                                shareCurrentPage(tab: activeTab, sourceView: sourceView, sourceRect: sourceRect)
                             }
-                        )
-                        .frame(width: 32, height: 32)
+                        }
+                    )
 
-                        NavigationButton(
-                            systemName: "ellipsis",
-                            isEnabled: true,
-                            foregroundColor: buttonForegroundColor,
-                            action: {}
-                        )
-                    }
+                    URLBarButton(
+                        systemName: "ellipsis",
+                        isEnabled: true,
+                        foregroundColor: buttonForegroundColor,
+                        action: {}
+                    )
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                //            .onReceive(tab.$url) { newURL in
-                //                if !isEditing {
-                //                    editingURLString = newURL.absoluteString
-                //                }
-                //            }
+                .padding(4)
                 .onAppear {
                     editingURLString = getDisplayURL(tab)
                     DispatchQueue.main.async {
@@ -283,43 +274,6 @@ struct URLBar: View {
                         .fill(tab.backgroundColor)
                 )
             }
-        }
-    }
-}
-
-struct ShareButton: NSViewRepresentable {
-    let foregroundColor: Color
-    let onShare: (NSView, NSRect) -> Void
-
-    func makeNSView(context: Context) -> NSButton {
-        let button = NSButton()
-        button.image = NSImage(systemSymbolName: "square.and.arrow.up", accessibilityDescription: "Share")
-        button.isBordered = false
-        button.bezelStyle = .regularSquare
-        button.imagePosition = .imageOnly
-        button.target = context.coordinator
-        button.action = #selector(Coordinator.buttonTapped)
-        return button
-    }
-
-    func updateNSView(_ nsView: NSButton, context: Context) {
-        context.coordinator.onShare = onShare
-    }
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(onShare: onShare)
-    }
-
-    class Coordinator: NSObject {
-        var onShare: (NSView, NSRect) -> Void
-
-        init(onShare: @escaping (NSView, NSRect) -> Void) {
-            self.onShare = onShare
-        }
-
-        @objc func buttonTapped(_ sender: NSButton) {
-            let rect = sender.bounds
-            onShare(sender, rect)
         }
     }
 }
