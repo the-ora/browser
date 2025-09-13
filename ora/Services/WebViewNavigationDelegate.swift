@@ -262,7 +262,8 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
                 tabManager.openTab(
                     url: url,
                     historyManager: historyManager,
-                    downloadManager: downloadManager
+                    downloadManager: downloadManager,
+                    isPrivate: tab.isPrivate
                 )
             }
 
