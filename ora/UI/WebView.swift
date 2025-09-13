@@ -86,6 +86,9 @@ struct WebView: NSViewRepresentable {
 
                 // Handle mouse button events for back/forward navigation
                 switch event.buttonNumber {
+                case 2: // Middle mouse button
+                    handleMiddleClick(at: event.locationInWindow, webView: webView)
+                    return nil
                 case 3: // Mouse button 4 (back)
                     if webView.canGoBack {
                         DispatchQueue.main.async {
@@ -102,6 +105,32 @@ struct WebView: NSViewRepresentable {
                     return nil // Consume the event
                 default:
                     return event // Let other events pass through
+                }
+            }
+        }
+
+        private func handleMiddleClick(at location: NSPoint, webView: WKWebView) {
+            let locationInWebView = webView.convert(location, from: nil)
+
+            let jsCode = """
+                (function() {
+                    var element = document.elementFromPoint(\(locationInWebView.x), \(locationInWebView.y));
+                    while (element && element.tagName !== 'A') {
+                        element = element.parentElement;
+                    }
+                    return element ? element.href : null;
+                })();
+            """
+
+            webView.evaluateJavaScript(jsCode) { [weak self] result, _ in
+                if let urlString = result as? String, let url = URL(string: urlString),
+                   let tabManager = self?.tabManager, let historyManager = self?.historyManager
+                {
+                    tabManager.openTab(
+                        url: url,
+                        historyManager: historyManager,
+                        isPrivate: self?.privacyMode?.isPrivate ?? false
+                    )
                 }
             }
         }
