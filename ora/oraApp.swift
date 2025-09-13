@@ -56,7 +56,7 @@ struct OraApp: App {
 
     let modelConfiguration = ModelConfiguration(
         "OraData",
-        schema: Schema([TabContainer.self, History.self, Download.self]),
+        schema: Schema([TabContainer.self, History.self, Download.self, SitePermission.self]),
         url: URL.applicationSupportDirectory.appending(path: "OraData.sqlite")
     )
 
@@ -70,7 +70,7 @@ struct OraApp: App {
         let modelContext: ModelContext
         do {
             container = try ModelContainer(
-                for: TabContainer.self, History.self, Download.self,
+                for: TabContainer.self, History.self, Download.self, SitePermission.self,
                 configurations: modelConfiguration
             )
             modelContext = ModelContext(container)
@@ -107,6 +107,7 @@ struct OraApp: App {
                 modelContext: modelContext
             )
         )
+        PermissionSettingsStore.shared = PermissionSettingsStore(context: modelContext)
     }
 
     var body: some Scene {
