@@ -135,6 +135,12 @@ struct OraRoot: View {
                     guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
                     appState.showFullURL.toggle()
                 }
+                NotificationCenter.default.addObserver(forName: .toggleToolbar, object: nil, queue: .main) { note in
+                    guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        appState.isToolbarHidden.toggle()
+                    }
+                }
                 NotificationCenter.default.addObserver(forName: .reloadPage, object: nil, queue: .main) { note in
                     guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
                     tabManager.activeTab?.webView.reload()

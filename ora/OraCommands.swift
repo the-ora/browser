@@ -100,7 +100,7 @@ struct OraCommands: Commands {
 
         CommandGroup(replacing: .toolbar) {
             Button("Toggle Toolbar") { NotificationCenter.default.post(name: .toggleToolbar, object: NSApp.keyWindow) }
-                .keyboardShortcut("d", modifiers: [.command, .shift])
+                .keyboardShortcut(KeyboardShortcuts.App.toggleToolbar)
         }
     }
 
