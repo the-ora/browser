@@ -69,9 +69,9 @@ struct ContainerSwitcher: View {
             .cornerRadius(8)
         }
         .buttonStyle(.plain)
-        .animation(.easeInOut(duration: 0.15), value: isActive || isHovered)
+        .animation(.easeOut(duration: 0.15), value: isActive || isHovered)
         .onHover { isHovering in
-            withAnimation(.easeInOut(duration: 0.15)) {
+            withAnimation(.easeOut(duration: 0.15)) {
                 hoveredContainer = isHovering ? container.id : nil
             }
         }
