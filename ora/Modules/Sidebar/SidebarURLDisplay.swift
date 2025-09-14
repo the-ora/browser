@@ -18,25 +18,12 @@ struct SidebarURLDisplay: View {
         self._editingURLString = editingURLString
     }
 
-    private func copyToClipboard(_ text: String) {
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
-    }
-
     private func triggerCopy(_ text: String) {
-        if showCopiedAnimation { return }
-        copyToClipboard(text)
-        withAnimation {
-            showCopiedAnimation = true
-            startWheelAnimation = true
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            withAnimation {
-                showCopiedAnimation = false
-                startWheelAnimation = false
-            }
-        }
+        ClipboardUtils.triggerCopy(
+            text,
+            showCopiedAnimation: $showCopiedAnimation,
+            startWheelAnimation: $startWheelAnimation
+        )
     }
 
     var body: some View {
@@ -74,8 +61,8 @@ struct SidebarURLDisplay: View {
                     }
                     .opacity(showCopiedAnimation ? 0 : 1)
                     .offset(y: showCopiedAnimation ? (startWheelAnimation ? -12 : 12) : 0)
-                    .animation(.easeInOut(duration: 0.3), value: showCopiedAnimation)
-                    .animation(.easeInOut(duration: 0.3), value: startWheelAnimation)
+                    .animation(.easeOut(duration: 0.3), value: showCopiedAnimation)
+                    .animation(.easeOut(duration: 0.3), value: startWheelAnimation)
 
                 CopiedURLOverlay(
                     foregroundColor: theme.foreground,
@@ -104,7 +91,6 @@ struct SidebarURLDisplay: View {
                 Button("") {
                     triggerCopy(tab.url.absoluteString)
                 }
-                .oraShortcut(KeyboardShortcuts.Address.copyURL)
                 .opacity(0)
             )
         }

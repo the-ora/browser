@@ -1,5 +1,5 @@
-import SwiftUI
 import AppKit
+import SwiftUI
 
 struct OraCommands: Commands {
     @AppStorage("AppAppearance") private var appearanceRaw: String = AppAppearance.system.rawValue
@@ -7,15 +7,14 @@ struct OraCommands: Commands {
     @ObservedObject private var shortcutManager = CustomKeyboardShortcutManager.shared
     
     var body: some Commands {
-
         CommandGroup(replacing: .newItem) {
             Button("New Window") {
-                          openWindow(id: "normal")
-                      }
+                openWindow(id: "normal")
+            }
             .keyboardShortcut(KeyboardShortcuts.Window.new.keyboardShortcut)
             
             Button("New Private Window") {
-              openWindow(id: "private")
+                openWindow(id: "private")
             }
             .keyboardShortcut(KeyboardShortcuts.Window.newPrivate.keyboardShortcut)
             
@@ -50,7 +49,11 @@ struct OraCommands: Commands {
                 get: { AppAppearance(rawValue: appearanceRaw) ?? .system },
                 set: { newValue in
                     appearanceRaw = newValue.rawValue
-                    NotificationCenter.default.post(name: .setAppearance, object: NSApp.keyWindow, userInfo: ["appearance": newValue.rawValue])
+                    NotificationCenter.default.post(
+                        name: .setAppearance,
+                        object: NSApp.keyWindow,
+                        userInfo: ["appearance": newValue.rawValue]
+                    )
                 }
             )) {
                 ForEach(AppAppearance.allCases) { mode in
@@ -73,7 +76,10 @@ struct OraCommands: Commands {
         CommandGroup(replacing: .appInfo) {
             Button("About Ora") { showAboutWindow() }
 
-            Button("Check for Updates") { NotificationCenter.default.post(name: .checkForUpdates, object: NSApp.keyWindow) }
+            Button("Check for Updates") { NotificationCenter.default.post(
+                name: .checkForUpdates,
+                object: NSApp.keyWindow
+            ) }
         }
 
         CommandMenu("Navigation") {

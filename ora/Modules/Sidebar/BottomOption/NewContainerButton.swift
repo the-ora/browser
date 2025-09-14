@@ -7,6 +7,7 @@ struct NewContainerButton: View {
     @State private var isPopoverOpen = false
     @State private var name = ""
     @State private var emoji = ""
+    let defaultEmoji = "•"
     @State private var isEmojiPickerOpen = false
     @FocusState private var isTextFieldFocused: Bool
 
@@ -37,12 +38,24 @@ struct NewContainerButton: View {
                     Button(action: {
                         isEmojiPickerOpen.toggle()
                     }) {
-                        if emoji.isEmpty {
-                            Image(systemName: "plus")
-                                .font(.system(size: 12))
-                        } else {
-                            Text(emoji)
-                                .font(.system(size: 12))
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .stroke(
+                                    emoji.isEmpty ? theme.border : theme.border,
+                                    style: emoji.isEmpty
+                                        ? StrokeStyle(lineWidth: 1, dash: [5])
+                                        : StrokeStyle(lineWidth: 1)
+                                )
+                                .animation(.easeOut(duration: 0.1), value: emoji.isEmpty)
+                                .background(isEmojiPickerHovering ? Color.gray.opacity(0.3) : Color.gray.opacity(0.2))
+                                .cornerRadius(10)
+                            if emoji.isEmpty {
+                                Image(systemName: "plus")
+                                    .font(.system(size: 12))
+                            } else {
+                                Text(emoji)
+                                    .font(.system(size: 12))
+                            }
                         }
                     }
                     .popover(isPresented: $isEmojiPickerOpen, arrowEdge: .bottom) {
@@ -52,16 +65,6 @@ struct NewContainerButton: View {
                         })
                     }
                     .frame(width: 32, height: 32)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .stroke(
-                                emoji.isEmpty ? theme.border : theme.border,
-                                style: emoji.isEmpty
-                                    ? StrokeStyle(lineWidth: 1, dash: [5])
-                                    : StrokeStyle(lineWidth: 1)
-                            )
-                            .animation(.easeOut(duration: 0.1), value: emoji.isEmpty)
-                    )
                     .background(isEmojiPickerHovering ? Color.gray.opacity(0.3) : Color.gray.opacity(0.2))
                     .cornerRadius(10)
                     .buttonStyle(.plain)
@@ -75,8 +78,8 @@ struct NewContainerButton: View {
                         .cornerRadius(10)
                         .focused($isTextFieldFocused)
                         .onSubmit {
-                            if !name.isEmpty, !emoji.isEmpty {
-                                tabManager.createContainer(name: name, emoji: emoji)
+                            if !name.isEmpty {
+                                tabManager.createContainer(name: name, emoji: emoji.isEmpty ? defaultEmoji : emoji)
                                 isPopoverOpen = false
                                 name = ""
                                 emoji = ""
@@ -92,10 +95,12 @@ struct NewContainerButton: View {
                 }
 
                 Button("Create") {
-                    tabManager.createContainer(name: name, emoji: emoji)
+                    tabManager.createContainer(name: name, emoji: emoji.isEmpty ? defaultEmoji : emoji)
                     isPopoverOpen = false
+                    name = ""
+                    emoji = ""
                 }
-                .disabled(name.isEmpty || emoji.isEmpty)
+                .disabled(name.isEmpty)
             }
             .frame(width: 300)
             .padding()

@@ -1,13 +1,15 @@
 import Foundation
 import SwiftData
 import SwiftUI
+
 final class PrivacyMode: ObservableObject {
     @Published var isPrivate: Bool
-    
+
     init(isPrivate: Bool) {
         self.isPrivate = isPrivate
     }
 }
+
 struct OraRoot: View {
     @StateObject private var appState = AppState()
     @StateObject private var keyModifierListener = KeyModifierListener()
@@ -18,13 +20,12 @@ struct OraRoot: View {
     @StateObject private var historyManager: HistoryManager
     @StateObject private var downloadManager: DownloadManager
     @StateObject private var privacyMode: PrivacyMode
-    
-    
+
     let tabContext: ModelContext
     let historyContext: ModelContext
     let downloadContext: ModelContext
     @State private var window: NSWindow?
-  
+
     init(isPrivate: Bool = false) {
         _privacyMode = StateObject(wrappedValue: PrivacyMode(isPrivate: isPrivate))
         let modelConfiguration = isPrivate ? ModelConfiguration(isStoredInMemoryOnly: true) : ModelConfiguration(
@@ -47,37 +48,36 @@ struct OraRoot: View {
         }
 
         self.tabContext = modelContext
-           self.downloadContext = modelContext
-           self.historyContext = modelContext
-           let historyManagerObj = StateObject(
-               wrappedValue: HistoryManager(
-                   modelContainer: container,
-                   modelContext: modelContext
-               )
-           )
-           _historyManager = historyManagerObj
+        self.downloadContext = modelContext
+        self.historyContext = modelContext
+        let historyManagerObj = StateObject(
+            wrappedValue: HistoryManager(
+                modelContainer: container,
+                modelContext: modelContext
+            )
+        )
+        _historyManager = historyManagerObj
 
-           let media = MediaController()
-           _mediaController = StateObject(wrappedValue: media)
+        let media = MediaController()
+        _mediaController = StateObject(wrappedValue: media)
 
-           _tabManager = StateObject(
-               wrappedValue: TabManager(
-                   modelContainer: container,
-                   modelContext: modelContext,
-                   mediaController: media
-               )
-           )
+        _tabManager = StateObject(
+            wrappedValue: TabManager(
+                modelContainer: container,
+                modelContext: modelContext,
+                mediaController: media
+            )
+        )
 
-           _downloadManager = StateObject(
-               wrappedValue: DownloadManager(
-                   modelContainer: container,
-                   modelContext: modelContext
-               )
-           )
+        _downloadManager = StateObject(
+            wrappedValue: DownloadManager(
+                modelContainer: container,
+                modelContext: modelContext
+            )
+        )
     }
 
     var body: some View {
-       
         BrowserView()
             .background(WindowReader(window: $window))
             .environmentObject(appState)
@@ -116,7 +116,9 @@ struct OraRoot: View {
                 }
                 NotificationCenter.default.addObserver(forName: .showLauncher, object: nil, queue: .main) { note in
                     guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
-                    appState.showLauncher = true
+                    if tabManager.activeTab != nil {
+                        appState.showLauncher.toggle()
+                    }
                 }
                 NotificationCenter.default.addObserver(forName: .closeActiveTab, object: nil, queue: .main) { note in
                     guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
@@ -133,6 +135,12 @@ struct OraRoot: View {
                 NotificationCenter.default.addObserver(forName: .toggleFullURL, object: nil, queue: .main) { note in
                     guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
                     appState.showFullURL.toggle()
+                }
+                NotificationCenter.default.addObserver(forName: .toggleToolbar, object: nil, queue: .main) { note in
+                    guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        appState.isToolbarHidden.toggle()
+                    }
                 }
                 NotificationCenter.default.addObserver(forName: .reloadPage, object: nil, queue: .main) { note in
                     guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
@@ -161,7 +169,8 @@ struct OraRoot: View {
                 NotificationCenter.default.addObserver(forName: .setAppearance, object: nil, queue: .main) { note in
                     guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
                     if let raw = note.userInfo?["appearance"] as? String,
-                       let mode = AppAppearance(rawValue: raw) {
+                       let mode = AppAppearance(rawValue: raw)
+                    {
                         appearanceManager.appearance = mode
                     }
                 }
@@ -172,5 +181,3 @@ struct OraRoot: View {
             }
     }
 }
-
-

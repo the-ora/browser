@@ -67,12 +67,11 @@ struct LauncherView: View {
             Color.black.opacity(clearOverlay! ? 0 : 0.3)
                 .ignoresSafeArea()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .contentShape(Rectangle())
-                .animation(.easeOut(duration: 0.3), value: isVisible)
+                .animation(.easeOut(duration: 0.1), value: isVisible)
                 .onTapGesture {
                     if tabManager.activeTab != nil {
                         isVisible = false
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        DispatchQueue.main.async {
                             appState.showLauncher = false
                         }
                     }
@@ -89,16 +88,11 @@ struct LauncherView: View {
                 color: match?.faviconBackgroundColor ?? match?.color ?? .clear,
                 trigger: match != nil
             )
-            .offset(y: isVisible ? 250 : 240)
-            .scaleEffect(isVisible ? 1.0 : 0.85)
+            .offset(y: 250)
+            .scaleEffect(isVisible ? 1.0 : 0.9)
             .opacity(isVisible ? 1.0 : 0.0)
             .blur(radius: isVisible ? 0 : 2)
-            .animation(
-                isVisible
-                    ? .spring(response: 0.15, dampingFraction: 0.5, blendDuration: 0.2)
-                    : .easeOut(duration: 0.1),
-                value: isVisible
-            )
+            .animation(.easeOut(duration: 0.1), value: isVisible)
             .onAppear {
                 isVisible = true
                 isTextFieldFocused = true
@@ -113,9 +107,11 @@ struct LauncherView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onExitCommand {
-            isVisible = false
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                appState.showLauncher = false
+            if tabManager.activeTab != nil {
+                isVisible = false
+                DispatchQueue.main.async {
+                    appState.showLauncher = false
+                }
             }
         }
     }
