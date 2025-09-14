@@ -11,7 +11,7 @@ targets:
   ora:
     type: application
     platform: "macOS"
-    deploymentTarget: "14.0"
+    deploymentTarget: "15.0"
     sources:
       - path: ora
         excludes:
