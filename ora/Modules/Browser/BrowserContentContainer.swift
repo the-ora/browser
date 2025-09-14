@@ -15,7 +15,11 @@ struct BrowserContentContainer<Content: View>: View {
     var body: some View {
         content()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .clipShape(ConditionallyConcentricRectangle(cornerRadius: isFullscreen && hideState.side == .primary ? 0 : 6))
+            .clipShape(
+                ConditionallyConcentricRectangle(
+                    cornerRadius: isFullscreen && hideState.side == .primary ? 0 : 6
+                )
+            )
             .padding(
                 isFullscreen && hideState.side == .primary
                     ? EdgeInsets(
