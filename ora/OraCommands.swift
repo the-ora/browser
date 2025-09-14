@@ -1,20 +1,19 @@
-import SwiftUI
 import AppKit
+import SwiftUI
 
 struct OraCommands: Commands {
     @AppStorage("AppAppearance") private var appearanceRaw: String = AppAppearance.system.rawValue
     @Environment(\.openWindow) private var openWindow
     var body: some Commands {
-
         CommandGroup(replacing: .newItem) {
             Button("New Window") {
-                          openWindow(id: "normal")
-                      }
-                        .keyboardShortcut(KeyboardShortcuts.Window.new)
-                      Button("New Private Window") {
-                          openWindow(id: "private")
-                      }
-                      .keyboardShortcut(KeyboardShortcuts.Window.newPrivate)
+                openWindow(id: "normal")
+            }
+            .keyboardShortcut(KeyboardShortcuts.Window.new)
+            Button("New Private Window") {
+                openWindow(id: "private")
+            }
+            .keyboardShortcut(KeyboardShortcuts.Window.newPrivate)
             Button("New Tab") { NotificationCenter.default.post(name: .showLauncher, object: NSApp.keyWindow) }
                 .keyboardShortcut(KeyboardShortcuts.Tabs.new)
 
@@ -46,7 +45,11 @@ struct OraCommands: Commands {
                 get: { AppAppearance(rawValue: appearanceRaw) ?? .system },
                 set: { newValue in
                     appearanceRaw = newValue.rawValue
-                    NotificationCenter.default.post(name: .setAppearance, object: NSApp.keyWindow, userInfo: ["appearance": newValue.rawValue])
+                    NotificationCenter.default.post(
+                        name: .setAppearance,
+                        object: NSApp.keyWindow,
+                        userInfo: ["appearance": newValue.rawValue]
+                    )
                 }
             )) {
                 ForEach(AppAppearance.allCases) { mode in
@@ -69,7 +72,10 @@ struct OraCommands: Commands {
         CommandGroup(replacing: .appInfo) {
             Button("About Ora") { showAboutWindow() }
 
-            Button("Check for Updates") { NotificationCenter.default.post(name: .checkForUpdates, object: NSApp.keyWindow) }
+            Button("Check for Updates") { NotificationCenter.default.post(
+                name: .checkForUpdates,
+                object: NSApp.keyWindow
+            ) }
         }
 
         CommandMenu("Navigation") {
@@ -84,7 +90,7 @@ struct OraCommands: Commands {
         CommandMenu("Tabs") {
             Button("New Tab") { NotificationCenter.default.post(name: .showLauncher, object: NSApp.keyWindow) }
             Button("Pin Tab") { NotificationCenter.default.post(name: .togglePinTab, object: NSApp.keyWindow) }
-            .keyboardShortcut(KeyboardShortcuts.Tabs.pin)
+                .keyboardShortcut(KeyboardShortcuts.Tabs.pin)
 
             Divider()
 
@@ -94,7 +100,7 @@ struct OraCommands: Commands {
 
         CommandGroup(replacing: .toolbar) {
             Button("Toggle Toolbar") { NotificationCenter.default.post(name: .toggleToolbar, object: NSApp.keyWindow) }
-                .keyboardShortcut("d", modifiers: [.command, .shift])
+                .keyboardShortcut(KeyboardShortcuts.App.toggleToolbar)
         }
     }
 
@@ -119,5 +125,3 @@ struct OraCommands: Commands {
         return "\(version) (\(build))"
     }
 }
-
-

@@ -43,7 +43,6 @@ enum KeyboardShortcuts {
         static let close = KeyboardShortcut("w", modifiers: [.command, .shift])
         static let fullscreen = KeyboardShortcut("f", modifiers: [.command, .control])
     }
-    
 
     enum Address {
         static let copyURL = KeyboardShortcut("c", modifiers: [.command, .shift])
@@ -79,6 +78,7 @@ enum KeyboardShortcuts {
         static let hide = KeyboardShortcut("h", modifiers: [.command])
         static let preferences = KeyboardShortcut(",", modifiers: [.command])
         static let toggleSidebar = KeyboardShortcut("s", modifiers: [.command])
+        static let toggleToolbar = KeyboardShortcut("d", modifiers: [.shift, .command])
     }
 }
 
@@ -142,7 +142,8 @@ extension KeyboardShortcuts {
             .init(category: "App", name: "Quit", display: "⌘Q"),
             .init(category: "App", name: "Hide", display: "⌘H"),
             .init(category: "App", name: "Preferences", display: "⌘,"),
-            .init(category: "App", name: "Toggle Sidebar", display: "⌘S")
+            .init(category: "App", name: "Toggle Sidebar", display: "⌘S"),
+            .init(category: "App", name: "Toggle Toolbar", display: "⇧⌘D")
         ]
     }
 

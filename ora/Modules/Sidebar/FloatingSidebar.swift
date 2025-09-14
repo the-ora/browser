@@ -3,9 +3,10 @@ import SwiftUI
 struct FloatingSidebar: View {
     let isFullscreen: Bool
     @Environment(\.theme) var theme
+    let sidebarCornerRadius: CGFloat = 6
 
     var body: some View {
-        let clipShape = ConditionallyConcentricRectangle(cornerRadius: 8)
+        let clipShape = ConditionallyConcentricRectangle(cornerRadius: sidebarCornerRadius)
 
         ZStack(alignment: .leading) {
             SidebarView(isFullscreen: isFullscreen)

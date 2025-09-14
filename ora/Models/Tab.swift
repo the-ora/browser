@@ -87,8 +87,10 @@ class Tab: ObservableObject, Identifiable {
         self.webView = WKWebView(
             frame: .zero,
             configuration: config
-                .customWKConfig(containerId: container.id, temporaryStorage: isPrivate) // if private it's gonna use in-memory storage
-
+                .customWKConfig(
+                    containerId: container.id,
+                    temporaryStorage: isPrivate
+                ) // if private it's gonna use in-memory storage
         )
 
         self.order = order
@@ -262,9 +264,9 @@ class Tab: ObservableObject, Identifiable {
         config.mediaController = tabManager.mediaController
         self.webView = WKWebView(
             frame: .zero,
-            configuration:config
+            configuration: config
                 .customWKConfig(
-                    containerId:self.container.id,
+                    containerId: self.container.id,
                     temporaryStorage: isPrivate
                 )
         )

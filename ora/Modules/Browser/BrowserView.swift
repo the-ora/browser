@@ -1,27 +1,19 @@
 import AppKit
 import SwiftUI
 
-// MARK: - BrowserView
-
 struct BrowserView: View {
     @EnvironmentObject var tabManager: TabManager
     @Environment(\.theme) var theme
     @EnvironmentObject private var appState: AppState
     @State private var isFullscreen = false
     @State private var showFloatingSidebar = false
-    // Persisted sidebar fraction for width across modes/sessions
     @StateObject private var sidebarFraction = FractionHolder.usingUserDefaults(0.2, key: "ui.sidebar.fraction")
 
-    @StateObject var hide = SideHolder()
-
-    private func getAppVersion() -> String {
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
-        return "Ora \(version)"
-    }
+    @StateObject var sidebarVisibility = SideHolder()
 
     private func toggleSidebar() {
         withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
-            hide.toggle(.primary)
+            sidebarVisibility.toggle(.primary)
         }
     }
 
@@ -33,52 +25,18 @@ struct BrowserView: View {
                 },
                 right: {
                     if tabManager.activeTab != nil {
-                        BrowserContentContainer(isFullscreen: isFullscreen, hideState: hide) {
+                        BrowserContentContainer(isFullscreen: isFullscreen, hideState: sidebarVisibility) {
                             webView
                         }
                     } else {
                         // Start page (visible when no tab is active)
-                        BrowserContentContainer(isFullscreen: isFullscreen, hideState: hide) {
-                            ZStack(alignment: .top) {
-                                Color.clear
-                                    .ignoresSafeArea(.all)
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                    .contentShape(Rectangle())
-                                    .background(theme.background.opacity(0.65))
-                                    .background(
-                                        BlurEffectView(material: .underWindowBackground, blendingMode: .behindWindow)
-                                    )
-
-                                NavigationButton(
-                                    systemName: "sidebar.left",
-                                    isEnabled: true,
-                                    foregroundColor: theme.foreground.opacity(0.3),
-                                    action: { toggleSidebar() }
-                                )
-                                .position(x: 24, y: 24)
-                                .zIndex(3)
-
-                                VStack(alignment: .center, spacing: 16) {
-                                    Image("ora-logo-plain")
-                                        .resizable()
-                                        .renderingMode(.template)
-                                        .frame(width: 50, height: 50)
-                                        .foregroundColor(theme.foreground.opacity(0.3))
-
-                                    Text("Less noise, more browsing.")
-                                        .font(.system(size: 16, weight: .semibold))
-                                        .foregroundColor(theme.foreground.opacity(0.3))
-                                }
-                                .offset(x: -10, y: 120)
-                                .zIndex(2)
-
-                                LauncherView(clearOverlay: true)
-                            }
+                        BrowserContentContainer(isFullscreen: isFullscreen, hideState: sidebarVisibility) {
+                            HomeView(sidebarToggle: toggleSidebar)
                         }
                     }
                 }
             )
-            .hide(hide)
+            .hide(sidebarVisibility)
             .splitter { Splitter.invisible() }
             .fraction(sidebarFraction)
             .constraints(
@@ -99,7 +57,7 @@ struct BrowserView: View {
             )
             .background(
                 WindowAccessor(
-                    isSidebarHidden: hide.side == .primary,
+                    isSidebarHidden: sidebarVisibility.side == .primary,
                     isFloatingSidebar: $showFloatingSidebar,
                     isFullscreen: $isFullscreen
                 )
@@ -116,7 +74,7 @@ struct BrowserView: View {
                 }
             }
 
-            if hide.side == .primary {
+            if sidebarVisibility.side == .primary {
                 // Floating sidebar with resizable width based on persisted fraction
                 GeometryReader { geo in
                     let totalWidth = geo.size.width
@@ -192,7 +150,6 @@ struct BrowserView: View {
             if let tab = tabManager.activeTab {
                 if tab.isWebViewReady {
                     if tab.hasNavigationError, let error = tab.navigationError {
-                        // Show status page for navigation errors
                         StatusPageView(
                             error: error,
                             failedURL: tab.failedURL,
@@ -207,12 +164,10 @@ struct BrowserView: View {
                         )
                         .id(tab.id)
                     } else {
-                        // Show normal web view
                         ZStack(alignment: .topTrailing) {
                             WebView(webView: tab.webView)
                                 .id(tab.id)
 
-                            // Floating find view overlay
                             if appState.showFinderIn == tab.id {
                                 FindView(webView: tab.webView)
                                     .padding(.top, 16)
@@ -220,52 +175,8 @@ struct BrowserView: View {
                                     .zIndex(1000)
                             }
 
-                            // Hovered link URL overlay (bottom-left)
                             if let hovered = tab.hoveredLinkURL, !hovered.isEmpty {
-                                VStack {
-                                    Spacer()
-                                    HStack {
-                                        Text(hovered)
-                                            .font(.system(size: 12, weight: .regular))
-                                            .foregroundStyle(theme.foreground)
-                                            .lineLimit(1)
-                                            .truncationMode(.middle)
-                                            .multilineTextAlignment(.leading)
-                                            .padding(.horizontal, 10)
-                                            .padding(.vertical, 6)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                                    .fill(theme.background)
-                                            )
-                                            .background(BlurEffectView(
-                                                material: .popover,
-                                                blendingMode: .withinWindow
-                                            ))
-                                            .cornerRadius(99)
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 99, style: .continuous)
-                                                    .stroke(Color(.separatorColor), lineWidth: 1)
-                                            )
-                                            .padding(.leading, 12)
-                                        Spacer()
-
-                                        // Version indicator (bottom-right)
-                                        Text(getAppVersion())
-                                            .font(.system(size: 10, weight: .regular))
-                                            .foregroundStyle(Color.white.opacity(0.6))
-                                            .padding(.horizontal, 8)
-                                            .padding(.vertical, 4)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                                    .fill(Color.black.opacity(0.2))
-                                            )
-                                            .padding(.trailing, 12)
-                                    }
-                                    .padding(.bottom, 12)
-                                }
-                                .transition(.opacity)
-                                .animation(.easeOut(duration: 0.1), value: tab.hoveredLinkURL)
-                                .zIndex(900)
+                                LinkPreview(text: hovered)
                             }
                         }
                     }
@@ -280,88 +191,5 @@ struct BrowserView: View {
                 }
             }
         }
-    }
-}
-
-struct BrowserContentContainer<Content: View>: View {
-    @EnvironmentObject var tabManager: TabManager
-    let content: () -> Content
-    let isFullscreen: Bool
-    let hideState: SideHolder
-
-    init(isFullscreen: Bool, hideState: SideHolder, @ViewBuilder content: @escaping () -> Content) {
-        self.isFullscreen = isFullscreen
-        self.hideState = hideState
-        self.content = content
-    }
-
-    var body: some View {
-        GeometryReader { geometry in
-            content()
-                .overlay {
-                    VStack(alignment: .leading, spacing: 0) {
-                        LinearGradient(
-                            gradient: Gradient(colors: [
-                                Color(hex: "FF5F57").opacity(0.3),
-                                Color(hex: "FF5F57").opacity(0.8)
-                            ]),
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                        .frame(
-                            width: geometry.size.width
-                                * CGFloat((tabManager.activeTab?.loadingProgress ?? 10) / 100), height: 12
-                        )
-                        .blur(radius: 12)
-                        .animation(.easeOut(duration: 0.3), value: tabManager.activeTab?.loadingProgress)
-
-                        Color.red
-                            .frame(
-                                width: geometry.size.width
-                                    * CGFloat((tabManager.activeTab?.loadingProgress ?? 10) / 100),
-                                height: 1.5
-                            )
-                            .cornerRadius(8)
-                            .offset(y: -12)  // Overlap slightly with the gradient
-                            .animation(.easeOut(duration: 0.3), value: tabManager.activeTab?.loadingProgress)
-
-                        Spacer()
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .clipShape(
-                        ConditionallyConcentricRectangle(
-                            cornerRadius: isFullscreen && hideState.side == .primary ? 0 : 9
-                        )
-                    )
-                    .opacity(tabManager.activeTab?.isLoading == true ? 1 : 0)
-                    .animation(
-                        .easeOut(duration: 0.3).delay(tabManager.activeTab?.isLoading == true ? 0 : 0.5),
-                        value: tabManager.activeTab?.isLoading
-                    )
-                }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .clipShape(
-            ConditionallyConcentricRectangle(
-                cornerRadius: isFullscreen && hideState.side == .primary ? 0 : 8
-            )
-        )
-        .padding(
-            isFullscreen && hideState.side == .primary
-                ? EdgeInsets(
-                    top: 0,
-                    leading: 0,
-                    bottom: 0,
-                    trailing: 0
-                )
-                : EdgeInsets(
-                    top: 6,
-                    leading: hideState.side == .primary ? 6 : 0,
-                    bottom: 6,
-                    trailing: 6
-                )
-        )
-        .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 2)
-        .ignoresSafeArea(.all)
     }
 }
