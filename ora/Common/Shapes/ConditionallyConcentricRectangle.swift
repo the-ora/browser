@@ -5,6 +5,8 @@ struct ConditionallyConcentricRectangle: Shape {
     var cornerRadius: CGFloat
     var style: RoundedCornerStyle = .continuous
 
+    // This is equivilent to building with Xcode 26.0+
+    #if compiler(>=6.2)
     func path(in rect: CGRect) -> Path {
         if #available(macOS 26.0, *) {
             return ConcentricRectangle(
@@ -24,4 +26,13 @@ struct ConditionallyConcentricRectangle: Shape {
             .path(in: rect)
         }
     }
+    #else
+    func path(in rect: CGRect) -> Path {
+        return RoundedRectangle(
+            cornerRadius: cornerRadius,
+            style: style
+        )
+        .path(in: rect)
+    }
+    #endif
 }
