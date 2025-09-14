@@ -9,9 +9,20 @@ struct ContainerView: View {
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var privacyMode: PrivacyMode
     @State private var draggedItem: UUID?
+    @State private var editingURLString: String = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
+            if appState.isToolbarHidden, let tab = tabManager.activeTab {
+                SidebarURLDisplay(
+                    tab: tab,
+                    editingURLString: $editingURLString
+                )
+                .transition(.asymmetric(
+                    insertion: .push(from: .top).combined(with: .opacity),
+                    removal: .push(from: .bottom).combined(with: .opacity)
+                ))
+            }
             if !privacyMode.isPrivate {
                 FavTabsGrid(
                     tabs: favoriteTabs,
@@ -43,7 +54,7 @@ struct ContainerView: View {
                 .padding(.horizontal)
             }
 
-            VerticalScrollView {
+            ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     if !privacyMode.isPrivate {
                         PinnedTabsList(

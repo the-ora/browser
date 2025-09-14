@@ -106,7 +106,6 @@ struct SidebarURLDisplay: View {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(theme.mutedBackground)
         )
-        .padding(.horizontal, 10)
         .onAppear {
             editingURLString = ""
             DispatchQueue.main.async {
