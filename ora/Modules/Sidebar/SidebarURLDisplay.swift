@@ -104,7 +104,7 @@ struct SidebarURLDisplay: View {
                 Button("") {
                     triggerCopy(tab.url.absoluteString)
                 }
-                .keyboardShortcut(KeyboardShortcuts.Address.copyURL)
+                .oraShortcut(KeyboardShortcuts.Address.copyURL)
                 .opacity(0)
             )
         }
