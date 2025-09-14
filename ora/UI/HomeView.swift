@@ -21,7 +21,7 @@ struct HomeView: View {
                 foregroundColor: theme.foreground.opacity(0.3),
                 action: { sidebarToggle() }
             )
-            .keyboardShortcut(KeyboardShortcuts.App.toggleSidebar)
+            .oraShortcut(KeyboardShortcuts.App.toggleSidebar)
             .position(x: 20, y: 20)
             .zIndex(3)
 
