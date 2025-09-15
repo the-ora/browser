@@ -6,23 +6,31 @@ struct MouseTrackingArea: NSViewRepresentable {
     var yExit: CGFloat?
 
     func makeNSView(context: Context) -> NSView {
-        TrackingStrip(mouseEntered: _mouseEntered, xExit: xExit, yExit: yExit)
+        let view = TrackingStrip(xExit: xExit, yExit: yExit)
+
+        view.onHoverChange = { hovering in
+            self.mouseEntered = hovering
+        }
+
+        return view
     }
 
     func updateNSView(_ nsView: NSView, context: Context) {}
 }
 
 private final class TrackingStrip: NSView {
-    @Binding var mouseEntered: Bool
+    var onHoverChange: ((Bool) -> Void)?
+
     private var trackingArea: NSTrackingArea?
     private let xExit: CGFloat?
     private let yExit: CGFloat?
+    private var globalTracker: GlobalTracker?
 
-    init(mouseEntered: Binding<Bool>, xExit: CGFloat?, yExit: CGFloat?) {
-        _mouseEntered = mouseEntered
+    init(xExit: CGFloat?, yExit: CGFloat?) {
         self.xExit = xExit
         self.yExit = yExit
         super.init(frame: .zero)
+        self.globalTracker = GlobalTracker(view: self)
     }
 
     @available(*, unavailable)
@@ -34,7 +42,7 @@ private final class TrackingStrip: NSView {
 
         let area = NSTrackingArea(
             rect: bounds,
-            options: [.mouseEnteredAndExited, .activeInKeyWindow],
+            options: [.mouseEnteredAndExited, .activeInKeyWindow, .inVisibleRect],
             owner: self,
             userInfo: nil
         )
@@ -42,18 +50,80 @@ private final class TrackingStrip: NSView {
         trackingArea = area
     }
 
-    override func mouseEntered(with event: NSEvent) {
-        mouseEntered = true
+    override func viewWillMove(toWindow newWindow: NSWindow?) {
+        if newWindow == nil { globalTracker?.stop() }
+        super.viewWillMove(toWindow: newWindow)
     }
 
-    override func mouseExited(with event: NSEvent) {
-        let mouse = convert(event.locationInWindow, from: nil)
+    deinit { globalTracker?.stop() }
 
-        let xExitCondition = xExit.map { mouse.x > $0 || mouse.x < 0 } ?? true
-        let yExitCondition = yExit.map { mouse.y > $0 || mouse.y < 0 } ?? true
+    override func viewDidMoveToWindow() {
+        if window == nil {
+            globalTracker?.stop()
+        } else {
+            globalTracker?.startTracking { [weak self] inside in
+                guard let self else { return }
+                self.onHoverChange?(inside)
+            }
+        }
+        super.viewDidMoveToWindow()
+    }
 
-        if xExitCondition || yExitCondition {
-            mouseEntered = false
+    class GlobalTracker {
+        var isInside: Bool = false
+        var localTracker: Any?
+        var globalTracker: Any?
+        weak var view: NSView?
+
+        let leftPadding: CGFloat = 30     // how far left still counts
+        let verticalSlack: CGFloat = 8    // extra Y tolerance
+
+        init(
+            view: NSView? = nil
+        ) {
+            self.view = view
+        }
+
+        func startTracking(completion: @escaping (Bool) -> Void) {
+            let handler: (NSEvent) -> Void = { [weak self] _ in
+                guard let self else { return }
+                guard let view = self.view else { return }
+
+                let screenLocation = NSEvent.mouseLocation /// Global Screen Coordinates
+                /// This is where the view is
+                let screenRect = view.window?.convertToScreen(view.convert(view.bounds, to: nil)) ?? .zero
+
+                let inside = screenRect.contains(screenLocation)
+
+                // Build a thin rect just left of the view
+                var leftBand = screenRect
+                leftBand.origin.x = screenRect.minX - leftPadding
+                leftBand.size.width = leftPadding
+                leftBand = leftBand.insetBy(dx: 0, dy: -verticalSlack)
+
+                // If we're not truly inside, allow the left band
+                let inLeftBand = leftBand.contains(screenLocation)
+                let effectiveInside = inside || inLeftBand
+
+                if effectiveInside != self.isInside {
+                    self.isInside = effectiveInside
+                    if Thread.isMainThread { completion(effectiveInside) }
+                    else { DispatchQueue.main.async { completion(effectiveInside) } }
+                }
+            }
+
+            globalTracker = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved], handler: handler)
+            localTracker  = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) { e in handler(e)
+                return e
+            }
+        }
+
+        func stop() {
+            if let g = globalTracker { NSEvent.removeMonitor(g) }
+            if let l = localTracker { NSEvent.removeMonitor(l) }
+            globalTracker = nil
+            localTracker = nil
+            isInside = false
         }
     }
 }
