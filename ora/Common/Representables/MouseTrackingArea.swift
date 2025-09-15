@@ -8,6 +8,7 @@ struct MouseTrackingArea: NSViewRepresentable {
     func makeNSView(context: Context) -> NSView {
         let view = TrackingStrip(xExit: xExit, yExit: yExit)
 
+        /// No Need To Pass We Can handle it nicely with closures
         view.onHoverChange = { hovering in
             self.mouseEntered = hovering
         }
