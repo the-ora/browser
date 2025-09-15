@@ -146,19 +146,19 @@ enum KeyboardShortcuts {
     enum Window {
         static let new = KeyboardShortcutDefinition(
             id: "window.new",
-            name: "New",
+            name: "New Window",
             category: "Window",
             defaultChord: KeyChord(keyEquivalent: KeyEquivalent("n"), modifiers: [.command])
         )
         static let newPrivate = KeyboardShortcutDefinition(
             id: "window.newPrivate",
-            name: "New Private",
+            name: "New Private Window",
             category: "Window",
             defaultChord: KeyChord(keyEquivalent: KeyEquivalent("n"), modifiers: [.command, .shift])
         )
         static let close = KeyboardShortcutDefinition(
             id: "window.close",
-            name: "Close",
+            name: "Close Window",
             category: "Window",
             defaultChord: KeyChord(keyEquivalent: KeyEquivalent("w"), modifiers: [.command, .shift])
         )
@@ -180,7 +180,7 @@ enum KeyboardShortcuts {
         )
         static let focus = KeyboardShortcutDefinition(
             id: "address.focus",
-            name: "Focus",
+            name: "Focus Address Bar",
             category: "Address",
             defaultChord: KeyChord(keyEquivalent: KeyEquivalent("l"), modifiers: [.command])
         )
