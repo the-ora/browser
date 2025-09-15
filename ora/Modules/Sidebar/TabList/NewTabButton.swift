@@ -19,7 +19,7 @@ struct NewTabButton: View {
             .padding(8)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(isHovering ? theme.activeTabBackground.opacity(0.3) : .clear, in: .rect(cornerRadius: 10))
-            .contentShape(.rect(cornerRadius: 10))
+            .contentShape(ConditionallyConcentricRectangle(cornerRadius: 10))
             .geometryGroup()
         }
         .buttonStyle(.plain)
