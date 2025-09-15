@@ -365,7 +365,6 @@ $(printf '%s' "$CHANGELOG_HTML")
   </channel>
 </rss>
 EOF
-exit 1
 echo "✅ Sparkle setup complete!"
 
 # Build the release
