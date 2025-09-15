@@ -130,17 +130,17 @@ struct TabItem: View {
         }
         .padding(8)
         .opacity(isDragging ? 0.0 : 1.0)
-        .background(backgroundColor)
-        .cornerRadius(10)
+        .background(backgroundColor, in: .rect(cornerRadius: 10))
         .overlay(
             isDragging ?
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                ConditionallyConcentricRectangle(cornerRadius: 10)
                 .stroke(
                     theme.invertedSolidWindowBackgroundColor.opacity(0.25),
                     style: StrokeStyle(lineWidth: 1, dash: [5, 5])
                 )
                 : nil
         )
+        .contentShape(ConditionallyConcentricRectangle(cornerRadius: 10))
         .onTapGesture {
             onTap()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
@@ -158,6 +158,7 @@ struct TabItem: View {
         .onHover { isHovering = $0 }
         .contextMenu { contextMenuItems }
         .animation(.spring(response: 0.2, dampingFraction: 0.8), value: isDragging)
+        .geometryGroup()
     }
 
     private var tabTitle: some View {
