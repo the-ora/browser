@@ -13,7 +13,8 @@ struct WebView: NSViewRepresentable {
     }
 
     func makeNSView(context: Context) -> WKWebView {
-        webView.uiDelegate = context.coordinator
+        // Don't override uiDelegate - let Tab handle it
+        // webView.uiDelegate = context.coordinator
 
         webView.autoresizingMask = [.width, .height]
         webView.layer?.isOpaque = true
@@ -104,36 +105,57 @@ struct WebView: NSViewRepresentable {
             return webView.bounds.contains(locationInWebView)
         }
 
-        func webView(
-            _ webView: WKWebView,
-            requestMediaCapturePermissionFor origin: WKSecurityOrigin,
-            initiatedByFrame frame: WKFrameInfo,
-            decisionHandler: @escaping (WKPermissionDecision) -> Void
-        ) {
-            let host = origin.host
+        // func webView(
+        //     _ webView: WKWebView,
+        //     requestMediaCapturePermissionFor origin: WKSecurityOrigin,
+        //     initiatedByFrame frame: WKFrameInfo,
+        //     decisionHandler: @escaping (WKPermissionDecision) -> Void
+        // ) {
+        //     let host = origin.host
+        //     print("🎥 WebKit requesting media capture for: \(host)")
 
-            // For media capture, we need to determine if it's camera or microphone
-            // Since WebKit doesn't specify which type, we'll request both
-            Task { @MainActor in
-                PermissionManager.shared.requestPermission(
-                    for: .camera,
-                    from: host,
-                    webView: webView
-                ) { cameraAllowed in
-                    if cameraAllowed {
-                        PermissionManager.shared.requestPermission(
-                            for: .microphone,
-                            from: host,
-                            webView: webView
-                        ) { microphoneAllowed in
-                            decisionHandler(microphoneAllowed ? .grant : .deny)
-                        }
-                    } else {
-                        decisionHandler(.deny)
-                    }
-                }
-            }
-        }
+        //     // Check if we already have permissions configured for this host
+        //     let cameraPermission = PermissionManager.shared.getExistingPermission(for: host, type: .camera)
+        //     let microphonePermission = PermissionManager.shared.getExistingPermission(for: host, type: .microphone)
+
+        //     print("🎥 Existing permissions - Camera: \(String(describing: cameraPermission)), Microphone:
+        //     \(String(describing: microphonePermission))")
+
+        //     // If both permissions are already configured, use them
+        //     if let cameraAllowed = cameraPermission, let microphoneAllowed = microphonePermission {
+        //         let shouldGrant = cameraAllowed || microphoneAllowed
+        //         print("🎥 Using existing permissions, granting: \(shouldGrant)")
+        //         decisionHandler(shouldGrant ? .grant : .deny)
+        //         return
+        //     }
+
+        //     print("🎥 Requesting new permissions...")
+
+        //     // If permissions aren't configured, we need to request them
+        //     // Since WebKit doesn't specify which media type, we'll request both
+        //     Task { @MainActor in
+        //         // First request camera permission
+        //         PermissionManager.shared.requestPermission(
+        //             for: .camera,
+        //             from: host,
+        //             webView: webView
+        //         ) { cameraAllowed in
+        //             print("🎥 Camera permission result: \(cameraAllowed)")
+        //             // Then request microphone permission
+        //             PermissionManager.shared.requestPermission(
+        //                 for: .microphone,
+        //                 from: host,
+        //                 webView: webView
+        //             ) { microphoneAllowed in
+        //                 print("🎥 Microphone permission result: \(microphoneAllowed)")
+        //                 // Grant if either permission is allowed
+        //                 let shouldGrant = cameraAllowed || microphoneAllowed
+        //                 print("🎥 Final decision: \(shouldGrant)")
+        //                 decisionHandler(shouldGrant ? .grant : .deny)
+        //             }
+        //         }
+        //     }
+        // }
 
         func webView(
             _ webView: WKWebView, runOpenPanelWith parameters: WKOpenPanelParameters,

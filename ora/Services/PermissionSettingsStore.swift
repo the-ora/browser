@@ -27,6 +27,14 @@ final class PermissionSettingsStore: ObservableObject {
         )) ?? []
     }
 
+    // Refresh permissions from context
+    func refreshPermissions() {
+        self.sitePermissions = (try? context.fetch(
+            FetchDescriptor<SitePermission>(sortBy: [.init(\.host)])
+        )) ?? []
+        objectWillChange.send()
+    }
+
     // MARK: - Filtering
 
     private func filterSites(for kind: PermissionKind, allowed: Bool) -> [SitePermission] {
@@ -156,9 +164,8 @@ final class PermissionSettingsStore: ObservableObject {
         }
 
         saveContext()
-        sitePermissions.sort { $0.host.lowercased() < $1.host.lowercased() }
-        // trigger update
-        objectWillChange.send()
+        // Refresh permissions from context to ensure we have the latest data
+        refreshPermissions()
     }
 
     func removeSite(host: String) {

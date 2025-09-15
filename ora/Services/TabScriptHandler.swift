@@ -97,8 +97,7 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         contentController.add(self, name: "linkHover")
         configuration.userContentController = contentController
 
-        // Add permission interceptor
-        PermissionInterceptor.shared.addToWebViewConfiguration(configuration)
+        // Permission handling is done via WKUIDelegate methods only
 
         return configuration
     }
