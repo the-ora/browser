@@ -187,7 +187,7 @@ class SettingsStore: ObservableObject {
         didSet { defaults.set(globalDefaultSearchEngine, forKey: globalDefaultSearchEngineKey) }
     }
 
-    @Published var customKeyboardShortcuts: [String: CustomKeyboardShortcut] {
+    @Published var customKeyboardShortcuts: [String: KeyChord] {
         didSet { saveCodable(customKeyboardShortcuts, forKey: customKeyboardShortcutsKey) }
     }
 
@@ -213,7 +213,7 @@ class SettingsStore: ObservableObject {
         globalDefaultSearchEngine = defaults.string(forKey: globalDefaultSearchEngineKey)
 
         customKeyboardShortcuts =
-            Self.loadCodable([String: CustomKeyboardShortcut].self, key: customKeyboardShortcutsKey) ?? [:]
+            Self.loadCodable([String: KeyChord].self, key: customKeyboardShortcutsKey) ?? [:]
     }
 
     // MARK: - Per-container helpers
@@ -286,9 +286,9 @@ class SettingsStore: ObservableObject {
 
     // MARK: - Custom Keyboard Shortcuts
 
-    func setCustomKeyboardShortcut(_ shortcut: CustomKeyboardShortcut) {
+    func setCustomKeyboardShortcut(id: String, keyChord: KeyChord) {
         var shortcuts = customKeyboardShortcuts
-        shortcuts[shortcut.id] = shortcut
+        shortcuts[id] = keyChord
         customKeyboardShortcuts = shortcuts
     }
 

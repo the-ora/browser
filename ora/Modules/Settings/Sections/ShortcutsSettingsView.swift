@@ -3,9 +3,9 @@ import SwiftUI
 
 struct ShortcutsSettingsView: View {
     @StateObject private var shortcutManager = CustomKeyboardShortcutManager.shared
-    @State private var editingShortcut: ShortcutItem?
+    @State private var editingShortcut: KeyboardShortcutDefinition?
 
-    private var sections: [(category: String, items: [ShortcutItem])] {
+    private var sections: [(category: String, items: [KeyboardShortcutDefinition])] {
         return KeyboardShortcuts.itemsByCategory
     }
 
@@ -38,7 +38,7 @@ struct ShortcutsSettingsView: View {
         }
     }
     
-    private func handleAction(for item: ShortcutItem, action: ShortcutRowView.Action) {
+    private func handleAction(for item: KeyboardShortcutDefinition, action: ShortcutRowView.Action) {
         switch action {
             case .resetTapped:
                 shortcutManager.removeCustomShortcut(for: item)
@@ -73,7 +73,7 @@ struct ShortcutRowView: View {
         typealias Handler = (Self) -> Void
     }
     
-    let item: ShortcutItem
+    let item: KeyboardShortcutDefinition
     let isOverriden: Bool
     let isEditing: Bool
     let handler: Action.Handler

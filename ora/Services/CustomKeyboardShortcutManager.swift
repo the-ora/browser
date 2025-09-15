@@ -4,7 +4,7 @@ import AppKit
 class CustomKeyboardShortcutManager: ObservableObject {
     static let shared = CustomKeyboardShortcutManager()
 
-    @Published private(set) var customShortcuts: [String: CustomKeyboardShortcut] = [:]
+    @Published private(set) var customShortcuts: [String: KeyChord] = [:]
 
     private let settingsStore = SettingsStore.shared
 
@@ -16,22 +16,23 @@ class CustomKeyboardShortcutManager: ObservableObject {
         customShortcuts = settingsStore.customKeyboardShortcuts
     }
 
-    func setCustomShortcut(for item: ShortcutItem, event: NSEvent) {
-        let customShortcut = CustomKeyboardShortcut(id: item.id, event: event)
-        customShortcuts[item.id] = customShortcut
-        settingsStore.setCustomKeyboardShortcut(customShortcut)
+    func setCustomShortcut(for shortcut: KeyboardShortcutDefinition, event: NSEvent) {
+        if let keyChord = KeyChord(fromEvent: event) {
+            customShortcuts[shortcut.id] = keyChord
+            settingsStore.setCustomKeyboardShortcut(id: shortcut.id, keyChord: keyChord)
+        }
     }
 
-    func removeCustomShortcut(for item: ShortcutItem) {
-        customShortcuts.removeValue(forKey: item.id)
-        settingsStore.removeCustomKeyboardShortcut(id: item.id)
+    func removeCustomShortcut(for shortcut: KeyboardShortcutDefinition) {
+        customShortcuts.removeValue(forKey: shortcut.id)
+        settingsStore.removeCustomKeyboardShortcut(id: shortcut.id)
     }
 
-    func getShortcut(id: String) -> CustomKeyboardShortcut? {
+    func getShortcut(id: String) -> KeyChord? {
         return customShortcuts[id]
     }
 
-    func hasCustomShortcut(for item: ShortcutItem) -> Bool {
-        return customShortcuts[item.id] != nil
+    func hasCustomShortcut(for shortcut: KeyboardShortcutDefinition) -> Bool {
+        return customShortcuts[shortcut.id] != nil
     }
 }
