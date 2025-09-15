@@ -75,7 +75,7 @@ struct WebView: NSViewRepresentable {
         func setupMouseEventMonitoring(for webView: WKWebView) {
             self.webView = webView
 
-            // Monitor for other mouse button events (buttons 4 and 5)
+            // Monitor for other mouse button events (buttons 3, 4 and 5)
             mouseEventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.otherMouseDown]) { [weak self] event in
                 guard let self,
                       let webView = self.webView,
@@ -84,8 +84,11 @@ struct WebView: NSViewRepresentable {
                     return event
                 }
 
-                // Handle mouse button events for back/forward navigation
+                // Handle mouse button events for back/forward navigation and middle-click to open link in new tab
                 switch event.buttonNumber {
+                case 2: // Mouse button 3 (middle click to open link in new tab)
+                    handleMiddleClick(at: event.locationInWindow, webView: webView)
+                    return nil
                 case 3: // Mouse button 4 (back)
                     if webView.canGoBack {
                         DispatchQueue.main.async {
@@ -102,6 +105,48 @@ struct WebView: NSViewRepresentable {
                     return nil // Consume the event
                 default:
                     return event // Let other events pass through
+                }
+            }
+        }
+
+        private func handleMiddleClick(at location: NSPoint, webView: WKWebView) {
+            let locationInWebView = webView.convert(location, from: nil)
+
+            // Ensure the coordinates are within the web view bounds
+            guard locationInWebView.x.isFinite, locationInWebView.y.isFinite,
+                  locationInWebView.x >= 0, locationInWebView.y >= 0
+            else {
+                return
+            }
+
+            let jsCode = """
+                (function() {
+                    var element = document.elementFromPoint(\(locationInWebView.x), \(locationInWebView.y));
+                    while (element && element.tagName !== 'A') {
+                        element = element.parentElement;
+                    }
+                    return element ? element.href : null;
+                })();
+            """
+
+            webView.evaluateJavaScript(jsCode) { [weak self] result, error in
+                guard error == nil else {
+                    print("Error evaluating JavaScript for middle-click link detection: \(error!.localizedDescription)")
+                    return
+                }
+
+                if let urlString = result as? String, let url = URL(string: urlString),
+                   let tabManager = self?.tabManager, let historyManager = self?.historyManager,
+                   ["http", "https"].contains(url.scheme?.lowercased() ?? "")
+                {
+                    DispatchQueue.main.async {
+                        tabManager.openTab(
+                            url: url,
+                            historyManager: historyManager,
+                            focusAfterOpening: false,
+                            isPrivate: self?.privacyMode?.isPrivate ?? false
+                        )
+                    }
                 }
             }
         }
