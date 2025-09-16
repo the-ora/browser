@@ -2,11 +2,9 @@ import SwiftUI
 
 struct MouseTrackingArea: NSViewRepresentable {
     @Binding var mouseEntered: Bool
-    var xExit: CGFloat?
-    var yExit: CGFloat?
 
     func makeNSView(context: Context) -> NSView {
-        let view = TrackingStrip(xExit: xExit, yExit: yExit)
+        let view = TrackingStrip()
 
         /// No Need To Pass We Can handle it nicely with closures
         view.onHoverChange = { hovering in
@@ -23,13 +21,9 @@ private final class TrackingStrip: NSView {
     var onHoverChange: ((Bool) -> Void)?
 
     private var trackingArea: NSTrackingArea?
-    private let xExit: CGFloat?
-    private let yExit: CGFloat?
     private var globalTracker: GlobalTracker?
 
-    init(xExit: CGFloat?, yExit: CGFloat?) {
-        self.xExit = xExit
-        self.yExit = yExit
+    init() {
         super.init(frame: .zero)
         self.globalTracker = GlobalTracker(view: self)
     }
@@ -72,10 +66,16 @@ private final class TrackingStrip: NSView {
 
     class GlobalTracker {
         var isInside: Bool = false
-        var localTracker: Any?
-        var globalTracker: Any?
+
+        typealias LocalMonitorToken  = Any
+        typealias GlobalMonitorToken = Any
+
+        private var localMonitor: LocalMonitorToken?
+        private var globalMonitor: GlobalMonitorToken?
+
         weak var view: NSView?
 
+        /// Maybe Configurable inside settings or tuned to liking?
         let leftPadding: CGFloat = 30     // how far left still counts
         let verticalSlack: CGFloat = 8    // extra Y tolerance
 
@@ -113,17 +113,17 @@ private final class TrackingStrip: NSView {
                 }
             }
 
-            globalTracker = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved], handler: handler)
-            localTracker  = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) { e in handler(e)
+            globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved], handler: handler)
+            localMonitor  = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) { e in handler(e)
                 return e
             }
         }
 
         func stop() {
-            if let g = globalTracker { NSEvent.removeMonitor(g) }
-            if let l = localTracker { NSEvent.removeMonitor(l) }
-            globalTracker = nil
-            localTracker = nil
+            if let g = globalMonitor { NSEvent.removeMonitor(g) }
+            if let l = localMonitor { NSEvent.removeMonitor(l) }
+            globalMonitor = nil
+            localMonitor = nil
             isInside = false
         }
     }
