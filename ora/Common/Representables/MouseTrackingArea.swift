@@ -51,30 +51,30 @@ private final class TrackingStrip: NSView {
 
     var onHoverChange: ((Bool) -> Void)?
 
-    private var globalTracker: GlobalTracker?
+    private var hoverTracker: HoverTracker?
 
     init() {
         super.init(frame: .zero)
-        self.globalTracker = GlobalTracker(view: self)
+        self.hoverTracker = HoverTracker(view: self)
     }
 
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError() }
 
     override func viewWillMove(toWindow newWindow: NSWindow?) {
-        if newWindow == nil { globalTracker?.stop() }
+        if newWindow == nil { hoverTracker?.stop() }
         super.viewWillMove(toWindow: newWindow)
     }
 
     deinit {
-        globalTracker?.stop()
+        hoverTracker?.stop()
     }
 
     override func viewDidMoveToWindow() {
         if window == nil {
-            globalTracker?.stop()
+            hoverTracker?.stop()
         } else {
-            globalTracker?.startTracking { [weak self] inside in
+            hoverTracker?.startTracking { [weak self] inside in
                 guard let self else { return }
                 self.onHoverChange?(inside)
             }
@@ -82,9 +82,8 @@ private final class TrackingStrip: NSView {
         super.viewDidMoveToWindow()
     }
 
-    class GlobalTracker {
+    class HoverTracker {
         typealias LocalMonitorToken  = Any
-        typealias GlobalMonitorToken = Any
 
         private var localMonitor: LocalMonitorToken?
 
