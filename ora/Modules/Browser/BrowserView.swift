@@ -8,7 +8,7 @@ struct BrowserView: View {
     @EnvironmentObject private var downloadManager: DownloadManager
     @State private var isFullscreen = false
     @State private var showFloatingSidebar = false
-    @State private var mouseIsOverSidebar = false
+    @State private var isMouseOverSidebar = false
     @StateObject private var sidebarFraction = FractionHolder.usingUserDefaults(0.2, key: "ui.sidebar.fraction")
 
     @StateObject var sidebarVisibility = SideHolder()
@@ -124,7 +124,7 @@ struct BrowserView: View {
                                     mouseEntered: Binding(
                                         get: { showFloatingSidebar },
                                         set: { newValue in
-                                            mouseIsOverSidebar = newValue
+                                            isMouseOverSidebar = newValue
                                             // Don't hide sidebar if downloads popover is open
                                             if !newValue, downloadManager.isDownloadsPopoverOpen {
                                                 return
@@ -149,7 +149,7 @@ struct BrowserView: View {
                 if isOpen {
                     // Keep sidebar visible while downloads popover is open
                     showFloatingSidebar = true
-                } else if !mouseIsOverSidebar {
+                } else if !isMouseOverSidebar {
                     // Hide sidebar when popover closes and mouse is not over sidebar
                     showFloatingSidebar = false
                 }
