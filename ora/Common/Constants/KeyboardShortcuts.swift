@@ -39,6 +39,7 @@ enum KeyboardShortcuts {
 
     enum Window {
         static let new = KeyboardShortcut("n", modifiers: [.command])
+        static let newPrivate = KeyboardShortcut("n", modifiers: [.shift, .command])
         static let close = KeyboardShortcut("w", modifiers: [.command, .shift])
         static let fullscreen = KeyboardShortcut("f", modifiers: [.command, .control])
     }
@@ -77,6 +78,7 @@ enum KeyboardShortcuts {
         static let hide = KeyboardShortcut("h", modifiers: [.command])
         static let preferences = KeyboardShortcut(",", modifiers: [.command])
         static let toggleSidebar = KeyboardShortcut("s", modifiers: [.command])
+        static let toggleToolbar = KeyboardShortcut("d", modifiers: [.shift, .command])
     }
 }
 
@@ -115,7 +117,7 @@ extension KeyboardShortcuts {
             .init(category: "Window", name: "Fullscreen", display: "⌃⌘F"),
 
             // Address
-            .init(category: "Address", name: "Copy Address Bar URL", display: "⇧⌘C"),
+            .init(category: "Address", name: "Copy URL", display: "⇧⌘C"),
             .init(category: "Address", name: "Focus Address Bar", display: "⌘L"),
             .init(category: "Address", name: "Find", display: "⌘F"),
             .init(category: "Address", name: "Find Next", display: "⌘G"),
@@ -140,7 +142,8 @@ extension KeyboardShortcuts {
             .init(category: "App", name: "Quit", display: "⌘Q"),
             .init(category: "App", name: "Hide", display: "⌘H"),
             .init(category: "App", name: "Preferences", display: "⌘,"),
-            .init(category: "App", name: "Toggle Sidebar", display: "⌘S")
+            .init(category: "App", name: "Toggle Sidebar", display: "⌘S"),
+            .init(category: "App", name: "Toggle Toolbar", display: "⇧⌘D")
         ]
     }
 

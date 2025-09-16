@@ -48,45 +48,56 @@ struct LauncherMain: View {
     @EnvironmentObject var downloadManager: DownloadManager
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var privacyMode: PrivacyMode
     @State var focusedElement: UUID = .init()
+    @StateObject private var faviconService = FaviconService()
+    @StateObject private var searchEngineService = SearchEngineService()
 
     @State private var suggestions: [LauncherSuggestion] = [
     ]
+
+    private func createAISuggestion(engineName: SearchEngineID, query: String? = nil) -> LauncherSuggestion {
+        guard let engine = searchEngineService.getSearchEngine(engineName) else {
+            return LauncherSuggestion(
+                type: .aiChat,
+                title: query ?? engineName.rawValue,
+                name: engineName.rawValue,
+                action: {}
+            )
+        }
+
+        let favicon = faviconService.getFavicon(for: engine.searchURL)
+        let faviconURL = faviconService.faviconURL(for: URL(string: engine.searchURL)?.host ?? "")
+
+        return LauncherSuggestion(
+            type: .aiChat,
+            title: query ?? engine.name,
+            name: engine.name,
+            faviconURL: faviconURL,
+            action: {
+                tabManager.openFromEngine(
+                    engineName: engineName,
+                    query: query ?? text,
+                    historyManager: historyManager,
+                    isPrivate: privacyMode.isPrivate
+                )
+            }
+        )
+    }
+
     func defaultSuggestions() -> [LauncherSuggestion] {
         let containerId = tabManager.activeContainer?.id
-        let searchEngine = SearchEngineService().getDefaultSearchEngine(for: containerId)
+        let searchEngine = searchEngineService.getDefaultSearchEngine(for: containerId)
         let engineName = searchEngine?.name ?? "Google"
         return [
             LauncherSuggestion(
                 type: .suggestedQuery, title: "Search on \(engineName)",
                 action: { onSubmit(nil) }
             ),
-            LauncherSuggestion(
-                type: .aiChat,
-                title: "Grok",
-                name: "Grok",
-                action: {
-                    tabManager
-                        .openFromEngine(
-                            engineName: .grok,
-                            query: text,
-                            historyManager: historyManager
-                        )
-                }
-            ),
-            LauncherSuggestion(
-                type: .aiChat,
-                title: "ChatGPT",
-                name: "ChatGPT",
-                action: {
-                    tabManager
-                        .openFromEngine(
-                            engineName: .chatgpt,
-                            query: text,
-                            historyManager: historyManager
-                        )
-                }
-            )
+            createAISuggestion(engineName: .grok),
+            createAISuggestion(engineName: .chatgpt),
+            createAISuggestion(engineName: .claude),
+            createAISuggestion(engineName: .gemini)
         ]
     }
 
@@ -138,7 +149,8 @@ struct LauncherMain: View {
                             tab.restoreTransientState(
                                 historyManger: historyManager,
                                 downloadManager: downloadManager,
-                                tabManager: tabManager
+                                tabManager: tabManager,
+                                isPrivate: privacyMode.isPrivate
                             )
                         }
                         tabManager.activateTab(tab)
@@ -168,7 +180,8 @@ struct LauncherMain: View {
                     tabManager.openTab(
                         url: url,
                         historyManager: historyManager,
-                        downloadManager: downloadManager
+                        downloadManager: downloadManager,
+                        isPrivate: privacyMode.isPrivate
                     )
                 }
             )
@@ -177,7 +190,7 @@ struct LauncherMain: View {
 
     private func appendSearchWithDefaultEngineSuggestion(_ text: String) {
         let containerId = tabManager.activeContainer?.id
-        let searchEngine = SearchEngineService().getDefaultSearchEngine(for: containerId)
+        let searchEngine = searchEngineService.getDefaultSearchEngine(for: containerId)
         let engineName = searchEngine?.name ?? "Google"
         suggestions.append(
             LauncherSuggestion(
@@ -191,7 +204,7 @@ struct LauncherMain: View {
     private func requestAutoSuggestions(_ text: String, insertAt: Int) {
         let containerId = tabManager.activeContainer?.id
         debouncer.run {
-            let searchEngine = SearchEngineService().getDefaultSearchEngine(for: containerId)
+            let searchEngine = self.searchEngineService.getDefaultSearchEngine(for: containerId)
             if let autoSuggestions = searchEngine?.autoSuggestions {
                 let searchSuggestions = await autoSuggestions(text)
                 await MainActor.run {
@@ -229,7 +242,8 @@ struct LauncherMain: View {
                     action: {
                         tabManager.openTab(
                             url: history.url,
-                            historyManager: historyManager
+                            historyManager: historyManager,
+                            isPrivate: privacyMode.isPrivate
                         )
                     }
                 )
@@ -240,34 +254,10 @@ struct LauncherMain: View {
 
     private func appendAISuggestionsIfNeeded(_ text: String) {
         guard isAISuitableQuery(text) else { return }
-        suggestions.append(
-            LauncherSuggestion(
-                type: .aiChat,
-                title: text,
-                name: "Grok",
-                action: {
-                    tabManager.openFromEngine(
-                        engineName: .grok,
-                        query: text,
-                        historyManager: historyManager
-                    )
-                }
-            )
-        )
-        suggestions.append(
-            LauncherSuggestion(
-                type: .aiChat,
-                title: text,
-                name: "ChatGPT",
-                action: {
-                    tabManager.openFromEngine(
-                        engineName: .chatgpt,
-                        query: text,
-                        historyManager: historyManager
-                    )
-                }
-            )
-        )
+        suggestions.append(createAISuggestion(engineName: .grok, query: text))
+        suggestions.append(createAISuggestion(engineName: .chatgpt, query: text))
+        suggestions.append(createAISuggestion(engineName: .claude, query: text))
+        suggestions.append(createAISuggestion(engineName: .gemini, query: text))
     }
 
     func executeCommand() {
@@ -382,6 +372,8 @@ struct LauncherMain: View {
             return "Search on Google"
         case "ChatGPT":
             return "Ask ChatGPT"
+        case "Claude":
+            return "Ask Claude"
         case "Grok":
             return "Ask Grok"
         case "Perplexity":
@@ -390,6 +382,14 @@ struct LauncherMain: View {
             return "Search on Reddit"
         case "T3Chat":
             return "Ask T3Chat"
+        case "Gemini":
+            return "Ask Gemini"
+        case "Copilot":
+            return "Ask Copilot"
+        case "GitHub Copilot":
+            return "Ask GitHub Copilot"
+        case "Meta AI":
+            return "Ask Meta AI"
         default:
             return "Search on \(match!.text)"
         }

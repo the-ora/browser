@@ -1,8 +1,7 @@
+import AppKit
 import SwiftUI
 
-// MARK: - Navigation Button
-
-struct NavigationButton: View {
+struct URLBarButton: View {
     let systemName: String
     let isEnabled: Bool
     let foregroundColor: Color
@@ -16,10 +15,10 @@ struct NavigationButton: View {
                 .foregroundColor(isEnabled ? (isHovering ? foregroundColor.opacity(0.8) : foregroundColor) :
                     foregroundColor.opacity(0.5)
                 )
-                .frame(width: 32, height: 32)
+                .frame(width: 30, height: 30)
                 .background(
-                    Circle()
-                        .fill(isHovering && isEnabled ? foregroundColor.opacity(0.1) : Color.clear)
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(isHovering && isEnabled ? foregroundColor.opacity(0.2) : Color.clear)
                 )
         }
         .buttonStyle(PlainButtonStyle())
