@@ -5,8 +5,10 @@ struct BrowserView: View {
     @EnvironmentObject var tabManager: TabManager
     @Environment(\.theme) var theme
     @EnvironmentObject private var appState: AppState
+    @EnvironmentObject private var downloadManager: DownloadManager
     @State private var isFullscreen = false
     @State private var showFloatingSidebar = false
+    @State private var mouseIsOverSidebar = false
     @StateObject private var sidebarFraction = FractionHolder.usingUserDefaults(0.2, key: "ui.sidebar.fraction")
 
     @StateObject var sidebarVisibility = SideHolder()
@@ -119,7 +121,17 @@ struct BrowserView: View {
                             .frame(width: showFloatingSidebar ? floatingWidth : 10)
                             .overlay(
                                 MouseTrackingArea(
-                                    mouseEntered: $showFloatingSidebar
+                                    mouseEntered: Binding(
+                                        get: { showFloatingSidebar },
+                                        set: { newValue in
+                                            mouseIsOverSidebar = newValue
+                                            // Don't hide sidebar if downloads popover is open
+                                            if !newValue, downloadManager.isDownloadsPopoverOpen {
+                                                return
+                                            }
+                                            showFloatingSidebar = newValue
+                                        }
+                                    )
                                 )
                             )
                             .zIndex(2)
@@ -131,6 +143,17 @@ struct BrowserView: View {
         .animation(.easeOut(duration: 0.1), value: showFloatingSidebar)
         .onReceive(NotificationCenter.default.publisher(for: .toggleSidebar)) { _ in
             toggleSidebar()
+        }
+        .onChange(of: downloadManager.isDownloadsPopoverOpen) { isOpen in
+            if sidebarVisibility.side == .primary {
+                if isOpen {
+                    // Keep sidebar visible while downloads popover is open
+                    showFloatingSidebar = true
+                } else if !mouseIsOverSidebar {
+                    // Hide sidebar when popover closes and mouse is not over sidebar
+                    showFloatingSidebar = false
+                }
+            }
         }
     }
 
