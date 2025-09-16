@@ -119,8 +119,7 @@ struct BrowserView: View {
                             .frame(width: showFloatingSidebar ? floatingWidth : 10)
                             .overlay(
                                 MouseTrackingArea(
-                                    mouseEntered: $showFloatingSidebar,
-                                    xExit: floatingWidth
+                                    mouseEntered: $showFloatingSidebar
                                 )
                             )
                             .zIndex(2)
