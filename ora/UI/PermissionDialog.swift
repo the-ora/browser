@@ -101,20 +101,10 @@ struct PermissionDialog: View {
 
     private func getPermissionExplanation() -> String {
         switch request.permissionType {
-        case .location:
-            return "This allows the site to know your approximate location for location-based features."
         case .camera:
             return "This allows the site to access your camera for video calls, photos, and other features."
         case .microphone:
             return "This allows the site to access your microphone for voice calls, recordings, and audio features."
-        case .notifications:
-            return "This allows the site to send you notifications even when you're not actively using it."
-        case .backgroundSync:
-            return "This allows the site to sync data in the background for a better experience."
-        case .clipboard:
-            return "This allows the site to read from and write to your clipboard."
-        case .motionSensors:
-            return "This allows the site to access device motion and orientation sensors."
         default:
             return "This allows the site to use \(request.permissionType.displayName.lowercased()) functionality."
         }

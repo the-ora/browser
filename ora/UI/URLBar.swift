@@ -10,10 +10,8 @@ struct ExtensionsPopupView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var tabManager: TabManager
 
-    @State private var locationPermission: PermissionState = .ask
     @State private var cameraPermission: PermissionState = .ask
     @State private var microphonePermission: PermissionState = .ask
-    @State private var notificationsPermission: PermissionState = .ask
 
     enum PermissionState: String, CaseIterable {
         case ask = "Ask"
@@ -24,7 +22,7 @@ struct ExtensionsPopupView: View {
             switch self {
             case .ask: return .allow
             case .allow: return .block
-            case .block: return .allow
+            case .block: return .ask
             }
         }
     }
@@ -60,75 +58,15 @@ struct ExtensionsPopupView: View {
 
         // Update the specific permission
         switch kind {
-        case .location:
-            site.locationAllowed = allow
-            site.locationConfigured = true
         case .camera:
             site.cameraAllowed = allow
             site.cameraConfigured = true
         case .microphone:
             site.microphoneAllowed = allow
             site.microphoneConfigured = true
-        case .notifications:
-            site.notificationsAllowed = allow
-            site.notificationsConfigured = true
-        case .embeddedContent:
-            site.embeddedContentAllowed = allow
-            site.embeddedContentConfigured = true
-        case .backgroundSync:
-            site.backgroundSyncAllowed = allow
-            site.backgroundSyncConfigured = true
-        case .motionSensors:
-            site.motionSensorsAllowed = allow
-            site.motionSensorsConfigured = true
-        case .automaticDownloads:
-            site.automaticDownloadsAllowed = allow
-            site.automaticDownloadsConfigured = true
-        case .protocolHandlers:
-            site.protocolHandlersAllowed = allow
-            site.protocolHandlersConfigured = true
-        case .midiDevice:
-            site.midiDeviceAllowed = allow
-            site.midiDeviceConfigured = true
-        case .usbDevices:
-            site.usbDevicesAllowed = allow
-            site.usbDevicesConfigured = true
-        case .serialPorts:
-            site.serialPortsAllowed = allow
-            site.serialPortsConfigured = true
-        case .fileEditing:
-            site.fileEditingAllowed = allow
-            site.fileEditingConfigured = true
-        case .hidDevices:
-            site.hidDevicesAllowed = allow
-            site.hidDevicesConfigured = true
-        case .clipboard:
-            site.clipboardAllowed = allow
-            site.clipboardConfigured = true
-        case .paymentHandlers:
-            site.paymentHandlersAllowed = allow
-            site.paymentHandlersConfigured = true
-        case .augmentedReality:
-            site.augmentedRealityAllowed = allow
-            site.augmentedRealityConfigured = true
-        case .virtualReality:
-            site.virtualRealityAllowed = allow
-            site.virtualRealityConfigured = true
-        case .deviceUse:
-            site.deviceUseAllowed = allow
-            site.deviceUseConfigured = true
-        case .windowManagement:
-            site.windowManagementAllowed = allow
-            site.windowManagementConfigured = true
-        case .fonts:
-            site.fontsAllowed = allow
-            site.fontsConfigured = true
-        case .automaticPictureInPicture:
-            site.automaticPictureInPictureAllowed = allow
-            site.automaticPictureInPictureConfigured = true
-        case .scrollingZoomingSharedTabs:
-            site.scrollingZoomingSharedTabsAllowed = allow
-            site.scrollingZoomingSharedTabsConfigured = true
+        default:
+            // All other permission types are not handled
+            break
         }
 
         try? modelContext.save()
@@ -144,26 +82,18 @@ struct ExtensionsPopupView: View {
         )
 
         if let site = try? modelContext.fetch(descriptor).first {
-            locationPermission = site.locationConfigured ? (site.locationAllowed ? .allow : .block) : .ask
             cameraPermission = site.cameraConfigured ? (site.cameraAllowed ? .allow : .block) : .ask
             microphonePermission = site.microphoneConfigured ? (site.microphoneAllowed ? .allow : .block) : .ask
-            notificationsPermission = site
-                .notificationsConfigured ? (site.notificationsAllowed ? .allow : .block) : .ask
         }
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // Settings section
+            // Media Permissions
             VStack(alignment: .leading, spacing: 8) {
-                Text("Settings")
+                Text("Media Permissions")
                     .font(.headline)
                     .foregroundColor(.primary)
-
-                Button(action: { togglePermission(.location, currentState: $locationPermission) }) {
-                    PopupPermissionRow(icon: "location", title: "Location", status: locationPermission.rawValue)
-                }
-                .buttonStyle(.plain)
 
                 Button(action: { togglePermission(.camera, currentState: $cameraPermission) }) {
                     PopupPermissionRow(icon: "camera", title: "Camera", status: cameraPermission.rawValue)
@@ -172,11 +102,6 @@ struct ExtensionsPopupView: View {
 
                 Button(action: { togglePermission(.microphone, currentState: $microphonePermission) }) {
                     PopupPermissionRow(icon: "mic", title: "Microphone", status: microphonePermission.rawValue)
-                }
-                .buttonStyle(.plain)
-
-                Button(action: { togglePermission(.notifications, currentState: $notificationsPermission) }) {
-                    PopupPermissionRow(icon: "bell", title: "Notifications", status: notificationsPermission.rawValue)
                 }
                 .buttonStyle(.plain)
 
