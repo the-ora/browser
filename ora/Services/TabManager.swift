@@ -4,7 +4,6 @@ import WebKit
 
 // MARK: - Tab Manager
 
-// swiftlint:disable:next type_body_length
 @MainActor
 class TabManager: ObservableObject {
     @Published var activeContainer: TabContainer?
