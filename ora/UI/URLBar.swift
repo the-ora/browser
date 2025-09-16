@@ -527,7 +527,7 @@ struct URLBar: View {
                         }
                     )
 
-                        NavigationButton(
+                        URLBarButton(
                             systemName: "ellipsis",
                             isEnabled: true,
                             foregroundColor: buttonForegroundColor,
@@ -539,7 +539,7 @@ struct URLBar: View {
                             ExtensionsPopupView()
                         }
                     }
-                }
+                
                 .padding(4)
                 .onAppear {
                     editingURLString = getDisplayURL(tab)

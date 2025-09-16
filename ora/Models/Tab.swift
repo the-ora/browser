@@ -119,7 +119,7 @@ class Tab: ObservableObject, Identifiable {
         // Load initial URL
         DispatchQueue.main.async {
             self.setupNavigationDelegate()
-            self.setupUIDelegate()
+//            self.setupUIDelegate()
             self.syncBackgroundColorFromHex()
             self.webView.load(URLRequest(url: url))
             self.isWebViewReady = true
@@ -294,7 +294,7 @@ class Tab: ObservableObject, Identifiable {
         self.isWebViewReady = false
         self.setupNavigationDelegate()
         print("🎥 setupUIDelegate")
-        self.setupUIDelegate()
+//        self.setupUIDelegate()
         self.syncBackgroundColorFromHex()
         // Load after a short delay to ensure layout
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
@@ -362,7 +362,7 @@ class Tab: ObservableObject, Identifiable {
 
         let config = TabScriptHandler()
         config.tab = self
-        webView = WKWebView(frame: .zero, configuration: config.defaultWKConfig())
+        webView = WKWebView(frame: .zero, configuration: config.customWKConfig(containerId: self.container.id))
     }
 
     func setNavigationError(_ error: Error, for url: URL?) {
