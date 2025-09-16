@@ -74,18 +74,10 @@ private struct MediaPlayerCard: View {
                 .padding(.top, 6)
             }
 
-            HStack(spacing: 12) {
-                Button { tabManager.activateTab(id: session.tabID) } label: {
-                    faviconImage
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 18, height: 18)
-                        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-                }
-                .buttonStyle(PlayerIconButtonStyle(isEnabled: true))
-                .help("Go to playing tab")
+            HStack(alignment: .center) {
+                faviconIcon
 
-                Spacer(minLength: 4)
+                Spacer()
 
                 Button(action: { media.previousTrack(session.tabID) }) {
                     Image(systemName: "backward.fill")
@@ -109,17 +101,9 @@ private struct MediaPlayerCard: View {
                 .buttonStyle(PlayerIconButtonStyle(isEnabled: media.canGoNext(of: session.tabID)))
                 .disabled(!media.canGoNext(of: session.tabID))
 
-                Spacer(minLength: 6)
+                Spacer()
 
-                Button {
-                    withAnimation(.easeOut(duration: 0.15)) { showVolume.toggle() }
-                } label: {
-                    Image(systemName: media
-                        .volume(of: session.tabID) <= 0.001 ? "speaker.slash.fill" : "speaker.wave.2.fill"
-                    )
-                    .font(.system(size: 12, weight: .semibold))
-                }
-                .buttonStyle(PlayerIconButtonStyle(isEnabled: true))
+                volumeButton
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 6)
@@ -146,5 +130,33 @@ private struct MediaPlayerCard: View {
         )
         .onHover { hovered = $0 }
         .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Favicon Icon
+
+    private var faviconIcon: some View {
+        Button { tabManager.activateTab(id: session.tabID) } label: {
+            faviconImage
+                .resizable()
+                .scaledToFit()
+                .frame(width: 18, height: 18)
+                .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+        }
+        .buttonStyle(PlayerIconButtonStyle(isEnabled: true))
+        .help("Go to playing tab")
+    }
+
+    // MARK: - Volume Button
+
+    private var volumeButton: some View {
+        Button {
+            withAnimation(.easeOut(duration: 0.15)) { showVolume.toggle() }
+        } label: {
+            Image(systemName: media
+                .volume(of: session.tabID) <= 0.001 ? "speaker.slash.fill" : "speaker.wave.2.fill"
+            )
+            .font(.system(size: 12, weight: .semibold))
+        }
+        .buttonStyle(PlayerIconButtonStyle(isEnabled: true))
     }
 }
