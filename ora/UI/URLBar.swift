@@ -1,6 +1,7 @@
 import AppKit
 import SwiftData
 import SwiftUI
+import WebKit
 
 // MARK: - Extensions Popup View
 
@@ -22,7 +23,7 @@ struct ExtensionsPopupView: View {
             switch self {
             case .ask: return .allow
             case .allow: return .block
-            case .block: return .ask
+            case .block: return .allow  // Don't go back to .ask
             }
         }
     }
@@ -34,9 +35,39 @@ struct ExtensionsPopupView: View {
     private func togglePermission(_ kind: PermissionKind, currentState: Binding<PermissionState>) {
         let newState = currentState.wrappedValue.next
         currentState.wrappedValue = newState
+        let isAllowed = newState == .allow
 
         // Update SwiftData
-        updateSitePermission(for: kind, allow: newState == .allow)
+        updateSitePermission(for: kind, allow: isAllowed)
+
+        // Notify the web view of the permission change
+        if let tab = tabManager.activeTab {
+            // Get the current URL and host
+            let currentURL = tab.url
+            let currentHost = currentURL.host ?? ""
+
+            // Force the web view to re-evaluate permissions by temporarily changing the URL
+            // This is a workaround to trigger a permission re-evaluation without a full page reload
+            if currentURL.absoluteString.hasPrefix("http") {
+                // Create a temporary URL with a different fragment to force a navigation
+                var components = URLComponents(url: currentURL, resolvingAgainstBaseURL: false)!
+                let currentFragment = components.fragment ?? ""
+                components.fragment = currentFragment.isEmpty ? "_" : ""
+
+                if let tempURL = components.url {
+                    // Store the original URL
+                    let originalURL = currentURL
+
+                    // Navigate to the temporary URL
+                    tab.webView.load(URLRequest(url: tempURL))
+
+                    // After a short delay, navigate back to the original URL
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        tab.webView.load(URLRequest(url: originalURL))
+                    }
+                }
+            }
+        }
     }
 
     private func updateSitePermission(for kind: PermissionKind, allow: Bool) {
