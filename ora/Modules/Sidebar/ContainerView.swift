@@ -84,7 +84,7 @@ struct ContainerView: View {
                 }
             }
         }
-        .modifier(OraWindowDragGesture())
+        .modifier(OraWindowDragGesture(isDragging: $isDragging))
     }
 
     private var favoriteTabs: [Tab] {
@@ -136,7 +136,9 @@ struct ContainerView: View {
             )
     }
 
+    @State var isDragging = false
     private func dragTab(_ tabId: UUID) -> NSItemProvider {
+        isDragging = true
         draggedItem = tabId
         let provider = TabItemProvider(object: tabId.uuidString as NSString)
         provider.didEnd = {
@@ -146,33 +148,47 @@ struct ContainerView: View {
     }
 
     private func dropTab(_ tabId: String) {
+        isDragging = false
         draggedItem = nil
     }
 }
 
 private struct OraWindowDragGesture: ViewModifier {
+    @Binding var isDragging: Bool
+
     func body(content: Content) -> some View {
-        if #available(macOS 15.0, *) {
-            content.gesture(WindowDragGesture())
-        } else {
-            content.gesture(BackportWindowDragGesture())
+        Group {
+            if isDragging {
+                content
+            } else {
+                if #available(macOS 15.0, *) {
+                    content.gesture(WindowDragGesture())
+                } else {
+                    content.gesture(BackportWindowDragGesture(isDragging: $isDragging))
+                }
+            }
         }
     }
 }
 
 private struct BackportWindowDragGesture: Gesture {
+    @Binding var isDragging: Bool
+
     struct Value: Equatable {
         static func == (lhs: Value, rhs: Value) -> Bool { true }
     }
 
-    init() {}
+    init(isDragging: Binding<Bool>) {
+        self._isDragging = isDragging
+    }
 
     var body: some Gesture<Value> {
         DragGesture()
             .onChanged { _ in
-                if let nsWindow = NSApp.keyWindow, let event = NSApp.currentEvent {
-                    nsWindow.performDrag(with: event)
+                guard !isDragging, let win = NSApp.keyWindow, let event = NSApp.currentEvent else {
+                    return
                 }
+                win.performDrag(with: event)
             }
             .map { _ in Value() }
     }
