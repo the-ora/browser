@@ -186,9 +186,15 @@ private struct BackportWindowDragGesture: Gesture {
     var body: some Gesture<Value> {
         DragGesture()
             .onChanged { _ in
-                guard !isDragging, let win = NSApp.keyWindow, let event = NSApp.currentEvent else {
+                /// Makes intent cleaner, if we're dragging, then just return
+                /// Maybe some other case needs to be watched for here
+                guard !isDragging else {
                     return
                 }
+                guard let win = NSApp.keyWindow, let event = NSApp.currentEvent else {
+                    return
+                }
+
                 win.performDrag(with: event)
             }
             .map { _ in Value() }
