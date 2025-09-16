@@ -8,6 +8,8 @@ struct ContainerView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var privacyMode: PrivacyMode
+
+    @State var isDragging = false
     @State private var draggedItem: UUID?
     @State private var editingURLString: String = ""
 
@@ -136,7 +138,6 @@ struct ContainerView: View {
             )
     }
 
-    @State var isDragging = false
     private func dragTab(_ tabId: UUID) -> NSItemProvider {
         isDragging = true
         draggedItem = tabId
