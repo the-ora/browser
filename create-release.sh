@@ -107,6 +107,10 @@ EOT
         if [ -z "$subject" ] || [ "$subject" = "-" ]; then
             continue
         fi
+        # skip version bump commits
+        if [[ "$subject" =~ ^[Uu]pdate\ to\ v[0-9]+(\.[0-9]+){1,2}(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
+            continue
+        fi
         local safe_subject safe_author
         safe_subject=$(html_escape "$subject")
         safe_author=$(html_escape "$author")
