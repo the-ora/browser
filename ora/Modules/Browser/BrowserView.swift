@@ -40,7 +40,7 @@ struct BrowserView: View {
             .splitter { Splitter.invisible() }
             .fraction(sidebarFraction)
             .constraints(
-                minPFraction: 0.15,
+                minPFraction: 0.16,
                 minSFraction: 0.7,
                 priority: .left,
                 dragToHideP: true
@@ -78,7 +78,7 @@ struct BrowserView: View {
                 // Floating sidebar with resizable width based on persisted fraction
                 GeometryReader { geo in
                     let totalWidth = geo.size.width
-                    let minFraction: CGFloat = 0.15
+                    let minFraction: CGFloat = 0.16
                     let maxFraction: CGFloat = 0.30
                     let clampedFraction = min(max(sidebarFraction.value, minFraction), maxFraction)
                     let floatingWidth = max(0, min(totalWidth * clampedFraction, totalWidth))
