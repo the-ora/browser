@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum SettingsTab: Hashable {
+enum SettingsTab: Hashable, CaseIterable {
     case general, spaces, privacySecurity, shortcuts, searchEngines
 
     var title: String {
@@ -26,34 +26,59 @@ enum SettingsTab: Hashable {
 
 struct SettingsContentView: View {
     @State private var selection: SettingsTab = .general
+    @Environment(\.theme) private var theme: Theme
 
     var body: some View {
-        TabView(selection: $selection) {
-            GeneralSettingsView()
-                .tabItem { Label(SettingsTab.general.title, systemImage: SettingsTab.general.symbol) }
-                .tag(SettingsTab.general)
-
-            SpacesSettingsView()
-                .tabItem { Label(SettingsTab.spaces.title, systemImage: SettingsTab.spaces.symbol) }
-                .tag(SettingsTab.spaces)
-
-            PrivacySecuritySettingsView()
-                .tabItem {
-                    Label(SettingsTab.privacySecurity.title, systemImage: SettingsTab.privacySecurity.symbol)
+        NavigationSplitView(columnVisibility: .constant(.all)) {
+            VStack(spacing: 0) {
+                ForEach(SettingsTab.allCases, id: \.self) { tab in
+                    Button {
+                        selection = tab
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: tab.symbol)
+                            Text(tab.title)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .frame(maxWidth: .infinity, minHeight: 35, maxHeight: 35, alignment: .leading)
+                    .background(selection == tab ? theme.mutedSidebarBackground : .clear)
+                    .cornerRadius(10)
+                    .overlay(
+                        ConditionallyConcentricRectangle(cornerRadius: 10)
+                            .stroke(selection == tab ? theme.border : .clear, lineWidth: 1)
+                    )
+                    .buttonStyle(.plain)
                 }
-                .tag(SettingsTab.privacySecurity)
-
-            ShortcutsSettingsView()
-                .tabItem { Label(SettingsTab.shortcuts.title, systemImage: SettingsTab.shortcuts.symbol) }
-                .tag(SettingsTab.shortcuts)
-
-            SearchEngineSettingsView()
-                .tabItem { Label(SettingsTab.searchEngines.title, systemImage: SettingsTab.searchEngines.symbol) }
-                .tag(SettingsTab.searchEngines)
+            }
+            .frame(maxHeight: .infinity, alignment: .top)
+            .padding(.horizontal, 8)
+            .toolbar(removing: .sidebarToggle)
+        } detail: {
+            Group {
+                switch selection {
+                case .general:
+                    GeneralSettingsView()
+                case .spaces:
+                    SpacesSettingsView()
+                case .privacySecurity:
+                    PrivacySecuritySettingsView()
+                case .shortcuts:
+                    ShortcutsSettingsView()
+                case .searchEngines:
+                    SearchEngineSettingsView()
+                }
+            }
+            .toolbar {
+                ToolbarItem(content: {
+                    HStack { Text(selection.title).font(.title3) }.padding(.horizontal, 12)
+                })
+            }
+            .frame(maxHeight: .infinity, alignment: .top)
         }
-        .tabViewStyle(.automatic)
-        .frame(width: 600, height: 350)
-        .padding(0)
-        .controlSize(.regular)
+        .background(theme.background)
+        .navigationSplitViewStyle(.balanced)
     }
 }

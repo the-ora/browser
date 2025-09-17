@@ -79,6 +79,7 @@ enum KeyboardShortcuts {
         static let preferences = KeyboardShortcut(",", modifiers: [.command])
         static let toggleSidebar = KeyboardShortcut("s", modifiers: [.command])
         static let toggleToolbar = KeyboardShortcut("d", modifiers: [.shift, .command])
+        static let settings = KeyboardShortcut(",")
     }
 }
 

@@ -17,8 +17,7 @@ struct SettingsContainer<Content: View>: View {
 
     @ViewBuilder
     private var inner: some View {
-        HStack(alignment: .top) {
-            Spacer(minLength: 0)
+        VStack(alignment: .leading) {
             VStack(alignment: .leading, spacing: 24) {
                 content()
             }
@@ -26,6 +25,7 @@ struct SettingsContainer<Content: View>: View {
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 20)
-        .padding(.vertical, 16)
+        .padding(.vertical, 8)
+        .frame(maxHeight: .infinity, alignment: .top)
     }
 }
