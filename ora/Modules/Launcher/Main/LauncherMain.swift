@@ -341,7 +341,7 @@ struct LauncherMain: View {
             }
         }
         .padding(8)
-        .frame(width: 814, alignment: .leading)
+        .frame(minWidth: 320, maxWidth: 814, alignment: .leading)
         .background(theme.launcherMainBackground)
         .background(BlurEffectView(material: .popover, blendingMode: .withinWindow))
         .cornerRadius(16)
