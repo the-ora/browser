@@ -155,13 +155,13 @@ private final class TrackingStrip: NSView {
                 }
             }
 
-            localMonitor  = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) { e in handler(e)
-                return e
+            localMonitor  = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) { event in handler(event)
+                return event
             }
         }
 
         func stop() {
-            if let l = localMonitor { NSEvent.removeMonitor(l) }
+            if let local = localMonitor { NSEvent.removeMonitor(local) }
             localMonitor = nil
             isInside = false
         }
