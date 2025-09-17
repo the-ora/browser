@@ -5,26 +5,44 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
-      <title>Version 0.2.1</title>
+      <title>Version 0.2.2</title>
       <description><![CDATA[
-        <h2>Ora Browser v0.2.1</h2>
-        <p>Latest release of Ora Browser with the following features:</p>
-        <ul>
-          <li>Modern web browsing experience</li>
-          <li>Tabbed interface with sidebar</li>
-          <li>Built-in ad blocking</li>
-          <li>Privacy-focused design</li>
-          <li>Automatic update system</li>
-        </ul>
-        <p>This release includes bug fixes and performance improvements. Enjoy browsing with Ora!</p>
+        <h2>Ora Browser v0.2.2</h2>
+        <p>Changes since last release:</p>
+        <div class="changelog">
+          <h3>Features</h3>
+          <ul>
+            <li>Feature/global tracker for sidebar (#98) — AryanRogye</li>
+            <li>Feature: allow middle click to open link in new tab (#88) — Omar Sánchez</li>
+          </ul>
+          <h3>Fixes</h3>
+          <ul>
+            <li>fix: update favicon fetching URLs to include Google favicon service — Kenenisa Alemayehu</li>
+          </ul>
+          <h3>Chores</h3>
+          <ul>
+            <li>chore: remove unnecessary exit statement from release script — Kenenisa Alemayehu</li>
+            <li>chore: Enhance release script with changelog generation and HTML export — Kenenisa Alemayehu</li>
+            <li>chore: undo to vertical scrollview — yonaries</li>
+            <li>chore!: bump deployment target to macOS 15 — yonaries</li>
+          </ul>
+          <h3>Other</h3>
+          <ul>
+            <li>Update Wiki link to point to GitHub page — Kenenisa Alemayehu</li>
+            <li>Update to v0.2.1 — Kenenisa Alemayehu</li>
+            <li>ui: apply concentric rectangle on tabs — yonaries</li>
+            <li>Add new Shape that conditionally uses ConcentricRectangle on 26+ (#83) — Joe McLaughlin</li>
+            <li>refactor: moved sidbar urlbar to container view — yonaries</li>
+          </ul>
+        </div>
       ]]></description>
-      <pubDate>Sun, 14 Sep 2025 16:56:33 +0000</pubDate>
-       <enclosure url="https://github.com/the-ora/browser/releases/download/v0.2.1/Ora-Browser-0.2.1.dmg"
-                  sparkle:version="89"
-                  sparkle:shortVersionString="0.2.1"
-                  length="4497431"
+      <pubDate>Wed, 17 Sep 2025 08:30:09 +0000</pubDate>
+       <enclosure url="https://github.com/the-ora/browser/releases/download/v0.2.2/Ora-Browser-0.2.2.dmg"
+                  sparkle:version="90"
+                  sparkle:shortVersionString="0.2.2"
+                  length="4512844"
                   type="application/octet-stream"
-                   sparkle:edSignature="Fcqy0Xq/0yJg7TEVM54y0OPPiF5wxnH/qOLgXStIK4DMm/m0Jw6QzlLF+20TUOrCpkUvobie9brxLgX2H3zTAA=="/>
+                   sparkle:edSignature="bDHTCubNH93BErc6Jav4CYMsjesXyqEjm6WU2VTYWiJJdRdLGbuhy5v6iUJcxU1sKXzfpSqA8sCSNM1JZp7oBQ=="/>
     </item>
   </channel>
 </rss>
