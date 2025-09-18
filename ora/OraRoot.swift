@@ -78,6 +78,13 @@ struct OraRoot: View {
     }
 
     var body: some View {
+        Button("Click to install") {
+
+            Task {
+                let url = URL(fileURLWithPath: "/Users/keni/Downloads/ext")
+                await OraExtensionManager.shared.installExtension(from: url)
+            }
+        }
         BrowserView()
             .background(WindowReader(window: $window))
             .environmentObject(appState)

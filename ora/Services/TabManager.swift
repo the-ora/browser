@@ -368,6 +368,7 @@ class TabManager: ObservableObject {
         activeContainer = tab.container
         tab.container.lastAccessedAt = Date()
         tab.updateHeaderColor()
+       
         try? modelContext.save()
     }
 

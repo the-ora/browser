@@ -71,6 +71,7 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         let userAgent =
             "Mozilla/5.0 (Macintosh; arm64 Mac OS X 14_5) AppleWebKit/616.1.1 (KHTML, like Gecko) Version/18.5 Safari/616.1.1 Ora/1.0"
         configuration.applicationNameForUserAgent = userAgent
+        configuration.allowsInlinePredictions = false
 
         // Enable JavaScript
         configuration.preferences.setValue(true, forKey: "developerExtrasEnabled")
@@ -84,21 +85,24 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
                 forIdentifier: containerId
             )
         }
+      
+        configuration.webExtensionController = OraExtensionManager.shared.controller
+        
 
         // Performance optimizations
         configuration.allowsAirPlayForMediaPlayback = true
         configuration.preferences.javaScriptCanOpenWindowsAutomatically = false
 
         // Enable process pool for better memory management
-        let processPool = WKProcessPool()
-        configuration.processPool = processPool
-        // video shit
-        configuration.preferences.isElementFullscreenEnabled = true
-        if #unavailable(macOS 10.12) {
-            // Picture in picture not available on older macOS versions
-        } else {
-//            configuration.allowsPictureInPictureMediaPlaybook = true
-        }
+//        let processPool = WKProcessPool()
+//        configuration.processPool = processPool
+//        // video shit
+//        configuration.preferences.isElementFullscreenEnabled = true
+//        if #unavailable(macOS 10.12) {
+//            // Picture in picture not available on older macOS versions
+//        } else {
+////            configuration.allowsPictureInPictureMediaPlaybook = true
+//        }
 
         // Enable media playback without user interaction
         configuration.mediaTypesRequiringUserActionForPlayback = []
