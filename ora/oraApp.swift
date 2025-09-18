@@ -36,7 +36,6 @@ class AppState: ObservableObject {
 
 @main
 struct OraApp: App {
-
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     var body: some Scene {
         WindowGroup(id: "normal") {

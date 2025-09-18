@@ -18,6 +18,10 @@
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Ora requires access to your camera to support video features.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Ora requires access to your microphone to support audio features.</string>
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
 	<key>SUFeedURL</key>

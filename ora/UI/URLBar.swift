@@ -527,19 +527,19 @@ struct URLBar: View {
                         }
                     )
 
-                        URLBarButton(
-                            systemName: "ellipsis",
-                            isEnabled: true,
-                            foregroundColor: buttonForegroundColor,
-                            action: {
-                                showExtensionsPopup.toggle()
-                            }
-                        )
-                        .popover(isPresented: $showExtensionsPopup, arrowEdge: .bottom) {
-                            ExtensionsPopupView()
+                    URLBarButton(
+                        systemName: "ellipsis",
+                        isEnabled: true,
+                        foregroundColor: buttonForegroundColor,
+                        action: {
+                            showExtensionsPopup.toggle()
                         }
+                    )
+                    .popover(isPresented: $showExtensionsPopup, arrowEdge: .bottom) {
+                        ExtensionsPopupView()
                     }
-                
+                }
+
                 .padding(4)
                 .onAppear {
                     editingURLString = getDisplayURL(tab)
