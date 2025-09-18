@@ -6,6 +6,8 @@ struct BrowserView: View {
     @Environment(\.theme) var theme
     @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var downloadManager: DownloadManager
+    @EnvironmentObject private var historyManager: HistoryManager
+    @EnvironmentObject private var privacyMode: PrivacyMode
     @State private var isFullscreen = false
     @State private var showFloatingSidebar = false
     @State private var isMouseOverSidebar = false
@@ -152,6 +154,19 @@ struct BrowserView: View {
                 } else if !isMouseOverSidebar {
                     // Hide sidebar when popover closes and mouse is not over sidebar
                     showFloatingSidebar = false
+                }
+            }
+        }
+        .onChange(of: tabManager.activeTab) { newTab in
+            // Restore tab state when switching tabs via keyboard shortcut
+            if let tab = newTab, !tab.isWebViewReady {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                    tab.restoreTransientState(
+                        historyManger: historyManager,
+                        downloadManager: downloadManager,
+                        tabManager: tabManager,
+                        isPrivate: privacyMode.isPrivate
+                    )
                 }
             }
         }

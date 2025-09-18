@@ -96,6 +96,89 @@ struct OraCommands: Commands {
 
             Button("Next Tab") { NotificationCenter.default.post(name: .nextTab, object: NSApp.keyWindow) }
             Button("Previous Tab") { NotificationCenter.default.post(name: .previousTab, object: NSApp.keyWindow) }
+
+            Divider()
+
+            Button("Tab 1") {
+                NotificationCenter.default.post(
+                    name: .selectTabAtIndex,
+                    object: NSApp.keyWindow,
+                    userInfo: ["index": 1]
+                )
+            }
+            .keyboardShortcut(KeyboardShortcuts.Tabs.tab1)
+
+            Button("Tab 2") {
+                NotificationCenter.default.post(
+                    name: .selectTabAtIndex,
+                    object: NSApp.keyWindow,
+                    userInfo: ["index": 2]
+                )
+            }
+            .keyboardShortcut(KeyboardShortcuts.Tabs.tab2)
+
+            Button("Tab 3") {
+                NotificationCenter.default.post(
+                    name: .selectTabAtIndex,
+                    object: NSApp.keyWindow,
+                    userInfo: ["index": 3]
+                )
+            }
+            .keyboardShortcut(KeyboardShortcuts.Tabs.tab3)
+
+            Button("Tab 4") {
+                NotificationCenter.default.post(
+                    name: .selectTabAtIndex,
+                    object: NSApp.keyWindow,
+                    userInfo: ["index": 4]
+                )
+            }
+            .keyboardShortcut(KeyboardShortcuts.Tabs.tab4)
+
+            Button("Tab 5") {
+                NotificationCenter.default.post(
+                    name: .selectTabAtIndex,
+                    object: NSApp.keyWindow,
+                    userInfo: ["index": 5]
+                )
+            }
+            .keyboardShortcut(KeyboardShortcuts.Tabs.tab5)
+
+            Button("Tab 6") {
+                NotificationCenter.default.post(
+                    name: .selectTabAtIndex,
+                    object: NSApp.keyWindow,
+                    userInfo: ["index": 6]
+                )
+            }
+            .keyboardShortcut(KeyboardShortcuts.Tabs.tab6)
+
+            Button("Tab 7") {
+                NotificationCenter.default.post(
+                    name: .selectTabAtIndex,
+                    object: NSApp.keyWindow,
+                    userInfo: ["index": 7]
+                )
+            }
+            .keyboardShortcut(KeyboardShortcuts.Tabs.tab7)
+
+            Button("Tab 8") {
+                NotificationCenter.default.post(
+                    name: .selectTabAtIndex,
+                    object: NSApp.keyWindow,
+                    userInfo: ["index": 8]
+                )
+            }
+            .keyboardShortcut(KeyboardShortcuts.Tabs.tab8)
+
+            Button("Tab 9") {
+                NotificationCenter.default.post(
+                    name: .selectTabAtIndex,
+                    object: NSApp.keyWindow,
+                    userInfo: ["index": 9]
+                )
+            }
+            .keyboardShortcut(KeyboardShortcuts.Tabs.tab9)
         }
 
         CommandGroup(replacing: .toolbar) {
