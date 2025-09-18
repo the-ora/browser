@@ -30,7 +30,7 @@ struct OraRoot: View {
         _privacyMode = StateObject(wrappedValue: PrivacyMode(isPrivate: isPrivate))
         let modelConfiguration = isPrivate ? ModelConfiguration(isStoredInMemoryOnly: true) : ModelConfiguration(
             "OraData",
-            schema: Schema([TabContainer.self, History.self, Download.self]),
+            schema: Schema([TabContainer.self, History.self, Download.self, SitePermission.self]),
             url: URL.applicationSupportDirectory.appending(path: "OraData.sqlite")
         )
 
@@ -38,10 +38,13 @@ struct OraRoot: View {
         let modelContext: ModelContext
         do {
             container = try ModelContainer(
-                for: TabContainer.self, History.self, Download.self,
+                for: TabContainer.self, History.self, Download.self, SitePermission.self,
                 configurations: modelConfiguration
             )
             modelContext = ModelContext(container)
+
+            // Initialize PermissionSettingsStore.shared with the model context
+            PermissionSettingsStore.shared = PermissionSettingsStore(context: modelContext)
         } catch {
             deleteSwiftDataStore("OraData.sqlite")
             fatalError("Failed to initialize ModelContainer: \(error)")

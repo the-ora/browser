@@ -294,7 +294,7 @@ class Tab: ObservableObject, Identifiable {
         self.isWebViewReady = false
         self.setupNavigationDelegate()
         print("🎥 setupUIDelegate")
-//        self.setupUIDelegate()
+        self.setupUIDelegate()
         self.syncBackgroundColorFromHex()
         // Load after a short delay to ensure layout
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
