@@ -10,15 +10,18 @@ class TabManager: ObservableObject {
     @Published var activeTab: Tab?
     let modelContainer: ModelContainer
     let modelContext: ModelContext
+    let mediaController: MediaController
 
     @Query(sort: \TabContainer.lastAccessedAt, order: .reverse) var containers: [TabContainer]
 
     init(
         modelContainer: ModelContainer,
-        modelContext: ModelContext
+        modelContext: ModelContext,
+        mediaController: MediaController
     ) {
         self.modelContainer = modelContainer
         self.modelContext = modelContext
+        self.mediaController = mediaController
 
         self.modelContext.undoManager = UndoManager()
         initializeActiveContainerAndTab()
@@ -92,13 +95,14 @@ class TabManager: ObservableObject {
     func openFromEngine(
         engineName: SearchEngineID,
         query: String,
-        historyManager: HistoryManager
+        historyManager: HistoryManager,
+        isPrivate: Bool
     ) {
         if let url = SearchEngineService().getSearchURLForEngine(
             engineName: engineName,
             query: query
         ) {
-            openTab(url: url, historyManager: historyManager)
+            openTab(url: url, historyManager: historyManager, isPrivate: isPrivate)
         }
     }
 
@@ -172,6 +176,7 @@ class TabManager: ObservableObject {
         let newContainer = TabContainer(name: name, emoji: emoji)
         modelContext.insert(newContainer)
         activeContainer = newContainer
+        self.activeTab = nil
         try? modelContext.save()
         //        _ = fetchContainers() // Refresh containers
         return newContainer
@@ -193,7 +198,8 @@ class TabManager: ObservableObject {
         container: TabContainer,
         favicon: URL? = nil,
         historyManager: HistoryManager? = nil,
-        downloadManager: DownloadManager? = nil
+        downloadManager: DownloadManager? = nil,
+        isPrivate: Bool
     ) -> Tab {
         let cleanHost: String? = {
             guard let host = url.host else { return nil }
@@ -209,7 +215,8 @@ class TabManager: ObservableObject {
             order: container.tabs.count + 1,
             historyManager: historyManager,
             downloadManager: downloadManager,
-            tabManager: self
+            tabManager: self,
+            isPrivate: isPrivate
         )
         modelContext.insert(newTab)
         container.tabs.append(newTab)
@@ -225,7 +232,9 @@ class TabManager: ObservableObject {
     func openTab(
         url: URL,
         historyManager: HistoryManager,
-        downloadManager: DownloadManager? = nil
+        downloadManager: DownloadManager? = nil,
+        focusAfterOpening: Bool = true,
+        isPrivate: Bool
     ) {
         if let container = activeContainer {
             if let host = url.host {
@@ -243,14 +252,19 @@ class TabManager: ObservableObject {
                     order: container.tabs.count + 1,
                     historyManager: historyManager,
                     downloadManager: downloadManager,
-                    tabManager: self
+                    tabManager: self,
+                    isPrivate: isPrivate
                 )
                 modelContext.insert(newTab)
                 container.tabs.append(newTab)
-                activeTab?.maybeIsActive  = false
-                activeTab = newTab
-                activeTab?.maybeIsActive = true
-                newTab.lastAccessedAt = Date()
+
+                if focusAfterOpening {
+                    activeTab?.maybeIsActive  = false
+                    activeTab = newTab
+                    activeTab?.maybeIsActive = true
+                    newTab.lastAccessedAt = Date()
+                }
+
                 container.lastAccessedAt = Date()
                 try? modelContext.save()
             }
@@ -293,7 +307,8 @@ class TabManager: ObservableObject {
                 .restoreTransientState(
                     historyManger: historyManager,
                     downloadManager: downloadManager,
-                    tabManager: tabManager
+                    tabManager: tabManager,
+                    isPrivate: tab.isPrivate
                 )
         }
         tab.stopMedia { [weak self] in
@@ -314,6 +329,8 @@ class TabManager: ObservableObject {
     func closeActiveTab() {
         if let tab = activeTab {
             closeTab(tab: tab)
+        } else {
+            NSApp.keyWindow?.close()
         }
     }
 
@@ -323,18 +340,23 @@ class TabManager: ObservableObject {
         try? modelContext.save() // Persist the undo operation
     }
 
-    func activateContainer(_ container: TabContainer) {
+    func activateContainer(_ container: TabContainer, activateLastAccessedTab: Bool = true) {
         activeContainer = container
         container.lastAccessedAt = Date()
+
         // Set the most recently accessed tab in the container
         if let lastAccessedTab = container.tabs
-            .sorted(by: { $0.lastAccessedAt ?? Date() > $1.lastAccessedAt ?? Date() }).first
+            .sorted(by: { $0.lastAccessedAt ?? Date() > $1.lastAccessedAt ?? Date() }).first,
+            lastAccessedTab.isWebViewReady
         {
             activeTab?.maybeIsActive = false
             activeTab = lastAccessedTab
             activeTab?.maybeIsActive = true
             lastAccessedTab.lastAccessedAt = Date()
+        } else {
+            activeTab = nil
         }
+
         try? modelContext.save()
     }
 
@@ -347,6 +369,19 @@ class TabManager: ObservableObject {
         tab.container.lastAccessedAt = Date()
         tab.updateHeaderColor()
         try? modelContext.save()
+    }
+
+    // Activate a tab by its persistent id. If the tab is in a
+    // different container, also activate that container.
+    func activateTab(id: UUID) {
+        let allContainers = fetchContainers()
+        for container in allContainers {
+            if let tab = container.tabs.first(where: { $0.id == id }) {
+                activateContainer(container)
+                activateTab(tab)
+                return
+            }
+        }
     }
 
     private func fetchContainers() -> [TabContainer] {

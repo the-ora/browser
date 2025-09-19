@@ -20,7 +20,7 @@ struct NormalTabsList: View {
     @State private var previousTabIds: [UUID] = []
 
     var body: some View {
-        Section {
+        VStack(spacing: 8) {
             NewTabButton(addNewTab: onAddNewTab)
             ForEach(tabs) { tab in
                 TabItem(

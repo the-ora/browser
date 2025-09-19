@@ -12,6 +12,7 @@ private let logger = Logger(subsystem: "com.orabrowser.ora", category: "TabScrip
 class TabScriptHandler: NSObject, WKScriptMessageHandler {
     var onChange: ((String) -> Void)?
     var tab: Tab?
+    weak var mediaController: MediaController?
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         if message.name == "listener" {
@@ -25,6 +26,7 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
                 let update = try JSONDecoder().decode(URLUpdate.self, from: jsonData)
                 DispatchQueue.main.async {
                     guard let tab = self.tab else { return }
+                    let oldTitle = tab.title
                     tab.title = update.title
                     tab.url = URL(string: update.href) ?? tab.url
                     tab
@@ -32,6 +34,11 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
                             faviconURLDefault: URL(string: update.favicon)
                         )
                     tab.updateHistory()
+
+                    // If title changed and there are active media sessions, update them
+                    if oldTitle != update.title, !update.title.isEmpty {
+                        self.mediaController?.syncTitleForTab(tab.id, newTitle: update.title)
+                    }
                 }
 
             } catch {
@@ -45,24 +52,38 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
                 let trimmed = (hovered ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
                 tab.hoveredLinkURL = trimmed.isEmpty ? nil : trimmed
             }
+        } else if message.name == "mediaEvent" {
+            guard let body = message.body as? String,
+                  let data = body.data(using: .utf8),
+                  let tab = self.tab
+            else { return }
+            if let payload = try? JSONDecoder().decode(MediaEventPayload.self, from: data) {
+                DispatchQueue.main.async { [weak self] in
+                    self?.mediaController?.receive(event: payload, from: tab)
+                }
+            }
         }
     }
 
-    func defaultWKConfig() -> WKWebViewConfiguration {
+    func customWKConfig(containerId: UUID, temporaryStorage: Bool = false) -> WKWebViewConfiguration {
         // Configure WebView for performance
         let configuration = WKWebViewConfiguration()
         let userAgent =
             "Mozilla/5.0 (Macintosh; arm64 Mac OS X 14_5) AppleWebKit/616.1.1 (KHTML, like Gecko) Version/18.5 Safari/616.1.1 Ora/1.0"
-//        let userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko)
-//        Chrome/133.0.0.0 Safari/537.36"
         configuration.applicationNameForUserAgent = userAgent
 
         // Enable JavaScript
-        configuration.preferences.setValue(true, forKey: "developerExtrasEnabled") // This is key
+        configuration.preferences.setValue(true, forKey: "developerExtrasEnabled")
         configuration.preferences.setValue(true, forKey: "allowsPictureInPictureMediaPlayback")
         configuration.preferences.setValue(true, forKey: "javaScriptEnabled")
         configuration.preferences.setValue(true, forKey: "javaScriptCanOpenWindowsAutomatically")
-        configuration.websiteDataStore = WKWebsiteDataStore.default()
+        if temporaryStorage {
+            configuration.websiteDataStore = WKWebsiteDataStore.nonPersistent()
+        } else {
+            configuration.websiteDataStore = WKWebsiteDataStore(
+                forIdentifier: containerId
+            )
+        }
 
         // Performance optimizations
         configuration.allowsAirPlayForMediaPlayback = true
@@ -82,10 +103,6 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         // Enable media playback without user interaction
         configuration.mediaTypesRequiringUserActionForPlayback = []
 
-        // Set up caching
-        let websiteDataStore = WKWebsiteDataStore.default()
-        configuration.websiteDataStore = websiteDataStore
-
         // GPU acceleration settings
         let preferences = WKWebpagePreferences()
         preferences.allowsContentJavaScript = true
@@ -95,6 +112,7 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         let contentController = WKUserContentController()
         contentController.add(self, name: "listener")
         contentController.add(self, name: "linkHover")
+        contentController.add(self, name: "mediaEvent")
         configuration.userContentController = contentController
 
         return configuration

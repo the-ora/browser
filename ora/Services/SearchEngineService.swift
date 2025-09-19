@@ -6,6 +6,7 @@ private let logger = Logger(subsystem: "com.orabrowser.ora", category: "SearchEn
 enum SearchEngineID: String, CaseIterable {
     case youtube = "YouTube"
     case chatgpt = "ChatGPT"
+    case claude = "Claude"
     case google = "Google"
     case grok = "Grok"
     case perplexity = "Perplexity"
@@ -13,6 +14,10 @@ enum SearchEngineID: String, CaseIterable {
     case t3chat = "T3Chat"
     // swiftlint:disable:next identifier_name
     case x = "X"
+    case gemini = "Gemini"
+    case copilot = "Copilot"
+    case githubCopilot = "GitHub Copilot"
+    case metaAI = "Meta AI"
 }
 
 struct SuggestResponse: Decodable {
@@ -57,6 +62,14 @@ class SearchEngineService: ObservableObject {
                 searchURL: "https://chatgpt.com?q={query}",
                 isAIChat: true,
                 foregroundColor: theme?.background ?? .black
+            ),
+            SearchEngine(
+                name: "Claude",
+                color: Color(hex: "#DE7C4C"),
+                icon: "",
+                aliases: ["claude", "cl", "cla", "anthropic"],
+                searchURL: "https://claude.ai?q={query}",
+                isAIChat: true
             ),
             SearchEngine(
                 name: "Google",
@@ -108,6 +121,39 @@ class SearchEngineService: ObservableObject {
                 searchURL: "https://twitter.com/search?q={query}",
                 isAIChat: false,
                 foregroundColor: theme?.background ?? .black
+            ),
+            SearchEngine(
+                name: "Gemini",
+                color: Color(hex: "#4285F4"),
+                icon: "",
+                aliases: ["gemini", "gem", "bard", "google ai", "gai"],
+                searchURL: "https://gemini.google.com/app?q={query}",
+                isAIChat: true
+            ),
+            SearchEngine(
+                name: "Copilot",
+                color: Color(hex: "#0078D4"),
+                icon: "",
+                aliases: ["copilot", "microsoft copilot", "bing chat", "bing", "ms copilot"],
+                searchURL: "https://copilot.microsoft.com/?q={query}",
+                isAIChat: true
+            ),
+            SearchEngine(
+                name: "GitHub Copilot",
+                color: Color(hex: "#24292F"),
+                icon: "",
+                aliases: ["github copilot", "gh copilot", "github ai", "ghc"],
+                searchURL: "https://github.com/copilot?q={query}",
+                isAIChat: true,
+                foregroundColor: .white
+            ),
+            SearchEngine(
+                name: "Meta AI",
+                color: Color(hex: "#0866FF"),
+                icon: "",
+                aliases: ["meta ai", "meta", "llama", "facebook ai", "mai"],
+                searchURL: "https://www.meta.ai/?q={query}",
+                isAIChat: true
             )
         ]
     }

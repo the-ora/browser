@@ -124,6 +124,7 @@ This project uses **XcodeGen**. If you need to modify project settings:
 - [ ] Tests pass
 - [ ] Code follows formatting standards (automatic via git hooks)
 - [ ] **Descriptive title and description**: Clearly explain what changes were made and why
+- [ ] Include screenshots if UI changes made
 - [ ] References related issues if applicable
 - [ ] No duplicate functionality (checked existing codebase)
 

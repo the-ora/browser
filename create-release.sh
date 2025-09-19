@@ -56,6 +56,141 @@ ORIGINAL_DIR="$(pwd)"
 
 echo "🚀 Creating Ora Browser Release v$VERSION..."
 
+# Helper: Get last git tag (if any)
+get_last_tag() {
+    if git describe --tags --abbrev=0 >/dev/null 2>&1; then
+        git describe --tags --abbrev=0 2>/dev/null || true
+    else
+        echo ""
+    fi
+}
+
+# HTML-escape helper
+html_escape() {
+    local s="$1"
+    s="${s//&/&amp;}"
+    s="${s//</&lt;}"
+    s="${s//>/&gt;}"
+    s="${s//\"/&quot;}"
+    printf '%s' "$s"
+}
+
+# Helper: Generate changelog HTML from commits since last tag
+generate_changelog_html() {
+    local last_tag
+    last_tag="$(get_last_tag)"
+
+    local commits
+    if [ -n "$last_tag" ]; then
+        commits=$(git log --pretty=format:"%s%x1F%an" --no-merges "$last_tag"..HEAD)
+    else
+        commits=$(git log --pretty=format:"%s%x1F%an" --no-merges --max-count=50)
+    fi
+
+    if [ -z "$commits" ]; then
+        cat <<'EOT'
+        <div class="changelog">
+          <p>No changes recorded since last release.</p>
+        </div>
+EOT
+        return
+    fi
+
+    declare -a feat_list=()
+    declare -a fix_list=()
+    declare -a perf_list=()
+    declare -a docs_list=()
+    declare -a chore_list=()
+    declare -a other_list=()
+    while IFS=$'\x1F' read -r subject author; do
+        # skip empty or stray dashes
+        if [ -z "$subject" ] || [ "$subject" = "-" ]; then
+            continue
+        fi
+        # skip version bump commits
+        if [[ "$subject" =~ ^[Uu]pdate\ to\ v[0-9]+(\.[0-9]+){1,2}(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
+            continue
+        fi
+        local safe_subject safe_author
+        safe_subject=$(html_escape "$subject")
+        safe_author=$(html_escape "$author")
+        entry="${safe_subject} — ${safe_author}"
+        case "$subject" in
+            feat*|Feat*|FEAT*) feat_list+=("$entry") ;;
+            fix*|Fix*|FIX*) fix_list+=("$entry") ;;
+            perf*|Perf*|PERF*) perf_list+=("$entry") ;;
+            docs*|Docs*|DOCS*) docs_list+=("$entry") ;;
+            chore*|Chore*|CHORE*) chore_list+=("$entry") ;;
+            *) other_list+=("$entry") ;;
+        esac
+    done <<EOF_COMMITS
+$commits
+EOF_COMMITS
+    echo "        <div class=\"changelog\">"
+    if [ ${#feat_list[@]} -gt 0 ]; then
+        echo "          <h3>Features</h3>"
+        echo "          <ul>"
+        for i in "${feat_list[@]}"; do [ -n "$i" ] && echo "            <li>$i</li>"; done
+        echo "          </ul>"
+    fi
+    if [ ${#fix_list[@]} -gt 0 ]; then
+        echo "          <h3>Fixes</h3>"
+        echo "          <ul>"
+        for i in "${fix_list[@]}"; do [ -n "$i" ] && echo "            <li>$i</li>"; done
+        echo "          </ul>"
+    fi
+    if [ ${#perf_list[@]} -gt 0 ]; then
+        echo "          <h3>Performance</h3>"
+        echo "          <ul>"
+        for i in "${perf_list[@]}"; do [ -n "$i" ] && echo "            <li>$i</li>"; done
+        echo "          </ul>"
+    fi
+    if [ ${#docs_list[@]} -gt 0 ]; then
+        echo "          <h3>Docs</h3>"
+        echo "          <ul>"
+        for i in "${docs_list[@]}"; do [ -n "$i" ] && echo "            <li>$i</li>"; done
+        echo "          </ul>"
+    fi
+    if [ ${#chore_list[@]} -gt 0 ]; then
+        echo "          <h3>Chores</h3>"
+        echo "          <ul>"
+        for i in "${chore_list[@]}"; do [ -n "$i" ] && echo "            <li>$i</li>"; done
+        echo "          </ul>"
+    fi
+    if [ ${#other_list[@]} -gt 0 ]; then
+        echo "          <h3>Other</h3>"
+        echo "          <ul>"
+        for i in "${other_list[@]}"; do [ -n "$i" ] && echo "            <li>$i</li>"; done
+        echo "          </ul>"
+    fi
+    echo "        </div>"
+}
+
+mkdir -p build
+
+echo "📝 Generating changelog..."
+CHANGELOG_HTML=$(generate_changelog_html)
+if [ -z "$CHANGELOG_HTML" ]; then
+    echo "❌ Changelog generation failed."
+    exit 1
+fi
+
+echo ""
+echo "──────── Generated Changelog ────────"
+printf '%s\n' "$CHANGELOG_HTML"
+echo "──────────────────────────────────────"
+echo ""
+
+read -r -p "Proceed with this changelog? [y/N]: " CONFIRM_CHANGELOG
+if [ "${CONFIRM_CHANGELOG}" != "y" ] && [ "${CONFIRM_CHANGELOG}" != "Y" ]; then
+    echo "❌ Release aborted by user."
+    exit 1
+fi
+
+# Persist and export for later injection
+printf '%s' "$CHANGELOG_HTML" > build/generated_changelog.html
+export CHANGELOG_HTML="$CHANGELOG_HTML"
+
 # Update project.yml with the release version and public key
 echo "📝 Updating project.yml with version $VERSION..."
 if [ -f "project.yml" ]; then
@@ -204,6 +339,11 @@ mkdir -p build
 # Create appcast.xml with current version
 echo "📝 Creating appcast.xml for version $VERSION..."
 PUB_DATE=$(date -u +"%a, %d %b %Y %H:%M:%S %z")
+# Prefer AI-generated changelog if present; otherwise fall back locally
+if [ -z "$CHANGELOG_HTML" ]; then
+CHANGELOG_HTML=$(generate_changelog_html)
+fi
+
 cat > appcast.xml << EOF
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
@@ -215,15 +355,8 @@ cat > appcast.xml << EOF
       <title>Version $VERSION</title>
       <description><![CDATA[
         <h2>Ora Browser v$VERSION</h2>
-        <p>Latest release of Ora Browser with the following features:</p>
-        <ul>
-          <li>Modern web browsing experience</li>
-          <li>Tabbed interface with sidebar</li>
-          <li>Built-in ad blocking</li>
-          <li>Privacy-focused design</li>
-          <li>Automatic update system</li>
-        </ul>
-        <p>This release includes bug fixes and performance improvements. Enjoy browsing with Ora!</p>
+        <p>Changes since last release:</p>
+$(printf '%s' "$CHANGELOG_HTML")
       ]]></description>
       <pubDate>$PUB_DATE</pubDate>
        <enclosure url="https://github.com/the-ora/browser/releases/download/v$VERSION/Ora-Browser-$VERSION.dmg"
@@ -236,7 +369,6 @@ cat > appcast.xml << EOF
   </channel>
 </rss>
 EOF
-
 echo "✅ Sparkle setup complete!"
 
 # Build the release
@@ -395,13 +527,6 @@ deploy_to_github_pages() {
     git stash pop
 }
 
-echo "✅ Release v$VERSION created!"
-echo "📁 Files ready for upload:"
-echo "   - $DMG_FILE (signed)"
-echo "   - appcast.xml (will be deployed after upload)"
-echo "   - $PUBLIC_KEY_FILE (public key - committed to git)"
-echo "   - $PRIVATE_KEY_FILE (private key - DO NOT commit!)"
-echo ""
 # Upload DMG to GitHub releases
 echo "📤 Uploading DMG to GitHub releases..."
 if [ -f "upload-dmg.sh" ]; then
@@ -426,16 +551,6 @@ if [ -f "build/temp_private_key.pem" ]; then
     echo "🧹 Cleaned up temporary private key file"
 fi
 
-echo "🚀 Next steps:"
-echo "1. ✅ DMG uploaded to GitHub releases"
-echo "2. Enable GitHub Pages in repository settings (if not already enabled)"
-echo "   - Go to Settings → Pages"
-echo "   - Set source to 'Deploy from a branch'"
-echo "   - Set branch to 'gh-pages'"
-echo "3. ✅ Public key is already configured in project.yml"
-echo "4. ✅ SUFeedURL is already configured in project.yml"
-echo ""
-
 # Security check - ensure sensitive files are not committed
 echo "🔒 Security Check:"
 if git ls-files 2>/dev/null | grep -q "\.env$"; then
@@ -451,10 +566,3 @@ if git ls-files 2>/dev/null | grep -q "temp_private_key.pem"; then
     echo "   Run: git rm --cached build/temp_private_key.pem"
     exit 1
 fi
-
-echo "✅ Security check passed - sensitive files not committed"
-echo ""
-echo "🔑 Key Management:"
-echo "   - Public key: $PUBLIC_KEY_FILE (committed to git)"
-echo "   - Private key: $PRIVATE_KEY_FILE (NEVER commit this!)"
-echo "   - Share $PRIVATE_KEY_FILE when setting up new machines"

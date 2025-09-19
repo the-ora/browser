@@ -1,15 +1,21 @@
 import AppKit
 import SwiftUI
-import WebKit
+@preconcurrency import WebKit
 
 struct WebView: NSViewRepresentable {
     let webView: WKWebView
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var historyManager: HistoryManager
     @EnvironmentObject var downloadManager: DownloadManager
+    @EnvironmentObject var privacyMode: PrivacyMode
 
     func makeCoordinator() -> Coordinator {
-        return Coordinator(tabManager: tabManager, historyManager: historyManager, downloadManager: downloadManager)
+        return Coordinator(
+            tabManager: tabManager,
+            historyManager: historyManager,
+            downloadManager: downloadManager,
+            privacyMode: privacyMode
+        )
     }
 
     func makeNSView(context: Context) -> WKWebView {
@@ -42,13 +48,20 @@ struct WebView: NSViewRepresentable {
         weak var tabManager: TabManager?
         weak var historyManager: HistoryManager?
         weak var downloadManager: DownloadManager?
+        weak var privacyMode: PrivacyMode?
         private var mouseEventMonitor: Any?
         private weak var webView: WKWebView?
 
-        init(tabManager: TabManager?, historyManager: HistoryManager?, downloadManager: DownloadManager?) {
+        init(
+            tabManager: TabManager?,
+            historyManager: HistoryManager?,
+            downloadManager: DownloadManager?,
+            privacyMode: PrivacyMode
+        ) {
             self.tabManager = tabManager
             self.historyManager = historyManager
             self.downloadManager = downloadManager
+            self.privacyMode = privacyMode
         }
 
         deinit {
@@ -62,7 +75,7 @@ struct WebView: NSViewRepresentable {
         func setupMouseEventMonitoring(for webView: WKWebView) {
             self.webView = webView
 
-            // Monitor for other mouse button events (buttons 4 and 5)
+            // Monitor for other mouse button events (buttons 3, 4 and 5)
             mouseEventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.otherMouseDown]) { [weak self] event in
                 guard let self,
                       let webView = self.webView,
@@ -71,8 +84,11 @@ struct WebView: NSViewRepresentable {
                     return event
                 }
 
-                // Handle mouse button events for back/forward navigation
+                // Handle mouse button events for back/forward navigation and middle-click to open link in new tab
                 switch event.buttonNumber {
+                case 2: // Mouse button 3 (middle click to open link in new tab)
+                    handleMiddleClick(at: event.locationInWindow, webView: webView)
+                    return nil
                 case 3: // Mouse button 4 (back)
                     if webView.canGoBack {
                         DispatchQueue.main.async {
@@ -93,9 +109,49 @@ struct WebView: NSViewRepresentable {
             }
         }
 
-        private func isEventInWebView(_ event: NSEvent, webView: WKWebView) -> Bool {
-            guard let window = webView.window else { return false }
+        private func handleMiddleClick(at location: NSPoint, webView: WKWebView) {
+            let locationInWebView = webView.convert(location, from: nil)
 
+            // Ensure the coordinates are within the web view bounds
+            guard locationInWebView.x.isFinite, locationInWebView.y.isFinite,
+                  locationInWebView.x >= 0, locationInWebView.y >= 0
+            else {
+                return
+            }
+
+            let jsCode = """
+                (function() {
+                    var element = document.elementFromPoint(\(locationInWebView.x), \(locationInWebView.y));
+                    while (element && element.tagName !== 'A') {
+                        element = element.parentElement;
+                    }
+                    return element ? element.href : null;
+                })();
+            """
+
+            webView.evaluateJavaScript(jsCode) { [weak self] result, error in
+                guard error == nil else {
+                    print("Error evaluating JavaScript for middle-click link detection: \(error!.localizedDescription)")
+                    return
+                }
+
+                if let urlString = result as? String, let url = URL(string: urlString),
+                   let tabManager = self?.tabManager, let historyManager = self?.historyManager,
+                   ["http", "https"].contains(url.scheme?.lowercased() ?? "")
+                {
+                    DispatchQueue.main.async {
+                        tabManager.openTab(
+                            url: url,
+                            historyManager: historyManager,
+                            focusAfterOpening: false,
+                            isPrivate: self?.privacyMode?.isPrivate ?? false
+                        )
+                    }
+                }
+            }
+        }
+
+        private func isEventInWebView(_ event: NSEvent, webView: WKWebView) -> Bool {
             // Convert the event location to the web view's coordinate system
             let locationInWindow = event.locationInWindow
             let locationInWebView = webView.convert(locationInWindow, from: nil)
@@ -149,10 +205,11 @@ struct WebView: NSViewRepresentable {
 
             // Create a new tab in the background for the target URL
             DispatchQueue.main.async {
-                _ = tabManager.openTab(
+                tabManager.openTab(
                     url: url,
                     historyManager: historyManager,
-                    downloadManager: self.downloadManager
+                    downloadManager: self.downloadManager,
+                    isPrivate: self.privacyMode?.isPrivate ?? false
                 )
             }
 
