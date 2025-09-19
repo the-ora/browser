@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 
 enum SettingsTab: Hashable, CaseIterable {
@@ -28,6 +29,29 @@ struct SettingsContentView: View {
     @State private var selection: SettingsTab = .general
     @Environment(\.theme) private var theme: Theme
     let btncornerRadius: CGFloat = 10
+
+    // Model container for settings
+    private var modelContainer: ModelContainer {
+        let modelConfiguration = ModelConfiguration(
+            "OraData",
+            schema: Schema([TabContainer.self, History.self, Download.self]),
+            url: URL.applicationSupportDirectory.appending(path: "OraData.sqlite")
+        )
+
+        do {
+            return try ModelContainer(
+                for: TabContainer.self, History.self, Download.self,
+                configurations: modelConfiguration
+            )
+        } catch {
+            deleteSwiftDataStore("OraData.sqlite")
+            fatalError("Failed to initialize ModelContainer for settings: \(error)")
+        }
+    }
+
+    private var modelContext: ModelContext {
+        ModelContext(modelContainer)
+    }
 
     var body: some View {
         NavigationSplitView(columnVisibility: .constant(.all)) {
@@ -79,7 +103,8 @@ struct SettingsContentView: View {
             }
             .frame(maxHeight: .infinity, alignment: .top)
         }
-//        .background(theme.background)
+        .background(theme.background)
         .navigationSplitViewStyle(.prominentDetail)
+        .modelContext(modelContext)
     }
 }

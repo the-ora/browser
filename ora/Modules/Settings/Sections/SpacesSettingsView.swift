@@ -2,7 +2,7 @@ import SwiftData
 import SwiftUI
 
 struct SpacesSettingsView: View {
-    @Query var containers: [TabContainer]
+    @Query(sort: \TabContainer.lastAccessedAt, order: .reverse) var containers: [TabContainer]
 
     @StateObject private var settings = SettingsStore.shared
     @State private var searchService = SearchEngineService()
