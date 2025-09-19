@@ -20,8 +20,7 @@ struct AppearanceSelector: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Appearance").foregroundStyle(.secondary)
+        Section("Appearance") {
             HStack(spacing: 16) {
                 ForEach(options) { opt in
                     let isSelected = selection == opt.appearance

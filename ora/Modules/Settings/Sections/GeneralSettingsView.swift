@@ -10,7 +10,6 @@ struct GeneralSettingsView: View {
     var body: some View {
         Form {
             VStack(alignment: .leading, spacing: 16) {
-                // App Version Info
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text("Ora Browser")

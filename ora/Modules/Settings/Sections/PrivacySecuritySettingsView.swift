@@ -6,10 +6,10 @@ struct PrivacySecuritySettingsView: View {
     var body: some View {
         Form {
             Section {
-                Toggle("Block third-party trackers", isOn: $settings.blockThirdPartyTrackers)
-                Toggle("Block fingerprinting", isOn: $settings.blockFingerprinting)
-                Toggle("Ad Blocking", isOn: $settings.adBlocking)
-            }
+                Toggle("Block third-party trackers", isOn: $settings.blockThirdPartyTrackers).disabled(true)
+                Toggle("Block fingerprinting", isOn: $settings.blockFingerprinting).disabled(true)
+                Toggle("Ad Blocking", isOn: $settings.adBlocking).disabled(true)
+            }.frame(maxWidth: .infinity, maxHeight: .infinity)
 
             Section {
                 Picker("Cookies", selection: $settings.cookiesPolicy) {
@@ -18,11 +18,11 @@ struct PrivacySecuritySettingsView: View {
                     }
                 }
                 .pickerStyle(.menu)
-            }
+                .disabled(true)
+            }.frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .formStyle(.grouped)
         .scrollContentBackground(.hidden)
         .padding(.top, -20)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

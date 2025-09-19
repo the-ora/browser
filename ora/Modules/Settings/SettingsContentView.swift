@@ -27,6 +27,7 @@ enum SettingsTab: Hashable, CaseIterable {
 struct SettingsContentView: View {
     @State private var selection: SettingsTab = .general
     @Environment(\.theme) private var theme: Theme
+    let btncornerRadius: CGFloat = 10
 
     var body: some View {
         NavigationSplitView(columnVisibility: .constant(.all)) {
@@ -38,18 +39,18 @@ struct SettingsContentView: View {
                         HStack(spacing: 8) {
                             Image(systemName: tab.symbol)
                             Text(tab.title)
+                            Spacer()
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .frame(maxWidth: .infinity, minHeight: 35, alignment: .leading)
+                        .padding(.horizontal, 12)
+                        .background(
+                            ConditionallyConcentricRectangle(cornerRadius: btncornerRadius)
+                                .stroke(selection == tab ? theme.border : .clear, lineWidth: 1)
+                                .background(selection == tab ? theme.mutedSidebarBackground : .clear)
+                        )
+                        .clipShape(ConditionallyConcentricRectangle(cornerRadius: btncornerRadius))
+                        .contentShape(ConditionallyConcentricRectangle(cornerRadius: btncornerRadius))
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .frame(maxWidth: .infinity, minHeight: 35, maxHeight: 35, alignment: .leading)
-                    .background(selection == tab ? theme.mutedSidebarBackground : .clear)
-                    .cornerRadius(10)
-                    .overlay(
-                        ConditionallyConcentricRectangle(cornerRadius: 10)
-                            .stroke(selection == tab ? theme.border : .clear, lineWidth: 1)
-                    )
                     .buttonStyle(.plain)
                 }
             }
