@@ -37,21 +37,21 @@ struct ShortcutsSettingsView: View {
             }
         }
     }
-    
+
     private func handleAction(for item: KeyboardShortcutDefinition, action: ShortcutRowView.Action) {
         switch action {
-            case .resetTapped:
-                shortcutManager.removeCustomShortcut(for: item)
+        case .resetTapped:
+            shortcutManager.removeCustomShortcut(for: item)
+            cancelEditing()
+        case .editTapped:
+            if editingShortcut == item {
                 cancelEditing()
-            case .editTapped:
-                if editingShortcut == item {
-                    cancelEditing()
-                } else {
-                    editingShortcut = item
-                }
+            } else {
+                editingShortcut = item
+            }
         }
     }
-    
+
     private func handleKeyCapture(_ event: NSEvent) {
         guard let editingShortcut else { return }
         if KeyChord(fromEvent: event) != nil {
@@ -69,10 +69,10 @@ struct ShortcutRowView: View {
     enum Action {
         case resetTapped
         case editTapped
-        
+
         typealias Handler = (Self) -> Void
     }
-    
+
     let item: KeyboardShortcutDefinition
     let isOverriden: Bool
     let isEditing: Bool
@@ -85,7 +85,7 @@ struct ShortcutRowView: View {
                 .foregroundColor(.primary)
 
             Spacer()
-            
+
             if isOverriden {
                 Button(action: { handler(.resetTapped) }) {
                     Text("Reset to Default")
@@ -102,14 +102,17 @@ struct ShortcutRowView: View {
                         ZStack {
                             RoundedRectangle(cornerRadius: 6)
                                 .fill(isEditing ?
-                                      Color.accentColor.opacity(0.1) :
-                                      Color(NSColor.controlBackgroundColor))
+                                    Color.accentColor.opacity(0.1) :
+                                    Color(NSColor.controlBackgroundColor)
+                                )
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 6)
-                                        .stroke(isEditing ?
-                                               Color.accentColor :
-                                               Color(NSColor.separatorColor),
-                                               lineWidth: isEditing ? 1.5 : 0.5)
+                                        .stroke(
+                                            isEditing ?
+                                                Color.accentColor :
+                                                Color(NSColor.separatorColor),
+                                            lineWidth: isEditing ? 1.5 : 0.5
+                                        )
                                 )
 
                             if isEditing {

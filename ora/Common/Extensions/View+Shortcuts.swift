@@ -35,4 +35,3 @@ extension View {
         modifier(OraShortcutHelpModifier(helpText: helpText, shortcut: shortcut))
     }
 }
-
