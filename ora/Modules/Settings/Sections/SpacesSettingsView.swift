@@ -15,7 +15,7 @@ struct SpacesSettingsView: View {
 
     var body: some View {
         SettingsContainer(maxContentWidth: 1040) {
-            HStack(spacing: 0) {
+            HStack(alignment: .top, spacing: 0) {
                 // Left list
                 List(selection: $selectedContainerId) {
                     ForEach(containers) { container in
@@ -34,17 +34,7 @@ struct SpacesSettingsView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     if let container = selectedContainer {
                         VStack(alignment: .leading, spacing: 12) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Space-Specific Defaults")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(.secondary)
-                            }
-
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("Search Engine Override")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
                                 Picker(
                                     "Search engine",
                                     selection: Binding(
@@ -63,9 +53,6 @@ struct SpacesSettingsView: View {
                             }
 
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("AI Chat Override")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
                                 Picker(
                                     "AI Chat",
                                     selection: Binding(
@@ -80,7 +67,7 @@ struct SpacesSettingsView: View {
                                     ForEach(searchService.searchEngines.filter(\.isAIChat), id: \.name) { engine in
                                         Text(engine.name).tag(Optional(engine.name))
                                     }
-                                }
+                                }.disabled(true)
                             }
 
                             Picker(
@@ -93,7 +80,7 @@ struct SpacesSettingsView: View {
                                 ForEach(AutoClearTabsAfter.allCases) { value in
                                     Text(value.rawValue).tag(value)
                                 }
-                            }
+                            }.disabled(true)
                         }
                         .padding(8)
 
