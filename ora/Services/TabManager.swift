@@ -328,11 +328,6 @@ class TabManager: ObservableObject {
 
     // MARK: - Private Api's
 
-    /// Seems Unused For Now
-    private func getActiveTab() -> Tab? {
-        return self.activeTab
-    }
-
     private func initializeActiveContainerAndTab() {
         // Ensure containers are fetched
         let containers = fetchContainers()
