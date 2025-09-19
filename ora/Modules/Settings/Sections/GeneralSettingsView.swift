@@ -21,7 +21,7 @@ struct GeneralSettingsView: View {
                                 .resizable()
                                 .frame(width: 32, height: 32)
                             Text("Ora Browser")
-                                .font(.title3)
+                                .font(.title2)
                                 .foregroundStyle(.white)
                         }
                         Spacer()

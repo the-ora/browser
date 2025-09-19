@@ -79,7 +79,7 @@ struct SettingsContentView: View {
             }
             .frame(maxHeight: .infinity, alignment: .top)
         }
-        .background(theme.background)
-        .navigationSplitViewStyle(.balanced)
+//        .background(theme.background)
+        .navigationSplitViewStyle(.prominentDetail)
     }
 }
