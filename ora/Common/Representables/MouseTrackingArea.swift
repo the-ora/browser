@@ -37,15 +37,15 @@ private final class TrackingStrip: NSView {
             win.level = .statusBar
 
             /// colored view
-            let overlay = NSView(frame: win.contentView!.bounds)
-            overlay.wantsLayer = true
-            overlay.layer?.backgroundColor = NSColor.systemGreen.withAlphaComponent(0.2).cgColor
-            overlay.layer?.borderColor = NSColor.systemGreen.cgColor
-            overlay.layer?.borderWidth = 2
-            win.contentView?.addSubview(overlay)
-
-            win.orderFrontRegardless()
-            debugWindow = win
+            if let contentView = win.contentView {
+                let overlay = NSView(frame: contentView.bounds)
+                overlay.wantsLayer = true
+                overlay.layer?.backgroundColor = NSColor.systemGreen.withAlphaComponent(0.2).cgColor
+                overlay.layer?.borderColor = NSColor.systemGreen.cgColor
+                overlay.layer?.borderWidth = 2
+                overlay.autoresizingMask = [.width, .height]
+                contentView.addSubview(overlay)
+            }
         }
     #endif
 
@@ -161,7 +161,7 @@ private final class TrackingStrip: NSView {
         }
 
         func stop() {
-            if let local = localMonitor { NSEvent.removeMonitor(local) }
+            if let localMonitor { NSEvent.removeMonitor(localMonitor) }
             localMonitor = nil
             isInside = false
         }

@@ -12,84 +12,34 @@ class TabManager: ObservableObject {
     let modelContext: ModelContext
     let mediaController: MediaController
 
+    // Note: Could be made injectable via init parameter if preferred
+    let tabSearchingService: TabSearchingProviding
+
     @Query(sort: \TabContainer.lastAccessedAt, order: .reverse) var containers: [TabContainer]
 
     init(
         modelContainer: ModelContainer,
         modelContext: ModelContext,
-        mediaController: MediaController
+        mediaController: MediaController,
+        tabSearchingService: TabSearchingProviding = TabSearchingService()
     ) {
         self.modelContainer = modelContainer
         self.modelContext = modelContext
         self.mediaController = mediaController
+        self.tabSearchingService = tabSearchingService
 
         self.modelContext.undoManager = UndoManager()
         initializeActiveContainerAndTab()
     }
 
+    // MARK: - Public API's
+
     func search(_ text: String) -> [Tab] {
-        let activeContainerId = activeContainer?.id ?? UUID()
-        let trimmedText = text.trimmingCharacters(in: .whitespaces)
-
-        let predicate: Predicate<Tab>
-        if trimmedText.isEmpty {
-            predicate = #Predicate { _ in true }
-        } else {
-            predicate = #Predicate { tab in
-                (
-                    tab.urlString.localizedStandardContains(trimmedText) ||
-                        tab.title
-                        .localizedStandardContains(
-                            trimmedText
-                        )
-                ) && tab.container.id == activeContainerId
-            }
-        }
-
-        let descriptor = FetchDescriptor<Tab>(predicate: predicate)
-
-        do {
-            let results = try modelContext.fetch(descriptor)
-            let now = Date()
-
-            return results.sorted { result1, result2 in
-                let result1Score = combinedScore(for: result1, query: trimmedText, now: now)
-                let result2Score = combinedScore(for: result2, query: trimmedText, now: now)
-                return result1Score > result2Score
-            }
-
-        } catch {
-            return []
-        }
-    }
-
-    private func combinedScore(for tab: Tab, query: String, now: Date) -> Double {
-        let match = scoreMatch(tab, text: query)
-
-        let timeInterval: TimeInterval = if let accessedAt = tab.lastAccessedAt {
-            now.timeIntervalSince(accessedAt)
-        } else {
-            1_000_000 // far in the past → lowest recency
-        }
-
-        let recencyBoost = max(0, 1_000_000 - timeInterval)
-        return Double(match * 1000) + recencyBoost
-    }
-
-    private func scoreMatch(_ tab: Tab, text: String) -> Int {
-        let text = text.lowercased()
-        let title = tab.title.lowercased()
-        let url = tab.urlString.lowercased()
-
-        func score(_ field: String) -> Int {
-            if field == text { return 100 }
-            if field.hasPrefix(text) { return 90 }
-            if field.contains(text) { return 75 }
-            if text.contains(field) { return 50 }
-            return 0
-        }
-
-        return max(score(title), score(url))
+        tabSearchingService.search(
+            text,
+            activeContainer: activeContainer,
+            modelContext: modelContext
+        )
     }
 
     func openFromEngine(
@@ -137,39 +87,11 @@ class TabManager: ObservableObject {
         try? modelContext.save()
     }
 
-    func getActiveTab() -> Tab? {
-        return self.activeTab
-    }
+    // MARK: - Container Public API's
 
     func moveTabToContainer(_ tab: Tab, toContainer: TabContainer) {
         tab.container = toContainer
         try? modelContext.save()
-    }
-
-    private func initializeActiveContainerAndTab() {
-        // Ensure containers are fetched
-        let containers = fetchContainers()
-
-        // Get the last accessed container
-        if let lastAccessedContainer = containers.first {
-            activeContainer = lastAccessedContainer
-            // Get the last accessed tab from the active container
-            //            if let lastAccessedTab = lastAccessedContainer.tabs.sorted(by: { $0.lastAccessedAt ?? Date() >
-            //            $1.lastAccessedAt ?? Date() }).first {
-            //                activeTab = lastAccessedTab
-            //            } else {
-            //                // No tabs, create one
-            //
-            //                activeTab = addTab(container: lastAccessedContainer)
-            //            }
-        } else {
-            // No containers, create one
-            let newContainer = createContainer()
-            activeContainer = newContainer
-            //            activeTab = addTab(container: newContainer)
-        }
-
-        //        activeTab?.maybeIsActive = true
     }
 
     func createContainer(name: String = "Default", emoji: String = "💩") -> TabContainer {
@@ -192,9 +114,32 @@ class TabManager: ObservableObject {
         modelContext.delete(container)
     }
 
+    func activateContainer(_ container: TabContainer, activateLastAccessedTab: Bool = true) {
+        activeContainer = container
+        container.lastAccessedAt = Date()
+
+        // Set the most recently accessed tab in the container
+        if let lastAccessedTab = container.tabs
+            .sorted(by: { $0.lastAccessedAt ?? Date() > $1.lastAccessedAt ?? Date() }).first,
+            lastAccessedTab.isWebViewReady
+        {
+            activeTab?.maybeIsActive = false
+            activeTab = lastAccessedTab
+            activeTab?.maybeIsActive = true
+            lastAccessedTab.lastAccessedAt = Date()
+        } else {
+            activeTab = nil
+        }
+
+        try? modelContext.save()
+    }
+
+    // MARK: - Tab Public API's
+
     func addTab(
         title: String = "Untitled",
-        url: URL = URL(string: "https://www.youtube.com/") ?? URL(string: "about:blank") ?? URL(fileURLWithPath: ""),
+        /// Will Always Work
+        url: URL = URL(string: "about:blank")!,
         container: TabContainer,
         favicon: URL? = nil,
         historyManager: HistoryManager? = nil,
@@ -340,26 +285,6 @@ class TabManager: ObservableObject {
         try? modelContext.save() // Persist the undo operation
     }
 
-    func activateContainer(_ container: TabContainer, activateLastAccessedTab: Bool = true) {
-        activeContainer = container
-        container.lastAccessedAt = Date()
-
-        // Set the most recently accessed tab in the container
-        if let lastAccessedTab = container.tabs
-            .sorted(by: { $0.lastAccessedAt ?? Date() > $1.lastAccessedAt ?? Date() }).first,
-            lastAccessedTab.isWebViewReady
-        {
-            activeTab?.maybeIsActive = false
-            activeTab = lastAccessedTab
-            activeTab?.maybeIsActive = true
-            lastAccessedTab.lastAccessedAt = Date()
-        } else {
-            activeTab = nil
-        }
-
-        try? modelContext.save()
-    }
-
     func activateTab(_ tab: Tab) {
         activeTab?.maybeIsActive = false
         activeTab = tab
@@ -384,16 +309,6 @@ class TabManager: ObservableObject {
         }
     }
 
-    private func fetchContainers() -> [TabContainer] {
-        do {
-            let descriptor = FetchDescriptor<TabContainer>(sortBy: [SortDescriptor(\.lastAccessedAt, order: .reverse)])
-            return try modelContext.fetch(descriptor)
-        } catch {
-            // Failed to fetch containers
-        }
-        return []
-    }
-
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         if message.name == "listener",
            let url = message.body as? String
@@ -409,5 +324,126 @@ class TabManager: ObservableObject {
                 }
             }
         }
+    }
+
+    // MARK: - Private Api's
+
+    private func initializeActiveContainerAndTab() {
+        // Ensure containers are fetched
+        let containers = fetchContainers()
+
+        // Get the last accessed container
+        if let lastAccessedContainer = containers.first {
+            activeContainer = lastAccessedContainer
+            // Get the last accessed tab from the active container
+            //            if let lastAccessedTab = lastAccessedContainer.tabs.sorted(by: { $0.lastAccessedAt ?? Date() >
+            //            $1.lastAccessedAt ?? Date() }).first {
+            //                activeTab = lastAccessedTab
+            //            } else {
+            //                // No tabs, create one
+            //
+            //                activeTab = addTab(container: lastAccessedContainer)
+            //            }
+        } else {
+            // No containers, create one
+            let newContainer = createContainer()
+            activeContainer = newContainer
+            //            activeTab = addTab(container: newContainer)
+        }
+
+        //        activeTab?.maybeIsActive = true
+    }
+
+    private func fetchContainers() -> [TabContainer] {
+        do {
+            let descriptor = FetchDescriptor<TabContainer>(sortBy: [SortDescriptor(\.lastAccessedAt, order: .reverse)])
+            return try modelContext.fetch(descriptor)
+        } catch {
+            // Failed to fetch containers
+        }
+        return []
+    }
+}
+
+// MARK: - Tab Searching Providing
+
+protocol TabSearchingProviding {
+    func search(
+        _ text: String,
+        activeContainer: TabContainer?,
+        modelContext: ModelContext
+    ) -> [Tab]
+}
+
+// MARK: - Tab Searching Service
+
+final class TabSearchingService: TabSearchingProviding {
+    func search(
+        _ text: String,
+        activeContainer: TabContainer? = nil,
+        modelContext: ModelContext
+    ) -> [Tab] {
+        let activeContainerId = activeContainer?.id ?? UUID()
+        let trimmedText = text.trimmingCharacters(in: .whitespaces)
+
+        let predicate: Predicate<Tab>
+        if trimmedText.isEmpty {
+            predicate = #Predicate { _ in true }
+        } else {
+            predicate = #Predicate { tab in
+                (
+                    tab.urlString.localizedStandardContains(trimmedText) ||
+                        tab.title
+                        .localizedStandardContains(
+                            trimmedText
+                        )
+                ) && tab.container.id == activeContainerId
+            }
+        }
+
+        let descriptor = FetchDescriptor<Tab>(predicate: predicate)
+
+        do {
+            let results = try modelContext.fetch(descriptor)
+            let now = Date()
+
+            return results.sorted { result1, result2 in
+                let result1Score = combinedScore(for: result1, query: trimmedText, now: now)
+                let result2Score = combinedScore(for: result2, query: trimmedText, now: now)
+                return result1Score > result2Score
+            }
+
+        } catch {
+            return []
+        }
+    }
+
+    private func combinedScore(for tab: Tab, query: String, now: Date) -> Double {
+        let match = scoreMatch(tab, text: query)
+
+        let timeInterval: TimeInterval = if let accessedAt = tab.lastAccessedAt {
+            now.timeIntervalSince(accessedAt)
+        } else {
+            1_000_000 // far in the past → lowest recency
+        }
+
+        let recencyBoost = max(0, 1_000_000 - timeInterval)
+        return Double(match * 1000) + recencyBoost
+    }
+
+    private func scoreMatch(_ tab: Tab, text: String) -> Int {
+        let text = text.lowercased()
+        let title = tab.title.lowercased()
+        let url = tab.urlString.lowercased()
+
+        func score(_ field: String) -> Int {
+            if field == text { return 100 }
+            if field.hasPrefix(text) { return 90 }
+            if field.contains(text) { return 75 }
+            if text.contains(field) { return 50 }
+            return 0
+        }
+
+        return max(score(title), score(url))
     }
 }
