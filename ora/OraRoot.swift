@@ -85,6 +85,7 @@ struct OraRoot: View {
             .environmentObject(historyManager)
             .environmentObject(mediaController)
             .environmentObject(keyModifierListener)
+            .environmentObject(CustomKeyboardShortcutManager.shared)
             .environmentObject(appearanceManager)
             .environmentObject(downloadManager)
             .environmentObject(updateService)
