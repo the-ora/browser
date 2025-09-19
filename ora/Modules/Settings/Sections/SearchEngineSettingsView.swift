@@ -24,160 +24,156 @@ struct SearchEngineSettingsView: View {
     }
 
     var body: some View {
-        VStack {
-            Form {
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Search Engine Library")
-                            .font(.headline)
-                        Text(
-                            "Manage available search engines and set global defaults. Individual spaces can override these in the Spaces tab."
-                        )
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    Spacer()
-                    Button(showingAddForm ? "Cancel" : "Add Custom Engine") {
-                        if showingAddForm {
-                            cancelForm()
-                        } else {
-                            showingAddForm = true
-                        }
-                    }
+        Form {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Search Engine Library")
+                        .font(.headline)
+                    Text(
+                        "Manage available search engines and set global defaults. Individual spaces can override these in the Spaces tab."
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+                Spacer()
+                Button(showingAddForm ? "Cancel" : "Add Custom Engine") {
+                    if showingAddForm {
+                        cancelForm()
+                    } else {
+                        showingAddForm = true
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
-                if showingAddForm {
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Add New Search Engine")
-                            .foregroundStyle(.secondary)
+            if showingAddForm {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Add New Search Engine")
+                        .foregroundStyle(.secondary)
 
-                        VStack(alignment: .leading, spacing: 8) {
-                            TextField("Name", text: $newEngineName)
-                                .textFieldStyle(.roundedBorder)
-                                .frame(maxWidth: .infinity)
-
-                            VStack(alignment: .leading) {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    TextField("URL", text: $newEngineURL)
-                                        .textFieldStyle(.roundedBorder)
-                                        .frame(maxWidth: .infinity)
-                                    Text(
-                                        "Include {query} where the search term should go"
-                                    )
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                    if !newEngineURL.isEmpty, !isValidURL {
-                                        Text(
-                                            "URL must contain {query} and be a valid URL"
-                                        )
-                                        .foregroundColor(.red)
-                                        .font(.caption)
-                                    }
-                                }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            }
+                    VStack(alignment: .leading, spacing: 8) {
+                        TextField("Name", text: $newEngineName)
+                            .textFieldStyle(.roundedBorder)
                             .frame(maxWidth: .infinity)
 
+                        VStack(alignment: .leading) {
                             VStack(alignment: .leading, spacing: 4) {
-                                TextField(
-                                    "Aliases",
-                                    text: $newEngineAliases
+                                TextField("URL", text: $newEngineURL)
+                                    .textFieldStyle(.roundedBorder)
+                                    .frame(maxWidth: .infinity)
+                                Text(
+                                    "Include {query} where the search term should go"
                                 )
-                                .textFieldStyle(.roundedBorder)
-                                .frame(maxWidth: .infinity)
-                                Text("Comma-separated e.g., ddg, duck")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                if !newEngineURL.isEmpty, !isValidURL {
+                                    Text(
+                                        "URL must contain {query} and be a valid URL"
+                                    )
+                                    .foregroundColor(.red)
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                }
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
-
-                            HStack {
-                                Spacer()
-                                Button("Save") {
-                                    saveSearchEngine()
-                                }
-                                .disabled(newEngineName.isEmpty || !isValidURL)
-                            }
-                            .frame(maxWidth: .infinity)
                         }
+                        .frame(maxWidth: .infinity)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            TextField(
+                                "Aliases",
+                                text: $newEngineAliases
+                            )
+                            .textFieldStyle(.roundedBorder)
+                            .frame(maxWidth: .infinity)
+                            Text("Comma-separated e.g., ddg, duck")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                        HStack {
+                            Spacer()
+                            Button("Save") {
+                                saveSearchEngine()
+                            }
+                            .disabled(newEngineName.isEmpty || !isValidURL)
+                        }
+                        .frame(maxWidth: .infinity)
                     }
-                    .padding(12)
-                    .cornerRadius(8)
+                }
+                .padding(12)
+                .cornerRadius(8)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            Section("Search Engines") {
+                ForEach(
+                    searchEngineService.builtInSearchEngines,
+                    id: \.name
+                ) { engine in
+                    BuiltInSearchEngineRow(
+                        engine: engine,
+                        isDefault: settings.globalDefaultSearchEngine
+                            == engine
+                            .name
+                            || (settings.globalDefaultSearchEngine == nil
+                                && engine.name == "Google"
+                            ),
+                        onSetAsDefault: {
+                            if engine.name == "Google" {
+                                settings.globalDefaultSearchEngine = nil
+                            } else {
+                                settings.globalDefaultSearchEngine =
+                                    engine.name
+                            }
+                        }
+                    )
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            if !settings.customSearchEngines.isEmpty {
+                Divider()
+
+                Text("Custom Search Engines")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            Section {
+                ForEach(settings.customSearchEngines) { engine in
+                    CustomSearchEngineRow(
+                        engine: engine,
+                        onDelete: {
+                            if settings.globalDefaultSearchEngine
+                                == engine.name
+                            {
+                                settings.globalDefaultSearchEngine = nil
+                            }
+                            settings.removeCustomSearchEngine(
+                                withId: engine.id
+                            )
+                        },
+                        onSetAsDefault: {
+                            settings.globalDefaultSearchEngine = engine.name
+                        },
+                        onEdit: {
+                            // Edit is now handled inline in the row
+                        },
+                        isDefault: settings.globalDefaultSearchEngine
+                            == engine.name,
+                        settings: settings
+                    )
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
-
-                Section("Search Engines") {
-                    ForEach(
-                        searchEngineService.builtInSearchEngines,
-                        id: \.name
-                    ) { engine in
-                        BuiltInSearchEngineRow(
-                            engine: engine,
-                            isDefault: settings.globalDefaultSearchEngine
-                                == engine
-                                .name
-                                || (settings.globalDefaultSearchEngine == nil
-                                    && engine.name == "Google"
-                                ),
-                            onSetAsDefault: {
-                                if engine.name == "Google" {
-                                    settings.globalDefaultSearchEngine = nil
-                                } else {
-                                    settings.globalDefaultSearchEngine =
-                                        engine.name
-                                }
-                            }
-                        )
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-                if !settings.customSearchEngines.isEmpty {
-                    Divider()
-
-                    Text("Custom Search Engines")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .padding(.top, 8)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-
-                Section {
-                    ForEach(settings.customSearchEngines) { engine in
-                        CustomSearchEngineRow(
-                            engine: engine,
-                            onDelete: {
-                                if settings.globalDefaultSearchEngine
-                                    == engine.name
-                                {
-                                    settings.globalDefaultSearchEngine = nil
-                                }
-                                settings.removeCustomSearchEngine(
-                                    withId: engine.id
-                                )
-                            },
-                            onSetAsDefault: {
-                                settings.globalDefaultSearchEngine = engine.name
-                            },
-                            onEdit: {
-                                // Edit is now handled inline in the row
-                            },
-                            isDefault: settings.globalDefaultSearchEngine
-                                == engine.name,
-                            settings: settings
-                        )
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                }.frame(maxWidth: .infinity)
-            }
-            .formStyle(.grouped)
-            .scrollContentBackground(.hidden)
-            .padding(.top, -20)
+            }.frame(maxWidth: .infinity)
         }
-
-        .padding(.horizontal, 20)
+        .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .padding(.top, -20)
         .padding(.vertical, 8)
         .onAppear {
             searchEngineService.setTheme(theme)

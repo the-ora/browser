@@ -56,13 +56,14 @@ struct OraApp: App {
         .windowResizability(.contentMinSize)
         .commands { OraCommands() }
 
-        Window("Settings", id: "settings") {
+        WindowGroup("Settings", id: "settings") {
             SettingsContentView()
+                .frame(minWidth: 850, maxWidth: 850, minHeight: 700, maxHeight: 700)
                 .environmentObject(AppearanceManager.shared)
                 .environmentObject(UpdateService.shared)
                 .withTheme()
         }
         .windowStyle(.hiddenTitleBar)
-        .defaultSize(width: 600, height: 700)
+        .windowResizability(.contentSize)
     }
 }
