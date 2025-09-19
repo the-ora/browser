@@ -76,6 +76,7 @@ struct SettingsContentView: View {
                         .contentShape(ConditionallyConcentricRectangle(cornerRadius: btncornerRadius))
                     }
                     .buttonStyle(.plain)
+                    .disabled(tab == .privacySecurity)
                 }
             }
             .frame(maxHeight: .infinity, alignment: .top)

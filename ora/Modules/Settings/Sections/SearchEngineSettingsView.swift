@@ -173,8 +173,6 @@ struct SearchEngineSettingsView: View {
         }
         .formStyle(.grouped)
         .scrollContentBackground(.hidden)
-        .padding(.top, -20)
-        .padding(.vertical, 8)
         .onAppear {
             searchEngineService.setTheme(theme)
         }
