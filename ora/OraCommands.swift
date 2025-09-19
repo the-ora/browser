@@ -5,19 +5,19 @@ struct OraCommands: Commands {
     @AppStorage("AppAppearance") private var appearanceRaw: String = AppAppearance.system.rawValue
     @Environment(\.openWindow) private var openWindow
     @ObservedObject private var shortcutManager = CustomKeyboardShortcutManager.shared
-    
+
     var body: some Commands {
         CommandGroup(replacing: .newItem) {
             Button("New Window") {
                 openWindow(id: "normal")
             }
             .keyboardShortcut(KeyboardShortcuts.Window.new.keyboardShortcut)
-            
+
             Button("New Private Window") {
                 openWindow(id: "private")
             }
             .keyboardShortcut(KeyboardShortcuts.Window.newPrivate.keyboardShortcut)
-            
+
             Button("New Tab") { NotificationCenter.default.post(name: .showLauncher, object: NSApp.keyWindow) }
                 .keyboardShortcut(KeyboardShortcuts.Tabs.new.keyboardShortcut)
 

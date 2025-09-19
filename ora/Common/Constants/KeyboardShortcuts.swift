@@ -1,8 +1,9 @@
-import SwiftUI
 import AppKit
+import SwiftUI
 
 enum KeyboardShortcuts {
     // MARK: - Tabs
+
     enum Tabs {
         static let new = KeyboardShortcutDefinition(
             id: "tabs.new",
@@ -113,8 +114,9 @@ enum KeyboardShortcuts {
             defaultChord: KeyChord(keyEquivalent: .init("9"), modifiers: [.command])
         )
     }
-    
+
     // MARK: - Navigation
+
     enum Navigation {
         static let back = KeyboardShortcutDefinition(
             id: "navigation.back",
@@ -141,8 +143,9 @@ enum KeyboardShortcuts {
             defaultChord: KeyChord(keyEquivalent: .init("r"), modifiers: [.command, .shift])
         )
     }
-    
+
     // MARK: - Window
+
     enum Window {
         static let new = KeyboardShortcutDefinition(
             id: "window.new",
@@ -169,8 +172,9 @@ enum KeyboardShortcuts {
             defaultChord: KeyChord(keyEquivalent: .init("f"), modifiers: [.command, .control])
         )
     }
-    
+
     // MARK: - Address
+
     enum Address {
         static let copyURL = KeyboardShortcutDefinition(
             id: "address.copyURL",
@@ -185,8 +189,9 @@ enum KeyboardShortcuts {
             defaultChord: KeyChord(keyEquivalent: .init("l"), modifiers: [.command])
         )
     }
-    
+
     // MARK: - Edit
+
     enum Edit {
         static let find = KeyboardShortcutDefinition(
             id: "edit.find",
@@ -207,8 +212,9 @@ enum KeyboardShortcuts {
             defaultChord: KeyChord(keyEquivalent: .init("g"), modifiers: [.command, .shift])
         )
     }
-    
+
     // MARK: - History
+
     enum History {
         static let show = KeyboardShortcutDefinition(
             id: "history.show",
@@ -217,8 +223,9 @@ enum KeyboardShortcuts {
             defaultChord: KeyChord(keyEquivalent: .init("y"), modifiers: [.command])
         )
     }
-    
+
     // MARK: - Zoom
+
     enum Zoom {
         static let zoomIn = KeyboardShortcutDefinition(
             id: "zoom.zoomIn",
@@ -239,8 +246,9 @@ enum KeyboardShortcuts {
             defaultChord: KeyChord(keyEquivalent: .init("0"), modifiers: [.command])
         )
     }
-    
+
     // MARK: - Developer
+
     enum Developer {
         static let toggleDevTools = KeyboardShortcutDefinition(
             id: "developer.toggleDevTools",
@@ -255,8 +263,9 @@ enum KeyboardShortcuts {
             defaultChord: KeyChord(keyEquivalent: .init("r"), modifiers: [.command, .shift])
         )
     }
-    
+
     // MARK: - App
+
     enum App {
         static let quit = KeyboardShortcutDefinition(
             id: "app.quit",
@@ -289,7 +298,7 @@ enum KeyboardShortcuts {
             defaultChord: KeyChord(keyEquivalent: .init("d"), modifiers: [.command, .shift])
         )
     }
-    
+
     /// All keyboard shortcut definitions
     static let allShortcuts: [KeyboardShortcutDefinition] = [
         // Tabs
@@ -297,32 +306,32 @@ enum KeyboardShortcuts {
         Tabs.moveRight, Tabs.moveLeft, Tabs.pin,
         Tabs.tab1, Tabs.tab2, Tabs.tab3, Tabs.tab4, Tabs.tab5,
         Tabs.tab6, Tabs.tab7, Tabs.tab8, Tabs.tab9,
-        
+
         // Navigation
         Navigation.back, Navigation.forward, Navigation.reload, Navigation.hardReload,
-        
+
         // Window
         Window.new, Window.newPrivate, Window.close, Window.fullscreen,
-        
+
         // Address
         Address.copyURL, Address.focus,
-        
+
         // Edit
         Edit.find, Edit.findNext, Edit.findPrevious,
-        
+
         // History
         History.show,
-        
+
         // Zoom
         Zoom.zoomIn, Zoom.zoomOut, Zoom.reset,
-        
+
         // Developer
         Developer.toggleDevTools, Developer.reloadIgnoringCache,
-        
+
         // App
         App.quit, App.hide, App.preferences, App.toggleSidebar, App.toggleToolbar
     ]
-    
+
     /// Get shortcuts grouped by category for settings display
     static var itemsByCategory: [(category: String, items: [KeyboardShortcutDefinition])] {
         Dictionary(grouping: allShortcuts, by: \.category)
@@ -330,4 +339,3 @@ enum KeyboardShortcuts {
             .sorted { $0.category.caseInsensitiveCompare($1.category) == .orderedAscending }
     }
 }
-
