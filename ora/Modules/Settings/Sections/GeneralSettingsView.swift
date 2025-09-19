@@ -9,96 +9,96 @@ struct GeneralSettingsView: View {
 
     var body: some View {
         Form {
-            VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 24) {
+                ZStack {
+                    Image("banner-settings")
+                        .resizable()
+                        .frame(width: 576, height: 60)
+
                     HStack {
-                        Text("Ora Browser")
-                            .font(.headline)
+                        HStack {
+                            Image("ora-logo-plain")
+                                .resizable()
+                                .frame(width: 32, height: 32)
+                            Text("Ora Browser")
+                                .font(.title3)
+                                .foregroundStyle(.white)
+                        }
                         Spacer()
                         Text(getAppVersion())
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-
-                    Text("Fast, secure, and beautiful browser built for macOS")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                            .foregroundColor(.white)
+                    }.padding(.horizontal, 12)
                 }
-                .padding(12)
-                .background(theme.solidWindowBackgroundColor)
-                .cornerRadius(8)
+                .cornerRadius(12)
 
                 HStack {
-                    Text("Born for your Mac. Make Ora your default browser.")
+                    Text("Born for your Mac.")
                     Spacer()
                     Button("Set Ora as default") {
                         openDefaultBrowserSettings()
                     }
+                    .background(theme.foreground)
+                    .foregroundStyle(theme.background)
+                    .clipShape(ConditionallyConcentricRectangle(cornerRadius: 6))
                 }
                 .frame(maxWidth: .infinity)
-                .padding(8)
-                .background(theme.solidWindowBackgroundColor)
-                .cornerRadius(8)
+                .padding(12)
+                .background(theme.mutedSidebarBackground)
+                .cornerRadius(12)
 
-                AppearanceSelector(selection: $appearanceManager.appearance)
+                VStack(alignment: .leading, spacing: 8) {
+                    AppearanceSelector(selection: $appearanceManager.appearance)
+                }
 
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Updates")
-                        .font(.headline)
-
-                    Toggle(
-                        "Automatically check for updates",
-                        isOn: $settings.autoUpdateEnabled
-                    )
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Button("Check for Updates") {
-                                updateService.checkForUpdates()
-                            }
-
-                            if updateService.isCheckingForUpdates {
-                                ProgressView()
-                                    .scaleEffect(0.5)
-                                    .frame(width: 16, height: 16)
-                            }
-
-                            if updateService.updateAvailable {
-                                Text("Update available!")
-                                    .foregroundColor(.green)
-                                    .font(.caption)
-                            }
-                        }
-
-                        if let result = updateService.lastCheckResult {
-                            Text(result)
-                                .font(.caption)
-                                .foregroundColor(
-                                    updateService.updateAvailable
-                                        ? .green : .secondary
-                                )
-                        }
-
-                        // Show current app version
-                        if let appVersion = Bundle.main.infoDictionary?[
-                            "CFBundleShortVersionString"
-                        ] as? String {
-                            Text("Current version: \(appVersion)")
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
-                        }
-
-                        // Show last check time
-                        if let lastCheck = updateService.lastCheckDate {
-                            Text(
-                                "Last checked: \(lastCheck.formatted(date: .abbreviated, time: .shortened))"
+                VStack(alignment: .leading, spacing: 8) {
+                    Section {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Toggle(
+                                "Automatically check for updates",
+                                isOn: $settings.autoUpdateEnabled
                             )
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Button("Check for Updates") {
+                                        updateService.checkForUpdates()
+                                    }
+
+                                    if updateService.isCheckingForUpdates {
+                                        ProgressView()
+                                            .scaleEffect(0.5)
+                                            .frame(width: 16, height: 16)
+                                    }
+
+                                    if updateService.updateAvailable {
+                                        Text("Update available!")
+                                            .foregroundColor(.green)
+                                            .font(.caption)
+                                    }
+                                }
+
+                                if let result = updateService.lastCheckResult {
+                                    Text(result)
+                                        .font(.caption)
+                                        .foregroundColor(
+                                            updateService.updateAvailable
+                                                ? .green : .secondary
+                                        )
+                                }
+
+                                // Show last check time
+                                if let lastCheck = updateService.lastCheckDate {
+                                    Text(
+                                        "Last checked: \(lastCheck.formatted(date: .abbreviated, time: .shortened))"
+                                    )
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                                }
+                            }
                         }
                     }
                 }
-                .padding(.vertical, 8)
             }
         }
         .padding(.horizontal, 20)

@@ -20,7 +20,7 @@ struct AppearanceSelector: View {
     }
 
     var body: some View {
-        Section("Appearance") {
+        Section {
             HStack(spacing: 16) {
                 ForEach(options) { opt in
                     let isSelected = selection == opt.appearance
