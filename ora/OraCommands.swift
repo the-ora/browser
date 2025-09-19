@@ -114,7 +114,7 @@ struct OraCommands: Commands {
             Button("Settings") {
                 openWindow(id: "settings")
             }
-            .keyboardShortcut(KeyboardShortcuts.App.settings)
+            .keyboardShortcut(KeyboardShortcuts.App.preferences.keyboardShortcut)
         }
     }
 
