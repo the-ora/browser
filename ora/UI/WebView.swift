@@ -246,8 +246,11 @@ struct WebView: NSViewRepresentable {
             alert.addButton(withTitle: "OK")
             alert.addButton(withTitle: "Cancel")
 
-            let textField = NSTextField(frame: NSRect(x: 0, y: 0, width: 300, height: 24))
+            let textField = NSTextField()
             textField.stringValue = defaultText ?? ""
+            // Optionally set a minimum width for better appearance
+            textField.translatesAutoresizingMaskIntoConstraints = false
+            textField.widthAnchor.constraint(greaterThanOrEqualToConstant: 200).isActive = true
             alert.accessoryView = textField
 
             let response = alert.runModal()
