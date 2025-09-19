@@ -357,6 +357,7 @@ struct LauncherMain: View {
             color: Color.black.opacity(0.1),
             radius: 40, x: 0, y: 24
         )
+        .padding(.horizontal, 20) // Add horizontal margins around the entire search bar
     }
 
     private func getPlaceholder(match: Match?) -> String {
