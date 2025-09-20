@@ -8,104 +8,120 @@ struct GeneralSettingsView: View {
     @Environment(\.theme) var theme
 
     var body: some View {
-        SettingsContainer(maxContentWidth: 760) {
-            Form {
-                VStack(alignment: .leading, spacing: 16) {
-                    // App Version Info
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text("Ora Browser")
-                                .font(.headline)
-                            Spacer()
-                            Text(getAppVersion())
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-
-                        Text("Fast, secure, and beautiful browser built for macOS")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(12)
-                    .background(theme.solidWindowBackgroundColor)
-                    .cornerRadius(8)
+        Form {
+            VStack(alignment: .leading, spacing: 24) {
+                ZStack {
+                    Image("banner-settings")
+                        .resizable()
+                        .frame(width: 576, height: 60)
 
                     HStack {
-                        Text("Born for your Mac. Make Ora your default browser.")
+                        HStack {
+                            Image("ora-logo-plain")
+                                .resizable()
+                                .frame(width: 32, height: 32)
+                            Text("Ora Browser")
+                                .font(.title2)
+                                .foregroundStyle(.white)
+                        }
                         Spacer()
-                        Button("Set Ora as default") { openDefaultBrowserSettings() }
+                        Text(getAppVersion())
+                            .font(.subheadline)
+                            .foregroundColor(.white)
+                    }.padding(.horizontal, 12)
+                }
+                .cornerRadius(12)
+
+                HStack {
+                    Text("Born for your Mac.")
+                    Spacer()
+                    Button("Set Ora as default") {
+                        openDefaultBrowserSettings()
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(8)
-                    .background(theme.solidWindowBackgroundColor)
-                    .cornerRadius(8)
+                    .background(theme.foreground)
+                    .foregroundStyle(theme.background)
+                    .clipShape(ConditionallyConcentricRectangle(cornerRadius: 6))
+                }
+                .frame(maxWidth: .infinity)
+                .padding(12)
+                .background(theme.mutedSidebarBackground)
+                .cornerRadius(12)
 
+                VStack(alignment: .leading, spacing: 8) {
                     AppearanceSelector(selection: $appearanceManager.appearance)
+                }
 
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Updates")
-                            .font(.headline)
+                VStack(alignment: .leading, spacing: 8) {
+                    Section {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Toggle(
+                                "Automatically check for updates",
+                                isOn: $settings.autoUpdateEnabled
+                            )
 
-                        Toggle("Automatically check for updates", isOn: $settings.autoUpdateEnabled)
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Button("Check for Updates") {
+                                        updateService.checkForUpdates()
+                                    }
 
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Button("Check for Updates") {
-                                    updateService.checkForUpdates()
+                                    if updateService.isCheckingForUpdates {
+                                        ProgressView()
+                                            .scaleEffect(0.5)
+                                            .frame(width: 16, height: 16)
+                                    }
+
+                                    if updateService.updateAvailable {
+                                        Text("Update available!")
+                                            .foregroundColor(.green)
+                                            .font(.caption)
+                                    }
                                 }
 
-                                if updateService.isCheckingForUpdates {
-                                    ProgressView()
-                                        .scaleEffect(0.5)
-                                        .frame(width: 16, height: 16)
-                                }
-
-                                if updateService.updateAvailable {
-                                    Text("Update available!")
-                                        .foregroundColor(.green)
+                                if let result = updateService.lastCheckResult {
+                                    Text(result)
                                         .font(.caption)
+                                        .foregroundColor(
+                                            updateService.updateAvailable
+                                                ? .green : .secondary
+                                        )
                                 }
-                            }
 
-                            if let result = updateService.lastCheckResult {
-                                Text(result)
-                                    .font(.caption)
-                                    .foregroundColor(updateService.updateAvailable ? .green : .secondary)
-                            }
-
-                            // Show current app version
-                            if let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
-                                Text("Current version: \(appVersion)")
+                                // Show last check time
+                                if let lastCheck = updateService.lastCheckDate {
+                                    Text(
+                                        "Last checked: \(lastCheck.formatted(date: .abbreviated, time: .shortened))"
+                                    )
                                     .font(.caption2)
                                     .foregroundColor(.secondary)
-                            }
-
-                            // Show last check time
-                            if let lastCheck = updateService.lastCheckDate {
-                                Text("Last checked: \(lastCheck.formatted(date: .abbreviated, time: .shortened))")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
+                                }
                             }
                         }
                     }
-                    .padding(.vertical, 8)
                 }
             }
         }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 8)
     }
 
     private func openDefaultBrowserSettings() {
         guard
             let url = URL(
-                string: "x-apple.systempreferences:com.apple.preference.general?DefaultWebBrowser"
+                string:
+                "x-apple.systempreferences:com.apple.preference.general?DefaultWebBrowser"
             )
         else { return }
         NSWorkspace.shared.open(url)
     }
 
     private func getAppVersion() -> String {
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
-        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
+        let version =
+            Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+                ?? "Unknown"
+        let build =
+            Bundle.main.infoDictionary?["CFBundleVersion"] as? String
+                ?? "Unknown"
         return "v\(version) (\(build))"
     }
 }

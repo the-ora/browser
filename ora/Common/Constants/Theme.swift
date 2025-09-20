@@ -45,6 +45,10 @@ struct Theme: Equatable {
         colorScheme == .dark ? .white.opacity(0.17) : self.primaryDark.opacity(0.1)
     }
 
+    var mutedSidebarBackground: Color {
+        colorScheme == .dark ? Color(hex: "#171717") : Color(hex: "#f5f5f5")
+    }
+
     var mutedForeground: Color {
         .secondary
     }
