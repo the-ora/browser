@@ -24,13 +24,17 @@ class AppearanceManager: ObservableObject {
     }
 
     func updateAppearance() {
+        guard NSApp != nil else {
+            print("NSApp is nil, skipping appearance update")
+            return
+        }
         switch appearance {
-        case .system:
-            NSApp.appearance = nil
-        case .light:
-            NSApp.appearance = NSAppearance(named: .aqua)
-        case .dark:
-            NSApp.appearance = NSAppearance(named: .darkAqua)
+            case .system:
+                NSApp.appearance = nil
+            case .light:
+                NSApp.appearance = NSAppearance(named: .aqua)
+            case .dark:
+                NSApp.appearance = NSAppearance(named: .darkAqua)
         }
     }
 }
