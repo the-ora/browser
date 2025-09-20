@@ -8,6 +8,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Disable automatic window tabbing for all NSWindow instances
         NSWindow.allowsAutomaticWindowTabbing = false
         AppearanceManager.shared.updateAppearance()
+        AppIcon.applyPreferredAppIcon()
     }
 }
 
