@@ -217,7 +217,13 @@ struct WebView: NSViewRepresentable {
             // The new tab will handle the navigation
             return nil
         }
-        func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
+
+        func webView(
+            _ webView: WKWebView,
+            runJavaScriptAlertPanelWithMessage message: String,
+            initiatedByFrame frame: WKFrameInfo,
+            completionHandler: @escaping () -> Void
+        ) {
             let alert = NSAlert()
             alert.messageText = "Alert"
             alert.informativeText = message
@@ -227,7 +233,12 @@ struct WebView: NSViewRepresentable {
             completionHandler()
         }
 
-        func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
+        func webView(
+            _ webView: WKWebView,
+            runJavaScriptConfirmPanelWithMessage message: String,
+            initiatedByFrame frame: WKFrameInfo,
+            completionHandler: @escaping (Bool) -> Void
+        ) {
             let alert = NSAlert()
             alert.messageText = "Confirm"
             alert.informativeText = message
@@ -238,7 +249,13 @@ struct WebView: NSViewRepresentable {
             completionHandler(response == .alertFirstButtonReturn)
         }
 
-        func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (String?) -> Void) {
+        func webView(
+            _ webView: WKWebView,
+            runJavaScriptTextInputPanelWithPrompt prompt: String,
+            defaultText: String?,
+            initiatedByFrame frame: WKFrameInfo,
+            completionHandler: @escaping (String?) -> Void
+        ) {
             let alert = NSAlert()
             alert.messageText = "Prompt"
             alert.informativeText = prompt
