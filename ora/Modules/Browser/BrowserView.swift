@@ -65,10 +65,6 @@ struct BrowserView: View {
                     
                     
                 }
-            }else{
-                print(" there is no controller🤣")
-                print(tab.webView.configuration.allowsInlinePredictions)
-                print(tab.webView.configuration.className)
             }
         }
     }

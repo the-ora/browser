@@ -78,6 +78,14 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         configuration.preferences.setValue(true, forKey: "allowsPictureInPictureMediaPlayback")
         configuration.preferences.setValue(true, forKey: "javaScriptEnabled")
         configuration.preferences.setValue(true, forKey: "javaScriptCanOpenWindowsAutomatically")
+        configuration.preferences.setValue(true, forKey: "pushAPIEnabled")
+        configuration.preferences.setValue(true, forKey: "notificationsEnabled")
+        configuration.preferences.setValue(true, forKey: "notificationEventEnabled")
+        configuration.preferences.setValue(true, forKey: "fullScreenEnabled")
+        // configuration.preferences.setValue(false, forKey: "allowsAutomaticSpellingCorrection")
+        // configuration.preferences.setValue(false, forKey: "allowsAutomaticTextReplacement")
+        // configuration.preferences.setValue(false, forKey: "allowsAutomaticQuoteSubstitution")
+        // configuration.preferences.setValue(false, forKey: "allowsAutomaticDashSubstitution")
         if temporaryStorage {
             configuration.websiteDataStore = WKWebsiteDataStore.nonPersistent()
         } else {

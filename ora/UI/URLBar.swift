@@ -1,19 +1,41 @@
 import AppKit
 import SwiftUI
+import WebKit
+
+struct ExtensionIconView: NSViewRepresentable {
+    let iconName: String
+    let tooltip: String
+
+    func makeNSView(context: Context) -> NSImageView {
+        let imageView = NSImageView()
+        imageView.image = NSImage(systemSymbolName: iconName, accessibilityDescription: nil)
+        imageView.imageScaling = .scaleProportionallyUpOrDown
+        imageView.toolTip = tooltip
+        imageView.isEditable = false
+        return imageView
+    }
+
+    func updateNSView(_ nsView: NSImageView, context: Context) {
+        nsView.toolTip = tooltip
+    }
+}
 
 // MARK: - URLBar
 
 struct URLBar: View {
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var extensionManager: OraExtensionManager
 
     @State private var showCopiedAnimation = false
     @State private var startWheelAnimation = false
     @State private var editingURLString: String = ""
     @FocusState private var isEditing: Bool
     @Environment(\.colorScheme) var colorScheme
+    @State private var alertMessage: String?
 
     let onSidebarToggle: () -> Void
+    let size: CGSize = CGSize(width: 32, height: 32)
 
     private func getForegroundColor(_ tab: Tab) -> Color {
         // Convert backgroundColor to NSColor for luminance calculation
@@ -63,6 +85,40 @@ struct URLBar: View {
         DispatchQueue.main.async {
             picker.show(relativeTo: sourceRect, of: sourceView, preferredEdge: .minY)
         }
+    }
+   
+    private var extensionIconsView: some View {
+        HStack(spacing: 4) {
+
+            ForEach(extensionManager.installedExtensions, id: \.self) { ext in
+                Text(ext.displayName ?? "Unknown")
+                if let image = ext.icon(for: size) {
+                    Image(nsImage: image)      // use NSImage(nsImage:) on macOS
+                        .resizable()
+                        .frame(width: size.width, height: size.height)
+                        .cornerRadius(6)
+                }else {
+                    
+                    
+                      Image(systemName: "puzzlepiece.extension")
+                        .resizable()
+                        .frame(width: size.width, height: size.height)
+                        .foregroundColor(.secondary)
+                }
+               
+                   
+            }
+        }
+        .padding(.horizontal, 4)
+        .alert("Notice", isPresented: .constant(alertMessage != nil), actions: {
+                   Button("OK", role: .cancel) {
+                       alertMessage = nil
+                   }
+               }, message: {
+                   if let message = alertMessage {
+                       Text(message)
+                   }
+               })
     }
 
     var body: some View {
@@ -209,17 +265,22 @@ struct URLBar: View {
                                     )
                             )
                     )
-                    .overlay(
-                        // Hidden button for keyboard shortcut
-                        Button("") {
-                            isEditing = true
-                        }
-                        .keyboardShortcut(KeyboardShortcuts.Address.focus)
-                        .opacity(0)
-                        .allowsHitTesting(false)
-                    )
+                     .overlay(
+                         // Hidden button for keyboard shortcut
+                         Button("") {
+                             isEditing = true
+                         }
+                         .keyboardShortcut(KeyboardShortcuts.Address.focus)
+                         .opacity(0)
+                         .allowsHitTesting(false)
+                     )
 
-                    ShareLinkButton(
+                     // Extension icons
+                     if !extensionManager.installedExtensions.isEmpty {
+                         extensionIconsView
+                     }
+
+                     ShareLinkButton(
                         isEnabled: true,
                         foregroundColor: buttonForegroundColor,
                         onShare: { sourceView, sourceRect in
