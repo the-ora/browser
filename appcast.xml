@@ -5,44 +5,45 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
-      <title>Version 0.2.2</title>
+      <title>Version 0.2.3</title>
       <description><![CDATA[
-        <h2>Ora Browser v0.2.2</h2>
+        <h2>Ora Browser v0.2.3</h2>
         <p>Changes since last release:</p>
         <div class="changelog">
           <h3>Features</h3>
           <ul>
-            <li>Feature/global tracker for sidebar (#98) — AryanRogye</li>
-            <li>Feature: allow middle click to open link in new tab (#88) — Omar Sánchez</li>
+            <li>feat: add JavaScript alert, confirm, and prompt handling (#108) — Kenenisa Alemayehu</li>
           </ul>
           <h3>Fixes</h3>
           <ul>
-            <li>fix: update favicon fetching URLs to include Google favicon service — Kenenisa Alemayehu</li>
+            <li>fix: prevent appearance update crash when NSApp is nil (#115) — Kenenisa Alemayehu</li>
+            <li>fix(tabs): add keyboard shortcuts for tab selection and notification handling (#106) — Furkan Koseoglu</li>
+            <li>fix: closing tab animation (#53) — Roman Potapov</li>
+            <li>fix(sidebar): fixes sidebar behavior with downloads widgets when side… (#100) — Furkan Koseoglu</li>
+            <li>fix: mini player spacing on sidebar — yonaries</li>
+            <li>fix: min and max launcher width — yonaries</li>
           </ul>
           <h3>Chores</h3>
           <ul>
-            <li>chore: remove unnecessary exit statement from release script — Kenenisa Alemayehu</li>
-            <li>chore: Enhance release script with changelog generation and HTML export — Kenenisa Alemayehu</li>
-            <li>chore: undo to vertical scrollview — yonaries</li>
-            <li>chore!: bump deployment target to macOS 15 — yonaries</li>
+            <li>chore: swiftlint — yonaries</li>
+            <li>chore: skip version bump commits in release script — Kenenisa Alemayehu</li>
+            <li>chore: update .gitignore to exclude backup files and remove obsolete appcast.xml.backup — Kenenisa Alemayehu</li>
           </ul>
           <h3>Other</h3>
           <ul>
-            <li>Update Wiki link to point to GitHub page — Kenenisa Alemayehu</li>
-            <li>Update to v0.2.1 — Kenenisa Alemayehu</li>
-            <li>ui: apply concentric rectangle on tabs — yonaries</li>
-            <li>Add new Shape that conditionally uses ConcentricRectangle on 26+ (#83) — Joe McLaughlin</li>
-            <li>refactor: moved sidbar urlbar to container view — yonaries</li>
+            <li>Add custom keyboard shortcut support + update UI (#89) — Joe McLaughlin</li>
+            <li>Add horizontal padding to search bar in LauncherMain SwiftUI view (#110) — FormalSnake</li>
+            <li>Update Wiki link in README.md (#104) — Aether</li>
           </ul>
         </div>
       ]]></description>
-      <pubDate>Wed, 17 Sep 2025 08:30:09 +0000</pubDate>
-       <enclosure url="https://github.com/the-ora/browser/releases/download/v0.2.2/Ora-Browser-0.2.2.dmg"
-                  sparkle:version="90"
-                  sparkle:shortVersionString="0.2.2"
-                  length="4512844"
+      <pubDate>Sat, 20 Sep 2025 08:43:15 +0000</pubDate>
+       <enclosure url="https://github.com/the-ora/browser/releases/download/v0.2.3/Ora-Browser-0.2.3.dmg"
+                  sparkle:version="91"
+                  sparkle:shortVersionString="0.2.3"
+                  length="4531050"
                   type="application/octet-stream"
-                   sparkle:edSignature="bDHTCubNH93BErc6Jav4CYMsjesXyqEjm6WU2VTYWiJJdRdLGbuhy5v6iUJcxU1sKXzfpSqA8sCSNM1JZp7oBQ=="/>
+                   sparkle:edSignature="3wzzuqT6Uo4NLoKLvGQ0p3xWwgiaCi4xNNBUd168jgTnmPLT4hBhR1c8F7st+s9fMm0ZCIhXWiLbt6sV0P/DCQ=="/>
     </item>
   </channel>
 </rss>
