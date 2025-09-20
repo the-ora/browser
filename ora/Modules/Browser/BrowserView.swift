@@ -1,6 +1,11 @@
 import AppKit
 import SwiftUI
 
+enum SidebarPosition {
+    case left
+    case right
+}
+
 struct BrowserView: View {
     @EnvironmentObject var tabManager: TabManager
     @Environment(\.theme) var theme
@@ -12,42 +17,89 @@ struct BrowserView: View {
     @State private var showFloatingSidebar = false
     @State private var isMouseOverSidebar = false
     @StateObject private var sidebarFraction = FractionHolder.usingUserDefaults(0.2, key: "ui.sidebar.fraction")
-
+    @State private var sidebarPosition: SidebarPosition = .right
     @StateObject var sidebarVisibility = SideHolder()
 
     private func toggleSidebar() {
         withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
-            sidebarVisibility.toggle(.primary)
+            sidebarVisibility.toggle(sidebarPosition == .left ? .primary : .secondary)
         }
+    }
+
+    private func toggleSidebarPosition() {
+        withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
+            sidebarPosition = sidebarPosition == .left ? .right : .left
+        }
+    }
+
+    @ViewBuilder
+    private func contentView(for side: SidebarPosition) -> some View {
+        if tabManager.activeTab != nil {
+            BrowserContentContainer(
+                isFullscreen: isFullscreen,
+                hideState: sidebarVisibility,
+                sidebarPosition: sidebarPosition
+            ) {
+                webView
+            }
+        } else {
+            // Start page (visible when no tab is active)
+            BrowserContentContainer(
+                isFullscreen: isFullscreen,
+                hideState: sidebarVisibility,
+                sidebarPosition: sidebarPosition
+            ) {
+                HomeView(sidebarToggle: toggleSidebar)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func splitViewContent(for side: SidebarPosition, isSidebarSide: Bool) -> some View {
+        if isSidebarSide {
+            SidebarView(isFullscreen: isFullscreen)
+        } else {
+            contentView(for: side)
+        }
+    }
+
+    private var floatingSidebarAlignment: Alignment {
+        sidebarPosition == .left ? .leading : .trailing
+    }
+
+    private var floatingSidebarTransition: AnyTransition {
+        sidebarPosition == .left
+            ? .move(edge: .leading)
+            : .move(edge: .trailing)
+    }
+
+    private var resizeCursor: NSCursor {
+        #if targetEnvironment(macCatalyst) || os(macOS)
+            return NSCursor.resizeLeftRight
+        #else
+            return NSCursor()
+        #endif
     }
 
     var body: some View {
         ZStack(alignment: .leading) {
             HSplit(
                 left: {
-                    SidebarView(isFullscreen: isFullscreen)
+                    splitViewContent(for: .left, isSidebarSide: sidebarPosition == .left)
                 },
                 right: {
-                    if tabManager.activeTab != nil {
-                        BrowserContentContainer(isFullscreen: isFullscreen, hideState: sidebarVisibility) {
-                            webView
-                        }
-                    } else {
-                        // Start page (visible when no tab is active)
-                        BrowserContentContainer(isFullscreen: isFullscreen, hideState: sidebarVisibility) {
-                            HomeView(sidebarToggle: toggleSidebar)
-                        }
-                    }
+                    splitViewContent(for: .right, isSidebarSide: sidebarPosition == .right)
                 }
             )
             .hide(sidebarVisibility)
             .splitter { Splitter.invisible() }
             .fraction(sidebarFraction)
             .constraints(
-                minPFraction: 0.16,
-                minSFraction: 0.7,
-                priority: .left,
-                dragToHideP: true
+                minPFraction: sidebarPosition == .left ? 0.16 : 0.7,
+                minSFraction: sidebarPosition == .left ? 0.7 : 0.16,
+                priority: sidebarPosition == .left ? .left : .right,
+                dragToHideP: sidebarPosition == .left,
+                dragToHideS: sidebarPosition == .right
             )
             // In autohide mode, remove any draggable splitter area to unhide
             .styling(hideSplitter: true)
@@ -61,7 +113,7 @@ struct BrowserView: View {
             )
             .background(
                 WindowAccessor(
-                    isSidebarHidden: sidebarVisibility.side == .primary,
+                    isSidebarHidden: sidebarVisibility.side == .primary || sidebarVisibility.side == .secondary,
                     isFloatingSidebar: $showFloatingSidebar,
                     isFullscreen: $isFullscreen
                 )
@@ -86,26 +138,29 @@ struct BrowserView: View {
                     let maxFraction: CGFloat = 0.30
                     let clampedFraction = min(max(sidebarFraction.value, minFraction), maxFraction)
                     let floatingWidth = max(0, min(totalWidth * clampedFraction, totalWidth))
-                    ZStack(alignment: .leading) {
+                    ZStack(alignment: floatingSidebarAlignment) {
                         if showFloatingSidebar {
                             FloatingSidebar(isFullscreen: isFullscreen)
                                 .frame(width: floatingWidth)
-                                .transition(.move(edge: .leading))
-                                .overlay(alignment: .trailing) {
+                                .transition(floatingSidebarTransition)
+                                .overlay(alignment: sidebarPosition == .left ? .trailing : .leading) {
                                     // Invisible resize handle to adjust width in autohide mode
                                     Rectangle()
                                         .fill(Color.clear)
                                         .frame(width: 14)
                                     #if targetEnvironment(macCatalyst) || os(macOS)
-                                        .cursor(NSCursor.resizeLeftRight)
+                                        .cursor(resizeCursor)
                                     #endif
                                         .contentShape(Rectangle())
                                         .gesture(
                                             DragGesture()
                                                 .onChanged { value in
+                                                    let dragDelta = sidebarPosition == .left
+                                                        ? value.translation.width
+                                                        : -value.translation.width
                                                     let proposedWidth = max(
                                                         0,
-                                                        min(floatingWidth + value.translation.width, totalWidth)
+                                                        min(floatingWidth + dragDelta, totalWidth)
                                                     )
                                                     let newFraction = proposedWidth / max(totalWidth, 1)
                                                     // Clamp to same constraints as HSplit
@@ -121,6 +176,12 @@ struct BrowserView: View {
                         // Hover tracking strip to show/hide floating sidebar
                         Color.clear
                             .frame(width: showFloatingSidebar ? floatingWidth : 10)
+                            .position(
+                                x: sidebarPosition == .left
+                                    ? (showFloatingSidebar ? floatingWidth / 2 : 5)
+                                    : totalWidth - (showFloatingSidebar ? floatingWidth / 2 : 5),
+                                y: geo.size.height / 2
+                            )
                             .overlay(
                                 MouseTrackingArea(
                                     mouseEntered: Binding(
@@ -145,6 +206,9 @@ struct BrowserView: View {
         .animation(.easeOut(duration: 0.1), value: showFloatingSidebar)
         .onReceive(NotificationCenter.default.publisher(for: .toggleSidebar)) { _ in
             toggleSidebar()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .toggleSidebarPosition)) { _ in
+            toggleSidebarPosition()
         }
         .onChange(of: downloadManager.isDownloadsPopoverOpen) { isOpen in
             if sidebarVisibility.side == .primary {
@@ -177,7 +241,8 @@ struct BrowserView: View {
         VStack(alignment: .leading, spacing: 0) {
             if !appState.isToolbarHidden {
                 URLBar(
-                    onSidebarToggle: { toggleSidebar() }
+                    onSidebarToggle: { toggleSidebar() },
+                    sidebarPosition: sidebarPosition
                 )
                 .transition(.asymmetric(
                     insertion: .push(from: .top),
