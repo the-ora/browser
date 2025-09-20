@@ -69,7 +69,7 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         // Configure WebView for performance
         let configuration = WKWebViewConfiguration()
         let userAgent =
-            "Mozilla/5.0 (Macintosh; arm64 Mac OS X 14_5) AppleWebKit/616.1.1 (KHTML, like Gecko) Version/18.5 Safari/616.1.1 Ora/1.0"
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0.1 Safari/605.1.15"
         configuration.applicationNameForUserAgent = userAgent
 
         // Enable JavaScript
