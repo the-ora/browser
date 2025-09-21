@@ -1,0 +1,111 @@
+[
+  {
+    "label": "Build",
+    "command": "xcodebuild",
+    "args": [
+      "build",
+      "-project",
+      "Ora.xcodeproj",
+      "-scheme",
+      "ora",
+      "-destination",
+      "platform=macOS",
+      "-configuration",
+      "Debug"
+    ],
+    "env": {},
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "reveal_target": "dock",
+    "hide": "never",
+    "shell": "system",
+    "tags": ["build"]
+  },
+  {
+    "label": "Build (Release)",
+    "command": "xcodebuild",
+    "args": [
+      "build",
+      "-project",
+      "Ora.xcodeproj",
+      "-scheme",
+      "ora",
+      "-destination",
+      "platform=macOS",
+      "-configuration",
+      "Release"
+    ],
+    "env": {},
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "reveal_target": "dock",
+    "hide": "never",
+    "shell": "system",
+    "tags": ["build"]
+  },
+  {
+    "label": "Run",
+    "command": "sh",
+    "args": [
+      "-c",
+      "xcodebuild build -project Ora.xcodeproj -scheme ora -destination 'platform=macOS' -configuration Debug && open ~/Library/Developer/Xcode/DerivedData/Ora-*/Build/Products/Debug/Ora.app"
+    ],
+    "env": {},
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "reveal_target": "dock",
+    "hide": "on_success",
+    "shell": "system",
+    "tags": ["run"]
+  },
+  {
+    "label": "Test",
+    "command": "xcodebuild",
+    "args": [
+      "test",
+      "-project",
+      "Ora.xcodeproj",
+      "-scheme",
+      "ora",
+      "-destination",
+      "platform=macOS"
+    ],
+    "env": {},
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "reveal_target": "dock",
+    "hide": "never",
+    "shell": "system",
+    "tags": ["test"]
+  },
+  {
+    "label": "Clean",
+    "command": "xcodebuild",
+    "args": ["clean", "-project", "Ora.xcodeproj", "-scheme", "ora"],
+    "env": {},
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "reveal_target": "dock",
+    "hide": "on_success",
+    "shell": "system",
+    "tags": ["clean"]
+  },
+  {
+    "label": "Build with xcbeautify",
+    "command": "./xcbuild-debug.sh",
+    "args": [],
+    "env": {},
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "reveal_target": "dock",
+    "hide": "never",
+    "shell": "system",
+    "tags": ["build", "pretty"]
+  }
+]
