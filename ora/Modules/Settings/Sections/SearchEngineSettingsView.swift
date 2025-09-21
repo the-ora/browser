@@ -157,18 +157,9 @@ struct SearchEngineSettingsView: View {
                             ForEach(aiEngines, id: \.name) { engine in
                                 BuiltInSearchEngineRow(
                                     engine: engine,
-                                    isDefault: settings.globalDefaultSearchEngine
-                                        == engine
-                                        .name
-                                        || (settings.globalDefaultSearchEngine == nil
-                                            && engine.name == "Google"
-                                        ),
+                                    isDefault: settings.globalDefaultSearchEngine == engine.name,
                                     onSetAsDefault: {
-                                        if engine.name == "Google" {
-                                            settings.globalDefaultSearchEngine = nil
-                                        } else {
-                                            settings.globalDefaultSearchEngine = engine.name
-                                        }
+                                        settings.globalDefaultSearchEngine = engine.name
                                     }
                                 )
                             }
