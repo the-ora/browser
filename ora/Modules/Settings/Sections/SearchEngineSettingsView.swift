@@ -115,20 +115,63 @@ struct SearchEngineSettingsView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
 
-                        // Built-in search engines
-                        ForEach(searchEngineService.builtInSearchEngines, id: \.name) { engine in
-                            BuiltInSearchEngineRow(
-                                engine: engine,
-                                isDefault: settings.globalDefaultSearchEngine == engine
-                                    .name || (settings.globalDefaultSearchEngine == nil && engine.name == "Google"),
-                                onSetAsDefault: {
-                                    if engine.name == "Google" {
-                                        settings.globalDefaultSearchEngine = nil
-                                    } else {
-                                        settings.globalDefaultSearchEngine = engine.name
+                        // Conventional Search Engines
+                        let conventionalEngines = searchEngineService.builtInSearchEngines.filter {
+                            !$0.isAIChat
+                        }
+                        if !conventionalEngines.isEmpty {
+                            Text("Conventional Search Engines")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .padding(.bottom, 4)
+
+                            ForEach(conventionalEngines, id: \.name) { engine in
+                                BuiltInSearchEngineRow(
+                                    engine: engine,
+                                    isDefault: settings.globalDefaultSearchEngine
+                                        == engine
+                                        .name
+                                        || (settings.globalDefaultSearchEngine == nil
+                                            && engine.name == "Google"
+                                        ),
+                                    onSetAsDefault: {
+                                        if engine.name == "Google" {
+                                            settings.globalDefaultSearchEngine = nil
+                                        } else {
+                                            settings.globalDefaultSearchEngine = engine.name
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
+                        }
+
+                        // AI Search Engines
+                        let aiEngines = searchEngineService.builtInSearchEngines.filter(\.isAIChat)
+                        if !aiEngines.isEmpty {
+                            Text("AI Search Engines")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .padding(.top, 8)
+                                .padding(.bottom, 4)
+
+                            ForEach(aiEngines, id: \.name) { engine in
+                                BuiltInSearchEngineRow(
+                                    engine: engine,
+                                    isDefault: settings.globalDefaultSearchEngine
+                                        == engine
+                                        .name
+                                        || (settings.globalDefaultSearchEngine == nil
+                                            && engine.name == "Google"
+                                        ),
+                                    onSetAsDefault: {
+                                        if engine.name == "Google" {
+                                            settings.globalDefaultSearchEngine = nil
+                                        } else {
+                                            settings.globalDefaultSearchEngine = engine.name
+                                        }
+                                    }
+                                )
+                            }
                         }
 
                         if !settings.customSearchEngines.isEmpty {
@@ -237,16 +280,6 @@ struct BuiltInSearchEngineRow: View {
             HStack(spacing: 8) {
                 Text(engine.name)
                     .font(.body)
-
-                if engine.isAIChat {
-                    Text("AI")
-                        .font(.caption)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.purple.opacity(0.2))
-                        .foregroundColor(.purple)
-                        .cornerRadius(4)
-                }
 
                 if isDefault {
                     Text("Default")

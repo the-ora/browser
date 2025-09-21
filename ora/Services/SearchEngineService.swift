@@ -81,6 +81,30 @@ class SearchEngineService: ObservableObject {
                 autoSuggestions: self.googleSuggestions
             ),
             SearchEngine(
+                name: "DuckDuckGo",
+                color: Color(hex: "#DE5833"),
+                icon: "",
+                aliases: ["duckduckgo", "ddg", "duck"],
+                searchURL: "https://duckduckgo.com/?q={query}",
+                isAIChat: false
+            ),
+            SearchEngine(
+                name: "Kagi",
+                color: Color(hex: "#4A90E2"),
+                icon: "",
+                aliases: ["kagi", "kg"],
+                searchURL: "https://kagi.com/search?q={query}",
+                isAIChat: false
+            ),
+            SearchEngine(
+                name: "Bing",
+                color: Color(hex: "#00809D"),
+                icon: "",
+                aliases: ["bing", "b", "microsoft"],
+                searchURL: "https://www.bing.com/search?q={query}",
+                isAIChat: false
+            ),
+            SearchEngine(
                 name: "Grok",
                 color: theme?.foreground ?? .white,
                 icon: "grok-capsule-logo",

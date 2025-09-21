@@ -12,6 +12,9 @@ build/
 # XcodeGen
 project.yml.lock
 
+# Xcode Build Server
+buildServer.json
+
 # Swift Package Manager
 .swiftpm/
 Package.resolved
@@ -43,6 +46,7 @@ Temporary Items
 # IDE
 .vscode/
 .idea/
+.zed/
 
 # Build directory (allow directory but ignore contents)
 build/*
