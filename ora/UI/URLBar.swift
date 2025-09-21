@@ -14,6 +14,7 @@ struct URLBar: View {
     @Environment(\.colorScheme) var colorScheme
 
     let onSidebarToggle: () -> Void
+    let sidebarPosition: SidebarPosition
 
     private func getForegroundColor(_ tab: Tab) -> Color {
         // Convert backgroundColor to NSColor for luminance calculation
@@ -69,13 +70,15 @@ struct URLBar: View {
         HStack {
             if let tab = tabManager.activeTab {
                 HStack(spacing: 4) {
-                    URLBarButton(
-                        systemName: "sidebar.left",
-                        isEnabled: true,
-                        foregroundColor: buttonForegroundColor,
-                        action: onSidebarToggle
-                    )
-                    .oraShortcutHelp("Toggle Sidebar", for: KeyboardShortcuts.App.toggleSidebar)
+                    if sidebarPosition == .left {
+                        URLBarButton(
+                            systemName: "sidebar.left",
+                            isEnabled: true,
+                            foregroundColor: buttonForegroundColor,
+                            action: onSidebarToggle
+                        )
+                        .oraShortcutHelp("Toggle Sidebar", for: KeyboardShortcuts.App.toggleSidebar)
+                    }
 
                     // Back button
                     URLBarButton(
@@ -204,7 +207,7 @@ struct URLBar: View {
                     .padding(.horizontal, 8)
                     .background(
                         RoundedRectangle(cornerRadius: 6, style: .continuous)
-                            .fill(getUrlFieldColor(tab).opacity(0.12))
+                            .fill(getUrlFieldColor(tab).opacity(0.08))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 6, style: .continuous)
                                     .stroke(
@@ -239,6 +242,16 @@ struct URLBar: View {
                         foregroundColor: buttonForegroundColor,
                         action: {}
                     )
+
+                    if sidebarPosition == .right {
+                        URLBarButton(
+                            systemName: "sidebar.right",
+                            isEnabled: true,
+                            foregroundColor: buttonForegroundColor,
+                            action: onSidebarToggle
+                        )
+                        .oraShortcutHelp("Toggle Sidebar", for: KeyboardShortcuts.App.toggleSidebar)
+                    }
                 }
                 .padding(4)
                 .onAppear {

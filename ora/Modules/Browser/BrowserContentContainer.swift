@@ -5,6 +5,7 @@ struct BrowserContentContainer<Content: View>: View {
     let content: () -> Content
     let isFullscreen: Bool
     let hideState: SideHolder
+    let sidebarPosition: SidebarPosition
 
     let sidebarCornerRadius: CGFloat = {
         if #available(macOS 26, *) {
@@ -14,9 +15,15 @@ struct BrowserContentContainer<Content: View>: View {
         }
     }()
 
-    init(isFullscreen: Bool, hideState: SideHolder, @ViewBuilder content: @escaping () -> Content) {
+    init(
+        isFullscreen: Bool,
+        hideState: SideHolder,
+        sidebarPosition: SidebarPosition,
+        @ViewBuilder content: @escaping () -> Content
+    ) {
         self.isFullscreen = isFullscreen
         self.hideState = hideState
+        self.sidebarPosition = sidebarPosition
         self.content = content
     }
 
@@ -25,11 +32,12 @@ struct BrowserContentContainer<Content: View>: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .clipShape(
                 ConditionallyConcentricRectangle(
-                    cornerRadius: isFullscreen && hideState.side == .primary ? 0 : sidebarCornerRadius
+                    cornerRadius: isFullscreen && hideState.side == .primary || hideState
+                        .side == .secondary ? 0 : sidebarCornerRadius
                 )
             )
             .padding(
-                isFullscreen && hideState.side == .primary
+                isFullscreen && (hideState.side == .primary || hideState.side == .secondary)
                     ? EdgeInsets(
                         top: 0,
                         leading: 0,
@@ -38,9 +46,9 @@ struct BrowserContentContainer<Content: View>: View {
                     )
                     : EdgeInsets(
                         top: 6,
-                        leading: hideState.side == .primary ? 6 : 0,
+                        leading: sidebarPosition != .left || hideState.side == .primary ? 6 : 0,
                         bottom: 6,
-                        trailing: 6
+                        trailing: sidebarPosition != .right || hideState.side == .secondary ? 6 : 0
                     )
             )
             .shadow(color: .black.opacity(0.15), radius: sidebarCornerRadius, x: 0, y: 2)

@@ -2,6 +2,7 @@ import Foundation
 
 extension Notification.Name {
     static let toggleSidebar = Notification.Name("ToggleSidebar")
+    static let toggleSidebarPosition = Notification.Name("ToggleSidebarPosition")
     static let copyAddressURL = Notification.Name("CopyAddressURL")
 
     static let showLauncher = Notification.Name("ShowLauncher")
