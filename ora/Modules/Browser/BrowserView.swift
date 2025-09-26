@@ -5,8 +5,12 @@ struct BrowserView: View {
     @EnvironmentObject var tabManager: TabManager
     @Environment(\.theme) var theme
     @EnvironmentObject private var appState: AppState
+    @EnvironmentObject private var downloadManager: DownloadManager
+    @EnvironmentObject private var historyManager: HistoryManager
+    @EnvironmentObject private var privacyMode: PrivacyMode
     @State private var isFullscreen = false
     @State private var showFloatingSidebar = false
+    @State private var isMouseOverSidebar = false
     @StateObject private var sidebarFraction = FractionHolder.usingUserDefaults(0.2, key: "ui.sidebar.fraction")
 
     @StateObject var sidebarVisibility = SideHolder()
@@ -40,7 +44,7 @@ struct BrowserView: View {
             .splitter { Splitter.invisible() }
             .fraction(sidebarFraction)
             .constraints(
-                minPFraction: 0.15,
+                minPFraction: 0.16,
                 minSFraction: 0.7,
                 priority: .left,
                 dragToHideP: true
@@ -81,7 +85,7 @@ struct BrowserView: View {
                 // Floating sidebar with resizable width based on persisted fraction
                 GeometryReader { geo in
                     let totalWidth = geo.size.width
-                    let minFraction: CGFloat = 0.15
+                    let minFraction: CGFloat = 0.16
                     let maxFraction: CGFloat = 0.30
                     let clampedFraction = min(max(sidebarFraction.value, minFraction), maxFraction)
                     let floatingWidth = max(0, min(totalWidth * clampedFraction, totalWidth))
@@ -122,7 +126,17 @@ struct BrowserView: View {
                             .frame(width: showFloatingSidebar ? floatingWidth : 10)
                             .overlay(
                                 MouseTrackingArea(
-                                    mouseEntered: $showFloatingSidebar
+                                    mouseEntered: Binding(
+                                        get: { showFloatingSidebar },
+                                        set: { newValue in
+                                            isMouseOverSidebar = newValue
+                                            // Don't hide sidebar if downloads popover is open
+                                            if !newValue, downloadManager.isDownloadsPopoverOpen {
+                                                return
+                                            }
+                                            showFloatingSidebar = newValue
+                                        }
+                                    )
                                 )
                             )
                             .zIndex(2)
@@ -134,6 +148,30 @@ struct BrowserView: View {
         .animation(.easeOut(duration: 0.1), value: showFloatingSidebar)
         .onReceive(NotificationCenter.default.publisher(for: .toggleSidebar)) { _ in
             toggleSidebar()
+        }
+        .onChange(of: downloadManager.isDownloadsPopoverOpen) { isOpen in
+            if sidebarVisibility.side == .primary {
+                if isOpen {
+                    // Keep sidebar visible while downloads popover is open
+                    showFloatingSidebar = true
+                } else if !isMouseOverSidebar {
+                    // Hide sidebar when popover closes and mouse is not over sidebar
+                    showFloatingSidebar = false
+                }
+            }
+        }
+        .onChange(of: tabManager.activeTab) { newTab in
+            // Restore tab state when switching tabs via keyboard shortcut
+            if let tab = newTab, !tab.isWebViewReady {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                    tab.restoreTransientState(
+                        historyManger: historyManager,
+                        downloadManager: downloadManager,
+                        tabManager: tabManager,
+                        isPrivate: privacyMode.isPrivate
+                    )
+                }
+            }
         }
     }
 

@@ -12,6 +12,9 @@ build/
 # XcodeGen
 project.yml.lock
 
+# Xcode Build Server
+buildServer.json
+
 # Swift Package Manager
 .swiftpm/
 Package.resolved
@@ -43,6 +46,7 @@ Temporary Items
 # IDE
 .vscode/
 .idea/
+.zed/
 
 # Build directory (allow directory but ignore contents)
 build/*
@@ -81,7 +85,9 @@ dsa_pub.pem     # Public key (safe to commit if needed)
 *.trace
 *.log
 codesign*
-project.yml.bak
+*.bak
+*.backup
+
 
 # Release artifacts (keep in build/ folder)
 # Uncomment these if you want to commit release artifacts:

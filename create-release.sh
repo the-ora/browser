@@ -107,6 +107,10 @@ EOT
         if [ -z "$subject" ] || [ "$subject" = "-" ]; then
             continue
         fi
+        # skip version bump commits
+        if [[ "$subject" =~ ^[Uu]pdate\ to\ v[0-9]+(\.[0-9]+){1,2}(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
+            continue
+        fi
         local safe_subject safe_author
         safe_subject=$(html_escape "$subject")
         safe_author=$(html_escape "$author")
@@ -523,13 +527,6 @@ deploy_to_github_pages() {
     git stash pop
 }
 
-echo "✅ Release v$VERSION created!"
-echo "📁 Files ready for upload:"
-echo "   - $DMG_FILE (signed)"
-echo "   - appcast.xml (will be deployed after upload)"
-echo "   - $PUBLIC_KEY_FILE (public key - committed to git)"
-echo "   - $PRIVATE_KEY_FILE (private key - DO NOT commit!)"
-echo ""
 # Upload DMG to GitHub releases
 echo "📤 Uploading DMG to GitHub releases..."
 if [ -f "upload-dmg.sh" ]; then
@@ -554,16 +551,6 @@ if [ -f "build/temp_private_key.pem" ]; then
     echo "🧹 Cleaned up temporary private key file"
 fi
 
-echo "🚀 Next steps:"
-echo "1. ✅ DMG uploaded to GitHub releases"
-echo "2. Enable GitHub Pages in repository settings (if not already enabled)"
-echo "   - Go to Settings → Pages"
-echo "   - Set source to 'Deploy from a branch'"
-echo "   - Set branch to 'gh-pages'"
-echo "3. ✅ Public key is already configured in project.yml"
-echo "4. ✅ SUFeedURL is already configured in project.yml"
-echo ""
-
 # Security check - ensure sensitive files are not committed
 echo "🔒 Security Check:"
 if git ls-files 2>/dev/null | grep -q "\.env$"; then
@@ -579,10 +566,3 @@ if git ls-files 2>/dev/null | grep -q "temp_private_key.pem"; then
     echo "   Run: git rm --cached build/temp_private_key.pem"
     exit 1
 fi
-
-echo "✅ Security check passed - sensitive files not committed"
-echo ""
-echo "🔑 Key Management:"
-echo "   - Public key: $PUBLIC_KEY_FILE (committed to git)"
-echo "   - Private key: $PRIVATE_KEY_FILE (NEVER commit this!)"
-echo "   - Share $PRIVATE_KEY_FILE when setting up new machines"

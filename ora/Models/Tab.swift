@@ -116,14 +116,9 @@ class Tab: ObservableObject, Identifiable {
 
         // Set up navigation delegate and UI delegate
 
-        // Load initial URL
-        DispatchQueue.main.async {
-            self.setupNavigationDelegate()
-//            self.setupUIDelegate()
-            self.syncBackgroundColorFromHex()
-            self.webView.load(URLRequest(url: url))
-            self.isWebViewReady = true
-        }
+        // Don't automatically load URL - let TabManager handle it
+        // This prevents all tabs from loading on app launch
+        self.isWebViewReady = false
     }
 
     func syncBackgroundColorFromHex() {

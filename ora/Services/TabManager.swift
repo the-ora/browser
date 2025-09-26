@@ -154,22 +154,17 @@ class TabManager: ObservableObject {
         if let lastAccessedContainer = containers.first {
             activeContainer = lastAccessedContainer
             // Get the last accessed tab from the active container
-            //            if let lastAccessedTab = lastAccessedContainer.tabs.sorted(by: { $0.lastAccessedAt ?? Date() >
-            //            $1.lastAccessedAt ?? Date() }).first {
-            //                activeTab = lastAccessedTab
-            //            } else {
-            //                // No tabs, create one
-            //
-            //                activeTab = addTab(container: lastAccessedContainer)
-            //            }
+            if let lastAccessedTab = lastAccessedContainer.tabs
+                .sorted(by: { ($0.lastAccessedAt ?? Date.distantPast) > ($1.lastAccessedAt ?? Date.distantPast) })
+                .first
+            {
+                activeTab = lastAccessedTab
+                activeTab?.maybeIsActive = true
+            }
         } else {
-            // No containers, create one
             let newContainer = createContainer()
             activeContainer = newContainer
-            //            activeTab = addTab(container: newContainer)
         }
-
-        //        activeTab?.maybeIsActive = true
     }
 
     func createContainer(name: String = "Default", emoji: String = "💩") -> TabContainer {
@@ -225,6 +220,18 @@ class TabManager: ObservableObject {
         activeTab?.maybeIsActive  = true
         newTab.lastAccessedAt = Date()
         container.lastAccessedAt = Date()
+
+        // Initialize the WebView for the new active tab
+        newTab.restoreTransientState(
+            historyManger: historyManager ?? HistoryManager(modelContainer: modelContainer, modelContext: modelContext),
+            downloadManager: downloadManager ?? DownloadManager(
+                modelContainer: modelContainer,
+                modelContext: modelContext
+            ),
+            tabManager: self,
+            isPrivate: isPrivate
+        )
+
         try? modelContext.save()
         return newTab
     }
@@ -263,6 +270,17 @@ class TabManager: ObservableObject {
                     activeTab = newTab
                     activeTab?.maybeIsActive = true
                     newTab.lastAccessedAt = Date()
+
+                    // Initialize the WebView for the new active tab
+                    newTab.restoreTransientState(
+                        historyManger: historyManager,
+                        downloadManager: downloadManager ?? DownloadManager(
+                            modelContainer: modelContainer,
+                            modelContext: modelContext
+                        ),
+                        tabManager: self,
+                        isPrivate: isPrivate
+                    )
                 }
 
                 container.lastAccessedAt = Date()
@@ -382,6 +400,36 @@ class TabManager: ObservableObject {
                 return
             }
         }
+    }
+
+    func selectTabAtIndex(_ index: Int) {
+        guard let container = activeContainer else { return }
+
+        // Match the sidebar ordering: favorites, then pinned, then normal tabs
+        // All sorted by order in descending order
+        let favoriteTabs = container.tabs
+            .filter { $0.type == .fav }
+            .sorted(by: { $0.order > $1.order })
+
+        let pinnedTabs = container.tabs
+            .filter { $0.type == .pinned }
+            .sorted(by: { $0.order > $1.order })
+
+        let normalTabs = container.tabs
+            .filter { $0.type == .normal }
+            .sorted(by: { $0.order > $1.order })
+
+        // Combine all tabs in the same order as the sidebar
+        let allTabs = favoriteTabs + pinnedTabs + normalTabs
+
+        // Handle special case: Command+9 selects the last tab
+        let targetIndex = (index == 9) ? allTabs.count - 1 : index - 1
+
+        // Validate index is within bounds
+        guard targetIndex >= 0, targetIndex < allTabs.count else { return }
+
+        let targetTab = allTabs[targetIndex]
+        activateTab(targetTab)
     }
 
     private func fetchContainers() -> [TabContainer] {

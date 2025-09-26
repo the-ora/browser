@@ -62,7 +62,7 @@ If you would like to support the project, please consider donating:
 
 ## Wiki
 
-See the [Wiki](wiki/) for comprehensive documentation, guides, and project information.
+See the [Wiki](https://github.com/the-ora/browser/wiki) for comprehensive documentation, guides, and project information.
 
 ## Installation
 

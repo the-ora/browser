@@ -7,6 +7,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Disable automatic window tabbing for all NSWindow instances
         NSWindow.allowsAutomaticWindowTabbing = false
+        AppearanceManager.shared.updateAppearance()
     }
 }
 

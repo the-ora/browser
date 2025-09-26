@@ -74,7 +74,7 @@ private struct MediaPlayerCard: View {
                 .padding(.top, 6)
             }
 
-            HStack(spacing: 12) {
+            HStack {
                 Button { tabManager.activateTab(id: session.tabID) } label: {
                     faviconImage
                         .resizable()
@@ -85,7 +85,7 @@ private struct MediaPlayerCard: View {
                 .buttonStyle(PlayerIconButtonStyle(isEnabled: true))
                 .help("Go to playing tab")
 
-                Spacer(minLength: 4)
+                Spacer()
 
                 Button(action: { media.previousTrack(session.tabID) }) {
                     Image(systemName: "backward.fill")
@@ -109,7 +109,7 @@ private struct MediaPlayerCard: View {
                 .buttonStyle(PlayerIconButtonStyle(isEnabled: media.canGoNext(of: session.tabID)))
                 .disabled(!media.canGoNext(of: session.tabID))
 
-                Spacer(minLength: 6)
+                Spacer()
 
                 Button {
                     withAnimation(.easeOut(duration: 0.15)) { showVolume.toggle() }
