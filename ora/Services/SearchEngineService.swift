@@ -44,6 +44,21 @@ class SearchEngineService: ObservableObject {
         return settingsStore
     }
 
+    /// All built-in search engine IDs derived from the built-in engines
+    var builtInEngineIDs: [SearchEngineID] {
+        return builtInSearchEngines.compactMap { SearchEngineID(rawValue: $0.name) }
+    }
+
+    /// Check if a name corresponds to a built-in search engine
+    func isBuiltInEngine(_ name: String) -> Bool {
+        return builtInSearchEngines.contains { $0.name == name }
+    }
+
+    /// Get SearchEngineID from engine name if it exists
+    func getSearchEngineID(from name: String) -> SearchEngineID? {
+        return SearchEngineID(rawValue: name)
+    }
+
     var builtInSearchEngines: [SearchEngine] {
         [
             SearchEngine(
@@ -76,9 +91,34 @@ class SearchEngineService: ObservableObject {
                 color: .blue,
                 icon: "",
                 aliases: ["google", "goo", "g", "search"],
-                searchURL: "https://www.google.com/search?client=safari&rls=en&ie=UTF-8&oe=UTF-8&q={query}",
+                searchURL:
+                "https://www.google.com/search?client=safari&rls=en&ie=UTF-8&oe=UTF-8&q={query}",
                 isAIChat: false,
                 autoSuggestions: self.googleSuggestions
+            ),
+            SearchEngine(
+                name: "DuckDuckGo",
+                color: Color(hex: "#DE5833"),
+                icon: "",
+                aliases: ["duckduckgo", "ddg", "duck"],
+                searchURL: "https://duckduckgo.com/?q={query}",
+                isAIChat: false
+            ),
+            SearchEngine(
+                name: "Kagi",
+                color: Color(hex: "#FFB319"),
+                icon: "",
+                aliases: ["kagi", "kg"],
+                searchURL: "https://kagi.com/search?q={query}",
+                isAIChat: false
+            ),
+            SearchEngine(
+                name: "Bing",
+                color: Color(hex: "#02B7E9"),
+                icon: "",
+                aliases: ["bing", "b", "microsoft"],
+                searchURL: "https://www.bing.com/search?q={query}",
+                isAIChat: false
             ),
             SearchEngine(
                 name: "Grok",
@@ -168,7 +208,7 @@ class SearchEngineService: ObservableObject {
                 icon: "",
                 aliases: custom.aliases,
                 searchURL: custom.searchURL,
-                isAIChat: false
+                isAIChat: custom.isAIChat
             )
         }
 
@@ -217,6 +257,10 @@ class SearchEngineService: ObservableObject {
         return searchEngines.first(where: { $0.name == engineName.rawValue })
     }
 
+    func getSearchEngine(byName name: String) -> SearchEngine? {
+        return searchEngines.first(where: { $0.name == name })
+    }
+
     func getSearchURLForEngine(engineName: SearchEngineID, query: String) -> URL? {
         if let engine = getSearchEngine(engineName) {
             if let url = createSearchURL(
@@ -230,28 +274,34 @@ class SearchEngineService: ObservableObject {
     }
 
     func createSearchURL(for engine: SearchEngine, query: String) -> URL? {
-        let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let encodedQuery =
+            query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         let urlString = engine.searchURL.replacingOccurrences(of: "{query}", with: encodedQuery)
         return URL(string: urlString)
     }
 
     func createSearchURL(for match: LauncherMain.Match, query: String) -> URL? {
-        let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let encodedQuery =
+            query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         let urlString = match.searchURL.replacingOccurrences(of: "{query}", with: encodedQuery)
         return URL(string: urlString)
     }
 
     func createSuggestionsURL(urlString: String, query: String) -> URL? {
-        let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let encodedQuery =
+            query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         let urlString = urlString.replacingOccurrences(of: "{query}", with: encodedQuery)
         return URL(string: urlString)
     }
 
     func googleSuggestions(_ query: String) async -> [String] {
-        guard let url = createSuggestionsURL(
-            urlString: "https://suggestqueries.google.com/complete/search?client=firefox&q={query}",
-            query: query
-        ) else {
+        guard
+            let url = createSuggestionsURL(
+                urlString:
+                "https://suggestqueries.google.com/complete/search?client=firefox&q={query}",
+                query: query
+            )
+        else {
             return []
         }
 

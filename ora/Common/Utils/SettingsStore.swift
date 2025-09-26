@@ -35,6 +35,7 @@ struct CustomSearchEngine: Codable, Identifiable, Hashable {
     let aliases: [String]
     let faviconData: Data?
     let faviconBackgroundColorData: Data?
+    let isAIChat: Bool
 
     init(
         id: String = UUID().uuidString,
@@ -42,7 +43,8 @@ struct CustomSearchEngine: Codable, Identifiable, Hashable {
         searchURL: String,
         aliases: [String] = [],
         faviconData: Data? = nil,
-        faviconBackgroundColorData: Data? = nil
+        faviconBackgroundColorData: Data? = nil,
+        isAIChat: Bool = false
     ) {
         self.id = id
         self.name = name
@@ -50,6 +52,7 @@ struct CustomSearchEngine: Codable, Identifiable, Hashable {
         self.aliases = aliases
         self.faviconData = faviconData
         self.faviconBackgroundColorData = faviconBackgroundColorData
+        self.isAIChat = isAIChat
     }
 
     var favicon: NSImage? {
@@ -72,6 +75,7 @@ struct CustomSearchEngine: Codable, Identifiable, Hashable {
         name: String,
         searchURL: String,
         aliases: [String] = [],
+        isAIChat: Bool = false,
         completion: @escaping (CustomSearchEngine) -> Void
     ) {
         let faviconService = FaviconService()
@@ -91,7 +95,8 @@ struct CustomSearchEngine: Codable, Identifiable, Hashable {
                 searchURL: searchURL,
                 aliases: aliases,
                 faviconData: faviconData,
-                faviconBackgroundColorData: colorData
+                faviconBackgroundColorData: colorData,
+                isAIChat: isAIChat
             )
             completion(engine)
         } else {
@@ -116,7 +121,8 @@ struct CustomSearchEngine: Codable, Identifiable, Hashable {
                         searchURL: searchURL,
                         aliases: aliases,
                         faviconData: faviconData,
-                        faviconBackgroundColorData: colorData
+                        faviconBackgroundColorData: colorData,
+                        isAIChat: isAIChat
                     )
                     completion(engine)
                 }
