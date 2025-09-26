@@ -24,6 +24,10 @@ class AppearanceManager: ObservableObject {
     }
 
     func updateAppearance() {
+        guard NSApp != nil else {
+            print("NSApp is nil, skipping appearance update")
+            return
+        }
         switch appearance {
         case .system:
             NSApp.appearance = nil

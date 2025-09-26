@@ -217,5 +217,63 @@ struct WebView: NSViewRepresentable {
             // The new tab will handle the navigation
             return nil
         }
+
+        func webView(
+            _ webView: WKWebView,
+            runJavaScriptAlertPanelWithMessage message: String,
+            initiatedByFrame frame: WKFrameInfo,
+            completionHandler: @escaping () -> Void
+        ) {
+            let alert = NSAlert()
+            alert.messageText = "Alert"
+            alert.informativeText = message
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+            completionHandler()
+        }
+
+        func webView(
+            _ webView: WKWebView,
+            runJavaScriptConfirmPanelWithMessage message: String,
+            initiatedByFrame frame: WKFrameInfo,
+            completionHandler: @escaping (Bool) -> Void
+        ) {
+            let alert = NSAlert()
+            alert.messageText = "Confirm"
+            alert.informativeText = message
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.addButton(withTitle: "Cancel")
+            let response = alert.runModal()
+            completionHandler(response == .alertFirstButtonReturn)
+        }
+
+        func webView(
+            _ webView: WKWebView,
+            runJavaScriptTextInputPanelWithPrompt prompt: String,
+            defaultText: String?,
+            initiatedByFrame frame: WKFrameInfo,
+            completionHandler: @escaping (String?) -> Void
+        ) {
+            let alert = NSAlert()
+            alert.messageText = "Prompt"
+            alert.informativeText = prompt
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.addButton(withTitle: "Cancel")
+
+            let textField = NSTextField(frame: NSRect(x: 0, y: 0, width: 300, height: 24))
+            textField.stringValue = defaultText ?? ""
+
+            alert.accessoryView = textField
+
+            let response = alert.runModal()
+            if response == .alertFirstButtonReturn {
+                completionHandler(textField.stringValue)
+            } else {
+                completionHandler(nil)
+            }
+        }
     }
 }
