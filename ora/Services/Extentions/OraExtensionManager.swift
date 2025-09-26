@@ -68,17 +68,44 @@ class OraExtensionManager: NSObject, ObservableObject {
         
     }
     
+    /// Load all available extensions from the extensions directory
+    @MainActor
+    func loadAllExtensions() async {
+        logger.info("Loading all available extensions")
+        let supportDir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let extensionsDir = supportDir.appendingPathComponent("extensions")
+
+        guard FileManager.default.fileExists(atPath: extensionsDir.path) else {
+            logger.info("Extensions directory does not exist, skipping load")
+            return
+        }
+
+        do {
+            let contents = try FileManager.default.contentsOfDirectory(at: extensionsDir, includingPropertiesForKeys: [.isDirectoryKey])
+            for url in contents {
+                var isDir: ObjCBool = false
+                if FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir), isDir.boolValue {
+                    logger.debug("Loading extension from: \(url.path)")
+                    await installExtension(from: url)
+                }
+            }
+            logger.info("Finished loading all extensions")
+        } catch {
+            logger.error("Failed to load extensions: \(error.localizedDescription)")
+        }
+    }
+
     /// Uninstall extension
     func uninstallExtension(_ webExtension: WKWebExtension) {
         logger.info("Uninstalling extension: \(webExtension.displayName ?? "Unknown")")
-        
+
         // TODO: Implement proper unload when available
         // controller.unload(webExtension)
-        
+
         let removedCount = installedExtensions.count
         installedExtensions.removeAll { $0 == webExtension }
         let newCount = installedExtensions.count
-        
+
         if removedCount > newCount {
             logger.info("Extension uninstalled successfully. Remaining extensions: \(newCount)")
         } else {

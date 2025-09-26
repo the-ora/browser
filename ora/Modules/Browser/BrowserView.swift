@@ -72,15 +72,6 @@ struct BrowserView: View {
     }
 
     var body: some View {
-        Button("Is ext loaded?"){
-            printExtensionInfo()
-        }.onAppear {
-            Task {
-                let url = URL(fileURLWithPath: "/Users/keni/Downloads/dark.zip")
-                await OraExtensionManager.shared.installExtension(from: url)
-                
-            }
-        }
         ZStack(alignment: .leading) {
             HSplit(
                 left: {
@@ -99,6 +90,7 @@ struct BrowserView: View {
                     }
                 }
             )
+           
             .hide(sidebarVisibility)
             .splitter { Splitter.invisible() }
             .fraction(sidebarFraction)
@@ -136,6 +128,7 @@ struct BrowserView: View {
                     FloatingTabSwitcher()
                 }
             }
+           
 
             if sidebarVisibility.side == .primary {
                 // Floating sidebar with resizable width based on persisted fraction

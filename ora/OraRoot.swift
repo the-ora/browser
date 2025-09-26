@@ -79,13 +79,7 @@ struct OraRoot: View {
     }
 
     var body: some View {
-        Button("Click to install") {
 
-            Task {
-                let url = URL(fileURLWithPath: "/Users/keni/Downloads/ext")
-                await OraExtensionManager.shared.installExtension(from: url)
-            }
-        }
         BrowserView()
             .background(WindowReader(window: $window))
             .environmentObject(appState)
@@ -122,6 +116,10 @@ struct OraRoot: View {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                         updateService.checkForUpdatesInBackground()
                     }
+                }
+
+                Task {
+                    await extensionManager.loadAllExtensions()
                 }
                 NotificationCenter.default.addObserver(forName: .showLauncher, object: nil, queue: .main) { note in
                     guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
