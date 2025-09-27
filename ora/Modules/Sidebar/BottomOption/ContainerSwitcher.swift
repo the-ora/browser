@@ -9,18 +9,18 @@ struct ContainerSwitcher: View {
     @Query var containers: [TabContainer]
 
     @State private var hoveredContainer: UUID?
-
-    private let normalButtonWidth: CGFloat = 28
-    let defaultEmoji = "•"
-    // Never used
-    private let compactButtonWidth: CGFloat = 12
+    @State private var editingContainer: TabContainer?
+    @State private var isEditModalOpen = false
 
     var body: some View {
         GeometryReader { geometry in
             let availableWidth = geometry.size.width
             let totalWidth =
-                CGFloat(containers.count) * normalButtonWidth + CGFloat(max(0, containers.count - 1))
-                    * 2
+                CGFloat(containers.count) * ContainerConstants.UI.normalButtonWidth + CGFloat(max(
+                    0,
+                    containers.count - 1
+                ))
+                * 2
             let isCompact = totalWidth > availableWidth
 
             HStack(alignment: .center, spacing: isCompact ? 4 : 2) {
@@ -33,6 +33,14 @@ struct ContainerSwitcher: View {
         }
         .padding(0)
         .frame(height: 28)
+        .popover(isPresented: $isEditModalOpen) {
+            if let container = editingContainer {
+                EditContainerModal(
+                    container: container,
+                    isPresented: $isEditModalOpen
+                )
+            }
+        }
     }
 
     @ViewBuilder
@@ -41,12 +49,15 @@ struct ContainerSwitcher: View {
     {
         let isActive = tabManager.activeContainer?.id == container.id
         let isHovered = hoveredContainer == container.id
-        let displayEmoji = isCompact && !isActive ? (isHovered ? container.emoji : defaultEmoji) : container.emoji
-        let buttonSize = isCompact && !isActive ? (isHovered ? compactButtonWidth + 4 : compactButtonWidth) :
-            normalButtonWidth
-        let fontSize: CGFloat = isCompact && !isActive ? (isHovered ? (container.emoji == defaultEmoji ? 24 : 12) : 12
-        ) :
-            (container.emoji == defaultEmoji ? 24 : 12)
+        let displayEmoji = isCompact && !isActive ? (isHovered ? container.emoji : ContainerConstants.defaultEmoji) :
+            container.emoji
+        let buttonSize = isCompact && !isActive ?
+            (isHovered ? ContainerConstants.UI.compactButtonWidth + 4 : ContainerConstants.UI.compactButtonWidth) :
+            ContainerConstants.UI.normalButtonWidth
+        let fontSize: CGFloat = isCompact && !isActive ?
+            (isHovered ? (container.emoji == ContainerConstants.defaultEmoji ? 24 : 12) : 12
+            ) :
+            (container.emoji == ContainerConstants.defaultEmoji ? 24 : 12)
 
         Button(action: {
             onContainerSelected(container)
@@ -54,7 +65,7 @@ struct ContainerSwitcher: View {
             HStack {
                 Text(displayEmoji)
                     .font(.system(size: fontSize))
-                    .foregroundColor(displayEmoji == defaultEmoji ? .primary : .secondary)
+                    .foregroundColor(displayEmoji == ContainerConstants.defaultEmoji ? .primary : .secondary)
             }
             .frame(width: buttonSize, height: buttonSize)
             .grayscale(!isActive && !isHovered ? 0.5 : 0)
@@ -76,9 +87,10 @@ struct ContainerSwitcher: View {
             }
         }
         .contextMenu {
-            // Button("Rename Container") {
-            // tabManager.renameContainer(container, name: "New Name", emoji: "💩")
-            // }
+            Button("Edit Container") {
+                editingContainer = container
+                isEditModalOpen = true
+            }
             Button("Delete Container") {
                 tabManager.deleteContainer(container)
             }
