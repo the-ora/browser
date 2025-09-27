@@ -62,7 +62,7 @@ struct NormalTabsList: View {
         .onAppear {
             previousTabIds = tabs.map(\.id)
         }
-        .onChange(of: tabs.map(\.id)) { _, newTabIds in
+        .onChange(of: tabs.map(\.id)) { newTabIds in
             previousTabIds = newTabIds
         }
     }
