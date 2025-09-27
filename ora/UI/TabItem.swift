@@ -208,23 +208,21 @@ struct TabItem: View {
             )
         }
 
-        Divider()
+        if availableContainers.count > 1 {
+            Divider()
 
-        Menu("Move to Container") {
-            ForEach(availableContainers) { container in
-                if tab.container.id != tabManager.activeContainer?.id {
-                    Button(action: { onMoveToContainer(tab.container) }) {
-                        Label {
-                            Text(container.name)
-                        } icon: {
-                            Text(container.emoji) // This is where you show the emoji
+            Menu("Move to Container") {
+                ForEach(availableContainers) { container in
+                    if tab.container.id != container.id {
+                        Button(action: { onMoveToContainer(container) }) {
+                            Text(container.emoji.isEmpty ? container.name : "\(container.emoji) \(container.name)")
                         }
                     }
                 }
             }
-        }
 
-        Divider()
+            Divider()
+        }
 
         Button(role: .destructive, action: onClose) {
             Label("Close Tab", systemImage: "xmark")
