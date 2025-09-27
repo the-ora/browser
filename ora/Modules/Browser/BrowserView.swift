@@ -22,9 +22,8 @@ struct BrowserView: View {
         }
     }
 
-    private func toggleFullScreen() {
-        guard let window else { return }
-        window.toggleFullScreen(nil)
+    private func toggleMaximizeWindow() {
+        window?.toggleMaximized()
     }
 
     var body: some View {
@@ -177,7 +176,7 @@ struct BrowserView: View {
             }
         }
         .onTapGesture(count: 2) {
-            toggleFullScreen()
+            toggleMaximizeWindow()
         }
     }
 
