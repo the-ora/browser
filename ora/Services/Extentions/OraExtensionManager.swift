@@ -14,11 +14,13 @@ import os.log
 // MARK: - Ora Extension Manager
 class OraExtensionManager: NSObject, ObservableObject {
     static let shared = OraExtensionManager()
-    
+
     public var controller: WKWebExtensionController
     private let logger = Logger(subsystem: "com.ora.browser", category: "ExtensionManager")
-    
+
     @Published var installedExtensions: [WKWebExtension] = []
+    var extensionMap: [URL: WKWebExtension] = [:]
+    var tabManager: TabManager?
     
     override init() {
         logger.info("Initializing OraExtensionManager")
@@ -42,22 +44,35 @@ class OraExtensionManager: NSObject, ObservableObject {
                 
                 logger.debug("Creating WKWebExtensionContext")
                 let webContext = WKWebExtensionContext(for: webExtension)
-                
-                
+                webContext.isInspectable = true
+
                 logger.debug("Loading extension context into controller")
                 try controller.load(webContext)
 
-                // Grant <all_urls> permission to allow injection into all pages
+                // Load background content if available
+                webContext.loadBackgroundContent { [self] error in
+                    if let error = error {
+                        self.logger.error("Failed to load background content: \(error.localizedDescription)")
+                    } else {
+                        self.logger.debug("Background content loaded successfully")
+                    }
+                }
+
+                // Grant permissions
                 if let allUrlsPattern = try? WKWebExtension.MatchPattern(string: "<all_urls>") {
                     webContext.setPermissionStatus(.grantedExplicitly, for: allUrlsPattern)
                     logger.debug("Granted <all_urls> permission for extension")
                 }
+                let storagePermission = WKWebExtension.Permission.storage
+                webContext.setPermissionStatus(.grantedExplicitly, for: storagePermission)
+                logger.debug("Granted storage permission for extension")
 
                 print("\(controller.extensionContexts.count) ctx")
                 print("\(controller.extensions.count) ext")
                 
                 logger.debug("Adding extension to installed extensions list")
                 installedExtensions.append(webExtension)
+                extensionMap[url] = webExtension
                 
                 logger.info("Extension installed successfully: \(webExtension.displayName ?? "Unknown")")
             } catch {
@@ -104,6 +119,7 @@ class OraExtensionManager: NSObject, ObservableObject {
 
         let removedCount = installedExtensions.count
         installedExtensions.removeAll { $0 == webExtension }
+        extensionMap = extensionMap.filter { $0.value != webExtension }
         let newCount = installedExtensions.count
 
         if removedCount > newCount {
@@ -148,10 +164,117 @@ extension OraExtensionManager: WKWebExtensionControllerDelegate {
     ) {
         let extensionName = webExtension.displayName ?? "Unknown"
         logger.debug("Received message from extension '\(extensionName)': \(String(describing: message))")
-        
+
         print("📩 Message from \(extensionName): \(message)")
-        
-        // Example: forward to Ora's tab system
+
+        // Handle tab API messages
+        handleTabAPIMessage(message, from: context)
+
         logger.debug("Message processing completed for extension '\(extensionName)'")
+    }
+
+    private func handleTabAPIMessage(_ message: Any, from context: WKWebExtensionContext) {
+        guard let dict = message as? [String: Any],
+              let api = dict["api"] as? String, api == "tabs",
+              let method = dict["method"] as? String,
+              let params = dict["params"] as? [String: Any] else {
+            return
+        }
+
+        guard let tabManager = tabManager else {
+            logger.error("TabManager not available for extension tab API")
+            return
+        }
+
+        Task { @MainActor in
+            switch method {
+            case "create":
+                handleTabsCreate(params: params, context: context)
+            case "remove":
+                handleTabsRemove(params: params, context: context)
+            case "update":
+                handleTabsUpdate(params: params, context: context)
+            case "query":
+                handleTabsQuery(params: params, context: context)
+            case "get":
+                handleTabsGet(params: params, context: context)
+            default:
+                logger.debug("Unknown tabs API method: \(method)")
+            }
+        }
+    }
+
+    @MainActor
+    private func handleTabsCreate(params: [String: Any], context: WKWebExtensionContext) {
+        guard let urlString = params["url"] as? String,
+              let url = URL(string: urlString),
+              let container = tabManager?.activeContainer else {
+            return
+        }
+
+        let isPrivate = params["incognito"] as? Bool ?? false
+        let active = params["active"] as? Bool ?? true
+
+        // Create history and download managers if needed
+        let historyManager = HistoryManager(modelContainer: tabManager!.modelContainer, modelContext: tabManager!.modelContext)
+        let downloadManager = DownloadManager(modelContainer: tabManager!.modelContainer, modelContext: tabManager!.modelContext)
+
+        if active {
+            tabManager?.openTab(url: url, historyManager: historyManager, downloadManager: downloadManager, isPrivate: isPrivate)
+        } else {
+            _ = tabManager?.addTab(url: url, container: container, historyManager: historyManager, downloadManager: downloadManager, isPrivate: isPrivate)
+        }
+    }
+
+    @MainActor
+    private func handleTabsRemove(params: [String: Any], context: WKWebExtensionContext) {
+        guard let tabIdStrings = params["tabIds"] as? [String] else { return }
+
+        for tabIdString in tabIdStrings {
+            if let tabId = UUID(uuidString: tabIdString),
+               let container = tabManager?.activeContainer,
+               let tab = container.tabs.first(where: { $0.id == tabId }) {
+                tabManager?.closeTab(tab: tab)
+            }
+        }
+    }
+
+    @MainActor
+    private func handleTabsUpdate(params: [String: Any], context: WKWebExtensionContext) {
+        guard let tabIdString = params["tabId"] as? String,
+              let tabId = UUID(uuidString: tabIdString),
+              let container = tabManager?.activeContainer,
+              let tab = container.tabs.first(where: { $0.id == tabId }) else { return }
+
+        // Update tab properties
+        if let urlString = params["url"] as? String, let url = URL(string: urlString) {
+            tab.url = url
+            tab.webView.load(URLRequest(url: url))
+        }
+    }
+
+    @MainActor
+    private func handleTabsQuery(params: [String: Any], context: WKWebExtensionContext) {
+        // Query tabs
+        // For now, return all tabs in active container
+        guard let container = tabManager?.activeContainer else { return }
+        let tabs: [[String: Any]] = container.tabs.map { tab in
+            ["id": tab.id.uuidString, "url": tab.urlString, "title": tab.title, "active": tabManager?.isActive(tab) ?? false] as [String: Any]
+        }
+        // Note: Cannot send response back to extension via WKWebExtensionContext
+        // Extensions should use events or other mechanisms
+        logger.debug("Tabs query result: \(tabs)")
+    }
+
+    @MainActor
+    private func handleTabsGet(params: [String: Any], context: WKWebExtensionContext) {
+        guard let tabIdString = params["tabId"] as? String,
+              let tabId = UUID(uuidString: tabIdString),
+              let container = tabManager?.activeContainer,
+              let tab = container.tabs.first(where: { $0.id == tabId }) else { return }
+
+        let tabInfo: [String: Any] = ["id": tab.id.uuidString, "url": tab.urlString, "title": tab.title, "active": tabManager?.isActive(tab) ?? false]
+        // Note: Cannot send response back to extension via WKWebExtensionContext
+        logger.debug("Tab get result: \(tabInfo)")
     }
 }

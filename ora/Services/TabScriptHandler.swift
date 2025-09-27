@@ -62,6 +62,15 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
                     self?.mediaController?.receive(event: payload, from: tab)
                 }
             }
+        } else if message.name == "downloadExtension" {
+            guard let body = message.body as? [String: Any],
+                  let urlString = body["url"] as? String,
+                  let url = URL(string: urlString),
+                  let tab = self.tab
+            else { return }
+            Task {
+                await downloadAndInstallExtension(from: url, tab: tab)
+            }
         }
     }
 
@@ -82,6 +91,7 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         configuration.preferences.setValue(true, forKey: "notificationsEnabled")
         configuration.preferences.setValue(true, forKey: "notificationEventEnabled")
         configuration.preferences.setValue(true, forKey: "fullScreenEnabled")
+
         // configuration.preferences.setValue(false, forKey: "allowsAutomaticSpellingCorrection")
         // configuration.preferences.setValue(false, forKey: "allowsAutomaticTextReplacement")
         // configuration.preferences.setValue(false, forKey: "allowsAutomaticQuoteSubstitution")
@@ -125,9 +135,60 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         contentController.add(self, name: "listener")
         contentController.add(self, name: "linkHover")
         contentController.add(self, name: "mediaEvent")
+        contentController.add(self, name: "downloadExtension")
         configuration.userContentController = contentController
 
         return configuration
+    }
+
+    private func downloadAndInstallExtension(from url: URL, tab: Tab) async {
+        logger.info("Downloading extension from: \(url.absoluteString)")
+
+        // Download the file
+        guard let (data, response) = try? await URLSession.shared.data(from: url),
+              let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            logger.error("Failed to download extension")
+            return
+        }
+
+        // Save to temp file
+        let tempDir = FileManager.default.temporaryDirectory
+        let tempZipURL = tempDir.appendingPathComponent("downloaded_extension.zip")
+        try? data.write(to: tempZipURL)
+
+        // Extract
+        let extensionsDir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!.appendingPathComponent("extensions")
+        if !FileManager.default.fileExists(atPath: extensionsDir.path) {
+            try? FileManager.default.createDirectory(at: extensionsDir, withIntermediateDirectories: true)
+        }
+
+        // Create subfolder named after the file or something
+        let zipName = url.deletingPathExtension().lastPathComponent
+        let extractDir = extensionsDir.appendingPathComponent(zipName)
+        if !FileManager.default.fileExists(atPath: extractDir.path) {
+            try? FileManager.default.createDirectory(at: extractDir, withIntermediateDirectories: true)
+        }
+
+        // Extract using unzip
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/unzip")
+        process.arguments = ["-o", tempZipURL.path, "-d", extractDir.path]
+        try? process.run()
+        process.waitUntilExit()
+
+        if process.terminationStatus == 0 {
+            logger.info("Extraction successful, installing extension")
+            await OraExtensionManager.shared.installExtension(from: extractDir)
+            // Reload the tab
+            DispatchQueue.main.async {
+                tab.webView.reload()
+            }
+        } else {
+            logger.error("Extraction failed")
+        }
+
+        // Clean up temp file
+        try? FileManager.default.removeItem(at: tempZipURL)
     }
 
     deinit {

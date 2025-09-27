@@ -20,6 +20,52 @@ struct ExtensionIconView: NSViewRepresentable {
     }
 }
 
+struct ExtensionIconButton: NSViewRepresentable {
+    let ext: WKWebExtension
+    let extensionManager: OraExtensionManager
+
+    func makeNSView(context: Context) -> NSButton {
+        let button = NSButton()
+        button.image = ext.icon(for: NSSize(width: 32, height: 32))
+        button.imageScaling = .scaleProportionallyUpOrDown
+        button.toolTip = ext.displayName ?? "Extension"
+        button.isBordered = false
+        button.bezelStyle = .regularSquare
+        button.target = context.coordinator
+        button.action = #selector(Coordinator.clicked(_:))
+        return button
+    }
+
+    func updateNSView(_ nsView: NSButton, context: Context) {
+        nsView.image = ext.icon(for: NSSize(width: 32, height: 32))
+        nsView.toolTip = ext.displayName ?? "Extension"
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(ext: ext, extensionManager: extensionManager)
+    }
+
+    class Coordinator: NSObject {
+        let ext: WKWebExtension
+        let extensionManager: OraExtensionManager
+
+        init(ext: WKWebExtension, extensionManager: OraExtensionManager) {
+            self.ext = ext
+            self.extensionManager = extensionManager
+        }
+
+        @objc func clicked(_ sender: NSButton) {
+            guard let context = extensionManager.controller.extensionContexts.first(where: { $0.webExtension == ext }),
+                  let action = context.action(for: nil), action.presentsPopup,
+                  let popover = action.popupPopover else {
+                print("No popup for extension: \(ext.displayName ?? "Unknown")")
+                return
+            }
+            popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: NSRectEdge.maxY)
+        }
+    }
+}
+
 // MARK: - URLBar
 
 struct URLBar: View {
@@ -89,24 +135,9 @@ struct URLBar: View {
    
     private var extensionIconsView: some View {
         HStack(spacing: 4) {
-
             ForEach(extensionManager.installedExtensions, id: \.self) { ext in
-                Text(ext.displayName ?? "Unknown")
-                if let image = ext.icon(for: size) {
-                    Image(nsImage: image)      // use NSImage(nsImage:) on macOS
-                        .resizable()
-                        .frame(width: size.width, height: size.height)
-                        .cornerRadius(6)
-                }else {
-                    
-                    
-                      Image(systemName: "puzzlepiece.extension")
-                        .resizable()
-                        .frame(width: size.width, height: size.height)
-                        .foregroundColor(.secondary)
-                }
-               
-                   
+                ExtensionIconButton(ext: ext, extensionManager: extensionManager)
+                    .frame(width: size.width, height: size.height)
             }
         }
         .padding(.horizontal, 4)

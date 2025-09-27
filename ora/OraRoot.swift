@@ -118,6 +118,7 @@ struct OraRoot: View {
                     }
                 }
 
+                OraExtensionManager.shared.tabManager = tabManager
                 Task {
                     await extensionManager.loadAllExtensions()
                 }

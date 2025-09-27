@@ -1,9 +1,12 @@
 import SwiftUI
 
+class ExtensionViewModel: ObservableObject {
+    @Published var directories: [URL] = []
+}
+
 struct ExtensionsSettingsView: View {
-  
+    @StateObject private var viewModel = ExtensionViewModel()
     @State private var isImporting = false
-    @State private var extensionDirectories: [URL] = []
     @State private var extensionsDir: URL?
 
     var body: some View {
@@ -43,17 +46,32 @@ struct ExtensionsSettingsView: View {
             Text("Installed Extensions:")
                 .font(.headline)
 
-            List(extensionDirectories, id: \.self) { dir in
-                HStack {
-                    Text(dir.lastPathComponent)
-                    Spacer()
-                    Button("Install") {
-                        Task {
-                            await OraExtensionManager.shared.installExtension(from: dir)
-                            
+            ScrollView {
+                VStack(spacing: 10) {
+                    ForEach(viewModel.directories, id: \.path) { dir in
+                        HStack {
+                            Text(dir.lastPathComponent)
+                            Spacer()
+                            Button("Install") {
+                                Task {
+                                    await OraExtensionManager.shared.installExtension(from: dir)
+                                }
+                            }
+                            .buttonStyle(.bordered)
+                            if let extensionToUninstall = OraExtensionManager.shared.extensionMap[dir] {
+                                Button("Delete") {
+                                    OraExtensionManager.shared.uninstallExtension(extensionToUninstall)
+                                    // Remove the directory
+                                    try? FileManager.default.removeItem(at: dir)
+                                    // Reload directories
+                                    loadExtensionDirectories()
+                                }
+                                .buttonStyle(.bordered)
+                                .foregroundColor(.red)
+                            }
                         }
+                        .padding(.horizontal)
                     }
-                    .buttonStyle(.bordered)
                 }
             }
             .frame(height: 200)
@@ -77,7 +95,7 @@ struct ExtensionsSettingsView: View {
         guard let dir = extensionsDir else { return }
         do {
             let contents = try FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: [.isDirectoryKey])
-            extensionDirectories = contents.filter { url in
+            viewModel.directories = contents.filter { url in
                 var isDir: ObjCBool = false
                 FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir)
                 return isDir.boolValue

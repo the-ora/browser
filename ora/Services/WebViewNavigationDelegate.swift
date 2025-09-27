@@ -2,6 +2,7 @@ import AppKit
 import os.log
 import SwiftUI
 @preconcurrency import WebKit
+import Foundation
 
 private let logger = Logger(subsystem: "com.orabrowser.ora", category: "WebViewNavigationDelegate")
 
@@ -251,11 +252,11 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
                 """
             )
         if navigationAction.modifierFlags.contains(.command),
-           let url = navigationAction.request.url,
-           let tab = self.tab,
-           let tabManager = tab.tabManager,
-           let historyManager = tab.historyManager,
-           let downloadManager = tab.downloadManager
+            let url = navigationAction.request.url,
+            let tab = self.tab,
+            let tabManager = tab.tabManager,
+            let historyManager = tab.historyManager,
+            let downloadManager = tab.downloadManager
         {
             // Open link in new tab
             DispatchQueue.main.async {
@@ -271,6 +272,8 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
             decisionHandler(.cancel)
             return
         }
+
+
 
         // Allow normal navigation
         decisionHandler(.allow)
@@ -302,6 +305,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
             onChange?(webView.title, webView.url)
             onProgressChange?(webView.estimatedProgress * 100.0)
             webView.evaluateJavaScript(navigationScript, completionHandler: nil)
+            injectDownloadScriptIfNeeded(webView)
             takeSnapshotAfterLoad(webView)
             originalURL = nil // Clear stored URL after successful navigation
         }
@@ -403,6 +407,104 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
                 }
             }
         }
+    }
+
+    private func injectDownloadScriptIfNeeded(_ webView: WKWebView) {
+        guard let url = webView.url, url.host?.contains("mozilla.org") == true else { return }
+
+        // Inject script to add a fixed floating download button if .xpi links are found
+        let downloadScript = """
+        (function() {
+            const xpiLinks = document.querySelectorAll('a[href*=".xpi"]');
+            if (xpiLinks.length > 0 && !document.querySelector('.ora-floating-download-btn')) {
+                const button = document.createElement('button');
+                button.innerText = 'Download to Ora!';
+                button.className = 'ora-floating-download-btn';
+                button.style.position = 'fixed';
+                button.style.top = '20px';
+                button.style.right = '20px';
+                button.style.zIndex = '10000';
+                button.style.padding = '12px 20px';
+                button.style.background = 'linear-gradient(45deg, #ff6b35, #f7931e, #ff4757)';
+                button.style.color = 'white';
+                button.style.border = '3px solid #fff';
+                button.style.borderRadius = '25px';
+                button.style.cursor = 'pointer';
+                button.style.boxShadow = '0 4px 15px rgba(255, 107, 53, 0.4)';
+                button.style.fontWeight = 'bold';
+                button.style.fontSize = '14px';
+                button.style.textTransform = 'uppercase';
+                button.style.letterSpacing = '1px';
+                button.style.transition = 'all 0.3s ease';
+                button.onmouseover = function() { button.style.transform = 'scale(1.05)'; button.style.boxShadow = '0 6px 20px rgba(255, 107, 53, 0.6)'; };
+                button.onmouseout = function() { button.style.transform = 'scale(1)'; button.style.boxShadow = '0 4px 15px rgba(255, 107, 53, 0.4)'; };
+                button.onclick = function(e) {
+                    const link = xpiLinks[0]; // Download the first .xpi link
+                    window.webkit.messageHandlers.downloadExtension.postMessage({url: link.href});
+                };
+                document.body.appendChild(button);
+            }
+        })();
+        """
+        webView.evaluateJavaScript(downloadScript, completionHandler: nil)
+    }
+
+    private func downloadAndInstallExtension(from url: URL, tab: Tab) async {
+        logger.info("Downloading extension from: \(url.absoluteString)")
+
+        // Download the file
+        guard let (data, response) = try? await URLSession.shared.data(from: url),
+              let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            logger.error("Failed to download extension")
+            return
+        }
+
+        // Save to temp file
+        let tempDir = FileManager.default.temporaryDirectory
+        let tempFileURL = tempDir.appendingPathComponent("downloaded_extension.xpi")
+        do {
+            try data.write(to: tempFileURL)
+        } catch {
+            logger.error("Failed to save temp file: \(error)")
+            return
+        }
+
+        // Extract
+        let extensionsDir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!.appendingPathComponent("extensions")
+        if !FileManager.default.fileExists(atPath: extensionsDir.path) {
+            try? FileManager.default.createDirectory(at: extensionsDir, withIntermediateDirectories: true)
+        }
+
+        // Create subfolder named after the file
+        let fileName = url.deletingPathExtension().lastPathComponent
+        let extractDir = extensionsDir.appendingPathComponent(fileName)
+        if !FileManager.default.fileExists(atPath: extractDir.path) {
+            try? FileManager.default.createDirectory(at: extractDir, withIntermediateDirectories: true)
+        }
+
+        // Extract using unzip
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/unzip")
+        process.arguments = ["-o", tempFileURL.path, "-d", extractDir.path]
+        do {
+            try process.run()
+            process.waitUntilExit()
+            if process.terminationStatus == 0 {
+                logger.info("Extraction successful, installing extension")
+                await OraExtensionManager.shared.installExtension(from: extractDir)
+                // Reload the tab
+                DispatchQueue.main.async {
+                    tab.webView.reload()
+                }
+            } else {
+                logger.error("Extraction failed")
+            }
+        } catch {
+            logger.error("Failed to extract: \(error)")
+        }
+
+        // Clean up temp file
+        try? FileManager.default.removeItem(at: tempFileURL)
     }
 
     private func extractDominantColor(from cgImage: CGImage) -> NSColor? {
