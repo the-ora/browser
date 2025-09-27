@@ -8,6 +8,7 @@ struct BrowserView: View {
     @EnvironmentObject private var downloadManager: DownloadManager
     @EnvironmentObject private var historyManager: HistoryManager
     @EnvironmentObject private var privacyMode: PrivacyMode
+    @Environment(\.window) var window: NSWindow?
     @State private var isFullscreen = false
     @State private var showFloatingSidebar = false
     @State private var isMouseOverSidebar = false
@@ -19,6 +20,11 @@ struct BrowserView: View {
         withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
             sidebarVisibility.toggle(.primary)
         }
+    }
+
+    private func toggleFullScreen() {
+        guard let window else { return }
+        window.toggleFullScreen(nil)
     }
 
     var body: some View {
@@ -169,6 +175,9 @@ struct BrowserView: View {
                     )
                 }
             }
+        }
+        .onTapGesture(count: 2) {
+            toggleFullScreen()
         }
     }
 
