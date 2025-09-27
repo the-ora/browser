@@ -31,84 +31,141 @@ struct SpacesSettingsView: View {
                 Divider()
 
                 // Right details
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 24) {
                     if let container = selectedContainer {
-                        VStack(alignment: .leading, spacing: 12) {
+                        // Space-Specific Defaults Section
+                        VStack(alignment: .leading, spacing: 16) {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("Space-Specific Defaults")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(.secondary)
-                            }
-
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Search Engine Override")
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
+                                Text("Configure default settings for this space")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
-                                Picker(
-                                    "Search engine",
-                                    selection: Binding(
-                                        get: {
-                                            settings.defaultSearchEngineId(for: container.id)
-                                        },
-                                        set: { settings.setDefaultSearchEngineId($0, for: container.id) }
-                                    )
-                                ) {
-                                    Text("Use Global Default").tag(nil as String?)
-                                    Divider()
-                                    ForEach(searchService.searchEngines.filter { !$0.isAIChat }, id: \.name) { engine in
-                                        Text(engine.name).tag(Optional(engine.name))
-                                    }
-                                }
                             }
 
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("AI Chat Override")
+                            VStack(alignment: .leading, spacing: 12) {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Search Engine Override")
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                    Picker(
+                                        "Search engine",
+                                        selection: Binding(
+                                            get: {
+                                                settings.defaultSearchEngineId(for: container.id)
+                                            },
+                                            set: { settings.setDefaultSearchEngineId($0, for: container.id) }
+                                        )
+                                    ) {
+                                        Text("Use Global Default").tag(nil as String?)
+                                        Divider()
+                                        ForEach(
+                                            searchService.searchEngines.filter { !$0.isAIChat },
+                                            id: \.name
+                                        ) { engine in
+                                            Text(engine.name).tag(Optional(engine.name))
+                                        }
+                                    }
+                                    .pickerStyle(.menu)
+                                    .frame(minWidth: 200, maxWidth: .infinity, alignment: .leading)
+                                }
+                                .padding(12)
+                                .background(Color(.controlBackgroundColor))
+                                .cornerRadius(6)
+
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("AI Chat Override")
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                    Picker(
+                                        "AI Chat",
+                                        selection: Binding(
+                                            get: {
+                                                settings.defaultAIEngineId(for: container.id)
+                                            },
+                                            set: { settings.setDefaultAIEngineId($0, for: container.id) }
+                                        )
+                                    ) {
+                                        Text("Use Global Default").tag(nil as String?)
+                                        Divider()
+                                        ForEach(searchService.searchEngines.filter(\.isAIChat), id: \.name) { engine in
+                                            Text(engine.name).tag(Optional(engine.name))
+                                        }
+                                    }
+                                    .pickerStyle(.menu)
+                                    .frame(minWidth: 200, maxWidth: .infinity, alignment: .leading)
+                                }
+                                .padding(12)
+                                .background(Color(.controlBackgroundColor))
+                                .cornerRadius(6)
+
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Auto Clear Tabs")
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                    Picker(
+                                        "Clear tabs after",
+                                        selection: Binding(
+                                            get: { settings.autoClearTabsAfter(for: container.id) },
+                                            set: { settings.setAutoClearTabsAfter($0, for: container.id) }
+                                        )
+                                    ) {
+                                        ForEach(AutoClearTabsAfter.allCases) { value in
+                                            Text(value.rawValue).tag(value)
+                                        }
+                                    }
+                                    .pickerStyle(.menu)
+                                    .frame(minWidth: 200, maxWidth: .infinity, alignment: .leading)
+                                }
+                                .padding(12)
+                                .background(Color(.controlBackgroundColor))
+                                .cornerRadius(6)
+                            }
+                        }
+
+                        Divider()
+
+                        // Clear Data Section
+                        VStack(alignment: .leading, spacing: 16) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Privacy & Data")
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
+                                Text("Clear stored data for this space")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
-                                Picker(
-                                    "AI Chat",
-                                    selection: Binding(
-                                        get: {
-                                            settings.defaultAIEngineId(for: container.id)
-                                        },
-                                        set: { settings.setDefaultAIEngineId($0, for: container.id) }
-                                    )
-                                ) {
-                                    Text("Use Global Default").tag(nil as String?)
-                                    Divider()
-                                    ForEach(searchService.searchEngines.filter(\.isAIChat), id: \.name) { engine in
-                                        Text(engine.name).tag(Optional(engine.name))
-                                    }
-                                }
                             }
 
-                            Picker(
-                                "Clear tabs after",
-                                selection: Binding(
-                                    get: { settings.autoClearTabsAfter(for: container.id) },
-                                    set: { settings.setAutoClearTabsAfter($0, for: container.id) }
-                                )
-                            ) {
-                                ForEach(AutoClearTabsAfter.allCases) { value in
-                                    Text(value.rawValue).tag(value)
+                            VStack(spacing: 8) {
+                                Button("Clear Cache") {
+                                    PrivacyService.clearCache(container)
                                 }
-                            }
-                        }
-                        .padding(8)
+                                .frame(maxWidth: .infinity, alignment: .leading)
 
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Clear Data").foregroundStyle(.secondary)
-                            Button("Clear Cache") { PrivacyService.clearCache(container) }
-                            Button("Clear Cookies") { PrivacyService.clearCookies(container) }
-                            Button("Clear Browsing History") {
-                                historyManger.clearContainerHistory(container)
+                                Button("Clear Cookies") {
+                                    PrivacyService.clearCookies(container)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+
+                                Button("Clear History") {
+                                    historyManger.clearContainerHistory(container)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
                             }
+                            .buttonStyle(.bordered)
                         }
-                        .padding(8)
 
                     } else {
-                        Text("No spaces found").foregroundStyle(.secondary)
+                        VStack(spacing: 12) {
+                            Text("No spaces found")
+                                .font(.headline)
+                                .foregroundStyle(.secondary)
+                            Text("Create a space to configure its settings")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                     Spacer(minLength: 0)
                 }

@@ -39,6 +39,22 @@ class AppState: ObservableObject {
 struct OraApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
+    // Shared model container that uses the same configuration as the main browser
+    private let sharedModelContainer: ModelContainer? = {
+        do {
+            return try ModelConfiguration.createOraContainer(isPrivate: false)
+        } catch {
+            // Graceful fallback: use in-memory storage for Settings if database fails
+            print("Settings window: Failed to connect to main database, using in-memory fallback: \(error)")
+            do {
+                return try ModelConfiguration.createOraContainer(isPrivate: true)
+            } catch {
+                print("Settings window: Creating minimal in-memory container: \(error)")
+                return nil
+            }
+        }
+    }()
+
     var body: some Scene {
         WindowGroup(id: "normal") {
             OraRoot()
@@ -57,10 +73,22 @@ struct OraApp: App {
         .windowResizability(.contentMinSize)
 
         Settings {
-            SettingsContentView()
-                .environmentObject(AppearanceManager.shared)
-                .environmentObject(UpdateService.shared)
-                .withTheme()
-        }.commands { OraCommands() }
+            if let sharedModelContainer {
+                SettingsContentView()
+                    .environmentObject(AppearanceManager.shared)
+                    .environmentObject(UpdateService.shared)
+                    .withTheme()
+                    .modelContainer(sharedModelContainer)
+            } else {
+                // Fallback UI when SwiftData is completely broken
+                VStack {
+                    Text("Settings Unavailable")
+                        .font(.title)
+                }
+                .padding()
+                .frame(width: 400, height: 300)
+            }
+        }
+        .commands { OraCommands() }
     }
 }
