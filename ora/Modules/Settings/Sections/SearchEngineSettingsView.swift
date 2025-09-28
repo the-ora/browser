@@ -11,10 +11,12 @@ struct SearchEngineSettingsView: View {
     @State private var newEngineName = ""
     @State private var newEngineURL = ""
     @State private var newEngineAliases = ""
+    @State private var newEngineIsAI = false
 
     private var isValidURL: Bool {
         newEngineURL
-            .contains("{query}") && URL(string: newEngineURL.replacingOccurrences(of: "{query}", with: "test")) != nil
+            .contains("{query}")
+            && URL(string: newEngineURL.replacingOccurrences(of: "{query}", with: "test")) != nil
     }
 
     var body: some View {
@@ -63,7 +65,10 @@ struct SearchEngineSettingsView: View {
                                     Text("URL:")
                                         .frame(width: 80, alignment: .leading)
                                     VStack(alignment: .leading, spacing: 4) {
-                                        TextField("https://example.com/search?q={query}", text: $newEngineURL)
+                                        TextField(
+                                            "https://example.com/search?q={query}",
+                                            text: $newEngineURL
+                                        )
                                         Text("Include {query} where the search term should go")
                                             .font(.caption)
                                             .foregroundColor(.secondary)
@@ -83,6 +88,19 @@ struct SearchEngineSettingsView: View {
                                         Text("Comma-separated shortcuts (optional)")
                                             .font(.caption)
                                             .foregroundColor(.secondary)
+                                    }
+                                }
+
+                                HStack {
+                                    Text("Type:")
+                                        .frame(width: 80, alignment: .leading)
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Toggle("AI Chat Engine", isOn: $newEngineIsAI)
+                                        Text(
+                                            "Check if this is an AI chat service (affects placeholder text)"
+                                        )
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
                                     }
                                 }
 
@@ -115,20 +133,54 @@ struct SearchEngineSettingsView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
 
-                        // Built-in search engines
-                        ForEach(searchEngineService.builtInSearchEngines, id: \.name) { engine in
-                            BuiltInSearchEngineRow(
-                                engine: engine,
-                                isDefault: settings.globalDefaultSearchEngine == engine
-                                    .name || (settings.globalDefaultSearchEngine == nil && engine.name == "Google"),
-                                onSetAsDefault: {
-                                    if engine.name == "Google" {
-                                        settings.globalDefaultSearchEngine = nil
-                                    } else {
+                        // Conventional Search Engines
+                        let conventionalEngines = searchEngineService.builtInSearchEngines.filter {
+                            !$0.isAIChat
+                        }
+                        if !conventionalEngines.isEmpty {
+                            Text("Conventional Search Engines")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .padding(.bottom, 4)
+
+                            ForEach(conventionalEngines, id: \.name) { engine in
+                                BuiltInSearchEngineRow(
+                                    engine: engine,
+                                    isDefault: settings.globalDefaultSearchEngine
+                                        == engine
+                                        .name
+                                        || (settings.globalDefaultSearchEngine == nil
+                                            && engine.name == "Google"
+                                        ),
+                                    onSetAsDefault: {
+                                        if engine.name == "Google" {
+                                            settings.globalDefaultSearchEngine = nil
+                                        } else {
+                                            settings.globalDefaultSearchEngine = engine.name
+                                        }
+                                    }
+                                )
+                            }
+                        }
+
+                        // AI Search Engines
+                        let aiEngines = searchEngineService.builtInSearchEngines.filter(\.isAIChat)
+                        if !aiEngines.isEmpty {
+                            Text("AI Search Engines")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .padding(.top, 8)
+                                .padding(.bottom, 4)
+
+                            ForEach(aiEngines, id: \.name) { engine in
+                                BuiltInSearchEngineRow(
+                                    engine: engine,
+                                    isDefault: settings.globalDefaultSearchEngine == engine.name,
+                                    onSetAsDefault: {
                                         settings.globalDefaultSearchEngine = engine.name
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
 
                         if !settings.customSearchEngines.isEmpty {
@@ -173,6 +225,7 @@ struct SearchEngineSettingsView: View {
         newEngineName = ""
         newEngineURL = ""
         newEngineAliases = ""
+        newEngineIsAI = false
     }
 
     private func cancelForm() {
@@ -188,16 +241,18 @@ struct SearchEngineSettingsView: View {
     }
 
     private func saveSearchEngine() {
-        let aliasesList = newEngineAliases
-            .split(separator: ",")
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
+        let aliasesList =
+            newEngineAliases
+                .split(separator: ",")
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty }
 
         // Create engine with favicon fetched upfront
         CustomSearchEngine.createWithFavicon(
             name: newEngineName,
             searchURL: newEngineURL,
-            aliases: aliasesList
+            aliases: aliasesList,
+            isAIChat: newEngineIsAI
         ) { [weak settings] engine in
             settings?.addCustomSearchEngine(engine)
         }
@@ -238,16 +293,6 @@ struct BuiltInSearchEngineRow: View {
                 Text(engine.name)
                     .font(.body)
 
-                if engine.isAIChat {
-                    Text("AI")
-                        .font(.caption)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.purple.opacity(0.2))
-                        .foregroundColor(.purple)
-                        .cornerRadius(4)
-                }
-
                 if isDefault {
                     Text("Default")
                         .font(.caption)
@@ -284,9 +329,11 @@ struct CustomSearchEngineRow: View {
     @State private var editName = ""
     @State private var editURL = ""
     @State private var editAliases = ""
+    @State private var editIsAI = false
 
     private var isValidEditURL: Bool {
-        editURL.contains("{query}") && URL(string: editURL.replacingOccurrences(of: "{query}", with: "test")) != nil
+        editURL.contains("{query}")
+            && URL(string: editURL.replacingOccurrences(of: "{query}", with: "test")) != nil
     }
 
     var body: some View {
@@ -342,6 +389,19 @@ struct CustomSearchEngineRow: View {
                         }
 
                         HStack {
+                            Text("Type:")
+                                .frame(width: 80, alignment: .leading)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Toggle("AI Chat Engine", isOn: $editIsAI)
+                                Text(
+                                    "Check if this is an AI chat service (affects placeholder text)"
+                                )
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            }
+                        }
+
+                        HStack {
                             Spacer()
                             Button("Cancel") {
                                 cancelEdit()
@@ -372,7 +432,7 @@ struct CustomSearchEngineRow: View {
                         }
                     }
 
-                    // Name and Default badge
+                    // Name and badges
                     HStack(spacing: 8) {
                         Text(engine.name)
                             .font(.body)
@@ -383,6 +443,15 @@ struct CustomSearchEngineRow: View {
                                 .padding(.vertical, 2)
                                 .background(Color.blue.opacity(0.2))
                                 .foregroundColor(.blue)
+                                .cornerRadius(4)
+                        }
+                        if engine.isAIChat {
+                            Text("AI")
+                                .font(.caption)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.purple.opacity(0.2))
+                                .foregroundColor(.purple)
                                 .cornerRadius(4)
                         }
                     }
@@ -429,13 +498,15 @@ struct CustomSearchEngineRow: View {
         editName = engine.name
         editURL = engine.searchURL
         editAliases = engine.aliases.joined(separator: ", ")
+        editIsAI = engine.isAIChat
     }
 
     private func saveEdit() {
-        let aliasesList = editAliases
-            .split(separator: ",")
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
+        let aliasesList =
+            editAliases
+                .split(separator: ",")
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty }
 
         // Create updated engine with favicon if URL changed, otherwise keep existing favicon
         if editURL != engine.searchURL {
@@ -444,7 +515,8 @@ struct CustomSearchEngineRow: View {
                 id: engine.id,
                 name: editName,
                 searchURL: editURL,
-                aliases: aliasesList
+                aliases: aliasesList,
+                isAIChat: editIsAI
             ) { [weak settings] updatedEngine in
                 settings?.updateCustomSearchEngine(updatedEngine)
             }
@@ -456,7 +528,8 @@ struct CustomSearchEngineRow: View {
                 searchURL: editURL,
                 aliases: aliasesList,
                 faviconData: engine.faviconData,
-                faviconBackgroundColorData: engine.faviconBackgroundColorData
+                faviconBackgroundColorData: engine.faviconBackgroundColorData,
+                isAIChat: editIsAI
             )
             settings.updateCustomSearchEngine(updatedEngine)
         }
