@@ -460,6 +460,10 @@ class TabManager: ObservableObject {
     }
 
     func duplicateTab(_ tab: Tab) {
+        // Calculate the order for the duplicated tab (should be between original tab and the next one)
+        let originalOrder = tab.order
+        let nextOrder = originalOrder - 1 // Since tabs are sorted in descending order
+
         // Create a new tab with the same properties as the original tab
         let duplicatedTab = Tab(
             url: tab.url,
@@ -468,7 +472,7 @@ class TabManager: ObservableObject {
             container: tab.container,
             type: tab.type,
             isPlayingMedia: tab.isPlayingMedia,
-            order: tab.order,
+            order: nextOrder,
             historyManager: tab.historyManager,
             downloadManager: tab.downloadManager,
             tabManager: self,
@@ -481,13 +485,11 @@ class TabManager: ObservableObject {
         // Mark the web view as ready
         duplicatedTab.isWebViewReady = true
 
-        // Add the duplicated tab right after the original tab
-        if let index = tab.container.tabs.firstIndex(of: tab) {
-            tab.container.tabs.insert(duplicatedTab, at: index + 1)
-        } else {
-            // Fallback: append to end if original tab not found
-            tab.container.tabs.append(duplicatedTab)
-        }
+        // Add the duplicated tab to the container
+        tab.container.tabs.append(duplicatedTab)
+
+        // Save the context to persist the order
+        try? modelContext.save()
 
         // Load the same URL as the original tab using the URL directly
         duplicatedTab.webView.load(URLRequest(url: tab.url))
