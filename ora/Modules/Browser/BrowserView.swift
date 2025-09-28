@@ -13,8 +13,7 @@ struct BrowserView: View {
     @State private var showFloatingSidebar = false
     @State private var isMouseOverSidebar = false
     @StateObject private var sidebarFraction = FractionHolder.usingUserDefaults(0.2, key: "ui.sidebar.fraction")
-
-    @StateObject var sidebarVisibility = SideHolder()
+    @StateObject private var sidebarVisibility = SideHolder.usingUserDefaults(key: "ui.sidebar.visibility")
 
     private func toggleSidebar() {
         withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
@@ -177,6 +176,19 @@ struct BrowserView: View {
         }
         .onTapGesture(count: 2) {
             toggleMaximizeWindow()
+        }
+        .onAppear {
+            // Restore active tab on app startup if not already ready
+            if let tab = tabManager.activeTab, !tab.isWebViewReady {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    tab.restoreTransientState(
+                        historyManger: historyManager,
+                        downloadManager: downloadManager,
+                        tabManager: tabManager,
+                        isPrivate: privacyMode.isPrivate
+                    )
+                }
+            }
         }
     }
 
