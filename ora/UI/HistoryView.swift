@@ -10,6 +10,7 @@ struct HistoryView: View {
     @State private var searchText = ""
     @State private var selectedVisits: Set<UUID> = []
     @State private var isSelectMode = false
+    @State private var showClearAllAlert = false
 
     private var filteredVisits: [HistoryVisit] {
         guard let containerId = tabManager.activeContainer?.id else { return [] }
@@ -76,10 +77,18 @@ struct HistoryView: View {
                     Spacer()
 
                     if !isSelectMode {
-                        Button("Select") {
-                            isSelectMode = true
+                        HStack(spacing: 12) {
+                            Button("Clear All") {
+                                showClearAllAlert = true
+                            }
+                            .foregroundColor(.red)
+                            .buttonStyle(.plain)
+
+                            Button("Select") {
+                                isSelectMode = true
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     } else {
                         HStack {
                             Button("Cancel") {
@@ -151,6 +160,14 @@ struct HistoryView: View {
             Spacer()
         }
         .background(theme.background)
+        .alert("Clear All History", isPresented: $showClearAllAlert) {
+            Button("Cancel", role: .cancel) {}
+            Button("Clear All", role: .destructive) {
+                clearAllHistory()
+            }
+        } message: {
+            Text("Are you sure you want to delete all browsing history? This action cannot be undone.")
+        }
     }
 
     private func openHistoryItem(_ visit: HistoryVisit) {
@@ -168,6 +185,17 @@ struct HistoryView: View {
         historyManager.deleteHistoryVisits(visitsToDelete)
         selectedVisits.removeAll()
         isSelectMode = false
+    }
+
+    private func clearAllHistory() {
+        guard let container = tabManager.activeContainer else { return }
+        historyManager.clearContainerHistory(container)
+
+        // Exit select mode if active
+        if isSelectMode {
+            isSelectMode = false
+            selectedVisits.removeAll()
+        }
     }
 }
 
