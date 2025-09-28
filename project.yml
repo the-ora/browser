@@ -49,7 +49,9 @@ targets:
         SUFeedURL: "https://the-ora.github.io/browser/appcast.xml"
         SUPublicEDKey: "Ozj+rezzbJAD76RfajtfQ7rFojJbpFSCl/0DcFSBCTI="
         SUEnableAutomaticChecks: YES
-        
+        NSCameraUsageDescription: "Ora requires access to your camera to support video features."
+        NSMicrophoneUsageDescription: "Ora requires access to your microphone to support audio features."
+
     entitlements:
       path: ora/ora.entitlements
       properties:
@@ -77,6 +79,7 @@ targets:
         SUFeedURL: "https://the-ora.github.io/browser/appcast.xml"
         SUPublicEDKey: "Ozj+rezzbJAD76RfajtfQ7rFojJbpFSCl/0DcFSBCTI="
         SUEnableAutomaticChecks: YES
+        CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION: YES
       configs:
         Debug:
           ASSETCATALOG_COMPILER_APPICON_NAME: OraIconDev
