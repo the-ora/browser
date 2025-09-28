@@ -460,38 +460,53 @@ class TabManager: ObservableObject {
     }
 
     func duplicateTab(_ tab: Tab) {
-        // Calculate the order for the duplicated tab (should be between original tab and the next one)
-        let originalOrder = tab.order
-        let nextOrder = originalOrder - 1 // Since tabs are sorted in descending order
+        // Get all tabs of the same type, sorted by order (descending)
+        let sameTypeTabs = tab.container.tabs
+            .filter { $0.type == tab.type }
+            .sorted(by: { $0.order > $1.order })
 
-        // Create a new tab with the same properties as the original tab
-        let duplicatedTab = Tab(
-            url: tab.url,
-            title: tab.title,
-            favicon: tab.favicon,
-            container: tab.container,
-            type: tab.type,
-            isPlayingMedia: tab.isPlayingMedia,
-            order: nextOrder,
-            historyManager: tab.historyManager,
-            downloadManager: tab.downloadManager,
-            tabManager: self,
-            isPrivate: tab.isPrivate
-        )
+        // Find the position of the original tab using its unique ID
+        if let originalIndex = sameTypeTabs.firstIndex(where: { $0.id == tab.id }) {
+            let nextOrder: Int
 
-        // Set up the navigation delegate for the duplicated tab
-        duplicatedTab.setupNavigationDelegate()
+            // If there's a tab after the original one, use an order between them
+            if originalIndex < sameTypeTabs.count - 1 {
+                let nextTab = sameTypeTabs[originalIndex + 1]
+                nextOrder = (tab.order + nextTab.order) / 2
+            } else {
+                // If it's the last tab, use order - 1
+                nextOrder = tab.order - 1
+            }
 
-        // Mark the web view as ready
-        duplicatedTab.isWebViewReady = true
+            // Create a new tab with the same properties as the original tab
+            let duplicatedTab = Tab(
+                url: tab.url,
+                title: tab.title,
+                favicon: tab.favicon,
+                container: tab.container,
+                type: tab.type,
+                isPlayingMedia: tab.isPlayingMedia,
+                order: nextOrder,
+                historyManager: tab.historyManager,
+                downloadManager: tab.downloadManager,
+                tabManager: self,
+                isPrivate: tab.isPrivate
+            )
 
-        // Add the duplicated tab to the container
-        tab.container.tabs.append(duplicatedTab)
+            // Set up the navigation delegate for the duplicated tab
+            duplicatedTab.setupNavigationDelegate()
 
-        // Save the context to persist the order
-        try? modelContext.save()
+            // Mark the web view as ready
+            duplicatedTab.isWebViewReady = true
 
-        // Load the same URL as the original tab using the URL directly
-        duplicatedTab.webView.load(URLRequest(url: tab.url))
+            // Add the duplicated tab to the container
+            tab.container.tabs.insert(duplicatedTab, at: originalIndex + 1)
+
+            // Save the context to persist the order
+            try? modelContext.save()
+
+            // Load the same URL as the original tab using the URL directly
+            duplicatedTab.webView.load(URLRequest(url: tab.url))
+        }
     }
 }

@@ -27,16 +27,18 @@ struct SectionDropDelegate: DropDelegate {
                     from.type = tabType(for: self.targetSection)
                     let maxOrder = container.tabs.max(by: { $0.order < $1.order })?.order ?? 0
                     from.order = maxOrder + 1
+                } else if let to = self.items.last {
+                    // Handle dropping at the end of the section
+                    if isInSameSection(from: from, to: to) {
+                        // Moving within the same section - place after the last tab
+                        from.order = to.order - 1
+                    } else {
+                        // Moving to a different section
+                        moveTabBetweenSections(from: from, to: to)
+                        // Place it at the end of the new section
+                        from.order = to.order - 1
+                    }
                 }
-                // else if let to = self.items.last {
-                // if isInSameSection(from: from, to: to) {
-                // withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                //   container.reorderTabs(from: from, to: to)
-                // }
-                // } else {
-                // moveTabBetweenSections(from: from, to: to)
-                // }
-                // }
             }
         }
     }
@@ -48,5 +50,32 @@ struct SectionDropDelegate: DropDelegate {
     func performDrop(info: DropInfo) -> Bool {
         draggedItem = nil
         return true
+    }
+
+    private func isInSameSection(from: Tab, to: Tab) -> Bool {
+        return from.type == to.type
+    }
+
+    private func moveTabBetweenSections(from: Tab, to: Tab) {
+        // Change the tab type to match the target section
+        from.type = to.type
+
+        // If moving to pinned or fav, save the URL
+        if to.type == .pinned || to.type == .fav {
+            from.savedURL = from.url
+        } else {
+            from.savedURL = nil
+        }
+    }
+
+    private func tabType(for section: TabSection) -> TabType {
+        switch section {
+        case .fav:
+            return .fav
+        case .pinned:
+            return .pinned
+        case .normal:
+            return .normal
+        }
     }
 }
