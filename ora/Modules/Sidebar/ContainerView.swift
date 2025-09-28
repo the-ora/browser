@@ -32,6 +32,7 @@ struct ContainerView: View {
                     onSelect: selectTab,
                     onFavoriteToggle: toggleFavorite,
                     onClose: removeTab,
+                    onDuplicate: duplicateTab,
                     onMoveToContainer: moveTab
                 )
             } else {
@@ -65,6 +66,7 @@ struct ContainerView: View {
                             onPinToggle: togglePin,
                             onFavoriteToggle: toggleFavorite,
                             onClose: removeTab,
+                            onDuplicate: duplicateTab,
                             onMoveToContainer: moveTab,
                             containers: containers
                         )
@@ -78,6 +80,7 @@ struct ContainerView: View {
                         onPinToggle: togglePin,
                         onFavoriteToggle: toggleFavorite,
                         onClose: removeTab,
+                        onDuplicate: duplicateTab,
                         onMoveToContainer: moveTab,
                         onAddNewTab: addNewTab
                     )
@@ -147,6 +150,10 @@ struct ContainerView: View {
 
     private func dropTab(_ tabId: String) {
         draggedItem = nil
+    }
+
+    private func duplicateTab(_ tab: Tab) {
+        tabManager.duplicateTab(tab)
     }
 }
 

@@ -446,7 +446,7 @@ class TabManager: ObservableObject {
         if message.name == "listener",
            let url = message.body as? String
         {
-            // You can update the active tab’s url if needed
+            // You can update the active tab's url if needed
             DispatchQueue.main.async {
                 if let validURL = URL(string: url) {
                     self.activeTab?.url = validURL
@@ -457,5 +457,39 @@ class TabManager: ObservableObject {
                 }
             }
         }
+    }
+
+    func duplicateTab(_ tab: Tab) {
+        // Create a new tab with the same properties as the original tab
+        let duplicatedTab = Tab(
+            url: tab.url,
+            title: tab.title,
+            favicon: tab.favicon,
+            container: tab.container,
+            type: tab.type,
+            isPlayingMedia: tab.isPlayingMedia,
+            order: tab.order,
+            historyManager: tab.historyManager,
+            downloadManager: tab.downloadManager,
+            tabManager: self,
+            isPrivate: tab.isPrivate
+        )
+
+        // Set up the navigation delegate for the duplicated tab
+        duplicatedTab.setupNavigationDelegate()
+
+        // Mark the web view as ready
+        duplicatedTab.isWebViewReady = true
+
+        // Add the duplicated tab right after the original tab
+        if let index = tab.container.tabs.firstIndex(of: tab) {
+            tab.container.tabs.insert(duplicatedTab, at: index + 1)
+        } else {
+            // Fallback: append to end if original tab not found
+            tab.container.tabs.append(duplicatedTab)
+        }
+
+        // Load the same URL as the original tab using the URL directly
+        duplicatedTab.webView.load(URLRequest(url: tab.url))
     }
 }
