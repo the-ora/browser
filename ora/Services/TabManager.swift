@@ -290,6 +290,55 @@ class TabManager: ObservableObject {
         }
     }
 
+    func openHistoryTab(
+        historyManager: HistoryManager,
+        downloadManager: DownloadManager? = nil
+    ) {
+        guard let container = activeContainer else { return }
+
+        // Check if a history tab already exists (using URL-based identification)
+        if let existingHistoryTab = container.tabs.first(where: {
+            $0.url.scheme == "ora" && $0.url.host == "history"
+        }) {
+            // Switch to existing history tab
+            activeTab?.maybeIsActive = false
+            activeTab = existingHistoryTab
+            activeTab?.maybeIsActive = true
+            existingHistoryTab.lastAccessedAt = Date()
+            container.lastAccessedAt = Date()
+            try? modelContext.save()
+            return
+        }
+
+        // Create new history tab as a normal tab
+        let historyURL = URL(string: "ora://history") ?? URL(fileURLWithPath: "")
+        let newTab = Tab(
+            url: historyURL,
+            title: "Browser History",
+            favicon: nil, // We could add a history icon here
+            container: container,
+            type: .normal, // Just a normal tab with special URL
+            isPlayingMedia: false,
+            order: container.tabs.count + 1,
+            historyManager: historyManager,
+            downloadManager: downloadManager,
+            tabManager: self,
+            isPrivate: false // History tabs are never private
+        )
+
+        modelContext.insert(newTab)
+        container.tabs.append(newTab)
+
+        // Switch to the new history tab
+        activeTab?.maybeIsActive = false
+        activeTab = newTab
+        activeTab?.maybeIsActive = true
+        newTab.lastAccessedAt = Date()
+        container.lastAccessedAt = Date()
+
+        try? modelContext.save()
+    }
+
     func reorderTabs(from: Tab, toTab: Tab) {
         from.container.reorderTabs(from: from, to: toTab)
         try? modelContext.save()

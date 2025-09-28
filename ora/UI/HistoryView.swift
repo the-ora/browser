@@ -65,94 +65,92 @@ struct HistoryView: View {
     }
 
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-                // Header with search and controls
-                VStack(spacing: 16) {
-                    HStack {
-                        Text("Browsing History")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
+        VStack(spacing: 0) {
+            // Header with search and controls
+            VStack(spacing: 16) {
+                HStack {
+                    Text("Browsing History")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
 
-                        Spacer()
+                    Spacer()
 
-                        if !isSelectMode {
-                            Button("Select") {
-                                isSelectMode = true
+                    if !isSelectMode {
+                        Button("Select") {
+                            isSelectMode = true
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        HStack {
+                            Button("Cancel") {
+                                isSelectMode = false
+                                selectedVisits.removeAll()
                             }
                             .buttonStyle(.plain)
-                        } else {
-                            HStack {
-                                Button("Cancel") {
-                                    isSelectMode = false
-                                    selectedVisits.removeAll()
+
+                            if !selectedVisits.isEmpty {
+                                Button("Delete Selected (\(selectedVisits.count))") {
+                                    deleteSelectedVisits()
                                 }
+                                .foregroundColor(.red)
                                 .buttonStyle(.plain)
-
-                                if !selectedVisits.isEmpty {
-                                    Button("Delete Selected (\(selectedVisits.count))") {
-                                        deleteSelectedVisits()
-                                    }
-                                    .foregroundColor(.red)
-                                    .buttonStyle(.plain)
-                                }
                             }
                         }
                     }
-
-                    // Search bar
-                    HStack {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(.secondary)
-
-                        TextField("Search history...", text: $searchText)
-                            .textFieldStyle(.plain)
-                    }
-                    .padding(12)
-                    .background(theme.background.opacity(0.5))
-                    .cornerRadius(8)
-                }
-                .padding()
-
-                Divider()
-
-                // History list
-                if groupedVisits.isEmpty {
-                    VStack {
-                        Spacer()
-                        Image(systemName: "clock")
-                            .font(.system(size: 48))
-                            .foregroundColor(.secondary)
-                        Text("No browsing history")
-                            .font(.title2)
-                            .foregroundColor(.secondary)
-                        Text(searchText.isEmpty ? "Start browsing to see your history here" : "No results found")
-                            .foregroundColor(.secondary)
-                        Spacer()
-                    }
-                } else {
-                    ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 0) {
-                            ForEach(groupedVisits, id: \.0) { dateGroup in
-                                HistoryDateSection(
-                                    date: dateGroup.0,
-                                    visits: dateGroup.1,
-                                    isSelectMode: isSelectMode,
-                                    selectedVisits: $selectedVisits,
-                                    onVisitTap: { visit in
-                                        openHistoryItem(visit)
-                                    }
-                                )
-                            }
-                        }
-                        .padding(.horizontal)
-                    }
                 }
 
-                Spacer()
+                // Search bar
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.secondary)
+
+                    TextField("Search history...", text: $searchText)
+                        .textFieldStyle(.plain)
+                }
+                .padding(12)
+                .background(theme.background.opacity(0.5))
+                .cornerRadius(8)
             }
-            .background(theme.background)
+            .padding()
+
+            Divider()
+
+            // History list
+            if groupedVisits.isEmpty {
+                VStack {
+                    Spacer()
+                    Image(systemName: "clock")
+                        .font(.system(size: 48))
+                        .foregroundColor(.secondary)
+                    Text("No browsing history")
+                        .font(.title2)
+                        .foregroundColor(.secondary)
+                    Text(searchText.isEmpty ? "Start browsing to see your history here" : "No results found")
+                        .foregroundColor(.secondary)
+                    Spacer()
+                }
+            } else {
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 0) {
+                        ForEach(groupedVisits, id: \.0) { dateGroup in
+                            HistoryDateSection(
+                                date: dateGroup.0,
+                                visits: dateGroup.1,
+                                isSelectMode: isSelectMode,
+                                selectedVisits: $selectedVisits,
+                                onVisitTap: { visit in
+                                    openHistoryItem(visit)
+                                }
+                            )
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+            }
+
+            Spacer()
         }
+        .background(theme.background)
     }
 
     private func openHistoryItem(_ visit: HistoryVisit) {

@@ -179,7 +179,7 @@ struct OraRoot: View {
                 }
                 NotificationCenter.default.addObserver(forName: .showHistory, object: nil, queue: .main) { note in
                     guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
-                    appState.showHistory = true
+                    tabManager.openHistoryTab(historyManager: historyManager, downloadManager: downloadManager)
                 }
             }
     }

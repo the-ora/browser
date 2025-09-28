@@ -80,29 +80,6 @@ struct BrowserView: View {
                 if appState.isFloatingTabSwitchVisible {
                     FloatingTabSwitcher()
                 }
-
-                if appState.showHistory {
-                    ZStack {
-                        // Background overlay
-                        Color.black.opacity(0.3)
-                            .ignoresSafeArea(.all)
-                            .onTapGesture {
-                                appState.showHistory = false
-                            }
-
-                        // History view
-                        HistoryView()
-                            .frame(maxWidth: 900, maxHeight: 700)
-                            .background(theme.background)
-                            .cornerRadius(12)
-                            .shadow(radius: 20)
-                            .transition(.asymmetric(
-                                insertion: .scale(scale: 0.9).combined(with: .opacity),
-                                removal: .scale(scale: 0.9).combined(with: .opacity)
-                            ))
-                    }
-                    .zIndex(1000)
-                }
             }
 
             if sidebarVisibility.side == .primary {
@@ -228,7 +205,12 @@ struct BrowserView: View {
                 ))
             }
             if let tab = tabManager.activeTab {
-                if tab.isWebViewReady {
+                // Show HistoryView for history tabs (identified by URL)
+                if tab.url.scheme == "ora", tab.url.host == "history" {
+                    HistoryView()
+                        .id(tab.id)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if tab.isWebViewReady {
                     if tab.hasNavigationError, let error = tab.navigationError {
                         StatusPageView(
                             error: error,
