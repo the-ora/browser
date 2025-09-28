@@ -21,59 +21,6 @@ struct BrowserView: View {
         }
     }
 
-    private func printExtensionInfo() {
-        if let tab = tabManager.activeTab {
-            if let controller = tab.webView.configuration.webExtensionController {
-                print("Controller: \(controller)")
-                print("Extensions Count: \(controller.extensions.count)")
-                print("Contexts Count: \(controller.extensionContexts.count)")
-                for extCtx in controller.extensionContexts {
-                    print("🔥 Extension Context Properties:")
-                    print("  baseURL: \(extCtx.baseURL)")
-                    print("  commands: \(extCtx.commands.map(\.id))")
-                    print("  currentPermissionMatchPatterns: \(extCtx.currentPermissionMatchPatterns)")
-                    print("  currentPermissions: \(extCtx.currentPermissions.map(\.rawValue))")
-                    print("  deniedPermissionMatchPatterns: \(extCtx.deniedPermissionMatchPatterns)")
-                    print("  deniedPermissions: \(extCtx.deniedPermissions.map { "\($0.key.rawValue): \($0.value)" })")
-                    print("  errors: \(extCtx.errors.map(\.localizedDescription))")
-                    print(
-                        "  grantedPermissionMatchPatterns: \(extCtx.grantedPermissionMatchPatterns.map { "\($0.key): \($0.value)" })"
-                    )
-                    print("  grantedPermissions: \(extCtx.grantedPermissions.map { "\($0.key.rawValue): \($0.value)" })"
-                    )
-                    print("  hasAccessToAllHosts: \(extCtx.hasAccessToAllHosts)")
-                    print("  hasAccessToAllURLs: \(extCtx.hasAccessToAllURLs)")
-                    print("  hasAccessToPrivateData: \(extCtx.hasAccessToPrivateData)")
-                    print("  hasContentModificationRules: \(extCtx.hasContentModificationRules)")
-                    print("  hasInjectedContent: \(extCtx.hasInjectedContent)")
-                    print("  hasRequestedOptionalAccessToAllHosts: \(extCtx.hasRequestedOptionalAccessToAllHosts)")
-                    print("  inspectionName: \(extCtx.inspectionName ?? "None")")
-                    print("  isInspectable: \(extCtx.isInspectable)")
-                    print("  isLoaded: \(extCtx.isLoaded)")
-                    //                    print("  isBackgroundContentLoaded: \(extCtx.isBackgroundContentLoaded)")
-                    //                    print("  isContentScriptLoaded: \(extCtx.isContentScriptLoaded)")
-                    print("  openTabs: \(extCtx.openTabs)")
-                    print("  optionsPageURL: \(extCtx.optionsPageURL?.absoluteString ?? "None")")
-                    print("  overrideNewTabPageURL: \(extCtx.overrideNewTabPageURL?.absoluteString ?? "None")")
-                    print("  uniqueIdentifier: \(extCtx.uniqueIdentifier)")
-                    print("  unsupportedAPIs: \(extCtx.unsupportedAPIs ?? [])")
-                    //                    print("  webExtension: \(extCtx.webExtension?.displayName ?? "None")")
-                    print("  webExtensionController: \(extCtx.webExtensionController != nil ? "Loaded" : "None")")
-                    print("  webViewConfiguration: \(extCtx.webViewConfiguration != nil ? "Configured" : "None")")
-                    let ext = extCtx.webExtension
-                    print("  Extension Details:")
-                    print("    Display Name: \(ext.displayName ?? "None")")
-                    print("    Display Version: \(ext.displayVersion ?? "None")")
-                    print("    Display Description: \(ext.displayDescription ?? "None")")
-                    //                            print("    Permissions: \(ext.permissions.map { $0.rawValue })")
-                    //                            print("    Background Content URL:
-                    //                            \(ext.backgroundContentURL?.absoluteString ?? "None")")
-                    //                            print("    Content Scripts Count: \(ext.contentScripts.count)")
-                }
-            }
-        }
-    }
-
     private func toggleMaximizeWindow() {
         window?.toggleMaximized()
     }
@@ -227,6 +174,9 @@ struct BrowserView: View {
                     )
                 }
             }
+        }
+        .onTapGesture(count: 2) {
+            toggleMaximizeWindow()
         }
         .onAppear {
             // Restore active tab on app startup if not already ready
