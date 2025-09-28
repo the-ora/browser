@@ -145,6 +145,7 @@ struct HistoryView: View {
                             HistoryDateSection(
                                 date: dateGroup.0,
                                 visits: dateGroup.1,
+                                searchText: searchText,
                                 isSelectMode: isSelectMode,
                                 selectedVisits: $selectedVisits,
                                 onVisitTap: { visit in
@@ -204,6 +205,7 @@ struct HistoryDateSection: View {
 
     let date: String
     let visits: [HistoryVisit]
+    let searchText: String
     let isSelectMode: Bool
     @Binding var selectedVisits: Set<UUID>
     let onVisitTap: (HistoryVisit) -> Void
@@ -226,6 +228,7 @@ struct HistoryDateSection: View {
             ForEach(visits, id: \.id) { visit in
                 HistoryVisitRow(
                     visit: visit,
+                    searchText: searchText,
                     isSelectMode: isSelectMode,
                     isSelected: selectedVisits.contains(visit.id),
                     onTap: {
@@ -250,6 +253,7 @@ struct HistoryVisitRow: View {
     @Environment(\.theme) private var theme
 
     let visit: HistoryVisit
+    let searchText: String
     let isSelectMode: Bool
     let isSelected: Bool
     let onTap: () -> Void
@@ -284,16 +288,24 @@ struct HistoryVisitRow: View {
 
             // Content
             VStack(alignment: .leading, spacing: 2) {
-                Text(visit.title.isEmpty ? visit.urlString : visit.title)
-                    .font(.system(size: 14, weight: .medium))
-                    .lineLimit(1)
-                    .foregroundColor(.primary)
+                HighlightedText(
+                    text: visit.title.isEmpty ? visit.urlString : visit.title,
+                    searchText: searchText,
+                    font: .system(size: 14, weight: .medium),
+                    primaryColor: .primary,
+                    highlightColor: theme.accent.opacity(0.3)
+                )
+                .lineLimit(1)
 
                 HStack {
-                    Text(visit.urlString)
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
+                    HighlightedText(
+                        text: visit.urlString,
+                        searchText: searchText,
+                        font: .system(size: 12),
+                        primaryColor: .secondary,
+                        highlightColor: theme.accent.opacity(0.3)
+                    )
+                    .lineLimit(1)
 
                     Spacer()
 
