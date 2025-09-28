@@ -19,8 +19,11 @@ class HistoryManager: ObservableObject {
         url: URL,
         faviconURL: URL? = nil,
         faviconLocalFile: URL? = nil,
-        container: TabContainer
+        container: TabContainer,
+        isPrivate: Bool = false
     ) {
+        // Don't save history in private mode
+        guard !isPrivate else { return }
         let urlString = url.absoluteString
         let now = Date()
 

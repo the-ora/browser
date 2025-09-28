@@ -66,108 +66,112 @@ struct HistoryView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Header with search and controls
-            VStack(spacing: 16) {
-                HStack {
-                    Text("Browsing History")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
+        if privacyMode.isPrivate {
+            HistoryViewPrivate()
+        } else {
+            VStack(spacing: 0) {
+                // Header with search and controls
+                VStack(spacing: 16) {
+                    HStack {
+                        Text("Browsing History")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
 
-                    Spacer()
+                        Spacer()
 
-                    if !isSelectMode {
-                        HStack(spacing: 12) {
-                            Button("Clear All") {
-                                showClearAllAlert = true
-                            }
-                            .foregroundColor(.red)
-                            .buttonStyle(.plain)
-
-                            Button("Select") {
-                                isSelectMode = true
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    } else {
-                        HStack {
-                            Button("Cancel") {
-                                isSelectMode = false
-                                selectedVisits.removeAll()
-                            }
-                            .buttonStyle(.plain)
-
-                            if !selectedVisits.isEmpty {
-                                Button("Delete Selected (\(selectedVisits.count))") {
-                                    deleteSelectedVisits()
+                        if !isSelectMode {
+                            HStack(spacing: 12) {
+                                Button("Clear All") {
+                                    showClearAllAlert = true
                                 }
                                 .foregroundColor(.red)
                                 .buttonStyle(.plain)
+
+                                Button("Select") {
+                                    isSelectMode = true
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        } else {
+                            HStack {
+                                Button("Cancel") {
+                                    isSelectMode = false
+                                    selectedVisits.removeAll()
+                                }
+                                .buttonStyle(.plain)
+
+                                if !selectedVisits.isEmpty {
+                                    Button("Delete Selected (\(selectedVisits.count))") {
+                                        deleteSelectedVisits()
+                                    }
+                                    .foregroundColor(.red)
+                                    .buttonStyle(.plain)
+                                }
                             }
                         }
                     }
-                }
 
-                // Search bar
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(.secondary)
+                    // Search bar
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.secondary)
 
-                    TextField("Search history...", text: $searchText)
-                        .textFieldStyle(.plain)
-                }
-                .padding(12)
-                .background(theme.background.opacity(0.5))
-                .cornerRadius(8)
-            }
-            .padding()
-
-            Divider()
-
-            // History list
-            if groupedVisits.isEmpty {
-                VStack {
-                    Spacer()
-                    Image(systemName: "clock")
-                        .font(.system(size: 48))
-                        .foregroundColor(.secondary)
-                    Text("No browsing history")
-                        .font(.title2)
-                        .foregroundColor(.secondary)
-                    Text(searchText.isEmpty ? "Start browsing to see your history here" : "No results found")
-                        .foregroundColor(.secondary)
-                    Spacer()
-                }
-            } else {
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 0) {
-                        ForEach(groupedVisits, id: \.0) { dateGroup in
-                            HistoryDateSection(
-                                date: dateGroup.0,
-                                visits: dateGroup.1,
-                                searchText: searchText,
-                                isSelectMode: isSelectMode,
-                                selectedVisits: $selectedVisits,
-                                onVisitTap: { visit in
-                                    openHistoryItem(visit)
-                                }
-                            )
-                        }
+                        TextField("Search history...", text: $searchText)
+                            .textFieldStyle(.plain)
                     }
-                    .padding(.horizontal)
+                    .padding(12)
+                    .background(theme.background.opacity(0.5))
+                    .cornerRadius(8)
                 }
-            }
+                .padding()
 
-            Spacer()
-        }
-        .background(theme.background)
-        .alert("Clear All History", isPresented: $showClearAllAlert) {
-            Button("Cancel", role: .cancel) {}
-            Button("Clear All", role: .destructive) {
-                clearAllHistory()
+                Divider()
+
+                // History list
+                if groupedVisits.isEmpty {
+                    VStack {
+                        Spacer()
+                        Image(systemName: "clock")
+                            .font(.system(size: 48))
+                            .foregroundColor(.secondary)
+                        Text("No browsing history")
+                            .font(.title2)
+                            .foregroundColor(.secondary)
+                        Text(searchText.isEmpty ? "Start browsing to see your history here" : "No results found")
+                            .foregroundColor(.secondary)
+                        Spacer()
+                    }
+                } else {
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 0) {
+                            ForEach(groupedVisits, id: \.0) { dateGroup in
+                                HistoryDateSection(
+                                    date: dateGroup.0,
+                                    visits: dateGroup.1,
+                                    searchText: searchText,
+                                    isSelectMode: isSelectMode,
+                                    selectedVisits: $selectedVisits,
+                                    onVisitTap: { visit in
+                                        openHistoryItem(visit)
+                                    }
+                                )
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                }
+
+                Spacer()
             }
-        } message: {
-            Text("Are you sure you want to delete all browsing history? This action cannot be undone.")
+            .background(theme.background)
+            .alert("Clear All History", isPresented: $showClearAllAlert) {
+                Button("Cancel", role: .cancel) {}
+                Button("Clear All", role: .destructive) {
+                    clearAllHistory()
+                }
+            } message: {
+                Text("Are you sure you want to delete all browsing history? This action cannot be undone.")
+            }
         }
     }
 

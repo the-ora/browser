@@ -199,7 +199,8 @@ class Tab: ObservableObject, Identifiable {
                 url: self.url,
                 faviconURL: self.favicon,
                 faviconLocalFile: self.faviconLocalFile,
-                container: self.container
+                container: self.container,
+                isPrivate: self.isPrivate
             )
         }
     }
