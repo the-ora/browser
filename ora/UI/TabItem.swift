@@ -209,6 +209,7 @@ struct TabItem: View {
             )
         }
 
+<<<<<<< feature/duplicate-tab
         Button(action: onDuplicate) {
             Label("Duplicate Tab", systemImage: "doc.on.doc")
         }
@@ -223,13 +224,23 @@ struct TabItem: View {
                             Text(container.name)
                         } icon: {
                             Text(container.emoji) // This is where you show the emoji
+=======
+        if availableContainers.count > 1 {
+            Divider()
+
+            Menu("Move to Container") {
+                ForEach(availableContainers) { container in
+                    if tab.container.id != container.id {
+                        Button(action: { onMoveToContainer(container) }) {
+                            Text(container.emoji.isEmpty ? container.name : "\(container.emoji) \(container.name)")
+>>>>>>> main
                         }
                     }
                 }
             }
-        }
 
-        Divider()
+            Divider()
+        }
 
         Button(role: .destructive, action: onClose) {
             Label("Close Tab", systemImage: "xmark")
