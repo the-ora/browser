@@ -168,7 +168,7 @@ class TabManager: ObservableObject {
     }
 
     @discardableResult
-    func createContainer(name: String = "Default", emoji: String = "💩") -> TabContainer {
+    func createContainer(name: String = "Default", emoji: String = "•") -> TabContainer {
         let newContainer = TabContainer(name: name, emoji: emoji)
         modelContext.insert(newContainer)
         activeContainer = newContainer
