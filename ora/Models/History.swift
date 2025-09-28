@@ -16,6 +16,9 @@ final class History {
 
     @Relationship(inverse: \TabContainer.history) var container: TabContainer?
 
+    // Relationship to individual chronological visits
+    @Relationship var visits: [HistoryVisit] = []
+
     init(
         id: UUID = UUID(),
         url: URL,

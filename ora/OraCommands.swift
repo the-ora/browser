@@ -42,6 +42,13 @@ struct OraCommands: Commands {
                 NotificationCenter.default.post(name: .copyAddressURL, object: nil)
             }
             .keyboardShortcut(KeyboardShortcuts.Address.copyURL.keyboardShortcut)
+
+            Divider()
+
+            Button("Show History") {
+                NotificationCenter.default.post(name: .showHistory, object: NSApp.keyWindow)
+            }
+            .keyboardShortcut(KeyboardShortcuts.History.show.keyboardShortcut)
         }
 
         CommandGroup(replacing: .sidebar) {

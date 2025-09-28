@@ -80,6 +80,29 @@ struct BrowserView: View {
                 if appState.isFloatingTabSwitchVisible {
                     FloatingTabSwitcher()
                 }
+
+                if appState.showHistory {
+                    ZStack {
+                        // Background overlay
+                        Color.black.opacity(0.3)
+                            .ignoresSafeArea(.all)
+                            .onTapGesture {
+                                appState.showHistory = false
+                            }
+
+                        // History view
+                        HistoryView()
+                            .frame(maxWidth: 900, maxHeight: 700)
+                            .background(theme.background)
+                            .cornerRadius(12)
+                            .shadow(radius: 20)
+                            .transition(.asymmetric(
+                                insertion: .scale(scale: 0.9).combined(with: .opacity),
+                                removal: .scale(scale: 0.9).combined(with: .opacity)
+                            ))
+                    }
+                    .zIndex(1000)
+                }
             }
 
             if sidebarVisibility.side == .primary {
