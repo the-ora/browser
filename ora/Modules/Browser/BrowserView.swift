@@ -228,9 +228,6 @@ struct BrowserView: View {
                 }
             }
         }
-        .onTapGesture(count: 2) {
-            toggleMaximizeWindow()
-        }
         .onAppear {
             // Restore active tab on app startup if not already ready
             if let tab = tabManager.activeTab, !tab.isWebViewReady {
