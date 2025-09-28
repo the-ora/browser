@@ -467,15 +467,44 @@ class TabManager: ObservableObject {
 
         // Find the position of the original tab using its unique ID
         if let originalIndex = sameTypeTabs.firstIndex(where: { $0.id == tab.id }) {
-            let nextOrder: Int
+            // Debug: Print the order values to understand the current state
+            print("originalIndex: \(originalIndex)")
+            print("sameTypeTabs.count: \(sameTypeTabs.count)")
+            print("Original tab order: \(tab.order)")
 
-            // If there's a tab after the original one, use an order between them
+            // Print all tab orders for debugging
+            for (index, t) in sameTypeTabs.enumerated() {
+                print("Tab \(index): order = \(t.order)")
+            }
+
+            // Calculate the correct order for the duplicated tab
+            // Since tabs are sorted in descending order, we want to place it after the original
+            let duplicatedOrder: Int
+
             if originalIndex < sameTypeTabs.count - 1 {
+                // There's a tab after the original, create a unique order between them
                 let nextTab = sameTypeTabs[originalIndex + 1]
-                nextOrder = (tab.order + nextTab.order) / 2
+                // Create a value that's between tab.order and nextTab.order
+                if tab.order - nextTab.order > 1 {
+                    // There's a gap, use the midpoint
+                    duplicatedOrder = (tab.order + nextTab.order) / 2
+                    print("Using midpoint. Duplicated order: \(duplicatedOrder)")
+                } else {
+                    // They're consecutive, we need to shift all tabs after the original down by 1
+                    duplicatedOrder = tab.order - 1
+                    print("Tabs are consecutive, shifting subsequent tabs down. Duplicated order: \(duplicatedOrder)")
+
+                    // Shift all tabs after the original position down by 1
+                    for i in (originalIndex + 1) ..< sameTypeTabs.count {
+                        let tabToShift = sameTypeTabs[i]
+                        print("Shifting tab \(i) from order \(tabToShift.order) to \(tabToShift.order - 1)")
+                        tabToShift.order = tabToShift.order - 1
+                    }
+                }
             } else {
-                // If it's the last tab, use order - 1
-                nextOrder = tab.order - 1
+                // Original is the last tab, subtract 1
+                duplicatedOrder = tab.order - 1
+                print("Original is last, duplicated order: \(duplicatedOrder)")
             }
 
             // Create a new tab with the same properties as the original tab
@@ -486,7 +515,7 @@ class TabManager: ObservableObject {
                 container: tab.container,
                 type: tab.type,
                 isPlayingMedia: tab.isPlayingMedia,
-                order: nextOrder,
+                order: duplicatedOrder,
                 historyManager: tab.historyManager,
                 downloadManager: tab.downloadManager,
                 tabManager: self,
@@ -499,8 +528,8 @@ class TabManager: ObservableObject {
             // Mark the web view as ready
             duplicatedTab.isWebViewReady = true
 
-            // Add the duplicated tab to the container
-            tab.container.tabs.insert(duplicatedTab, at: originalIndex + 1)
+            // Add the duplicated tab to the container - let the order property determine position
+            tab.container.tabs.append(duplicatedTab)
 
             // Save the context to persist the order
             try? modelContext.save()
