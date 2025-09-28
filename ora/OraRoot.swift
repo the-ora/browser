@@ -82,6 +82,7 @@ struct OraRoot: View {
 
         BrowserView()
             .background(WindowReader(window: $window))
+            .environment(\.window, window)
             .environmentObject(appState)
             .environmentObject(tabManager)
             .environmentObject(historyManager)
