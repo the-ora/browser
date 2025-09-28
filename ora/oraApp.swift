@@ -40,20 +40,8 @@ struct OraApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     // Shared model container that uses the same configuration as the main browser
-    private let sharedModelContainer: ModelContainer? = {
-        do {
-            return try ModelConfiguration.createOraContainer(isPrivate: false)
-        } catch {
-            // Graceful fallback: use in-memory storage for Settings if database fails
-            print("Settings window: Failed to connect to main database, using in-memory fallback: \(error)")
-            do {
-                return try ModelConfiguration.createOraContainer(isPrivate: true)
-            } catch {
-                print("Settings window: Creating minimal in-memory container: \(error)")
-                return nil
-            }
-        }
-    }()
+    private let sharedModelContainer: ModelContainer? =
+        try? ModelConfiguration.createOraContainer(isPrivate: false)
 
     var body: some Scene {
         WindowGroup(id: "normal") {
