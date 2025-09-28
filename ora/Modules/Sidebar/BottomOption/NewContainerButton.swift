@@ -3,11 +3,9 @@ import SwiftUI
 
 struct NewContainerButton: View {
     @State private var isHovering = false
-    @State private var isEmojiPickerHovering = false
     @State private var isPopoverOpen = false
     @State private var name = ""
     @State private var emoji = ""
-    let defaultEmoji = "•"
     @State private var isEmojiPickerOpen = false
     @FocusState private var isTextFieldFocused: Bool
 
@@ -34,76 +32,36 @@ struct NewContainerButton: View {
                 Text("New Container")
                     .font(.headline)
 
-                HStack(spacing: 8) {
-                    Button(action: {
-                        isEmojiPickerOpen.toggle()
-                    }) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .stroke(
-                                    emoji.isEmpty ? theme.border : theme.border,
-                                    style: emoji.isEmpty
-                                        ? StrokeStyle(lineWidth: 1, dash: [5])
-                                        : StrokeStyle(lineWidth: 1)
-                                )
-                                .animation(.easeOut(duration: 0.1), value: emoji.isEmpty)
-                                .background(isEmojiPickerHovering ? Color.gray.opacity(0.3) : Color.gray.opacity(0.2))
-                                .cornerRadius(10)
-                            if emoji.isEmpty {
-                                Image(systemName: "plus")
-                                    .font(.system(size: 12))
-                            } else {
-                                Text(emoji)
-                                    .font(.system(size: 12))
-                            }
-                        }
-                    }
-                    .popover(isPresented: $isEmojiPickerOpen, arrowEdge: .bottom) {
-                        EmojiPickerView(onSelect: { emoji in
-                            self.emoji = emoji
-                            isEmojiPickerOpen = false
-                        })
-                    }
-                    .frame(width: 32, height: 32)
-                    .background(isEmojiPickerHovering ? Color.gray.opacity(0.3) : Color.gray.opacity(0.2))
-                    .cornerRadius(10)
-                    .buttonStyle(.plain)
-                    .onHover { isEmojiPickerHovering = $0 }
-
-                    TextField("Name", text: $name)
-                        .textFieldStyle(.plain)
-                        .frame(maxWidth: .infinity)
-                        .padding(8)
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(10)
-                        .focused($isTextFieldFocused)
-                        .onSubmit {
-                            if !name.isEmpty {
-                                tabManager.createContainer(name: name, emoji: emoji.isEmpty ? defaultEmoji : emoji)
-                                isPopoverOpen = false
-                                name = ""
-                                emoji = ""
-                            }
-                        }
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .stroke(
-                                    isTextFieldFocused ? theme.foreground.opacity(0.5) : theme.border,
-                                    lineWidth: isTextFieldFocused ? 2 : 1
-                                )
-                        )
-                }
+                ContainerForm(
+                    name: $name,
+                    emoji: $emoji,
+                    isEmojiPickerOpen: $isEmojiPickerOpen,
+                    isTextFieldFocused: $isTextFieldFocused,
+                    onSubmit: createContainer,
+                    defaultEmoji: ContainerConstants.defaultEmoji
+                )
 
                 Button("Create") {
-                    tabManager.createContainer(name: name, emoji: emoji.isEmpty ? defaultEmoji : emoji)
-                    isPopoverOpen = false
-                    name = ""
-                    emoji = ""
+                    createContainer()
                 }
                 .disabled(name.isEmpty)
             }
-            .frame(width: 300)
+            .frame(width: ContainerConstants.UI.popoverWidth)
             .padding()
         }
+    }
+
+    private func createContainer() {
+        guard !name.isEmpty else { return }
+
+        let finalEmoji = emoji.isEmpty ? ContainerConstants.defaultEmoji : emoji
+        tabManager.createContainer(name: name, emoji: finalEmoji)
+        isPopoverOpen = false
+        resetForm()
+    }
+
+    private func resetForm() {
+        name = ""
+        emoji = ""
     }
 }
