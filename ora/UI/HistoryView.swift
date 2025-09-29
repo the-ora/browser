@@ -445,16 +445,24 @@ struct HistoryVisitRow: View {
 }
 
 #Preview {
-    HistoryView()
-        .environmentObject(HistoryManager(
-            modelContainer: try! ModelContainer(for: History.self, HistoryVisit.self),
-            modelContext: ModelContext(try! ModelContainer(for: History.self, HistoryVisit.self))
-        ))
-        .environmentObject(TabManager(
-            modelContainer: try! ModelContainer(for: Tab.self),
-            modelContext: ModelContext(try! ModelContainer(for: Tab.self)),
-            mediaController: MediaController()
-        ))
-        .environmentObject(PrivacyMode(isPrivate: false))
-        .withTheme()
+    do {
+        let historyContainer = try ModelContainer(for: History.self, HistoryVisit.self)
+        let tabContainer = try ModelContainer(for: Tab.self)
+
+        return HistoryView()
+            .environmentObject(HistoryManager(
+                modelContainer: historyContainer,
+                modelContext: ModelContext(historyContainer)
+            ))
+            .environmentObject(TabManager(
+                modelContainer: tabContainer,
+                modelContext: ModelContext(tabContainer),
+                mediaController: MediaController()
+            ))
+            .environmentObject(PrivacyMode(isPrivate: false))
+            .withTheme()
+    } catch {
+        return Text("Preview unavailable: \(error.localizedDescription)")
+            .foregroundColor(.red)
+    }
 }
