@@ -205,7 +205,12 @@ struct BrowserView: View {
                 ))
             }
             if let tab = tabManager.activeTab {
-                if tab.isWebViewReady {
+                // Show HistoryView for history tabs (identified by URL)
+                if tab.url.scheme == "ora", tab.url.host == "history" {
+                    HistoryView()
+                        .id(tab.id)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if tab.isWebViewReady {
                     if tab.hasNavigationError, let error = tab.navigationError {
                         StatusPageView(
                             error: error,

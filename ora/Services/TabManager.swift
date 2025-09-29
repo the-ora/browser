@@ -107,7 +107,7 @@ class TabManager: ObservableObject {
     }
 
     func isActive(_ tab: Tab) -> Bool {
-        if let activeTab = self.activeTab {
+        if let activeTab {
             return activeTab.id == tab.id
         }
         return false
@@ -138,7 +138,7 @@ class TabManager: ObservableObject {
     }
 
     func getActiveTab() -> Tab? {
-        return self.activeTab
+        return activeTab
     }
 
     func moveTabToContainer(_ tab: Tab, toContainer: TabContainer) {
@@ -172,7 +172,7 @@ class TabManager: ObservableObject {
         let newContainer = TabContainer(name: name, emoji: emoji)
         modelContext.insert(newContainer)
         activeContainer = newContainer
-        self.activeTab = nil
+        activeTab = nil
         try? modelContext.save()
         //        _ = fetchContainers() // Refresh containers
         return newContainer
@@ -216,9 +216,9 @@ class TabManager: ObservableObject {
         )
         modelContext.insert(newTab)
         container.tabs.append(newTab)
-        activeTab?.maybeIsActive  = false
+        activeTab?.maybeIsActive = false
         activeTab = newTab
-        activeTab?.maybeIsActive  = true
+        activeTab?.maybeIsActive = true
         newTab.lastAccessedAt = Date()
         container.lastAccessedAt = Date()
 
@@ -267,7 +267,7 @@ class TabManager: ObservableObject {
                 container.tabs.append(newTab)
 
                 if focusAfterOpening {
-                    activeTab?.maybeIsActive  = false
+                    activeTab?.maybeIsActive = false
                     activeTab = newTab
                     activeTab?.maybeIsActive = true
                     newTab.lastAccessedAt = Date()
@@ -290,6 +290,55 @@ class TabManager: ObservableObject {
         }
     }
 
+    func openHistoryTab(
+        historyManager: HistoryManager,
+        downloadManager: DownloadManager? = nil
+    ) {
+        guard let container = activeContainer else { return }
+
+        // Check if a history tab already exists (using URL-based identification)
+        if let existingHistoryTab = container.tabs.first(where: {
+            $0.url.scheme == "ora" && $0.url.host == "history"
+        }) {
+            // Switch to existing history tab
+            activeTab?.maybeIsActive = false
+            activeTab = existingHistoryTab
+            activeTab?.maybeIsActive = true
+            existingHistoryTab.lastAccessedAt = Date()
+            container.lastAccessedAt = Date()
+            try? modelContext.save()
+            return
+        }
+
+        // Create new history tab as a normal tab
+        let historyURL = URL(string: "ora://history") ?? URL(fileURLWithPath: "")
+        let newTab = Tab(
+            url: historyURL,
+            title: "History",
+            favicon: nil, // We could add a history icon here
+            container: container,
+            type: .normal, // Just a normal tab with special URL
+            isPlayingMedia: false,
+            order: container.tabs.count + 1,
+            historyManager: historyManager,
+            downloadManager: downloadManager,
+            tabManager: self,
+            isPrivate: false // History tabs are never private
+        )
+
+        modelContext.insert(newTab)
+        container.tabs.append(newTab)
+
+        // Switch to the new history tab
+        activeTab?.maybeIsActive = false
+        activeTab = newTab
+        activeTab?.maybeIsActive = true
+        newTab.lastAccessedAt = Date()
+        container.lastAccessedAt = Date()
+
+        try? modelContext.save()
+    }
+
     func reorderTabs(from: Tab, toTab: Tab) {
         from.container.reorderTabs(from: from, to: toTab)
         try? modelContext.save()
@@ -302,22 +351,22 @@ class TabManager: ObservableObject {
 
     func closeTab(tab: Tab) {
         // If the closed tab was active, select another tab
-        if self.activeTab?.id == tab.id {
+        if activeTab?.id == tab.id {
             if let nextTab = tab.container.tabs
                 .filter({ $0.id != tab.id && $0.isWebViewReady })
                 .sorted(by: { $0.lastAccessedAt ?? Date.distantPast > $1.lastAccessedAt ?? Date.distantPast })
                 .first
             {
-                self.activateTab(nextTab)
+                activateTab(nextTab)
 
                 //            } else if let nextContainer = containers.first(where: { $0.id != tab.container.id }) {
                 //                self.activateContainer(nextContainer)
                 //
             } else {
-                self.activeTab = nil
+                activeTab = nil
             }
         } else {
-            self.activeTab = activeTab
+            activeTab = activeTab
         }
         if activeTab?.isWebViewReady != nil, let historyManager = tab.historyManager,
            let downloadManager = tab.downloadManager, let tabManager = tab.tabManager
@@ -342,7 +391,7 @@ class TabManager: ObservableObject {
                 try? self.modelContext.save()
             }
         }
-        self.activeTab?.maybeIsActive = true
+        activeTab?.maybeIsActive = true
     }
 
     func closeActiveTab() {

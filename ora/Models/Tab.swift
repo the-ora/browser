@@ -168,17 +168,40 @@ class Tab: ObservableObject, Identifiable {
         }
     }
 
+    @Transient private var lastRecordedURL: URL?
+    @Transient private var lastRecordedTime: Date?
+
     func updateHistory() {
-        if let historyManager = self.historyManager {
-            Task { @MainActor in
-                historyManager.record(
-                    title: self.title,
-                    url: self.url,
-                    faviconURL: self.favicon,
-                    faviconLocalFile: self.faviconLocalFile,
-                    container: self.container
-                )
-            }
+        guard let historyManager = self.historyManager else { return }
+
+        // Skip history recording for special URLs
+        if url.scheme == "ora" || url.scheme == "about" {
+            return
+        }
+
+        // Debounce: Don't record the same URL within 2 seconds
+        let now = Date()
+        if let lastURL = lastRecordedURL,
+           let lastTime = lastRecordedTime,
+           lastURL.absoluteString == url.absoluteString,
+           now.timeIntervalSince(lastTime) < 2.0
+        {
+            return
+        }
+
+        // Update tracking variables
+        lastRecordedURL = url
+        lastRecordedTime = now
+
+        Task { @MainActor in
+            historyManager.record(
+                title: self.title,
+                url: self.url,
+                faviconURL: self.favicon,
+                faviconLocalFile: self.faviconLocalFile,
+                container: self.container,
+                isPrivate: self.isPrivate
+            )
         }
     }
 
