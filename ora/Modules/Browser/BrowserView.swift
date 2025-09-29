@@ -7,8 +7,9 @@ enum SidebarPosition {
 }
 
 struct BrowserView: View {
-    @EnvironmentObject var tabManager: TabManager
     @Environment(\.theme) var theme
+    @Environment(\.window) var window: NSWindow?
+    @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var downloadManager: DownloadManager
     @EnvironmentObject private var historyManager: HistoryManager
@@ -18,11 +19,9 @@ struct BrowserView: View {
     @State private var showFloatingSidebar = false
     @State private var isMouseOverSidebar = false
 
-    @StateObject private var sidebarFraction =
-        FractionHolder.usingUserDefaults(0.2, key: "ui.sidebar.fraction")
-
+    @StateObject private var sidebarFraction = FractionHolder.usingUserDefaults(0.2, key: "ui.sidebar.fraction")
     @State private var sidebarPosition: SidebarPosition = .primary
-    @StateObject var sidebarVisibility = SideHolder()
+    @StateObject private var sidebarVisibility = SideHolder.usingUserDefaults(key: "ui.sidebar.visibility")
 
     // MARK: - Derived state
 
@@ -74,6 +73,10 @@ struct BrowserView: View {
         if wasHidden {
             sidebarVisibility.side = targetSide
         }
+    }
+
+    private func toggleMaximizeWindow() {
+        window?.toggleMaximized()
     }
 
     // MARK: - Pane Builders
@@ -190,6 +193,22 @@ struct BrowserView: View {
         .onChange(of: tabManager.activeTab) { _, newTab in
             if let tab = newTab, !tab.isWebViewReady {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                    tab.restoreTransientState(
+                        historyManger: historyManager,
+                        downloadManager: downloadManager,
+                        tabManager: tabManager,
+                        isPrivate: privacyMode.isPrivate
+                    )
+                }
+            }
+        }
+        .onTapGesture(count: 2) {
+            toggleMaximizeWindow()
+        }
+        .onAppear {
+            // Restore active tab on app startup if not already ready
+            if let tab = tabManager.activeTab, !tab.isWebViewReady {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     tab.restoreTransientState(
                         historyManger: historyManager,
                         downloadManager: downloadManager,
