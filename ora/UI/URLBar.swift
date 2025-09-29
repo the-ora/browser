@@ -70,7 +70,7 @@ struct URLBar: View {
         HStack {
             if let tab = tabManager.activeTab {
                 HStack(spacing: 4) {
-                    if sidebarPosition == .left {
+                    if sidebarPosition == .primary {
                         URLBarButton(
                             systemName: "sidebar.left",
                             isEnabled: true,
@@ -243,7 +243,7 @@ struct URLBar: View {
                         action: {}
                     )
 
-                    if sidebarPosition == .right {
+                    if sidebarPosition == .secondary {
                         URLBarButton(
                             systemName: "sidebar.right",
                             isEnabled: true,

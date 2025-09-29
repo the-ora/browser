@@ -2,8 +2,8 @@ import AppKit
 import SwiftUI
 
 enum SidebarPosition {
-    case left
-    case right
+    case primary
+    case secondary
 }
 
 struct BrowserView: View {
@@ -21,13 +21,13 @@ struct BrowserView: View {
     @StateObject private var sidebarFraction =
         FractionHolder.usingUserDefaults(0.2, key: "ui.sidebar.fraction")
 
-    @State private var sidebarPosition: SidebarPosition = .left
+    @State private var sidebarPosition: SidebarPosition = .primary
     @StateObject var sidebarVisibility = SideHolder()
 
     // MARK: - Derived state
 
     private var targetSide: SplitSide {
-        sidebarPosition == .left ? .left : .right
+        sidebarPosition == .primary ? .primary : .secondary
     }
 
     private var isSidebarHidden: Bool {
@@ -35,27 +35,27 @@ struct BrowserView: View {
     }
 
     private var fractionValue: CGFloat {
-        sidebarPosition == .left ? 0.2 : 0.8
+        sidebarPosition == .primary ? 0.2 : 0.8
     }
 
     private var minPF: CGFloat {
-        sidebarPosition == .left ? 0.16 : 0.7
+        sidebarPosition == .primary ? 0.16 : 0.7
     }
 
     private var minSF: CGFloat {
-        sidebarPosition == .left ? 0.7 : 0.16
+        sidebarPosition == .primary ? 0.7 : 0.16
     }
 
     private var prioritySide: SplitSide {
-        sidebarPosition == .left ? .left : .right
+        sidebarPosition == .primary ? .primary : .secondary
     }
 
     private var dragToHidePFlag: Bool {
-        sidebarPosition == .left
+        sidebarPosition == .primary
     }
 
     private var dragToHideSFlag: Bool {
-        sidebarPosition == .right
+        sidebarPosition == .secondary
     }
 
     // MARK: - Actions
@@ -69,7 +69,8 @@ struct BrowserView: View {
 
     private func toggleSidebarPosition() {
         let wasHidden = isSidebarHidden
-        sidebarPosition = (sidebarPosition == .left) ? .right : .left
+        sidebarPosition =
+            (sidebarPosition == .primary) ? .secondary : .primary
         if wasHidden {
             sidebarVisibility.side = targetSide
         }
@@ -78,9 +79,9 @@ struct BrowserView: View {
     // MARK: - Pane Builders
 
     @ViewBuilder
-    private func leftPane() -> some View {
-        if sidebarPosition == .left {
-            if sidebarVisibility.side == .left {
+    private func primaryPane() -> some View {
+        if sidebarPosition == .primary {
+            if sidebarVisibility.side == .primary {
                 contentView()
             } else {
                 SidebarView(isFullscreen: isFullscreen)
@@ -91,9 +92,9 @@ struct BrowserView: View {
     }
 
     @ViewBuilder
-    private func rightPane() -> some View {
-        if sidebarPosition == .right {
-            if sidebarVisibility.side == .right {
+    private func secondaryPane() -> some View {
+        if sidebarPosition == .secondary {
+            if sidebarVisibility.side == .secondary {
                 contentView()
             } else {
                 SidebarView(isFullscreen: isFullscreen)
@@ -126,7 +127,7 @@ struct BrowserView: View {
 
     var body: some View {
         ZStack(alignment: .leading) {
-            HSplit(left: { leftPane() }, right: { rightPane() })
+            HSplit(left: { primaryPane() }, right: { secondaryPane() })
                 .hide(sidebarVisibility)
                 .splitter { Splitter.invisible() }
                 .fraction(fractionValue)
@@ -148,8 +149,8 @@ struct BrowserView: View {
                 )
                 .background(
                     WindowAccessor(
-                        isSidebarHidden: sidebarVisibility.side == .left
-                            || sidebarVisibility.side == .right,
+                        isSidebarHidden: sidebarVisibility.side == .primary
+                            || sidebarVisibility.side == .secondary,
                         isFloatingSidebar: $showFloatingSidebar,
                         isFullscreen: $isFullscreen
                     )
@@ -165,7 +166,7 @@ struct BrowserView: View {
                 }
 
             // Floating sidebar overlay
-            if sidebarVisibility.side == .left || sidebarVisibility.side == .right {
+            if sidebarVisibility.side == .primary || sidebarVisibility.side == .secondary {
                 floatingSidebarOverlay()
             }
         }
@@ -178,7 +179,7 @@ struct BrowserView: View {
             toggleSidebarPosition()
         }
         .onChange(of: downloadManager.isDownloadsPopoverOpen) { _, isOpen in
-            if sidebarVisibility.side == .left || sidebarVisibility.side == .right {
+            if sidebarVisibility.side == .primary || sidebarVisibility.side == .secondary {
                 if isOpen {
                     showFloatingSidebar = true
                 } else if !isMouseOverSidebar {
