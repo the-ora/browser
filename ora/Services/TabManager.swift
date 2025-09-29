@@ -243,7 +243,7 @@ class TabManager: ObservableObject {
         downloadManager: DownloadManager? = nil,
         focusAfterOpening: Bool = true,
         isPrivate: Bool
-    ) {
+    ) -> Tab? {
         if let container = activeContainer {
             if let host = url.host {
                 let faviconURL = URL(string: "https://www.google.com/s2/favicons?domain=\(host)")
@@ -286,8 +286,10 @@ class TabManager: ObservableObject {
 
                 container.lastAccessedAt = Date()
                 try? modelContext.save()
+                return newTab
             }
         }
+        return nil
     }
 
     func reorderTabs(from: Tab, toTab: Tab) {
@@ -463,12 +465,15 @@ class TabManager: ObservableObject {
     func duplicateTab(_ tab: Tab) {
         // Create a new tab using the existing openTab method
         guard let historyManager = tab.historyManager else { return }
-        openTab(
+        guard let newTab = openTab(
             url: tab.url,
             historyManager: historyManager,
             downloadManager: tab.downloadManager,
             focusAfterOpening: false,
             isPrivate: tab.isPrivate
-        )
+        ) else { return }
+
+        // Position the duplicated tab immediately after the original tab
+        reorderTabs(from: newTab, toTab: tab)
     }
 }
