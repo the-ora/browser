@@ -11,6 +11,7 @@ struct HistoryView: View {
     @State private var selectedVisits: Set<UUID> = []
     @State private var isSelectMode = false
     @State private var showClearAllAlert = false
+    @State private var isHeaderHovered = false
 
     private var filteredVisits: [HistoryVisit] {
         guard let containerId = tabManager.activeContainer?.id else { return [] }
@@ -73,7 +74,7 @@ struct HistoryView: View {
                 // Header with search and controls
                 VStack(spacing: 16) {
                     HStack {
-                        Text("Browsing History")
+                        Text("History")
                             .font(.largeTitle)
                             .fontWeight(.bold)
 
@@ -81,33 +82,112 @@ struct HistoryView: View {
 
                         if !isSelectMode {
                             HStack(spacing: 12) {
-                                Button("Clear All") {
+                                // Clear All - styled as proper UI button
+                                Button(action: {
                                     showClearAllAlert = true
+                                }) {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "trash")
+                                            .font(.system(size: 12, weight: .medium))
+                                        Text("Clear All")
+                                            .font(.system(size: 13, weight: .medium))
+                                    }
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(Color.red.opacity(0.1))
+                                    .foregroundColor(.red)
+                                    .cornerRadius(6)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .stroke(Color.red.opacity(0.3), lineWidth: 1)
+                                    )
                                 }
-                                .foregroundColor(.red)
                                 .buttonStyle(.plain)
+                                .scaleEffect(isHeaderHovered ? 1.0 : 0.95)
+                                .opacity(isHeaderHovered ? 1.0 : 0.7)
+                                .animation(.easeInOut(duration: 0.2), value: isHeaderHovered)
 
-                                Button("Select") {
-                                    isSelectMode = true
+                                // Select - appears on hover
+                                if isHeaderHovered || isSelectMode {
+                                    Button(action: {
+                                        withAnimation(.easeInOut(duration: 0.2)) {
+                                            isSelectMode = true
+                                        }
+                                    }) {
+                                        HStack(spacing: 6) {
+                                            Image(systemName: "checkmark.circle")
+                                                .font(.system(size: 12, weight: .medium))
+                                            Text("Select")
+                                                .font(.system(size: 13, weight: .medium))
+                                        }
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(theme.accent.opacity(0.1))
+                                        .foregroundColor(theme.accent)
+                                        .cornerRadius(6)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 6)
+                                                .stroke(theme.accent.opacity(0.3), lineWidth: 1)
+                                        )
+                                    }
+                                    .buttonStyle(.plain)
+                                    .transition(.scale.combined(with: .opacity))
                                 }
-                                .buttonStyle(.plain)
                             }
                         } else {
-                            HStack {
-                                Button("Cancel") {
-                                    isSelectMode = false
-                                    selectedVisits.removeAll()
+                            HStack(spacing: 12) {
+                                Button(action: {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        isSelectMode = false
+                                        selectedVisits.removeAll()
+                                    }
+                                }) {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "xmark")
+                                            .font(.system(size: 12, weight: .medium))
+                                        Text("Cancel")
+                                            .font(.system(size: 13, weight: .medium))
+                                    }
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(Color.secondary.opacity(0.1))
+                                    .foregroundColor(.secondary)
+                                    .cornerRadius(6)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .stroke(Color.secondary.opacity(0.3), lineWidth: 1)
+                                    )
                                 }
                                 .buttonStyle(.plain)
 
                                 if !selectedVisits.isEmpty {
-                                    Button("Delete Selected (\(selectedVisits.count))") {
+                                    Button(action: {
                                         deleteSelectedVisits()
+                                    }) {
+                                        HStack(spacing: 6) {
+                                            Image(systemName: "trash")
+                                                .font(.system(size: 12, weight: .medium))
+                                            Text("Delete (\(selectedVisits.count))")
+                                                .font(.system(size: 13, weight: .medium))
+                                        }
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(Color.red.opacity(0.1))
+                                        .foregroundColor(.red)
+                                        .cornerRadius(6)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 6)
+                                                .stroke(Color.red.opacity(0.3), lineWidth: 1)
+                                        )
                                     }
-                                    .foregroundColor(.red)
                                     .buttonStyle(.plain)
                                 }
                             }
+                        }
+                    }
+                    .onHover { hovering in
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            isHeaderHovered = hovering
                         }
                     }
 
@@ -134,7 +214,7 @@ struct HistoryView: View {
                         Image(systemName: "clock")
                             .font(.system(size: 48))
                             .foregroundColor(.secondary)
-                        Text("No browsing history")
+                        Text("No history")
                             .font(.title2)
                             .foregroundColor(.secondary)
                         Text(searchText.isEmpty ? "Start browsing to see your history here" : "No results found")
@@ -153,6 +233,9 @@ struct HistoryView: View {
                                     selectedVisits: $selectedVisits,
                                     onVisitTap: { visit in
                                         openHistoryItem(visit)
+                                    },
+                                    onVisitDelete: { visit in
+                                        deleteSingleVisit(visit)
                                     }
                                 )
                             }
@@ -202,6 +285,10 @@ struct HistoryView: View {
             selectedVisits.removeAll()
         }
     }
+
+    private func deleteSingleVisit(_ visit: HistoryVisit) {
+        historyManager.deleteHistoryVisit(visit)
+    }
 }
 
 struct HistoryDateSection: View {
@@ -213,6 +300,7 @@ struct HistoryDateSection: View {
     let isSelectMode: Bool
     @Binding var selectedVisits: Set<UUID>
     let onVisitTap: (HistoryVisit) -> Void
+    let onVisitDelete: (HistoryVisit) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -245,6 +333,9 @@ struct HistoryDateSection: View {
                         } else {
                             onVisitTap(visit)
                         }
+                    },
+                    onDelete: {
+                        onVisitDelete(visit)
                     }
                 )
             }
@@ -261,6 +352,7 @@ struct HistoryVisitRow: View {
     let isSelectMode: Bool
     let isSelected: Bool
     let onTap: () -> Void
+    let onDelete: () -> Void
 
     private var timeFormatter: DateFormatter {
         let formatter = DateFormatter()
@@ -346,7 +438,7 @@ struct HistoryVisitRow: View {
             }
 
             Button("Delete This Visit") {
-                // TODO: Implement single visit deletion
+                onDelete()
             }
         }
     }

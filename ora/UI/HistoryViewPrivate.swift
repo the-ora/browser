@@ -8,7 +8,7 @@ struct HistoryViewPrivate: View {
             // Header
             VStack(spacing: 16) {
                 HStack {
-                    Text("Browsing History")
+                    Text("History")
                         .font(.largeTitle)
                         .fontWeight(.bold)
 
