@@ -461,82 +461,14 @@ class TabManager: ObservableObject {
     }
 
     func duplicateTab(_ tab: Tab) {
-        // Get all tabs of the same type, sorted by order (descending)
-        let sameTypeTabs = tab.container.tabs
-            .filter { $0.type == tab.type }
-            .sorted(by: { $0.order > $1.order })
-
-        // Find the position of the original tab using its unique ID
-        if let originalIndex = sameTypeTabs.firstIndex(where: { $0.id == tab.id }) {
-            // Debug: Print the order values to understand the current state
-            print("originalIndex: \(originalIndex)")
-            print("sameTypeTabs.count: \(sameTypeTabs.count)")
-            print("Original tab order: \(tab.order)")
-
-            // Print all tab orders for debugging
-            for (index, t) in sameTypeTabs.enumerated() {
-                print("Tab \(index): order = \(t.order)")
-            }
-
-            // Calculate the correct order for the duplicated tab
-            // Since tabs are sorted in descending order, we want to place it after the original
-            let duplicatedOrder: Int
-
-            if originalIndex < sameTypeTabs.count - 1 {
-                // There's a tab after the original, create a unique order between them
-                let nextTab = sameTypeTabs[originalIndex + 1]
-                // Create a value that's between tab.order and nextTab.order
-                if tab.order - nextTab.order > 1 {
-                    // There's a gap, use the midpoint
-                    duplicatedOrder = (tab.order + nextTab.order) / 2
-                    print("Using midpoint. Duplicated order: \(duplicatedOrder)")
-                } else {
-                    // They're consecutive, we need to shift all tabs after the original down by 1
-                    duplicatedOrder = tab.order - 1
-                    print("Tabs are consecutive, shifting subsequent tabs down. Duplicated order: \(duplicatedOrder)")
-
-                    // Shift all tabs after the original position down by 1
-                    for i in (originalIndex + 1) ..< sameTypeTabs.count {
-                        let tabToShift = sameTypeTabs[i]
-                        print("Shifting tab \(i) from order \(tabToShift.order) to \(tabToShift.order - 1)")
-                        tabToShift.order = tabToShift.order - 1
-                    }
-                }
-            } else {
-                // Original is the last tab, subtract 1
-                duplicatedOrder = tab.order - 1
-                print("Original is last, duplicated order: \(duplicatedOrder)")
-            }
-
-            // Create a new tab with the same properties as the original tab
-            let duplicatedTab = Tab(
-                url: tab.url,
-                title: tab.title,
-                favicon: tab.favicon,
-                container: tab.container,
-                type: tab.type,
-                isPlayingMedia: tab.isPlayingMedia,
-                order: duplicatedOrder,
-                historyManager: tab.historyManager,
-                downloadManager: tab.downloadManager,
-                tabManager: self,
-                isPrivate: tab.isPrivate
-            )
-
-            // Set up the navigation delegate for the duplicated tab
-            duplicatedTab.setupNavigationDelegate()
-
-            // Mark the web view as ready
-            duplicatedTab.isWebViewReady = true
-
-            // Add the duplicated tab to the container - let the order property determine position
-            tab.container.tabs.append(duplicatedTab)
-
-            // Save the context to persist the order
-            try? modelContext.save()
-
-            // Load the same URL as the original tab using the URL directly
-            duplicatedTab.webView.load(URLRequest(url: tab.url))
-        }
+        // Create a new tab using the existing openTab method
+        guard let historyManager = tab.historyManager else { return }
+        openTab(
+            url: tab.url,
+            historyManager: historyManager,
+            downloadManager: tab.downloadManager,
+            focusAfterOpening: false,
+            isPrivate: tab.isPrivate
+        )
     }
 }
