@@ -32,12 +32,12 @@ struct BrowserContentContainer<Content: View>: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .clipShape(
                 ConditionallyConcentricRectangle(
-                    cornerRadius: isFullscreen && hideState.side == .primary || hideState
-                        .side == .secondary ? 0 : sidebarCornerRadius
+                    cornerRadius: isFullscreen && hideState.side == .left || hideState
+                        .side == .right ? 0 : sidebarCornerRadius
                 )
             )
             .padding(
-                isFullscreen && (hideState.side == .primary || hideState.side == .secondary)
+                isFullscreen && (hideState.side == .left || hideState.side == .right)
                     ? EdgeInsets(
                         top: 0,
                         leading: 0,
@@ -46,9 +46,9 @@ struct BrowserContentContainer<Content: View>: View {
                     )
                     : EdgeInsets(
                         top: 6,
-                        leading: sidebarPosition != .left || hideState.side == .primary ? 6 : 0,
+                        leading: sidebarPosition != .left || hideState.side == .left ? 6 : 0,
                         bottom: 6,
-                        trailing: sidebarPosition != .right || hideState.side == .secondary ? 6 : 0
+                        trailing: sidebarPosition != .right || hideState.side == .right ? 6 : 0
                     )
             )
             .shadow(color: .black.opacity(0.15), radius: sidebarCornerRadius, x: 0, y: 2)

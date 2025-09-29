@@ -13,37 +13,105 @@ struct BrowserView: View {
     @EnvironmentObject private var downloadManager: DownloadManager
     @EnvironmentObject private var historyManager: HistoryManager
     @EnvironmentObject private var privacyMode: PrivacyMode
+
     @State private var isFullscreen = false
     @State private var showFloatingSidebar = false
     @State private var isMouseOverSidebar = false
-    @StateObject private var sidebarFraction = FractionHolder.usingUserDefaults(0.2, key: "ui.sidebar.fraction")
-    @State private var sidebarPosition: SidebarPosition = .right
+
+    @StateObject private var sidebarFraction =
+        FractionHolder.usingUserDefaults(0.2, key: "ui.sidebar.fraction")
+
+    @State private var sidebarPosition: SidebarPosition = .left
     @StateObject var sidebarVisibility = SideHolder()
+
+    // MARK: - Derived state
+
+    private var targetSide: SplitSide {
+        sidebarPosition == .left ? .left : .right
+    }
+
+    private var isSidebarHidden: Bool {
+        sidebarVisibility.side == targetSide
+    }
+
+    private var fractionValue: CGFloat {
+        sidebarPosition == .left ? 0.2 : 0.8
+    }
+
+    private var minPF: CGFloat {
+        sidebarPosition == .left ? 0.16 : 0.7
+    }
+
+    private var minSF: CGFloat {
+        sidebarPosition == .left ? 0.7 : 0.16
+    }
+
+    private var prioritySide: SplitSide {
+        sidebarPosition == .left ? .left : .right
+    }
+
+    private var dragToHidePFlag: Bool {
+        sidebarPosition == .left
+    }
+
+    private var dragToHideSFlag: Bool {
+        sidebarPosition == .right
+    }
+
+    // MARK: - Actions
 
     private func toggleSidebar() {
         withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
-            sidebarVisibility.toggle(sidebarPosition == .left ? .primary : .secondary)
+            sidebarVisibility.side =
+                (sidebarVisibility.side == targetSide) ? nil : targetSide
         }
     }
 
     private func toggleSidebarPosition() {
-        withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
-            sidebarPosition = sidebarPosition == .left ? .right : .left
+        let wasHidden = isSidebarHidden
+        sidebarPosition = (sidebarPosition == .left) ? .right : .left
+        if wasHidden {
+            sidebarVisibility.side = targetSide
+        }
+    }
+
+    // MARK: - Pane Builders
+
+    @ViewBuilder
+    private func leftPane() -> some View {
+        if sidebarPosition == .left {
+            if sidebarVisibility.side == .left {
+                contentView()
+            } else {
+                SidebarView(isFullscreen: isFullscreen)
+            }
+        } else {
+            contentView()
         }
     }
 
     @ViewBuilder
-    private func contentView(for side: SidebarPosition) -> some View {
+    private func rightPane() -> some View {
+        if sidebarPosition == .right {
+            if sidebarVisibility.side == .right {
+                contentView()
+            } else {
+                SidebarView(isFullscreen: isFullscreen)
+            }
+        } else {
+            contentView()
+        }
+    }
+
+    @ViewBuilder
+    private func contentView() -> some View {
         if tabManager.activeTab != nil {
             BrowserContentContainer(
                 isFullscreen: isFullscreen,
                 hideState: sidebarVisibility,
                 sidebarPosition: sidebarPosition
-            ) {
-                webView
-            }
+            ) { webView }
         } else {
-            // Start page (visible when no tab is active)
             BrowserContentContainer(
                 isFullscreen: isFullscreen,
                 hideState: sidebarVisibility,
@@ -54,125 +122,51 @@ struct BrowserView: View {
         }
     }
 
-    @ViewBuilder
-    private func splitViewContent(for side: SidebarPosition, isSidebarSide: Bool) -> some View {
-        if isSidebarSide {
-            SidebarView(isFullscreen: isFullscreen)
-        } else {
-            contentView(for: side)
-        }
-    }
+    // MARK: - Body
 
     var body: some View {
         ZStack(alignment: .leading) {
-            HSplit(
-                left: {
-                    splitViewContent(for: .left, isSidebarSide: sidebarPosition == .left)
-                },
-                right: {
-                    splitViewContent(for: .right, isSidebarSide: sidebarPosition == .right)
-                }
-            )
-            .hide(sidebarVisibility)
-            .splitter { Splitter.invisible() }
-            .fraction(sidebarFraction)
-            .constraints(
-                minPFraction: sidebarPosition == .left ? 0.16 : 0.7,
-                minSFraction: sidebarPosition == .left ? 0.7 : 0.16,
-                priority: sidebarPosition == .left ? .left : .right,
-                dragToHideP: sidebarPosition == .left,
-                dragToHideS: sidebarPosition == .right
-            )
-            // In autohide mode, remove any draggable splitter area to unhide
-            .styling(hideSplitter: true)
-            .ignoresSafeArea(.all)
-            .background(theme.subtleWindowBackgroundColor)
-            .background(
-                BlurEffectView(
-                    material: .underWindowBackground,
-                    blendingMode: .behindWindow
-                ).ignoresSafeArea(.all)
-            )
-            .background(
-                WindowAccessor(
-                    isSidebarHidden: sidebarVisibility.side == .primary || sidebarVisibility.side == .secondary,
-                    isFloatingSidebar: $showFloatingSidebar,
-                    isFullscreen: $isFullscreen
+            HSplit(left: { leftPane() }, right: { rightPane() })
+                .hide(sidebarVisibility)
+                .splitter { Splitter.invisible() }
+                .fraction(fractionValue)
+                .constraints(
+                    minPFraction: minPF,
+                    minSFraction: minSF,
+                    priority: prioritySide,
+                    dragToHideP: dragToHidePFlag,
+                    dragToHideS: dragToHideSFlag
                 )
-                .id("showFloatingSidebar = \(showFloatingSidebar)") // Forces WindowAccessor to update (for Traffic
-                // Lights)
-            )
-            .overlay {
-                if appState.showLauncher, tabManager.activeTab != nil {
-                    LauncherView()
-                }
-
-                if appState.isFloatingTabSwitchVisible {
-                    FloatingTabSwitcher()
-                }
-            }
-
-            if sidebarVisibility.side == .primary || sidebarVisibility.side == .secondary {
-                // Floating sidebar with resizable width based on persisted fraction
-                GeometryReader { geo in
-                    let totalWidth = geo.size.width
-                    let minFraction: CGFloat = 0.16
-                    let maxFraction: CGFloat = 0.30
-                    let clampedFraction = min(max(sidebarFraction.value, minFraction), maxFraction)
-                    let floatingWidth = max(0, min(totalWidth * clampedFraction, totalWidth))
-                    ZStack(alignment: .leading) {
-                        if showFloatingSidebar {
-                            FloatingSidebar(isFullscreen: isFullscreen)
-                                .frame(width: floatingWidth)
-                                .transition(.move(edge: .leading))
-                                .overlay(alignment: .trailing) {
-                                    // Invisible resize handle to adjust width in autohide mode
-                                    Rectangle()
-                                        .fill(Color.clear)
-                                        .frame(width: 14)
-                                    #if targetEnvironment(macCatalyst) || os(macOS)
-                                        .cursor(NSCursor.resizeLeftRight)
-                                    #endif
-                                        .contentShape(Rectangle())
-                                        .gesture(
-                                            DragGesture()
-                                                .onChanged { value in
-                                                    let proposedWidth = max(
-                                                        0,
-                                                        min(floatingWidth + value.translation.width, totalWidth)
-                                                    )
-                                                    let newFraction = proposedWidth / max(totalWidth, 1)
-                                                    // Clamp to same constraints as HSplit
-                                                    sidebarFraction.value = min(
-                                                        max(newFraction, minFraction),
-                                                        maxFraction
-                                                    )
-                                                }
-                                        )
-                                }
-                                .zIndex(3)
-                        }
-                        // Hover tracking strip to show/hide floating sidebar
-                        Color.clear
-                            .frame(width: showFloatingSidebar ? floatingWidth : 10)
-                            .overlay(
-                                MouseTrackingArea(
-                                    mouseEntered: Binding(
-                                        get: { showFloatingSidebar },
-                                        set: { newValue in
-                                            isMouseOverSidebar = newValue
-                                            // Don't hide sidebar if downloads popover is open
-                                            if !newValue, downloadManager.isDownloadsPopoverOpen {
-                                                return
-                                            }
-                                            showFloatingSidebar = newValue
-                                        }
-                                    )
-                                )
-                            )
-                            .zIndex(2)
+                .styling(hideSplitter: true)
+                .ignoresSafeArea(.all)
+                .background(theme.subtleWindowBackgroundColor)
+                .background(
+                    BlurEffectView(
+                        material: .underWindowBackground,
+                        blendingMode: .behindWindow
+                    ).ignoresSafeArea(.all)
+                )
+                .background(
+                    WindowAccessor(
+                        isSidebarHidden: sidebarVisibility.side == .left
+                            || sidebarVisibility.side == .right,
+                        isFloatingSidebar: $showFloatingSidebar,
+                        isFullscreen: $isFullscreen
+                    )
+                    .id("showFloatingSidebar = \(showFloatingSidebar)")
+                )
+                .overlay {
+                    if appState.showLauncher, tabManager.activeTab != nil {
+                        LauncherView()
+                    }
+                    if appState.isFloatingTabSwitchVisible {
+                        FloatingTabSwitcher()
                     }
                 }
+
+            // Floating sidebar overlay
+            if sidebarVisibility.side == .left || sidebarVisibility.side == .right {
+                floatingSidebarOverlay()
             }
         }
         .edgesIgnoringSafeArea(.all)
@@ -183,19 +177,16 @@ struct BrowserView: View {
         .onReceive(NotificationCenter.default.publisher(for: .toggleSidebarPosition)) { _ in
             toggleSidebarPosition()
         }
-        .onChange(of: downloadManager.isDownloadsPopoverOpen) { isOpen in
-            if sidebarVisibility.side == .primary {
+        .onChange(of: downloadManager.isDownloadsPopoverOpen) { _, isOpen in
+            if sidebarVisibility.side == .left || sidebarVisibility.side == .right {
                 if isOpen {
-                    // Keep sidebar visible while downloads popover is open
                     showFloatingSidebar = true
                 } else if !isMouseOverSidebar {
-                    // Hide sidebar when popover closes and mouse is not over sidebar
                     showFloatingSidebar = false
                 }
             }
         }
-        .onChange(of: tabManager.activeTab) { newTab in
-            // Restore tab state when switching tabs via keyboard shortcut
+        .onChange(of: tabManager.activeTab) { _, newTab in
             if let tab = newTab, !tab.isWebViewReady {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
                     tab.restoreTransientState(
@@ -208,6 +199,75 @@ struct BrowserView: View {
             }
         }
     }
+
+    // MARK: - Floating Sidebar
+
+    @ViewBuilder
+    private func floatingSidebarOverlay() -> some View {
+        GeometryReader { geo in
+            let totalWidth = geo.size.width
+            let minFraction: CGFloat = 0.16
+            let maxFraction: CGFloat = 0.30
+            let clampedFraction =
+                min(max(sidebarFraction.value, minFraction), maxFraction)
+            let floatingWidth = max(0, min(totalWidth * clampedFraction, totalWidth))
+
+            ZStack(alignment: .leading) {
+                if showFloatingSidebar {
+                    FloatingSidebar(isFullscreen: isFullscreen)
+                        .frame(width: floatingWidth)
+                        .transition(.move(edge: .leading))
+                        .overlay(alignment: .trailing) {
+                            Rectangle()
+                                .fill(Color.clear)
+                                .frame(width: 14)
+                            #if targetEnvironment(macCatalyst) || os(macOS)
+                                .cursor(NSCursor.resizeLeftRight)
+                            #endif
+                                .contentShape(Rectangle())
+                                .gesture(
+                                    DragGesture()
+                                        .onChanged { value in
+                                            let proposedWidth = max(
+                                                0,
+                                                min(
+                                                    floatingWidth + value.translation.width,
+                                                    totalWidth
+                                                )
+                                            )
+                                            let newFraction =
+                                                proposedWidth / max(totalWidth, 1)
+                                            sidebarFraction.value =
+                                                min(max(newFraction, minFraction), maxFraction)
+                                        }
+                                )
+                        }
+                        .zIndex(3)
+                }
+
+                // Hover strip
+                Color.clear
+                    .frame(width: showFloatingSidebar ? floatingWidth : 10)
+                    .overlay(
+                        MouseTrackingArea(
+                            mouseEntered: Binding(
+                                get: { showFloatingSidebar },
+                                set: { newValue in
+                                    isMouseOverSidebar = newValue
+                                    if !newValue, downloadManager.isDownloadsPopoverOpen {
+                                        return
+                                    }
+                                    showFloatingSidebar = newValue
+                                }
+                            )
+                        )
+                    )
+                    .zIndex(2)
+            }
+        }
+    }
+
+    // MARK: - WebView content
 
     @ViewBuilder
     private var webView: some View {
@@ -222,26 +282,23 @@ struct BrowserView: View {
                     removal: .push(from: .bottom)
                 ))
             }
+
             if let tab = tabManager.activeTab {
                 if tab.isWebViewReady {
                     if tab.hasNavigationError, let error = tab.navigationError {
                         StatusPageView(
                             error: error,
                             failedURL: tab.failedURL,
-                            onRetry: {
-                                tab.retryNavigation()
-                            },
-                            onGoBack: tab.webView.canGoBack
-                                ? {
-                                    tab.webView.goBack()
-                                    tab.clearNavigationError()
-                                } : nil
+                            onRetry: { tab.retryNavigation() },
+                            onGoBack: tab.webView.canGoBack ? {
+                                tab.webView.goBack()
+                                tab.clearNavigationError()
+                            } : nil
                         )
                         .id(tab.id)
                     } else {
                         ZStack(alignment: .topTrailing) {
-                            WebView(webView: tab.webView)
-                                .id(tab.id)
+                            WebView(webView: tab.webView).id(tab.id)
 
                             if appState.showFinderIn == tab.id {
                                 FindView(webView: tab.webView)
@@ -257,12 +314,10 @@ struct BrowserView: View {
                     }
                 } else {
                     ZStack {
-                        Rectangle()
-                            .fill(theme.background)
-
+                        Rectangle().fill(theme.background)
                         ProgressView().frame(width: 32, height: 32)
-
-                    }.frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
         }
