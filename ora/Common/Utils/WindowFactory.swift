@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 enum WindowFactory {
-    static func makeMainWindow(rootView: some View = OraRoot(), size: CGSize = CGSize(width: 1440, height: 900)) -> NSWindow {
+    static func makeMainWindow(rootView: some View, size: CGSize = CGSize(width: 1440, height: 900)) -> NSWindow {
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: size.width, height: size.height),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
