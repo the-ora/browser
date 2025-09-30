@@ -49,6 +49,11 @@ targets:
         SUFeedURL: "https://the-ora.github.io/browser/appcast.xml"
         SUPublicEDKey: "Ozj+rezzbJAD76RfajtfQ7rFojJbpFSCl/0DcFSBCTI="
         SUEnableAutomaticChecks: YES
+        CFBundleURLTypes:
+          - CFBundleURLName: Ora Browser
+            CFBundleURLSchemes:
+              - http
+              - https
         
     entitlements:
       path: ora/ora.entitlements

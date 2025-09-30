@@ -29,16 +29,19 @@ struct GeneralSettingsView: View {
                     .padding(12)
                     .background(theme.solidWindowBackgroundColor)
                     .cornerRadius(8)
-
-                    HStack {
-                        Text("Born for your Mac. Make Ora your default browser.")
-                        Spacer()
-                        Button("Set Ora as default") { openDefaultBrowserSettings() }
+                    
+                    if !DefaultBrowserManager.isDefault {
+                        
+                        HStack {
+                            Text("Born for your Mac. Make Ora your default browser.")
+                            Spacer()
+                            Button("Set Ora as default") { DefaultBrowserManager.requestSetAsDefault() }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(8)
+                        .background(theme.solidWindowBackgroundColor)
+                        .cornerRadius(8)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(8)
-                    .background(theme.solidWindowBackgroundColor)
-                    .cornerRadius(8)
 
                     AppearanceSelector(selection: $appearanceManager.appearance)
 
@@ -92,15 +95,6 @@ struct GeneralSettingsView: View {
                 }
             }
         }
-    }
-
-    private func openDefaultBrowserSettings() {
-        guard
-            let url = URL(
-                string: "x-apple.systempreferences:com.apple.preference.general?DefaultWebBrowser"
-            )
-        else { return }
-        NSWorkspace.shared.open(url)
     }
 
     private func getAppVersion() -> String {
