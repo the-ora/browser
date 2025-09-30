@@ -70,23 +70,4 @@ struct TabDropDelegate: DropDelegate {
         draggedItem = nil
         return true
     }
-
-    private func isInSameSection(from: Tab, to: Tab) -> Bool {
-        return from.type == to.type
-    }
-
-    private func moveTabBetweenSections(from: Tab, to: Tab) {
-        // Change the tab type to match the target section
-        from.type = to.type
-
-        // If moving to pinned or fav, save the URL
-        if to.type == .pinned || to.type == .fav {
-            from.savedURL = from.url
-        } else {
-            from.savedURL = nil
-        }
-
-        // Reorder the tabs in the new section
-        from.container.reorderTabs(from: from, to: to)
-    }
 }
