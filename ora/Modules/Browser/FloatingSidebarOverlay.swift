@@ -3,7 +3,8 @@ import SwiftUI
 struct FloatingSidebarOverlay: View {
     @Binding var showFloatingSidebar: Bool
     @Binding var isMouseOverSidebar: Bool
-    @ObservedObject var sidebarFraction: FractionHolder
+    var sidebarFraction: FractionHolder
+    let sidebarPosition: SidebarPosition
     let isFullscreen: Bool
     let isDownloadsPopoverOpen: Bool
 
@@ -21,15 +22,22 @@ struct FloatingSidebarOverlay: View {
                 0, min(totalWidth * clampedFraction, totalWidth)
             )
 
-            ZStack(alignment: .leading) {
+            ZStack(alignment: sidebarPosition == .primary ? .leading : .trailing) {
                 if showFloatingSidebar {
                     FloatingSidebar(isFullscreen: isFullscreen)
                         .frame(width: floatingWidth)
-                        .transition(.move(edge: .leading))
-                        .overlay(alignment: .trailing) {
+                        .transition(
+                            .move(
+                                edge: sidebarPosition == .primary ? .leading : .trailing
+                            )
+                        )
+                        .overlay(
+                            alignment: sidebarPosition == .primary ? .trailing : .leading
+                        ) {
                             ResizeHandle(
                                 dragFraction: $dragFraction,
                                 sidebarFraction: sidebarFraction,
+                                sidebarPosition: sidebarPosition,
                                 floatingWidth: floatingWidth,
                                 totalWidth: totalWidth,
                                 minFraction: minFraction,
@@ -39,31 +47,47 @@ struct FloatingSidebarOverlay: View {
                         .zIndex(3)
                 }
 
-                Color.clear
-                    .frame(width: showFloatingSidebar ? floatingWidth : 10)
-                    .overlay(
-                        MouseTrackingArea(
-                            mouseEntered: Binding(
-                                get: { showFloatingSidebar },
-                                set: { newValue in
-                                    isMouseOverSidebar = newValue
-                                    if !newValue, isDownloadsPopoverOpen {
-                                        return
-                                    }
-                                    showFloatingSidebar = newValue
-                                }
-                            )
-                        )
-                    )
-                    .zIndex(2)
+                // Hover strip - positioned at the edge
+                HStack(spacing: 0) {
+                    if sidebarPosition == .primary {
+                        hoverStrip(width: showFloatingSidebar ? floatingWidth : 10)
+                        Spacer()
+                    } else {
+                        Spacer()
+                        hoverStrip(width: showFloatingSidebar ? floatingWidth : 10)
+                    }
+                }
+                .zIndex(2)
             }
         }
+    }
+
+    @ViewBuilder
+    private func hoverStrip(width: CGFloat) -> some View {
+        Color.clear
+            .frame(width: width)
+            .overlay(
+                SidebarMouseTrackingArea(
+                    mouseEntered: Binding(
+                        get: { showFloatingSidebar },
+                        set: { newValue in
+                            isMouseOverSidebar = newValue
+                            if !newValue, isDownloadsPopoverOpen {
+                                return
+                            }
+                            showFloatingSidebar = newValue
+                        }
+                    ),
+                    sidebarPosition: sidebarPosition
+                )
+            )
     }
 }
 
 private struct ResizeHandle: View {
     @Binding var dragFraction: CGFloat?
     var sidebarFraction: FractionHolder
+    let sidebarPosition: SidebarPosition
     let floatingWidth: CGFloat
     let totalWidth: CGFloat
     let minFraction: CGFloat
@@ -80,12 +104,13 @@ private struct ResizeHandle: View {
             .gesture(
                 DragGesture()
                     .onChanged { value in
+                        let translation = sidebarPosition == .primary
+                            ? value.translation.width
+                            : -value.translation.width
+
                         let proposedWidth = max(
                             0,
-                            min(
-                                floatingWidth + value.translation.width,
-                                totalWidth
-                            )
+                            min(floatingWidth + translation, totalWidth)
                         )
                         let newFraction = proposedWidth / max(totalWidth, 1)
                         dragFraction = min(

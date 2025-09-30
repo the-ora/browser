@@ -60,6 +60,7 @@ struct BrowserView: View {
                     showFloatingSidebar: $showFloatingSidebar,
                     isMouseOverSidebar: $isMouseOverSidebar,
                     sidebarFraction: currentFraction,
+                    sidebarPosition: sidebarPosition,
                     isFullscreen: isFullscreen,
                     isDownloadsPopoverOpen: downloadManager.isDownloadsPopoverOpen
                 )
