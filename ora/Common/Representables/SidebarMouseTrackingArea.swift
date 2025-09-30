@@ -1,12 +1,12 @@
 import SwiftUI
 
-struct MouseTrackingArea: NSViewRepresentable {
+struct SidebarMouseTrackingArea: NSViewRepresentable {
     @Binding var mouseEntered: Bool
+    var sidebarPosition: SidebarPosition = .primary
 
     func makeNSView(context: Context) -> NSView {
-        let view = TrackingStrip()
+        let view = TrackingStrip(sidebarPosition: sidebarPosition)
 
-        /// No Need To Pass We Can handle it nicely with closures
         view.onHoverChange = { hovering in
             self.mouseEntered = hovering
         }
@@ -14,17 +14,22 @@ struct MouseTrackingArea: NSViewRepresentable {
         return view
     }
 
-    func updateNSView(_ nsView: NSView, context: Context) {}
+    func updateNSView(_ nsView: NSView, context: Context) {
+        if let strip = nsView as? TrackingStrip {
+            strip.sidebarPosition = sidebarPosition
+        }
+    }
 }
 
 private final class TrackingStrip: NSView {
+    var sidebarPosition: SidebarPosition = .primary
+
     #if DEBUG
         private var debugWindow: NSWindow?
         func showDebugOverlay(for screenRect: NSRect) {
             debugWindow?.orderOut(nil)
             debugWindow = nil
 
-            /// Make a borderless, transparent window at the rect
             let win = NSWindow(
                 contentRect: screenRect,
                 styleMask: [.borderless],
@@ -36,7 +41,6 @@ private final class TrackingStrip: NSView {
             win.hasShadow = false
             win.level = .statusBar
 
-            /// colored view
             let overlay = NSView(frame: win.contentView!.bounds)
             overlay.wantsLayer = true
             overlay.layer?.backgroundColor = NSColor.systemGreen.withAlphaComponent(0.2).cgColor
@@ -53,7 +57,8 @@ private final class TrackingStrip: NSView {
 
     private var hoverTracker: HoverTracker?
 
-    init() {
+    init(sidebarPosition: SidebarPosition = .primary) {
+        self.sidebarPosition = sidebarPosition
         super.init(frame: .zero)
         self.hoverTracker = HoverTracker(view: self)
     }
@@ -83,7 +88,7 @@ private final class TrackingStrip: NSView {
     }
 
     class HoverTracker {
-        typealias LocalMonitorToken  = Any
+        typealias LocalMonitorToken = Any
 
         private var localMonitor: LocalMonitorToken?
 
@@ -92,13 +97,10 @@ private final class TrackingStrip: NSView {
 
         weak var view: TrackingStrip?
 
-        /// Maybe Configurable inside settings or tuned to liking?
         let padding: CGFloat = 40
-        let verticalSlack: CGFloat = 8    // extra Y tolerance
+        let verticalSlack: CGFloat = 8
 
-        init(
-            view: TrackingStrip? = nil
-        ) {
+        init(view: TrackingStrip? = nil) {
             self.view = view
         }
 
@@ -112,38 +114,41 @@ private final class TrackingStrip: NSView {
                 guard let view = self.view else { return }
                 guard let window = view.window else { return }
 
-                /// Global Screen Coordinates
                 let mouse = NSEvent.mouseLocation
-
-                /// This is where the view is
-                let screenRect = window.convertToScreen(view.convert(view.bounds, to: nil))
-
-                /*
-                 Maybe wanna let a bit of the left allow the sidebar to show:
-                 Move offset +
-                 Also Make baseWidth negation something larger
-                 */
-                /// If we are showing the sidebar THEN we grow the size
-                let baseWidth: CGFloat = armed ? padding : 0
-                /// - goes to right, + goes to left, I like -1
-                let offset: CGFloat = -1
-
-                let leftBand = NSRect(
-                    x: screenRect.minX - offset - baseWidth,
-                    y: screenRect.minY - verticalSlack,
-                    width: baseWidth,
-                    height: screenRect.height + 2 * verticalSlack
+                let screenRect = window.convertToScreen(
+                    view.convert(view.bounds, to: nil)
                 )
 
-                let insideBase  = screenRect.contains(mouse)
-                let inLeftBand  = leftBand.contains(mouse)
+                let baseWidth: CGFloat = armed ? padding : 0
+                let offset: CGFloat = -1
 
-                let effective   = insideBase || inLeftBand
+                // Create band based on sidebar position
+                let band = if view.sidebarPosition == .primary {
+                    // Left side band
+                    NSRect(
+                        x: screenRect.minX - offset - baseWidth,
+                        y: screenRect.minY - verticalSlack,
+                        width: baseWidth,
+                        height: screenRect.height + 2 * verticalSlack
+                    )
+                } else {
+                    // Right side band
+                    NSRect(
+                        x: screenRect.maxX + offset,
+                        y: screenRect.minY - verticalSlack,
+                        width: baseWidth,
+                        height: screenRect.height + 2 * verticalSlack
+                    )
+                }
+
+                let insideBase = screenRect.contains(mouse)
+                let inBand = band.contains(mouse)
+
+                let effective = insideBase || inBand
 
 //                #if DEBUG
-//                /// UNCOMMENT IF WANNA SEE RECT GETTING HIDDEN/SHOWN
 //                DispatchQueue.main.async {
-//                    view.showDebugOverlay(for: leftBand)
+//                    view.showDebugOverlay(for: band)
 //                }
 //                #endif
 
@@ -155,7 +160,10 @@ private final class TrackingStrip: NSView {
                 }
             }
 
-            localMonitor  = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) { event in handler(event)
+            localMonitor = NSEvent.addLocalMonitorForEvents(
+                matching: [.mouseMoved]
+            ) { event in
+                handler(event)
                 return event
             }
         }

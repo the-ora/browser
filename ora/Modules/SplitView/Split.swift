@@ -109,7 +109,7 @@ public struct Split<P: View, D: SplitDivider, S: View>: View {
             }
             .clipped()  // Can cause problems in some List styles if not clipped
             .environmentObject(layout)
-            // .onChange(of: fraction.value) { _, new in constrainedFraction = new }
+            .onChange(of: fraction.value) { _, new in constrainedFraction = new }
         }
     }
 
