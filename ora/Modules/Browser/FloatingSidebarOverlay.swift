@@ -16,24 +16,15 @@ struct FloatingSidebarOverlay: View {
             let minFraction: CGFloat = 0.16
             let maxFraction: CGFloat = 0.30
             let currentFraction = dragFraction ?? sidebarFraction.value
-            let clampedFraction =
-                min(max(currentFraction, minFraction), maxFraction)
-            let floatingWidth = max(
-                0, min(totalWidth * clampedFraction, totalWidth)
-            )
+            let clampedFraction = min(max(currentFraction, minFraction), maxFraction)
+            let floatingWidth = max(0, min(totalWidth * clampedFraction, totalWidth))
 
             ZStack(alignment: sidebarPosition == .primary ? .leading : .trailing) {
                 if showFloatingSidebar {
-                    FloatingSidebar(isFullscreen: isFullscreen)
+                    FloatingSidebar(isFullscreen: isFullscreen, sidebarPosition: sidebarPosition)
                         .frame(width: floatingWidth)
-                        .transition(
-                            .move(
-                                edge: sidebarPosition == .primary ? .leading : .trailing
-                            )
-                        )
-                        .overlay(
-                            alignment: sidebarPosition == .primary ? .trailing : .leading
-                        ) {
+                        .transition(.move(edge: sidebarPosition == .primary ? .leading : .trailing))
+                        .overlay(alignment: sidebarPosition == .primary ? .trailing : .leading) {
                             ResizeHandle(
                                 dragFraction: $dragFraction,
                                 sidebarFraction: sidebarFraction,
@@ -47,7 +38,6 @@ struct FloatingSidebarOverlay: View {
                         .zIndex(3)
                 }
 
-                // Hover strip - positioned at the edge
                 HStack(spacing: 0) {
                     if sidebarPosition == .primary {
                         hoverStrip(width: showFloatingSidebar ? floatingWidth : 10)
@@ -104,18 +94,14 @@ private struct ResizeHandle: View {
             .gesture(
                 DragGesture()
                     .onChanged { value in
-                        let translation = sidebarPosition == .primary
-                            ? value.translation.width
-                            : -value.translation.width
+                        let proposedWidth: CGFloat = if sidebarPosition == .primary {
+                            max(0, min(floatingWidth + value.translation.width, totalWidth))
+                        } else {
+                            max(0, min(floatingWidth - value.translation.width, totalWidth))
+                        }
 
-                        let proposedWidth = max(
-                            0,
-                            min(floatingWidth + translation, totalWidth)
-                        )
                         let newFraction = proposedWidth / max(totalWidth, 1)
-                        dragFraction = min(
-                            max(newFraction, minFraction), maxFraction
-                        )
+                        dragFraction = min(max(newFraction, minFraction), maxFraction)
                     }
                     .onEnded { _ in
                         if let fraction = dragFraction {

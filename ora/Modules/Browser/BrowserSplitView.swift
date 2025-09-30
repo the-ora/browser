@@ -18,8 +18,10 @@ struct BrowserSplitView: View {
         sidebarPosition == .primary ? .primary : .secondary
     }
 
-    private var fractionValue: CGFloat {
-        sidebarPosition == .primary ? sidebarFraction.value : 0.8
+    private var splitFraction: FractionHolder {
+        sidebarPosition == .primary
+            ? sidebarFraction
+            : sidebarFraction.inverted()
     }
 
     private var minPF: CGFloat {
@@ -46,7 +48,7 @@ struct BrowserSplitView: View {
         HSplit(left: { primaryPane() }, right: { secondaryPane() })
             .hide(sidebarVisibility)
             .splitter { Splitter.invisible() }
-            .fraction(sidebarFraction)
+            .fraction(splitFraction)
             .constraints(
                 minPFraction: minPF,
                 minSFraction: minSF,
