@@ -20,7 +20,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             any.makeKeyAndOrderFront(nil)
             return any
         }
-        return WindowFactory.makeMainWindow()
+        return WindowFactory.makeMainWindow(rootView: OraRoot())
     }
     func handleIncomingURLs(_ urls: [URL]) {
         let window = getWindow()!
