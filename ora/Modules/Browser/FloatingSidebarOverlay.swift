@@ -57,7 +57,7 @@ struct FloatingSidebarOverlay: View {
         Color.clear
             .frame(width: width)
             .overlay(
-                SidebarMouseTrackingArea(
+                GlobalMouseTrackingArea(
                     mouseEntered: Binding(
                         get: { showFloatingSidebar },
                         set: { newValue in
@@ -68,7 +68,9 @@ struct FloatingSidebarOverlay: View {
                             showFloatingSidebar = newValue
                         }
                     ),
-                    sidebarPosition: sidebarPosition
+                    edge: sidebarPosition == .primary ? .left : .right,
+                    padding: 40,
+                    slack: 8
                 )
             )
     }

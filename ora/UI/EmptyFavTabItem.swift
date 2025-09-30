@@ -4,6 +4,8 @@ struct EmptyFavTabItem: View {
     @Environment(\.theme) var theme
     @State private var isTargeted = false
 
+    let cornerRadius: CGFloat = 8
+
     var body: some View {
         VStack(spacing: 8) {
             Image(systemName: "star")
@@ -18,9 +20,9 @@ struct EmptyFavTabItem: View {
         .frame(maxWidth: .infinity, alignment: .center)
         .frame(height: 96)
         .background(theme.invertedSolidWindowBackgroundColor.opacity(0.07))
-        .cornerRadius(10)
+        .cornerRadius(cornerRadius)
         .overlay(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
+            ConditionallyConcentricRectangle(cornerRadius: cornerRadius)
                 .stroke(
                     theme.invertedSolidWindowBackgroundColor.opacity(0.25),
                     style: StrokeStyle(lineWidth: 1, dash: [5, 5])
