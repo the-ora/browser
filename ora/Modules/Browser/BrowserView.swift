@@ -16,12 +16,11 @@ struct BrowserView: View {
     @EnvironmentObject private var privacyMode: PrivacyMode
 
     @State private var isFullscreen = false
-    @State private var showFloatingSidebar = false
     @State private var isMouseOverSidebar = false
-
-    @StateObject private var sidebarFraction = FractionHolder.usingUserDefaults(0.2, key: "ui.sidebar.fraction")
+    @State private var showFloatingSidebar = false
     @State private var sidebarPosition: SidebarPosition = .primary
-    @StateObject private var sidebarVisibility = SideHolder.usingUserDefaults(key: "ui.sidebar.visibility")
+    @State private var sidebarFraction = FractionHolder.usingUserDefaults(0.2, key: "ui.sidebar.fraction")
+    @State private var sidebarVisibility = SideHolder.usingUserDefaults(key: "ui.sidebar.visibility")
 
     // MARK: - Derived state
 
@@ -84,10 +83,10 @@ struct BrowserView: View {
     @ViewBuilder
     private func primaryPane() -> some View {
         if sidebarPosition == .primary {
-            if sidebarVisibility.side == .primary {
+            if sidebarVisibility.side == .secondary {
                 contentView()
             } else {
-                SidebarView(isFullscreen: isFullscreen)
+                SidebarView(isFullscreen: isFullscreen, sidebarPosition: .primary)
             }
         } else {
             contentView()
@@ -97,10 +96,10 @@ struct BrowserView: View {
     @ViewBuilder
     private func secondaryPane() -> some View {
         if sidebarPosition == .secondary {
-            if sidebarVisibility.side == .secondary {
+            if sidebarVisibility.side == .primary {
                 contentView()
             } else {
-                SidebarView(isFullscreen: isFullscreen)
+                SidebarView(isFullscreen: isFullscreen, sidebarPosition: .secondary)
             }
         } else {
             contentView()

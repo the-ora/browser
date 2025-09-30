@@ -10,11 +10,15 @@ struct SidebarView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var privacyMode: PrivacyMode
     @EnvironmentObject var media: MediaController
+
     @Query var containers: [TabContainer]
-    @Query(filter: nil, sort: [.init(\History.lastAccessedAt, order: .reverse)]) var histories:
-        [History]
+    @Query(filter: nil, sort: [.init(\History.lastAccessedAt, order: .reverse)])
+    var histories: [History]
+
     private let columns = Array(repeating: GridItem(spacing: 10), count: 3)
+
     let isFullscreen: Bool
+    var sidebarPosition: SidebarPosition = .primary
 
     private var shouldShowMediaWidget: Bool {
         let activeId = tabManager.activeTab?.id
@@ -28,8 +32,10 @@ struct SidebarView: View {
     private var selectedContainerIndex: Binding<Int> {
         Binding(
             get: {
-                guard let activeContainer = tabManager.activeContainer else { return 0 }
-                return containers.firstIndex(where: { $0.id == activeContainer.id }) ?? 0
+                guard let activeContainer = tabManager.activeContainer else {
+                    return 0
+                }
+                return containers.firstIndex { $0.id == activeContainer.id } ?? 0
             },
             set: { newIndex in
                 guard newIndex >= 0, newIndex < containers.count else { return }
@@ -57,13 +63,14 @@ struct SidebarView: View {
                 .environmentObject(appState)
                 .environmentObject(privacyMode)
             }
-            // Show player if there is at least one playing session not belonging to the active tab
+
             if shouldShowMediaWidget {
                 GlobalMediaPlayer()
                     .environmentObject(media)
                     .padding(.horizontal, 10)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
+
             if !privacyMode.isPrivate {
                 HStack {
                     DownloadsWidget()
@@ -78,7 +85,7 @@ struct SidebarView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(
             EdgeInsets(
-                top: isFullscreen ? 10 : 36,
+                top: (isFullscreen || sidebarPosition == .secondary) ? 10 : 36,
                 leading: 0,
                 bottom: 10,
                 trailing: 0
