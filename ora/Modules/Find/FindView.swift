@@ -30,8 +30,8 @@ struct FindView: View {
             navigationButtons
             closeButton
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
         .background(backgroundView)
         .overlay(borderView)
         .shadow(
@@ -87,6 +87,24 @@ struct FindView: View {
                 }
                 return .handled
             }
+            .onKeyPress(.upArrow) {
+                Task { @MainActor in
+                    if !searchText.isEmpty, matchCount > 0 {
+                        controller.previousMatch()
+                        updateCurrentMatch()
+                    }
+                }
+                return .handled
+            }
+            .onKeyPress(.downArrow) {
+                Task { @MainActor in
+                    if !searchText.isEmpty, matchCount > 0 {
+                        controller.nextMatch()
+                        updateCurrentMatch()
+                    }
+                }
+                return .handled
+            }
     }
 
     @ViewBuilder
@@ -125,7 +143,7 @@ struct FindView: View {
                     .padding(.vertical, 4)
             }
         }
-        .frame(minWidth: 80) // Fixed minimum width
+        .frame(minWidth: 80)  // Fixed minimum width
     }
 
     @ViewBuilder
@@ -134,21 +152,23 @@ struct FindView: View {
             Text("\(currentMatch)")
                 .font(.system(size: 12, weight: .bold))
                 .foregroundColor(theme.foreground)
-                .monospacedDigit() // Prevents width changes when numbers change
+                .monospacedDigit()  // Prevents width changes when numbers change
             Text("/")
                 .font(.system(size: 11, weight: .medium))
                 .foregroundColor(theme.foreground.opacity(0.8))
             Text("\(matchCount)")
                 .font(.system(size: 12, weight: .medium))
                 .foregroundColor(theme.foreground.opacity(0.9))
-                .monospacedDigit() // Prevents width changes when numbers change
+                .monospacedDigit()  // Prevents width changes when numbers change
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
-        .background(BlurEffectView(
-            material: .popover,
-            blendingMode: .withinWindow
-        ))
+        .background(
+            BlurEffectView(
+                material: .popover,
+                blendingMode: .withinWindow
+            )
+        )
         .cornerRadius(6)
     }
 
@@ -159,10 +179,12 @@ struct FindView: View {
             .foregroundColor(theme.foreground)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .background(BlurEffectView(
-                material: .popover,
-                blendingMode: .withinWindow
-            ))
+            .background(
+                BlurEffectView(
+                    material: .popover,
+                    blendingMode: .withinWindow
+                )
+            )
             .cornerRadius(6)
     }
 
@@ -189,10 +211,12 @@ struct FindView: View {
                 .frame(width: 28, height: 28)
         }
         .disabled(searchText.isEmpty || matchCount == 0)
-        .buttonStyle(EnhancedFindButtonStyle(
-            colorScheme: colorScheme,
-            isEnabled: !(searchText.isEmpty || matchCount == 0)
-        ))
+        .buttonStyle(
+            EnhancedFindButtonStyle(
+                colorScheme: colorScheme,
+                isEnabled: !(searchText.isEmpty || matchCount == 0)
+            )
+        )
     }
 
     @ViewBuilder
@@ -208,10 +232,12 @@ struct FindView: View {
                 .frame(width: 28, height: 28)
         }
         .disabled(searchText.isEmpty || matchCount == 0)
-        .buttonStyle(EnhancedFindButtonStyle(
-            colorScheme: colorScheme,
-            isEnabled: !(searchText.isEmpty || matchCount == 0)
-        ))
+        .buttonStyle(
+            EnhancedFindButtonStyle(
+                colorScheme: colorScheme,
+                isEnabled: !(searchText.isEmpty || matchCount == 0)
+            )
+        )
     }
 
     @ViewBuilder

@@ -35,6 +35,7 @@ struct CustomSearchEngine: Codable, Identifiable, Hashable {
     let aliases: [String]
     let faviconData: Data?
     let faviconBackgroundColorData: Data?
+    let isAIChat: Bool
 
     init(
         id: String = UUID().uuidString,
@@ -42,7 +43,8 @@ struct CustomSearchEngine: Codable, Identifiable, Hashable {
         searchURL: String,
         aliases: [String] = [],
         faviconData: Data? = nil,
-        faviconBackgroundColorData: Data? = nil
+        faviconBackgroundColorData: Data? = nil,
+        isAIChat: Bool = false
     ) {
         self.id = id
         self.name = name
@@ -50,6 +52,7 @@ struct CustomSearchEngine: Codable, Identifiable, Hashable {
         self.aliases = aliases
         self.faviconData = faviconData
         self.faviconBackgroundColorData = faviconBackgroundColorData
+        self.isAIChat = isAIChat
     }
 
     var favicon: NSImage? {
@@ -72,6 +75,7 @@ struct CustomSearchEngine: Codable, Identifiable, Hashable {
         name: String,
         searchURL: String,
         aliases: [String] = [],
+        isAIChat: Bool = false,
         completion: @escaping (CustomSearchEngine) -> Void
     ) {
         let faviconService = FaviconService()
@@ -91,7 +95,8 @@ struct CustomSearchEngine: Codable, Identifiable, Hashable {
                 searchURL: searchURL,
                 aliases: aliases,
                 faviconData: faviconData,
-                faviconBackgroundColorData: colorData
+                faviconBackgroundColorData: colorData,
+                isAIChat: isAIChat
             )
             completion(engine)
         } else {
@@ -116,7 +121,8 @@ struct CustomSearchEngine: Codable, Identifiable, Hashable {
                         searchURL: searchURL,
                         aliases: aliases,
                         faviconData: faviconData,
-                        faviconBackgroundColorData: colorData
+                        faviconBackgroundColorData: colorData,
+                        isAIChat: isAIChat
                     )
                     completion(engine)
                 }
@@ -139,6 +145,7 @@ class SettingsStore: ObservableObject {
     private let sitePermissionsKey = "settings.permissions.sitePermissions"
     private let customSearchEnginesKey = "settings.customSearchEngines"
     private let globalDefaultSearchEngineKey = "settings.globalDefaultSearchEngine"
+    private let customKeyboardShortcutsKey = "settings.customKeyboardShortcuts"
 
     // MARK: - Per-Container
 
@@ -186,6 +193,10 @@ class SettingsStore: ObservableObject {
         didSet { defaults.set(globalDefaultSearchEngine, forKey: globalDefaultSearchEngineKey) }
     }
 
+    @Published var customKeyboardShortcuts: [String: KeyChord] {
+        didSet { saveCodable(customKeyboardShortcuts, forKey: customKeyboardShortcutsKey) }
+    }
+
     init() {
         autoUpdateEnabled = defaults.bool(forKey: autoUpdateKey)
         blockThirdPartyTrackers = defaults.bool(forKey: trackingThirdPartyKey)
@@ -206,6 +217,9 @@ class SettingsStore: ObservableObject {
             Self.loadCodable([CustomSearchEngine].self, key: customSearchEnginesKey) ?? []
 
         globalDefaultSearchEngine = defaults.string(forKey: globalDefaultSearchEngineKey)
+
+        customKeyboardShortcuts =
+            Self.loadCodable([String: KeyChord].self, key: customKeyboardShortcutsKey) ?? [:]
     }
 
     // MARK: - Per-container helpers
@@ -274,6 +288,20 @@ class SettingsStore: ObservableObject {
             engines[index] = engine
             customSearchEngines = engines
         }
+    }
+
+    // MARK: - Custom Keyboard Shortcuts
+
+    func setCustomKeyboardShortcut(id: String, keyChord: KeyChord) {
+        var shortcuts = customKeyboardShortcuts
+        shortcuts[id] = keyChord
+        customKeyboardShortcuts = shortcuts
+    }
+
+    func removeCustomKeyboardShortcut(id: String) {
+        var shortcuts = customKeyboardShortcuts
+        shortcuts.removeValue(forKey: id)
+        customKeyboardShortcuts = shortcuts
     }
 
     // MARK: - Codable helpers

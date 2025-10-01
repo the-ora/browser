@@ -28,19 +28,11 @@ struct OraRoot: View {
 
     init(isPrivate: Bool = false) {
         _privacyMode = StateObject(wrappedValue: PrivacyMode(isPrivate: isPrivate))
-        let modelConfiguration = isPrivate ? ModelConfiguration(isStoredInMemoryOnly: true) : ModelConfiguration(
-            "OraData",
-            schema: Schema([TabContainer.self, History.self, Download.self]),
-            url: URL.applicationSupportDirectory.appending(path: "OraData.sqlite")
-        )
 
         let container: ModelContainer
         let modelContext: ModelContext
         do {
-            container = try ModelContainer(
-                for: TabContainer.self, History.self, Download.self,
-                configurations: modelConfiguration
-            )
+            container = try ModelConfiguration.createOraContainer(isPrivate: isPrivate)
             modelContext = ModelContext(container)
         } catch {
             deleteSwiftDataStore("OraData.sqlite")
@@ -80,11 +72,13 @@ struct OraRoot: View {
     var body: some View {
         BrowserView()
             .background(WindowReader(window: $window))
+            .environment(\.window, window)
             .environmentObject(appState)
             .environmentObject(tabManager)
             .environmentObject(historyManager)
             .environmentObject(mediaController)
             .environmentObject(keyModifierListener)
+            .environmentObject(CustomKeyboardShortcutManager.shared)
             .environmentObject(appearanceManager)
             .environmentObject(downloadManager)
             .environmentObject(updateService)
@@ -176,6 +170,12 @@ struct OraRoot: View {
                 NotificationCenter.default.addObserver(forName: .checkForUpdates, object: nil, queue: .main) { note in
                     guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
                     updateService.checkForUpdates()
+                }
+                NotificationCenter.default.addObserver(forName: .selectTabAtIndex, object: nil, queue: .main) { note in
+                    guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
+                    if let index = note.userInfo?["index"] as? Int {
+                        tabManager.selectTabAtIndex(index)
+                    }
                 }
             }
     }
