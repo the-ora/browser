@@ -5,6 +5,7 @@ struct GeneralSettingsView: View {
     @EnvironmentObject var appearanceManager: AppearanceManager
     @EnvironmentObject var updateService: UpdateService
     @StateObject private var settings = SettingsStore.shared
+    @StateObject private var defaultBrowserManager = DefaultBrowserManager.shared
     @Environment(\.theme) var theme
 
     var body: some View {
@@ -30,7 +31,7 @@ struct GeneralSettingsView: View {
                     .background(theme.solidWindowBackgroundColor)
                     .cornerRadius(8)
                     
-                    if !DefaultBrowserManager.isDefault {
+                     if !defaultBrowserManager.isDefault {
                         
                         HStack {
                             Text("Born for your Mac. Make Ora your default browser.")

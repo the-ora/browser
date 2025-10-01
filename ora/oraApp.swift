@@ -68,6 +68,7 @@ struct OraApp: App {
         WindowGroup(id: "normal") {
             OraRoot()
                 .frame(minWidth: 500, minHeight: 360)
+                .environmentObject(DefaultBrowserManager.shared)
         }
         .defaultSize(width: 1440, height: 900)
         .windowStyle(.hiddenTitleBar)
@@ -77,6 +78,7 @@ struct OraApp: App {
         WindowGroup("Private", id: "private") {
             OraRoot(isPrivate: true)
                 .frame(minWidth: 500, minHeight: 360)
+                .environmentObject(DefaultBrowserManager.shared)
         }
         .defaultSize(width: 1440, height: 900)
         .windowStyle(.hiddenTitleBar)
@@ -88,6 +90,7 @@ struct OraApp: App {
                 SettingsContentView()
                     .environmentObject(AppearanceManager.shared)
                     .environmentObject(UpdateService.shared)
+                    .environmentObject(DefaultBrowserManager.shared)
                     .withTheme()
                     .modelContainer(sharedModelContainer)
             } else {
