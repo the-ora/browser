@@ -75,18 +75,6 @@ struct BrowserView: View {
         window?.toggleMaximized()
     }
 
-    private func toggleMaximizeWindow() {
-        window?.toggleMaximized()
-    }
-
-    private func toggleMaximizeWindow() {
-        window?.toggleMaximized()
-    }
-
-    private func toggleMaximizeWindow() {
-        window?.toggleMaximized()
-    }
-
     var body: some View {
         ZStack(alignment: .leading) {
             HSplit(
