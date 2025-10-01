@@ -411,44 +411,6 @@ class TabManager: ObservableObject {
             }
         }
     }
-
-    // MARK: - Private Api's
-
-    private func initializeActiveContainerAndTab() {
-        // Ensure containers are fetched
-        let containers = fetchContainers()
-
-        // Get the last accessed container
-        if let lastAccessedContainer = containers.first {
-            activeContainer = lastAccessedContainer
-            // Get the last accessed tab from the active container
-            //            if let lastAccessedTab = lastAccessedContainer.tabs.sorted(by: { $0.lastAccessedAt ?? Date() >
-            //            $1.lastAccessedAt ?? Date() }).first {
-            //                activeTab = lastAccessedTab
-            //            } else {
-            //                // No tabs, create one
-            //
-            //                activeTab = addTab(container: lastAccessedContainer)
-            //            }
-        } else {
-            // No containers, create one
-            let newContainer = createContainer()
-            activeContainer = newContainer
-            //            activeTab = addTab(container: newContainer)
-        }
-
-        //        activeTab?.maybeIsActive = true
-    }
-
-    private func fetchContainers() -> [TabContainer] {
-        do {
-            let descriptor = FetchDescriptor<TabContainer>(sortBy: [SortDescriptor(\.lastAccessedAt, order: .reverse)])
-            return try modelContext.fetch(descriptor)
-        } catch {
-            // Failed to fetch containers
-        }
-        return []
-    }
 }
 
 // MARK: - Tab Searching Providing
