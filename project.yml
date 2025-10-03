@@ -49,6 +49,33 @@ targets:
         SUFeedURL: "https://the-ora.github.io/browser/appcast.xml"
         SUPublicEDKey: "Ozj+rezzbJAD76RfajtfQ7rFojJbpFSCl/0DcFSBCTI="
         SUEnableAutomaticChecks: YES
+        CFBundleURLTypes:
+          - CFBundleURLName: Ora Browser
+            CFBundleTypeRole: Editor
+            LSHandlerRank: Owner
+            CFBundleURLSchemes:
+              - http
+              - https
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: Web URL
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Owner
+            LSItemContentTypes:
+              - public.url
+          - CFBundleTypeName: HTML document
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Default
+            LSItemContentTypes:
+              - public.html
+          - CFBundleTypeName: XHTML document
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Default
+            LSItemContentTypes:
+              - public.xhtml
+        NSUserActivityTypes:
+          - NSUserActivityTypeBrowsingWeb
+        LSMinimumSystemVersion: "13.0"
+        LSApplicationCategoryType: public.app-category.web-browser
         
     entitlements:
       path: ora/ora.entitlements
