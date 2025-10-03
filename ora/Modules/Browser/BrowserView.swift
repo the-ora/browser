@@ -14,17 +14,17 @@ struct BrowserView: View {
     @State private var isMouseOverSidebar = false
     @StateObject private var sidebarFraction = FractionHolder.usingUserDefaults(0.2, key: "ui.sidebar.fraction")
     @StateObject private var sidebarVisibility = SideHolder.usingUserDefaults(key: "ui.sidebar.visibility")
-
+    
     private func toggleSidebar() {
         withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
             sidebarVisibility.toggle(.primary)
         }
     }
-
+    
     private func toggleMaximizeWindow() {
         window?.toggleMaximized()
     }
-
+    
     var body: some View {
         ZStack(alignment: .leading) {
             HSplit(
@@ -32,16 +32,25 @@ struct BrowserView: View {
                     SidebarView(isFullscreen: isFullscreen)
                 },
                 right: {
-                    if tabManager.activeTab != nil {
-                        BrowserContentContainer(isFullscreen: isFullscreen, hideState: sidebarVisibility) {
-                            webView
-                        }
-                    } else {
+                    if tabManager.activeTab == nil {
                         // Start page (visible when no tab is active)
                         BrowserContentContainer(isFullscreen: isFullscreen, hideState: sidebarVisibility) {
                             HomeView(sidebarToggle: toggleSidebar)
                         }
                     }
+                    let activeId = tabManager.activeTab?.id
+                    let tabs = tabManager.activeContainenr?.tabs ?? []
+                    ForEach(tabs) { tab in
+                        if tab.isWebViewReady {
+                            HStack {
+                                BrowserContentContainer(isFullscreen: isFullscreen, hideState: sidebarVisibility) {
+                                    webView(for: tab)
+                                }
+                            }
+                            .opacity((activeId == tab.id) ? 1 : 0)
+                        }
+                    }
+                    
                 }
             )
             .hide(sidebarVisibility)
@@ -76,12 +85,12 @@ struct BrowserView: View {
                 if appState.showLauncher, tabManager.activeTab != nil {
                     LauncherView()
                 }
-
+                
                 if appState.isFloatingTabSwitchVisible {
                     FloatingTabSwitcher()
                 }
             }
-
+            
             if sidebarVisibility.side == .primary {
                 // Floating sidebar with resizable width based on persisted fraction
                 GeometryReader { geo in
@@ -100,9 +109,9 @@ struct BrowserView: View {
                                     Rectangle()
                                         .fill(Color.clear)
                                         .frame(width: 14)
-                                    #if targetEnvironment(macCatalyst) || os(macOS)
+#if targetEnvironment(macCatalyst) || os(macOS)
                                         .cursor(NSCursor.resizeLeftRight)
-                                    #endif
+#endif
                                         .contentShape(Rectangle())
                                         .gesture(
                                             DragGesture()
@@ -191,9 +200,9 @@ struct BrowserView: View {
             }
         }
     }
-
+    
     @ViewBuilder
-    private var webView: some View {
+    private func webView(for tab: Tab) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             if !appState.isToolbarHidden {
                 URLBar(
@@ -204,47 +213,37 @@ struct BrowserView: View {
                     removal: .push(from: .bottom)
                 ))
             }
-            if let tab = tabManager.activeTab {
-                if tab.isWebViewReady {
-                    if tab.hasNavigationError, let error = tab.navigationError {
-                        StatusPageView(
-                            error: error,
-                            failedURL: tab.failedURL,
-                            onRetry: {
-                                tab.retryNavigation()
-                            },
-                            onGoBack: tab.webView.canGoBack
-                                ? {
-                                    tab.webView.goBack()
-                                    tab.clearNavigationError()
-                                } : nil
-                        )
-                        .id(tab.id)
-                    } else {
-                        ZStack(alignment: .topTrailing) {
-                            WebView(webView: tab.webView)
-                                .id(tab.id)
-
-                            if appState.showFinderIn == tab.id {
-                                FindView(webView: tab.webView)
-                                    .padding(.top, 16)
-                                    .padding(.trailing, 16)
-                                    .zIndex(1000)
-                            }
-
-                            if let hovered = tab.hoveredLinkURL, !hovered.isEmpty {
-                                LinkPreview(text: hovered)
-                            }
+            if tab.isWebViewReady {
+                if tab.hasNavigationError, let error = tab.navigationError {
+                    StatusPageView(
+                        error: error,
+                        failedURL: tab.failedURL,
+                        onRetry: {
+                            tab.retryNavigation()
+                        },
+                        onGoBack: tab.webView.canGoBack
+                        ? {
+                            tab.webView.goBack()
+                            tab.clearNavigationError()
+                        } : nil
+                    )
+                    .id(tab.id)
+                } else {
+                    ZStack(alignment: .topTrailing) {
+                        WebView(webView: tab.webView)
+                            .id(tab.id)
+                        
+                        if appState.showFinderIn == tab.id {
+                            FindView(webView: tab.webView)
+                                .padding(.top, 16)
+                                .padding(.trailing, 16)
+                                .zIndex(1000)
+                        }
+                        
+                        if let hovered = tab.hoveredLinkURL, !hovered.isEmpty {
+                            LinkPreview(text: hovered)
                         }
                     }
-                } else {
-                    ZStack {
-                        Rectangle()
-                            .fill(theme.background)
-
-                        ProgressView().frame(width: 32, height: 32)
-
-                    }.frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
         }
