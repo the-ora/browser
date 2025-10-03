@@ -117,5 +117,5 @@ Questions or support? Join the community on [Discord](https://discord.gg/9aZWH52
 
 ## License
 
-Ora is open source and licensed under the [MIT License](LICENSE.md).  
-Feel free to use, modify, and distribute it under the terms of the MIT License.
+Ora is open source and licensed under the [GPL-2.0 license](LICENSE).  
+Feel free to use, modify, and distribute it under the terms of the GPL-2.0 license.
