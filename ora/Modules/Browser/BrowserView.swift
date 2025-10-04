@@ -19,7 +19,7 @@ struct BrowserView: View {
         0.2,
         key: "ui.sidebar.fraction.secondary"
     )
-    @StateObject private var sidebarVisibility = SideHolder.usingUserDefaults(key: "ui.sidebar.visibility")
+    @StateObject private var hiddenSidebar = SideHolder.usingUserDefaults(key: "ui.sidebar.visibility")
 
     private var currentFraction: FractionHolder { sidebarPosition == .primary ? primaryFraction : secondaryFraction }
 
@@ -27,9 +27,9 @@ struct BrowserView: View {
         ZStack(alignment: .leading) {
             BrowserSplitView(
                 sidebarPosition: sidebarPosition,
-                sidebarVisibility: sidebarVisibility,
+                hiddenSidebar: hiddenSidebar,
                 sidebarFraction: currentFraction,
-                isFullscreen: isFullscreen,
+                isFullscreen: $isFullscreen,
                 toggleSidebar: toggleSidebar
             )
             .ignoresSafeArea(.all)
@@ -38,14 +38,11 @@ struct BrowserView: View {
                 BlurEffectView(material: .underWindowBackground, blendingMode: .behindWindow)
                     .ignoresSafeArea(.all)
             )
-            .background(
-                WindowAccessor(
-                    isSidebarHidden: sidebarVisibility.side == .primary || sidebarVisibility.side == .secondary,
-                    isFloatingSidebar: $showFloatingSidebar,
-                    isFullscreen: $isFullscreen
-                )
-                .id("showFloatingSidebar = \(showFloatingSidebar)")
-            )
+            .background(WindowAccessor(
+                isSidebarHidden: hiddenSidebar.side == .primary || hiddenSidebar.side == .secondary,
+                isFloatingSidebar: $showFloatingSidebar,
+                isFullscreen: $isFullscreen
+            ))
             .overlay {
                 if appState.showLauncher, tabManager.activeTab != nil {
                     LauncherView()
@@ -55,13 +52,13 @@ struct BrowserView: View {
                 }
             }
 
-            if sidebarVisibility.side == .primary || sidebarVisibility.side == .secondary {
+            if hiddenSidebar.side == .primary || hiddenSidebar.side == .secondary {
                 FloatingSidebarOverlay(
                     showFloatingSidebar: $showFloatingSidebar,
                     isMouseOverSidebar: $isMouseOverSidebar,
                     sidebarFraction: currentFraction,
                     sidebarPosition: sidebarPosition,
-                    isFullscreen: isFullscreen,
+                    isFullscreen: $isFullscreen,
                     isDownloadsPopoverOpen: downloadManager.isDownloadsPopoverOpen
                 )
             }
@@ -75,7 +72,7 @@ struct BrowserView: View {
             toggleSidebarPosition()
         }
         .onChange(of: downloadManager.isDownloadsPopoverOpen) { _, isOpen in
-            if sidebarVisibility.side == .primary || sidebarVisibility.side == .secondary {
+            if hiddenSidebar.side == .primary || hiddenSidebar.side == .secondary {
                 if isOpen {
                     showFloatingSidebar = true
                 } else if !isMouseOverSidebar {
@@ -117,18 +114,18 @@ struct BrowserView: View {
     private func toggleSidebar() {
         let targetSide = sidebarPosition == .primary ? SplitSide.primary : .secondary
         withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
-            sidebarVisibility.side =
-                (sidebarVisibility.side == targetSide) ? nil : targetSide
+            hiddenSidebar.side =
+                (hiddenSidebar.side == targetSide) ? nil : targetSide
         }
     }
 
     private func toggleSidebarPosition() {
         let targetSide = sidebarPosition == .primary ? SplitSide.primary : .secondary
-        let wasHidden = sidebarVisibility.side == targetSide
+        let wasHidden = hiddenSidebar.side == targetSide
         sidebarPosition =
             (sidebarPosition == .primary) ? .secondary : .primary
         if wasHidden {
-            sidebarVisibility.side =
+            hiddenSidebar.side =
                 sidebarPosition == .primary ? .primary : .secondary
         }
     }

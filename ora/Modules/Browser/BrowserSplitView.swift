@@ -9,9 +9,9 @@ struct BrowserSplitView: View {
     @EnvironmentObject var tabManager: TabManager
 
     let sidebarPosition: SidebarPosition
-    @ObservedObject var sidebarVisibility: SideHolder
+    @ObservedObject var hiddenSidebar: SideHolder
     @ObservedObject var sidebarFraction: FractionHolder
-    let isFullscreen: Bool
+    @Binding var isFullscreen: Bool
     let toggleSidebar: () -> Void
 
     private var targetSide: SplitSide {
@@ -46,7 +46,7 @@ struct BrowserSplitView: View {
 
     var body: some View {
         HSplit(left: { primaryPane() }, right: { secondaryPane() })
-            .hide(sidebarVisibility)
+            .hide(hiddenSidebar)
             .splitter { Splitter.invisible() }
             .fraction(splitFraction)
             .constraints(
@@ -62,11 +62,11 @@ struct BrowserSplitView: View {
     @ViewBuilder
     private func primaryPane() -> some View {
         if sidebarPosition == .primary {
-            if sidebarVisibility.side == .secondary {
+            if hiddenSidebar.side == .secondary {
                 contentView()
             } else {
                 SidebarView(
-                    isFullscreen: isFullscreen, sidebarPosition: .primary
+                    isFullscreen: $isFullscreen, sidebarPosition: .primary
                 )
             }
         } else {
@@ -77,11 +77,11 @@ struct BrowserSplitView: View {
     @ViewBuilder
     private func secondaryPane() -> some View {
         if sidebarPosition == .secondary {
-            if sidebarVisibility.side == .primary {
+            if hiddenSidebar.side == .primary {
                 contentView()
             } else {
                 SidebarView(
-                    isFullscreen: isFullscreen, sidebarPosition: .secondary
+                    isFullscreen: $isFullscreen, sidebarPosition: .secondary
                 )
             }
         } else {
@@ -94,7 +94,7 @@ struct BrowserSplitView: View {
         if tabManager.activeTab != nil {
             BrowserContentContainer(
                 isFullscreen: isFullscreen,
-                hideState: sidebarVisibility,
+                hiddenSidebar: hiddenSidebar,
                 sidebarPosition: sidebarPosition
             ) {
                 BrowserWebContentView(sidebarPosition: sidebarPosition)
@@ -102,7 +102,7 @@ struct BrowserSplitView: View {
         } else {
             BrowserContentContainer(
                 isFullscreen: isFullscreen,
-                hideState: sidebarVisibility,
+                hiddenSidebar: hiddenSidebar,
                 sidebarPosition: sidebarPosition
             ) {
                 HomeView(sidebarToggle: toggleSidebar)

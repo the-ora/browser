@@ -5,7 +5,7 @@ struct FloatingSidebarOverlay: View {
     @Binding var isMouseOverSidebar: Bool
     var sidebarFraction: FractionHolder
     let sidebarPosition: SidebarPosition
-    let isFullscreen: Bool
+    @Binding var isFullscreen: Bool
     let isDownloadsPopoverOpen: Bool
 
     @State private var dragFraction: CGFloat?
@@ -21,7 +21,7 @@ struct FloatingSidebarOverlay: View {
 
             ZStack(alignment: sidebarPosition == .primary ? .leading : .trailing) {
                 if showFloatingSidebar {
-                    FloatingSidebar(isFullscreen: isFullscreen, sidebarPosition: sidebarPosition)
+                    FloatingSidebar(isFullscreen: $isFullscreen, sidebarPosition: sidebarPosition)
                         .frame(width: floatingWidth)
                         .transition(.move(edge: sidebarPosition == .primary ? .leading : .trailing))
                         .overlay(alignment: sidebarPosition == .primary ? .trailing : .leading) {
