@@ -81,6 +81,7 @@ struct TabItem: View {
     let onPinToggle: () -> Void
     let onFavoriteToggle: () -> Void
     let onClose: () -> Void
+    let onDuplicate: () -> Void
     let onMoveToContainer: (TabContainer) -> Void
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var historyManager: HistoryManager
@@ -207,6 +208,12 @@ struct TabItem: View {
                 systemImage: tab.type == .fav ? "star.slash" : "star"
             )
         }
+
+        Button(action: onDuplicate) {
+            Label("Duplicate Tab", systemImage: "doc.on.doc")
+        }
+
+        Divider()
 
         if availableContainers.count > 1 {
             Divider()
