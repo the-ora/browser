@@ -224,9 +224,8 @@ struct ChatPanel: View {
             VStack(alignment: message.isUser ? .trailing : .leading, spacing: 6) {
                 HStack(spacing: 6) {
                     if !message.isUser {
-                        Image(systemName: "cpu")
-                            .font(.system(size: 11))
-                            .foregroundColor(theme.accent)
+                        providerLogo(for: selectedModel)
+                            .frame(width: 14, height: 14)
                     }
 
                     Text(message.isUser ? "You" : selectedModel.displayName)
@@ -267,9 +266,8 @@ struct ChatPanel: View {
         HStack(alignment: .top, spacing: 0) {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 6) {
-                    Image(systemName: "cpu")
-                        .font(.system(size: 11))
-                        .foregroundColor(theme.accent)
+                    providerLogo(for: selectedModel)
+                        .frame(width: 14, height: 14)
 
                     Text(selectedModel.displayName)
                         .font(.system(size: 11, weight: .medium))
@@ -317,14 +315,17 @@ struct ChatPanel: View {
 
             // Model selector
             HStack {
-                Image(systemName: "cpu")
-                    .font(.system(size: 12))
-                    .foregroundColor(theme.accent.opacity(0.7))
+                providerLogo(for: selectedModel)
+                    .frame(width: 16, height: 16)
 
                 Menu {
                     ForEach(AIModel.allCases) { model in
                         Button(action: { selectedModel = model }) {
-                            Text(model.displayName)
+                            HStack {
+                                providerLogo(for: model)
+                                    .frame(width: 14, height: 14)
+                                Text(model.displayName)
+                            }
                         }
                     }
                 } label: {
@@ -592,6 +593,24 @@ struct ChatPanel: View {
                     completion(false)
                 }
             }
+        }
+    }
+
+    // MARK: - Provider Logo Helper
+
+    @ViewBuilder
+    private func providerLogo(for model: AIModel) -> some View {
+        switch model {
+        case .gpt4, .gpt4Turbo:
+            Image("openai-capsule-logo")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+        case .claude3:
+            Image(systemName: "brain.head.profile")
+                .foregroundColor(.purple)
+        case .gemini:
+            Image(systemName: "diamond")
+                .foregroundColor(.blue)
         }
     }
 }
