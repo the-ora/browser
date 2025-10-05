@@ -46,6 +46,8 @@ struct GeneralSettingsView: View {
 
                     AppearanceSelector(selection: $appearanceManager.appearance)
 
+                    AppIconPicker()
+
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Updates")
                             .font(.headline)
