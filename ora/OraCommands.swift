@@ -68,6 +68,11 @@ struct OraCommands: Commands {
             }
             .keyboardShortcut(KeyboardShortcuts.App.toggleSidebar.keyboardShortcut)
 
+            Button("Toggle Chat Panel") {
+                NotificationCenter.default.post(name: .toggleChatPanel, object: NSApp.keyWindow)
+            }
+            .keyboardShortcut(KeyboardShortcuts.App.toggleChatPanel.keyboardShortcut)
+
             Divider()
 
             Button("Toggle Full URL") { NotificationCenter.default.post(name: .toggleFullURL, object: NSApp.keyWindow) }

@@ -14,10 +14,18 @@ struct BrowserView: View {
     @State private var isMouseOverSidebar = false
     @StateObject private var sidebarFraction = FractionHolder.usingUserDefaults(0.2, key: "ui.sidebar.fraction")
     @StateObject private var sidebarVisibility = SideHolder.usingUserDefaults(key: "ui.sidebar.visibility")
+    @StateObject private var chatPanelFraction = FractionHolder.usingUserDefaults(0.2, key: "ui.chatPanel.fraction")
+    @StateObject private var chatPanelVisibility = SideHolder.usingUserDefaults(key: "ui.chatPanel.visibility")
 
     private func toggleSidebar() {
         withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
             sidebarVisibility.toggle(.primary)
+        }
+    }
+
+    private func toggleChatPanel() {
+        withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
+            chatPanelVisibility.toggle(.secondary)
         }
     }
 
@@ -32,16 +40,25 @@ struct BrowserView: View {
                     SidebarView(isFullscreen: isFullscreen)
                 },
                 right: {
-                    if tabManager.activeTab != nil {
-                        BrowserContentContainer(isFullscreen: isFullscreen, hideState: sidebarVisibility) {
-                            webView
+                    // Main content with optional chat panel
+                    HSplit(
+                        left: {
+                            mainContentArea
+                        },
+                        right: {
+                            ChatPanel()
+                                .frame(minWidth: 295, maxWidth: 500)
                         }
-                    } else {
-                        // Start page (visible when no tab is active)
-                        BrowserContentContainer(isFullscreen: isFullscreen, hideState: sidebarVisibility) {
-                            HomeView(sidebarToggle: toggleSidebar)
-                        }
-                    }
+                    )
+                    .splitter { Splitter.invisible() }
+                    .fraction(chatPanelFraction)
+                    .hide(chatPanelVisibility)
+                    .constraints(
+                        minPFraction: 0.4,
+                        minSFraction: 0.33,
+                        priority: .left
+                    )
+                    .styling(hideSplitter: false)
                 }
             )
             .hide(sidebarVisibility)
@@ -150,6 +167,9 @@ struct BrowserView: View {
         .onReceive(NotificationCenter.default.publisher(for: .toggleSidebar)) { _ in
             toggleSidebar()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .toggleChatPanel)) { _ in
+            toggleChatPanel()
+        }
         .onChange(of: downloadManager.isDownloadsPopoverOpen) { isOpen in
             if sidebarVisibility.side == .primary {
                 if isOpen {
@@ -188,6 +208,20 @@ struct BrowserView: View {
                         isPrivate: privacyMode.isPrivate
                     )
                 }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var mainContentArea: some View {
+        if tabManager.activeTab != nil {
+            BrowserContentContainer(isFullscreen: isFullscreen, hideState: sidebarVisibility) {
+                webView
+            }
+        } else {
+            // Start page (visible when no tab is active)
+            BrowserContentContainer(isFullscreen: isFullscreen, hideState: sidebarVisibility) {
+                HomeView(sidebarToggle: toggleSidebar)
             }
         }
     }

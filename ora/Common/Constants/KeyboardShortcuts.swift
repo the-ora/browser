@@ -297,6 +297,12 @@ enum KeyboardShortcuts {
             category: "App",
             defaultChord: KeyChord(keyEquivalent: .init("d"), modifiers: [.command, .shift])
         )
+        static let toggleChatPanel = KeyboardShortcutDefinition(
+            id: "app.toggleChatPanel",
+            name: "Toggle Chat Panel",
+            category: "App",
+            defaultChord: KeyChord(keyEquivalent: .init("/"), modifiers: [.command])
+        )
     }
 
     /// All keyboard shortcut definitions
@@ -329,7 +335,7 @@ enum KeyboardShortcuts {
         Developer.toggleDevTools, Developer.reloadIgnoringCache,
 
         // App
-        App.quit, App.hide, App.preferences, App.toggleSidebar, App.toggleToolbar
+        App.quit, App.hide, App.preferences, App.toggleSidebar, App.toggleToolbar, App.toggleChatPanel
     ]
 
     /// Get shortcuts grouped by category for settings display
