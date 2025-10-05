@@ -93,6 +93,7 @@ class TabManager: ObservableObject {
         tab.container = toContainer
         try? modelContext.save()
     }
+
     private func initializeActiveContainerAndTab() {
         // Ensure containers are fetched
         let containers = fetchContainers()
@@ -116,7 +117,6 @@ class TabManager: ObservableObject {
 
     @discardableResult
     func createContainer(name: String = "Default", emoji: String = "•") -> TabContainer {
-
         let newContainer = TabContainer(name: name, emoji: emoji)
         modelContext.insert(newContainer)
         activeContainer = newContainer
@@ -353,7 +353,6 @@ class TabManager: ObservableObject {
             }
         }
     }
-
 
     func selectTabAtIndex(_ index: Int) {
         guard let container = activeContainer else { return }

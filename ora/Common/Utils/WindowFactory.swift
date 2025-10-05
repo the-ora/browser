@@ -21,6 +21,3 @@ enum WindowFactory {
         return window
     }
 }
-
-
-
