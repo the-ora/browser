@@ -110,7 +110,12 @@ class HistoryManager: ObservableObject {
             let containers = try modelContext.fetch(containerDescriptor)
             if let container = containers.first {
                 // Sort the history by visitedAt in reverse order (most recent first)
-                let sortedHistory = container.history.sorted { $0.visitedAt > $1.visitedAt }
+                // Use a fallback date for any nil visitedAt values (from migrated records)
+                let sortedHistory = container.history.sorted {
+                    let date1 = $0.visitedAt ?? Date.distantPast
+                    let date2 = $1.visitedAt ?? Date.distantPast
+                    return date1 > date2
+                }
 
                 // Apply limit if specified
                 let results = limit != nil ? Array(sortedHistory.prefix(limit!)) : sortedHistory

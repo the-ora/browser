@@ -29,10 +29,11 @@ struct HistoryView: View {
         let today = Date()
 
         let grouped = Dictionary(grouping: filteredVisits) { visit in
-            if calendar.isDate(visit.visitedAt, inSameDayAs: today) {
+            let visitDate = visit.visitedAt ?? Date.distantPast
+            if calendar.isDate(visitDate, inSameDayAs: today) {
                 return "Today"
             } else if calendar.isDate(
-                visit.visitedAt,
+                visitDate,
                 inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today) ?? today
             ) {
                 return "Yesterday"
@@ -40,7 +41,7 @@ struct HistoryView: View {
                 let formatter = DateFormatter()
                 formatter.dateStyle = .full
                 formatter.timeStyle = .none
-                return formatter.string(from: visit.visitedAt)
+                return formatter.string(from: visitDate)
             }
         }
 
@@ -62,7 +63,11 @@ struct HistoryView: View {
 
         return sortedKeys.compactMap { key in
             guard let visits = grouped[key] else { return nil }
-            return (key, visits.sorted { $0.visitedAt > $1.visitedAt })
+            return (key, visits.sorted {
+                let date1 = $0.visitedAt ?? Date.distantPast
+                let date2 = $1.visitedAt ?? Date.distantPast
+                return date1 > date2
+            })
         }
     }
 
@@ -405,7 +410,7 @@ struct HistoryRow: View {
 
                     Spacer()
 
-                    Text(timeFormatter.string(from: visit.visitedAt))
+                    Text(timeFormatter.string(from: visit.visitedAt ?? Date.distantPast))
                         .font(.system(size: 12))
                         .foregroundColor(.secondary)
                 }
