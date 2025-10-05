@@ -42,12 +42,15 @@ enum AIModel: String, CaseIterable, Identifiable {
 struct ChatPanel: View {
     @Environment(\.theme) private var theme
     @EnvironmentObject var tabManager: TabManager
+    @StateObject private var providerManager = AIProviderManager.shared
 
     @State private var messages: [ChatMessage] = []
     @State private var inputText: String = ""
     @State private var selectedModel: AIModel = .gpt4
     @State private var isLoading: Bool = false
     @State private var pageContent: String = ""
+    @State private var errorMessage: String?
+    @State private var hasExtractedContent: Bool = false
 
     @FocusState private var isInputFocused: Bool
 
@@ -78,7 +81,7 @@ struct ChatPanel: View {
         .clipShape(clipShape)
         .padding(6)
         .onAppear {
-            extractPageContent()
+            // Don't extract content on appear - wait for first message
         }
     }
 
@@ -377,16 +380,6 @@ struct ChatPanel: View {
     private func sendMessage() {
         let trimmedText = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedText.isEmpty, !isLoading else { return }
-        extractPageContent()
-        // Debug: Print page content that will be included
-        print("🔍 DEBUG: Page content being sent with message:")
-        print("📄 Content length: \(pageContent.count) characters")
-        print("📄 Content preview: \(String(pageContent.prefix(500)))")
-        if pageContent.count > 500 {
-            print("... (truncated, full content is \(pageContent.count) characters)")
-        }
-        print("💬 User message: \(trimmedText)")
-        print("---")
 
         let userMessage = ChatMessage(content: trimmedText, isUser: true)
 
@@ -396,25 +389,79 @@ struct ChatPanel: View {
 
         inputText = ""
 
-        // Simulate AI response (will be replaced with actual API call later)
-        simulateAIResponse(for: trimmedText)
+        // Extract page content only for the first message in a conversation
+        let shouldIncludePageContent = messages.count == 1 && !hasExtractedContent
+
+        if shouldIncludePageContent {
+            extractPageContentAndSend(message: trimmedText)
+        } else {
+            // For follow-up messages, don't include page content (AI already has context)
+            sendToAI(message: trimmedText, includePageContent: false)
+        }
     }
 
-    private func simulateAIResponse(for userMessage: String) {
+    private func extractPageContentAndSend(message: String) {
+        // First extract page content, then send message
+        extractPageContent { success in
+            Task { @MainActor in
+                if success {
+                    hasExtractedContent = true
+                    // Debug: Print page content for first message only
+                    print("🔍 DEBUG: Page content extracted for first message:")
+                    print("📄 Content length: \(pageContent.count) characters")
+                    if !pageContent.isEmpty {
+                        print("📄 Content preview: \(String(pageContent.prefix(500)))")
+                        if pageContent.count > 500 {
+                            print("... (truncated, full content is \(pageContent.count) characters)")
+                        }
+                    }
+                    print("💬 User message: \(message)")
+                    print("---")
+                }
+
+                sendToAI(message: message, includePageContent: success)
+            }
+        }
+    }
+
+    private func sendToAI(message: String, includePageContent: Bool) {
         withAnimation(.easeInOut(duration: 0.3)) {
             isLoading = true
+            errorMessage = nil
         }
 
-        // Simulate processing delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            let aiResponse = ChatMessage(
-                content: "This is a simulated response from \(selectedModel.displayName). I can see you're asking about: \"\(userMessage)\". The page content analysis feature will be integrated once connected to the actual AI service.",
-                isUser: false
-            )
+        Task {
+            do {
+                let contentToSend = (includePageContent && !pageContent.isEmpty) ? pageContent : nil
+                let response = try await providerManager.sendMessage(
+                    message,
+                    pageContent: contentToSend,
+                    model: selectedModel
+                )
 
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                messages.append(aiResponse)
-                isLoading = false
+                await MainActor.run {
+                    let aiResponse = ChatMessage(content: response, isUser: false)
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        messages.append(aiResponse)
+                        isLoading = false
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        isLoading = false
+                        errorMessage = error.localizedDescription
+                    }
+
+                    // Show error as a system message
+                    let errorResponse = ChatMessage(
+                        content: "Error: \(error.localizedDescription)",
+                        isUser: false
+                    )
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        messages.append(errorResponse)
+                    }
+                }
             }
         }
     }
@@ -422,12 +469,15 @@ struct ChatPanel: View {
     private func startNewChat() {
         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
             messages.removeAll()
+            hasExtractedContent = false  // Reset for new conversation
+            pageContent = ""  // Clear old content
         }
     }
 
-    private func extractPageContent() {
+    private func extractPageContent(completion: @escaping (Bool) -> Void = { _ in }) {
         guard let activeTab = tabManager.activeTab else {
             pageContent = ""
+            completion(false)
             return
         }
 
@@ -472,6 +522,7 @@ struct ChatPanel: View {
                 if let error {
                     print("Error extracting page content: \(error)")
                     pageContent = ""
+                    completion(false)
                     return
                 }
 
@@ -496,6 +547,10 @@ struct ChatPanel: View {
                     }
 
                     pageContent = extractedContent
+                    completion(!extractedContent.isEmpty)
+                } else {
+                    pageContent = ""
+                    completion(false)
                 }
             }
         }

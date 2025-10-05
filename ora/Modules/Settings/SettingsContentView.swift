@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum SettingsTab: Hashable {
-    case general, spaces, privacySecurity, shortcuts, searchEngines
+    case general, spaces, privacySecurity, shortcuts, searchEngines, ai
 
     var title: String {
         switch self {
@@ -10,6 +10,7 @@ enum SettingsTab: Hashable {
         case .privacySecurity: return "Privacy"
         case .shortcuts: return "Shortcuts"
         case .searchEngines: return "Search"
+        case .ai: return "AI"
         }
     }
 
@@ -20,6 +21,7 @@ enum SettingsTab: Hashable {
         case .privacySecurity: return "lock.shield"
         case .shortcuts: return "command"
         case .searchEngines: return "magnifyingglass"
+        case .ai: return "brain"
         }
     }
 }
@@ -50,6 +52,10 @@ struct SettingsContentView: View {
             SearchEngineSettingsView()
                 .tabItem { Label(SettingsTab.searchEngines.title, systemImage: SettingsTab.searchEngines.symbol) }
                 .tag(SettingsTab.searchEngines)
+
+            AISettingsView()
+                .tabItem { Label(SettingsTab.ai.title, systemImage: SettingsTab.ai.symbol) }
+                .tag(SettingsTab.ai)
         }
         .tabViewStyle(.automatic)
         .frame(width: 600, height: 350)

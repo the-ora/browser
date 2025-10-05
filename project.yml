@@ -6,6 +6,9 @@ packages:
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
     from: 2.6.0
+  AIProxy:
+    url: https://github.com/lzell/AIProxySwift
+    exactVersion: 0.129.0
 
 targets:
   ora:
@@ -22,6 +25,7 @@ targets:
         optional: true
     dependencies:
       - package: Sparkle
+      - package: AIProxy
 
     preBuildScripts:
       - name: "Copy Icon Bundle"
@@ -76,7 +80,7 @@ targets:
           - NSUserActivityTypeBrowsingWeb
         LSMinimumSystemVersion: "13.0"
         LSApplicationCategoryType: public.app-category.web-browser
-        
+
     entitlements:
       path: ora/ora.entitlements
       properties:
