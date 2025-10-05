@@ -29,7 +29,7 @@ struct HistoryView: View {
         let today = Date()
 
         let grouped = Dictionary(grouping: filteredVisits) { visit in
-            let visitDate = visit.visitedAt ?? Date.distantPast
+            guard let visitDate = visit.visitedAt else { return "Unknown" }
             if calendar.isDate(visitDate, inSameDayAs: today) {
                 return "Today"
             } else if calendar.isDate(
@@ -64,8 +64,7 @@ struct HistoryView: View {
         return sortedKeys.compactMap { key in
             guard let visits = grouped[key] else { return nil }
             return (key, visits.sorted {
-                let date1 = $0.visitedAt ?? Date.distantPast
-                let date2 = $1.visitedAt ?? Date.distantPast
+                guard let date1 = $0.visitedAt, let date2 = $1.visitedAt else { return false }
                 return date1 > date2
             })
         }
@@ -410,7 +409,7 @@ struct HistoryRow: View {
 
                     Spacer()
 
-                    Text(timeFormatter.string(from: visit.visitedAt ?? Date.distantPast))
+                    Text(timeFormatter.string(from: visit.visitedAt ?? Date()))
                         .font(.system(size: 12))
                         .foregroundColor(.secondary)
                 }

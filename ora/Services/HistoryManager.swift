@@ -109,16 +109,20 @@ class HistoryManager: ObservableObject {
         do {
             let containers = try modelContext.fetch(containerDescriptor)
             if let container = containers.first {
-                // Sort the history by visitedAt in reverse order (most recent first)
-                // Use a fallback date for any nil visitedAt values (from migrated records)
-                let sortedHistory = container.history.sorted {
-                    let date1 = $0.visitedAt ?? Date.distantPast
-                    let date2 = $1.visitedAt ?? Date.distantPast
-                    return date1 > date2
-                }
+                // Filter out old migrated records without visitedAt timestamps and sort
+                let sortedHistory = container.history
+                    .filter { $0.visitedAt != nil }
+                    .sorted { first, second in
+                        guard let date1 = first.visitedAt, let date2 = second.visitedAt else { return false }
+                        return date1 > date2
+                    }
 
                 // Apply limit if specified
-                let results = limit != nil ? Array(sortedHistory.prefix(limit!)) : sortedHistory
+                let results = if let limit {
+                    Array(sortedHistory.prefix(limit))
+                } else {
+                    sortedHistory
+                }
 
                 return results
             }
