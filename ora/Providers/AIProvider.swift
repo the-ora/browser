@@ -8,7 +8,13 @@ protocol AIProvider {
     var requiresAPIKey: Bool { get }
     var isConfigured: Bool { get }
 
-    func sendMessage(_ message: String, pageContent: String?, model: AIModel) async throws -> String
+    @MainActor
+    func sendMessageStreaming(
+        _ message: String,
+        pageContent: String?,
+        model: AIModel,
+        onChunk: @escaping (String) -> Void
+    ) async throws
 }
 
 // MARK: - AI Provider Error
@@ -69,11 +75,17 @@ class AIProviderManager: ObservableObject {
         setupProviders()
     }
 
-    func sendMessage(_ message: String, pageContent: String?, model: AIModel) async throws -> String {
+    @MainActor
+    func sendMessageStreaming(
+        _ message: String,
+        pageContent: String?,
+        model: AIModel,
+        onChunk: @escaping (String) -> Void
+    ) async throws {
         guard let provider = selectedProvider else {
             throw AIProviderError.notConfigured
         }
 
-        return try await provider.sendMessage(message, pageContent: pageContent, model: model)
+        try await provider.sendMessageStreaming(message, pageContent: pageContent, model: model, onChunk: onChunk)
     }
 }

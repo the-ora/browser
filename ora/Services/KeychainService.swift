@@ -17,7 +17,7 @@ class KeychainService {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
-            kSecAttrService as String: Bundle.main.bundleIdentifier ?? "com.orabrowser.app",
+            kSecAttrService as String: "com.orabrowser.app.keychain",  // Fixed service identifier
             kSecValueData as String: data,
             kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly
         ]
@@ -37,7 +37,7 @@ class KeychainService {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
-            kSecAttrService as String: Bundle.main.bundleIdentifier ?? "com.orabrowser.app",
+            kSecAttrService as String: "com.orabrowser.app.keychain",  // Fixed service identifier
             kSecReturnData as String: kCFBooleanTrue!,
             kSecMatchLimit as String: kSecMatchLimitOne
         ]
@@ -60,7 +60,7 @@ class KeychainService {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
-            kSecAttrService as String: Bundle.main.bundleIdentifier ?? "com.orabrowser.app"
+            kSecAttrService as String: "com.orabrowser.app.keychain"  // Fixed service identifier
         ]
 
         let status = SecItemDelete(query as CFDictionary)
@@ -73,7 +73,7 @@ class KeychainService {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
-            kSecAttrService as String: Bundle.main.bundleIdentifier ?? "com.orabrowser.app",
+            kSecAttrService as String: "com.orabrowser.app.keychain",  // Fixed service identifier
             kSecReturnData as String: kCFBooleanFalse!,
             kSecMatchLimit as String: kSecMatchLimitOne
         ]

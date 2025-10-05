@@ -47,11 +47,11 @@ struct AISettingsView: View {
 
                             HStack {
                                 if isAPIKeyVisible {
-                                    TextField("Enter your API key...", text: $openAIAPIKey)
+                                    TextField("", text: $openAIAPIKey)
                                         .textFieldStyle(RoundedBorderTextFieldStyle())
                                         .font(.system(.body, design: .monospaced))
                                 } else {
-                                    SecureField("Enter your API key...", text: $openAIAPIKey)
+                                    SecureField("", text: $openAIAPIKey)
                                         .textFieldStyle(RoundedBorderTextFieldStyle())
                                         .font(.system(.body, design: .monospaced))
                                 }

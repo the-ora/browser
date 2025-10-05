@@ -15,6 +15,13 @@ struct ChatMessage: Identifiable, Codable {
         self.isUser = isUser
         self.timestamp = Date()
     }
+
+    init(id: UUID, content: String, isUser: Bool, timestamp: Date) {
+        self.id = id
+        self.content = content
+        self.isUser = isUser
+        self.timestamp = timestamp
+    }
 }
 
 // MARK: - Available AI Models
@@ -51,6 +58,8 @@ struct ChatPanel: View {
     @State private var pageContent: String = ""
     @State private var errorMessage: String?
     @State private var hasExtractedContent: Bool = false
+    @State private var streamingMessageId: UUID?
+    @State private var streamingContent: String = ""
 
     @FocusState private var isInputFocused: Bool
 
@@ -389,6 +398,12 @@ struct ChatPanel: View {
 
         inputText = ""
 
+        // Keep input focused for continuous typing
+        Task {
+            try await Task.sleep(nanoseconds: 100_000_000) // Small delay to ensure smooth animation
+            isInputFocused = true
+        }
+
         // Extract page content only for the first message in a conversation
         let shouldIncludePageContent = messages.count == 1 && !hasExtractedContent
 
@@ -425,43 +440,65 @@ struct ChatPanel: View {
     }
 
     private func sendToAI(message: String, includePageContent: Bool) {
-        withAnimation(.easeInOut(duration: 0.3)) {
-            isLoading = true
-            errorMessage = nil
+        // Create a placeholder message for streaming (no loading indicator needed)
+        let streamingMessage = ChatMessage(content: "", isUser: false)
+        streamingMessageId = streamingMessage.id
+        streamingContent = ""
+
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            messages.append(streamingMessage)
         }
 
         Task {
             do {
                 let contentToSend = (includePageContent && !pageContent.isEmpty) ? pageContent : nil
-                let response = try await providerManager.sendMessage(
+
+                try await providerManager.sendMessageStreaming(
                     message,
                     pageContent: contentToSend,
                     model: selectedModel
-                )
+                ) { chunk in
+                    // Update streaming content on main actor
+                    streamingContent += chunk
 
-                await MainActor.run {
-                    let aiResponse = ChatMessage(content: response, isUser: false)
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                        messages.append(aiResponse)
-                        isLoading = false
+                    // Find and update the streaming message
+                    if let streamingId = streamingMessageId,
+                       let index = messages.firstIndex(where: { $0.id == streamingId })
+                    {
+                        messages[index] = ChatMessage(
+                            id: streamingId,
+                            content: streamingContent,
+                            isUser: false,
+                            timestamp: messages[index].timestamp
+                        )
                     }
                 }
+
+                // Streaming complete - clean up
+                streamingMessageId = nil
+                streamingContent = ""
+
             } catch {
-                await MainActor.run {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        isLoading = false
-                        errorMessage = error.localizedDescription
-                    }
-
-                    // Show error as a system message
-                    let errorResponse = ChatMessage(
-                        content: "Error: \(error.localizedDescription)",
-                        isUser: false
-                    )
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                        messages.append(errorResponse)
-                    }
+                // Remove the streaming message and show error
+                if let streamingId = streamingMessageId,
+                   let index = messages.firstIndex(where: { $0.id == streamingId })
+                {
+                    messages.remove(at: index)
                 }
+
+                errorMessage = error.localizedDescription
+
+                // Show error as a system message
+                let errorResponse = ChatMessage(
+                    content: "Error: \(error.localizedDescription)",
+                    isUser: false
+                )
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    messages.append(errorResponse)
+                }
+
+                streamingMessageId = nil
+                streamingContent = ""
             }
         }
     }
@@ -471,6 +508,8 @@ struct ChatPanel: View {
             messages.removeAll()
             hasExtractedContent = false  // Reset for new conversation
             pageContent = ""  // Clear old content
+            streamingMessageId = nil  // Clear streaming state
+            streamingContent = ""
         }
     }
 

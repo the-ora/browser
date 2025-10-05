@@ -20,7 +20,13 @@ class OpenAIProvider: AIProvider {
         KeychainService.shared.getOpenAIKey() ?? ""
     }
 
-    func sendMessage(_ message: String, pageContent: String?, model: AIModel) async throws -> String {
+    @MainActor
+    func sendMessageStreaming(
+        _ message: String,
+        pageContent: String?,
+        model: AIModel,
+        onChunk: @escaping (String) -> Void
+    ) async throws {
         guard isConfigured else {
             throw AIProviderError.notConfigured
         }
@@ -65,20 +71,18 @@ class OpenAIProvider: AIProvider {
         )
 
         do {
-            // Use streaming for real-time responses
+            // Use streaming with real-time UI updates
             let stream = try await openAIService.streamingChatCompletionRequest(
                 body: requestBody,
                 secondsToWait: 60
             )
 
-            var fullResponse = ""
             for try await chunk in stream {
                 if let content = chunk.choices.first?.delta.content {
-                    fullResponse += content
+                    // Call the UI update callback for each chunk
+                    onChunk(content)
                 }
             }
-
-            return fullResponse.trimmingCharacters(in: .whitespacesAndNewlines)
 
         } catch let AIProxyError.unsuccessfulRequest(statusCode, responseBody) {
             // Handle specific OpenAI errors
