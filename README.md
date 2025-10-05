@@ -8,11 +8,11 @@
 </div>
 
 <p align="center">
-    <a href="https://www.apple.com/macos/"><img src="https://badgen.net/badge/macOS/14+/blue" alt="macOS"></a>
+    <a href="https://www.apple.com/macos/"><img src="https://badgen.net/badge/macOS/15+/blue" alt="macOS"></a>
     <a href="https://developer.apple.com/xcode/"><img src="https://badgen.net/badge/Xcode/15+/blue" alt="Xcode"></a>
     <a href="https://swift.org"><img src="https://badgen.net/badge/Swift/5.9/orange" alt="Swift Version"></a>
     <a href="https://brew.sh"><img src="https://badgen.net/badge/Homebrew/required/yellow" alt="Homebrew"></a>
-    <a href="LICENSE.md"><img src="https://badgen.net/badge/License/MIT/green" alt="License: MIT"></a>
+    <a href="LICENSE.md"><img src="https://badgen.net/badge/License/GPL-2.0/green" alt="License: MIT"></a>
 </p>
 
 > **⚠️ Disclaimer**  
