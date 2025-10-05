@@ -13,7 +13,7 @@ struct HistoryView: View {
     @State private var showClearAllAlert = false
     @State private var isHeaderHovered = false
 
-    private var filteredVisits: [HistoryVisit] {
+    private var filteredVisits: [History] {
         guard let containerId = tabManager.activeContainer?.id else { return [] }
 
         if searchText.trimmingCharacters(in: .whitespaces).isEmpty {
@@ -24,7 +24,7 @@ struct HistoryView: View {
     }
 
     // Group visits by date
-    private var groupedVisits: [(String, [HistoryVisit])] {
+    private var groupedVisits: [(String, [History])] {
         let calendar = Calendar.current
         let today = Date()
 
@@ -258,7 +258,7 @@ struct HistoryView: View {
         }
     }
 
-    private func openHistoryItem(_ visit: HistoryVisit) {
+    private func openHistoryItem(_ visit: History) {
         guard !isSelectMode else { return }
 
         tabManager.openTab(
@@ -270,7 +270,7 @@ struct HistoryView: View {
 
     private func deleteSelectedVisits() {
         let visitsToDelete = filteredVisits.filter { selectedVisits.contains($0.id) }
-        historyManager.deleteHistoryVisits(visitsToDelete)
+        historyManager.deleteHistories(visitsToDelete)
         selectedVisits.removeAll()
         isSelectMode = false
     }
@@ -286,8 +286,8 @@ struct HistoryView: View {
         }
     }
 
-    private func deleteSingleVisit(_ visit: HistoryVisit) {
-        historyManager.deleteHistoryVisit(visit)
+    private func deleteSingleVisit(_ visit: History) {
+        historyManager.deleteHistory(visit)
     }
 }
 
@@ -295,12 +295,12 @@ struct HistoryDateSection: View {
     @Environment(\.theme) private var theme
 
     let date: String
-    let visits: [HistoryVisit]
+    let visits: [History]
     let searchText: String
     let isSelectMode: Bool
     @Binding var selectedVisits: Set<UUID>
-    let onVisitTap: (HistoryVisit) -> Void
-    let onVisitDelete: (HistoryVisit) -> Void
+    let onVisitTap: (History) -> Void
+    let onVisitDelete: (History) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -318,7 +318,7 @@ struct HistoryDateSection: View {
 
             // Visit items
             ForEach(visits, id: \.id) { visit in
-                HistoryVisitRow(
+                HistoryRow(
                     visit: visit,
                     searchText: searchText,
                     isSelectMode: isSelectMode,
@@ -344,10 +344,10 @@ struct HistoryDateSection: View {
     }
 }
 
-struct HistoryVisitRow: View {
+struct HistoryRow: View {
     @Environment(\.theme) private var theme
 
-    let visit: HistoryVisit
+    let visit: History
     let searchText: String
     let isSelectMode: Bool
     let isSelected: Bool
@@ -446,7 +446,7 @@ struct HistoryVisitRow: View {
 
 #Preview {
     do {
-        let historyContainer = try ModelContainer(for: History.self, HistoryVisit.self)
+        let historyContainer = try ModelContainer(for: History.self)
         let tabContainer = try ModelContainer(for: Tab.self)
 
         return HistoryView()
