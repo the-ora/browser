@@ -617,10 +617,5 @@ struct ChatPanel: View {
 
 #Preview {
     ChatPanel()
-        .environmentObject(TabManager(
-            modelContainer: try! ModelConfiguration.createOraContainer(isPrivate: false),
-            modelContext: ModelContext(try! ModelConfiguration.createOraContainer(isPrivate: false)),
-            mediaController: MediaController()
-        ))
         .withTheme()
 }
