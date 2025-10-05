@@ -181,6 +181,22 @@ struct OraRoot: View {
                     guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
                     tabManager.openHistoryTab(historyManager: historyManager, downloadManager: downloadManager)
                 }
+                NotificationCenter.default.addObserver(forName: .openURL, object: nil, queue: .main) { note in
+                    let targetWindow = window ?? NSApp.keyWindow
+                    if let sender = note.object as? NSWindow {
+                        guard sender === targetWindow else { return }
+                    } else {
+                        guard NSApp.keyWindow === targetWindow else { return }
+                    }
+                    guard let url = note.userInfo?["url"] as? URL else { return }
+                    tabManager.openTab(
+                        url: url,
+                        historyManager: historyManager,
+                        downloadManager: downloadManager,
+                        focusAfterOpening: true,
+                        isPrivate: privacyMode.isPrivate
+                    )
+                }
             }
     }
 }
