@@ -3,6 +3,8 @@ import SwiftData
 import SwiftUI
 import WebKit
 
+// Import for accessing settings
+
 enum TabType: String, Codable {
     case pinned
     case fav
@@ -27,14 +29,16 @@ class Tab: ObservableObject, Identifiable {
     var favicon: URL? // Add favicon property
     var createdAt: Date
     var lastAccessedAt: Date?
-    var isPlayingMedia: Bool
-    var isLoading: Bool = false
+    
+    
     var type: TabType
     var order: Int
     var faviconLocalFile: URL?
     var backgroundColorHex: String = "#000000"
 
     //    @Transient @Published var backgroundColor: Color = Color(.black)
+    @Transient var isPlayingMedia: Bool = false
+    @Transient var isLoading: Bool = false
     @Transient @Published var backgroundColor: Color = .black
     @Transient var historyManager: HistoryManager?
     @Transient var downloadManager: DownloadManager?
@@ -53,6 +57,13 @@ class Tab: ObservableObject, Identifiable {
     @Transient var isPrivate: Bool = false
 
     @Relationship(inverse: \TabContainer.tabs) var container: TabContainer
+
+    /// Whether this tab is considered alive (recently accessed)
+    var isAlive: Bool {
+        guard let lastAccessed = lastAccessedAt else { return false }
+        let timeout = SettingsStore.shared.tabAliveTimeout
+        return Date().timeIntervalSince(lastAccessed) < timeout
+    }
 
     init(
         id: UUID = UUID(),
@@ -157,6 +168,12 @@ class Tab: ObservableObject, Identifiable {
 
     func switchSections(from: Tab, to: Tab) {
         from.type = to.type
+        switch to.type {
+        case .pinned, .fav:
+            from.savedURL = from.url
+        case .normal:
+            from.savedURL = nil
+        }
     }
 
     func updateHeaderColor() {
@@ -236,17 +253,19 @@ class Tab: ObservableObject, Identifiable {
     }
 
     func goForward() {
+        lastAccessedAt = Date()
         self.webView.goForward()
         self.updateHeaderColor()
     }
 
     func goBack() {
+        lastAccessedAt = Date()
         self.webView.goBack()
         self.updateHeaderColor()
     }
 
     func restoreTransientState(
-        historyManger: HistoryManager,
+        historyManager: HistoryManager,
         downloadManager: DownloadManager,
         tabManager: TabManager,
         isPrivate: Bool
@@ -275,7 +294,7 @@ class Tab: ObservableObject, Identifiable {
             layer.drawsAsynchronously = true
         }
 
-        self.historyManager = historyManger
+        self.historyManager = historyManager
         self.downloadManager = downloadManager
         self.tabManager = tabManager
         self.isWebViewReady = false
@@ -283,7 +302,8 @@ class Tab: ObservableObject, Identifiable {
         self.syncBackgroundColorFromHex()
         // Load after a short delay to ensure layout
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
-            self.webView.load(URLRequest(url: self.url))
+            let url = if self.type != .normal { self.savedURL } else { self.url }
+            self.webView.load(URLRequest(url: url ?? self.url))
             self.isWebViewReady = true
         }
     }
@@ -309,6 +329,7 @@ class Tab: ObservableObject, Identifiable {
     }
 
     func loadURL(_ urlString: String) {
+        lastAccessedAt = Date()
         let input = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
 
         // 1) Try to construct a direct URL (has scheme or valid domain+TLD/IP)
@@ -355,6 +376,7 @@ class Tab: ObservableObject, Identifiable {
         webView.configuration.userContentController.removeAllUserScripts()
         webView.removeFromSuperview()
         webView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
+        isWebViewReady = false
     }
 
     func setNavigationError(_ error: Error, for url: URL?) {
