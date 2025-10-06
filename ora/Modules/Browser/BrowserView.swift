@@ -26,33 +26,37 @@ struct BrowserView: View {
     }
     
     var body: some View {
-        ZStack(alignment: .leading) {
-            HSplit(
-                left: {
-                    SidebarView(isFullscreen: isFullscreen)
-                },
-                right: {
-                    if tabManager.activeTab == nil {
-                        // Start page (visible when no tab is active)
-                        BrowserContentContainer(isFullscreen: isFullscreen, hideState: sidebarVisibility) {
-                            HomeView(sidebarToggle: toggleSidebar)
-                        }
+        let splitView = HSplit(
+            left: {
+                SidebarView(isFullscreen: isFullscreen)
+            },
+            right: {
+                if tabManager.activeTab == nil {
+                    // Start page (visible when no tab is active)
+                    BrowserContentContainer(isFullscreen: isFullscreen, hideState: sidebarVisibility) {
+                        HomeView(sidebarToggle: toggleSidebar)
                     }
+                }
+                
+                
+                
+                ZStack {
+                    
+                    
                     let activeId = tabManager.activeTab?.id
-                    let tabs = tabManager.activeContainenr?.tabs ?? []
-                    ForEach(tabs) { tab in
+                    ForEach(tabManager.tabsToRender) { tab in
                         if tab.isWebViewReady {
-                            HStack {
-                                BrowserContentContainer(isFullscreen: isFullscreen, hideState: sidebarVisibility) {
-                                    webView(for: tab)
-                                }
+                            BrowserContentContainer(isFullscreen: isFullscreen, hideState: sidebarVisibility) {
+                                webView(for: tab)
                             }
                             .opacity((activeId == tab.id) ? 1 : 0)
                         }
                     }
-                    
                 }
-            )
+                
+                
+            }
+        )
             .hide(sidebarVisibility)
             .splitter { Splitter.invisible() }
             .fraction(sidebarFraction)
@@ -62,7 +66,7 @@ struct BrowserView: View {
                 priority: .left,
                 dragToHideP: true
             )
-            // In autohide mode, remove any draggable splitter area to unhide
+        // In autohide mode, remove any draggable splitter area to unhide
             .styling(hideSplitter: true)
             .ignoresSafeArea(.all)
             .background(theme.subtleWindowBackgroundColor)
@@ -90,6 +94,9 @@ struct BrowserView: View {
                     FloatingTabSwitcher()
                 }
             }
+        
+        ZStack(alignment: .leading) {
+            splitView
             
             if sidebarVisibility.side == .primary {
                 // Floating sidebar with resizable width based on persisted fraction

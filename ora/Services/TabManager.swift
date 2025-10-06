@@ -12,6 +12,18 @@ class TabManager: ObservableObject {
     let modelContext: ModelContext
     let mediaController: MediaController
 
+    var recentTabs: [Tab] {
+        guard let container = activeContainer else { return [] }
+        return Array(container.tabs.sorted { ($0.lastAccessedAt ?? Date.distantPast) > ($1.lastAccessedAt ?? Date.distantPast) }.prefix(5))
+    }
+
+    var tabsToRender: [Tab] {
+        guard let container = activeContainer else { return [] }
+        let specialTabs = container.tabs.filter { $0.type == .pinned || $0.type == .fav || $0.isPlayingMedia }
+        let combined = Set(recentTabs + specialTabs)
+        return Array(combined).sorted { ($0.lastAccessedAt ?? Date.distantPast) > ($1.lastAccessedAt ?? Date.distantPast) }
+    }
+
     // Note: Could be made injectable via init parameter if preferred
     let tabSearchingService: TabSearchingProviding
 
@@ -337,6 +349,16 @@ class TabManager: ObservableObject {
         tab.lastAccessedAt = Date()
         activeContainer = tab.container
         tab.container.lastAccessedAt = Date()
+
+        // Lazy load WebView if not ready
+        if !tab.isWebViewReady {
+            tab.restoreTransientState(
+                historyManger: tab.historyManager ?? HistoryManager(modelContainer: modelContainer, modelContext: modelContext),
+                downloadManager: tab.downloadManager ?? DownloadManager(modelContainer: modelContainer, modelContext: modelContext),
+                tabManager: self,
+                isPrivate: tab.isPrivate
+            )
+        }
         tab.updateHeaderColor()
         try? modelContext.save()
     }

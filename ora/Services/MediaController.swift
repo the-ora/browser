@@ -70,6 +70,8 @@ final class MediaController: ObservableObject {
             let idx = ensureSession()
             let playing = (event.state == "playing")
             sessions[idx].isPlaying = playing
+            // Update tab's isPlayingMedia property
+            tabRefs[tab.id]?.value?.isPlayingMedia = playing
             if let newTitle = event.title, !newTitle.isEmpty { sessions[idx].title = newTitle }
             if let vol = event.volume { sessions[idx].volume = clamp(vol) }
             // Update recency when it starts playing
@@ -96,6 +98,8 @@ final class MediaController: ObservableObject {
         case "ended":
             if let idx = sessions.firstIndex(where: { $0.tabID == id }) {
                 sessions[idx].isPlaying = false
+                // Update tab's isPlayingMedia property
+                tabRefs[tab.id]?.value?.isPlayingMedia = false
             }
 
         case "titleChange":
@@ -155,6 +159,8 @@ final class MediaController: ObservableObject {
         if let idx = sessions.firstIndex(where: { $0.tabID == id }) {
             sessions.remove(at: idx)
         }
+        // Update tab's isPlayingMedia property
+        tabRefs[id]?.value?.isPlayingMedia = false
         tabRefs[id] = nil
         isVisible = !visibleSessions.isEmpty
     }

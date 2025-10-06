@@ -27,14 +27,16 @@ class Tab: ObservableObject, Identifiable {
     var favicon: URL? // Add favicon property
     var createdAt: Date
     var lastAccessedAt: Date?
-    var isPlayingMedia: Bool
-    var isLoading: Bool = false
+    
+    
     var type: TabType
     var order: Int
     var faviconLocalFile: URL?
     var backgroundColorHex: String = "#000000"
 
     //    @Transient @Published var backgroundColor: Color = Color(.black)
+    @Transient var isPlayingMedia: Bool = false
+    @Transient var isLoading: Bool = false
     @Transient @Published var backgroundColor: Color = .black
     @Transient var historyManager: HistoryManager?
     @Transient var downloadManager: DownloadManager?

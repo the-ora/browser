@@ -45,9 +45,10 @@ struct FavIcon: View {
     let favicon: URL?
     let faviconLocalFile: URL?
     let textColor: Color
+    var isPlayingMedia: Bool = false
 
     var body: some View {
-        HStack {
+        HStack(spacing: 4) {
             if let favicon, isWebViewReady {
                 AsyncImage(
                     url: favicon
@@ -68,8 +69,16 @@ struct FavIcon: View {
                     textColor: textColor
                 )
             }
+
+            if isPlayingMedia {
+                Image(systemName: "speaker.wave.2.fill")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 8, height: 8)
+                    .foregroundColor(textColor.opacity(0.8))
+            }
         }
-        .frame(width: 16, height: 16)
+        .frame(width: isPlayingMedia ? 28 : 16, height: 16)
     }
 }
 
@@ -97,7 +106,8 @@ struct TabItem: View {
                 isWebViewReady: tab.isWebViewReady,
                 favicon: tab.favicon,
                 faviconLocalFile: tab.faviconLocalFile,
-                textColor: textColor
+                textColor: textColor,
+                isPlayingMedia: tab.isPlayingMedia
             )
             tabTitle
             Spacer()
