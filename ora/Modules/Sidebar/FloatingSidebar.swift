@@ -17,7 +17,7 @@ struct FloatingSidebar: View {
         let clipShape = ConditionallyConcentricRectangle(cornerRadius: sidebarCornerRadius)
 
         ZStack(alignment: .leading) {
-            SidebarView(isFullscreen: $isFullscreen, sidebarPosition: sidebarPosition)
+            SidebarView(isFullscreen: isFullscreen, sidebarPosition: sidebarPosition)
                 .background(theme.subtleWindowBackgroundColor)
                 .background(BlurEffectView(material: .popover, blendingMode: .withinWindow))
                 .clipShape(clipShape)

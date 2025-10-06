@@ -109,7 +109,7 @@ struct OraRoot: View {
                 }
                 NotificationCenter.default.addObserver(forName: .showLauncher, object: nil, queue: .main) { note in
                     guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
-                    if tabManager.activeTab != nil {
+                    if tabManager.binactiveTab != nil {
                         appState.showLauncher.toggle()
                     }
                 }

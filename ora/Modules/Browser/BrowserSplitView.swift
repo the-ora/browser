@@ -66,7 +66,7 @@ struct BrowserSplitView: View {
                 contentView()
             } else {
                 SidebarView(
-                    isFullscreen: $isFullscreen, sidebarPosition: .primary
+                    isFullscreen: isFullscreen, sidebarPosition: .primary
                 )
             }
         } else {
@@ -81,7 +81,7 @@ struct BrowserSplitView: View {
                 contentView()
             } else {
                 SidebarView(
-                    isFullscreen: $isFullscreen, sidebarPosition: .secondary
+                    isFullscreen: isFullscreen, sidebarPosition: .secondary
                 )
             }
         } else {
