@@ -88,6 +88,47 @@ struct GeneralSettingsView: View {
                             }
                         }
                     }
+
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Tab Management")
+                            .font(.headline)
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Automatically clean up old tabs to preserve memory and storage space.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+
+                            HStack {
+                                Text("Destroy web views after:")
+                                Spacer()
+                                Picker("", selection: $settings.tabAliveTimeout) {
+                                    Text("1 minute").tag(TimeInterval(60))
+                                    Text("3 minutes").tag(TimeInterval(3 * 60))
+                                    Text("5 minutes").tag(TimeInterval(5 * 60))
+                                    Text("10 minutes").tag(TimeInterval(10 * 60))
+                                }
+                                .frame(width: 120)
+                            }
+
+                            HStack {
+                                Text("Remove tabs completely after:")
+                                Spacer()
+                                Picker("", selection: $settings.tabRemovalTimeout) {
+                                    Text("1 minute").tag(TimeInterval(60))
+                                    Text("2 minutes").tag(TimeInterval(2 * 60))
+                                    Text("5 minutes").tag(TimeInterval(5 * 60))
+                                    Text("10 minutes").tag(TimeInterval(10 * 60))
+                                    Text("30 minutes").tag(TimeInterval(30 * 60))
+                                    Text("1 hour").tag(TimeInterval(60 * 60))
+                                }
+                                .frame(width: 120)
+                            }
+
+                            Text("Note: Pinned and favorite tabs are never automatically removed.")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                    }
                     .padding(.vertical, 8)
                 }
             }

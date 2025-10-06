@@ -2,6 +2,7 @@ import SwiftData
 import SwiftUI
 import WebKit
 
+
 // MARK: - Tab Manager
 
 @MainActor
@@ -29,6 +30,8 @@ class TabManager: ObservableObject {
 
     @Query(sort: \TabContainer.lastAccessedAt, order: .reverse) var containers: [TabContainer]
 
+    private var cleanupTimer: Timer?
+
     init(
         modelContainer: ModelContainer,
         modelContext: ModelContext,
@@ -42,6 +45,9 @@ class TabManager: ObservableObject {
 
         self.modelContext.undoManager = UndoManager()
         initializeActiveContainerAndTab()
+
+        // Start automatic cleanup timer (every minute)
+        startCleanupTimer()
     }
 
     // MARK: - Public API's
@@ -361,6 +367,53 @@ class TabManager: ObservableObject {
         }
         tab.updateHeaderColor()
         try? modelContext.save()
+    }
+
+    /// Clean up old tabs that haven't been accessed recently to preserve memory
+    func cleanupOldTabs() {
+        let allContainers = fetchContainers()
+        for container in allContainers {
+            for tab in container.tabs {
+                if !tab.isAlive && tab.isWebViewReady && tab.id != activeTab?.id && !tab.isPlayingMedia && tab.type == .normal {
+                    tab.destroyWebView()
+                }
+            }
+        }
+    }
+
+    /// Completely remove old normal tabs that haven't been accessed for a long time
+    func removeOldTabs() {
+        let cutoffDate = Date().addingTimeInterval(-SettingsStore.shared.tabRemovalTimeout)
+        let allContainers = fetchContainers()
+        
+        for container in allContainers {
+            let tabsToRemove = container.tabs.filter { tab in
+                guard let lastAccessed = tab.lastAccessedAt else { return false }
+                return lastAccessed < cutoffDate &&
+                tab.id != activeTab?.id &&
+                !tab.isPlayingMedia &&
+                tab.type == .normal
+            }
+            
+            for tab in tabsToRemove {
+                    closeTab(tab: tab)
+            }
+        }
+    }
+    
+
+    /// Start the automatic cleanup timer
+    private func startCleanupTimer() {
+        cleanupTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { [weak self] _ in
+            DispatchQueue.main.async {
+                self?.cleanupOldTabs()
+                self?.removeOldTabs()
+            }
+        }
+    }
+
+    deinit {
+        cleanupTimer?.invalidate()
     }
 
     // Activate a tab by its persistent id. If the tab is in a

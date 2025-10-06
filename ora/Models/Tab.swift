@@ -3,6 +3,8 @@ import SwiftData
 import SwiftUI
 import WebKit
 
+// Import for accessing settings
+
 enum TabType: String, Codable {
     case pinned
     case fav
@@ -55,6 +57,13 @@ class Tab: ObservableObject, Identifiable {
     @Transient var isPrivate: Bool = false
 
     @Relationship(inverse: \TabContainer.tabs) var container: TabContainer
+
+    /// Whether this tab is considered alive (recently accessed)
+    var isAlive: Bool {
+        guard let lastAccessed = lastAccessedAt else { return false }
+        let timeout = SettingsStore.shared.tabAliveTimeout
+        return Date().timeIntervalSince(lastAccessed) < timeout
+    }
 
     init(
         id: UUID = UUID(),
@@ -238,11 +247,13 @@ class Tab: ObservableObject, Identifiable {
     }
 
     func goForward() {
+        lastAccessedAt = Date()
         self.webView.goForward()
         self.updateHeaderColor()
     }
 
     func goBack() {
+        lastAccessedAt = Date()
         self.webView.goBack()
         self.updateHeaderColor()
     }
@@ -311,6 +322,7 @@ class Tab: ObservableObject, Identifiable {
     }
 
     func loadURL(_ urlString: String) {
+        lastAccessedAt = Date()
         let input = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
 
         // 1) Try to construct a direct URL (has scheme or valid domain+TLD/IP)
@@ -357,6 +369,7 @@ class Tab: ObservableObject, Identifiable {
         webView.configuration.userContentController.removeAllUserScripts()
         webView.removeFromSuperview()
         webView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
+        isWebViewReady = false
     }
 
     func setNavigationError(_ error: Error, for url: URL?) {

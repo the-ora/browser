@@ -146,6 +146,8 @@ class SettingsStore: ObservableObject {
     private let customSearchEnginesKey = "settings.customSearchEngines"
     private let globalDefaultSearchEngineKey = "settings.globalDefaultSearchEngine"
     private let customKeyboardShortcutsKey = "settings.customKeyboardShortcuts"
+    private let tabAliveTimeoutKey = "settings.tabAliveTimeout"
+    private let tabRemovalTimeoutKey = "settings.tabRemovalTimeout"
 
     // MARK: - Per-Container
 
@@ -197,6 +199,14 @@ class SettingsStore: ObservableObject {
         didSet { saveCodable(customKeyboardShortcuts, forKey: customKeyboardShortcutsKey) }
     }
 
+    @Published var tabAliveTimeout: TimeInterval {
+        didSet { defaults.set(tabAliveTimeout, forKey: tabAliveTimeoutKey) }
+    }
+
+    @Published var tabRemovalTimeout: TimeInterval {
+        didSet { defaults.set(tabRemovalTimeout, forKey: tabRemovalTimeoutKey) }
+    }
+
     init() {
         autoUpdateEnabled = defaults.bool(forKey: autoUpdateKey)
         blockThirdPartyTrackers = defaults.bool(forKey: trackingThirdPartyKey)
@@ -220,6 +230,16 @@ class SettingsStore: ObservableObject {
 
         customKeyboardShortcuts =
             Self.loadCodable([String: KeyChord].self, key: customKeyboardShortcutsKey) ?? [:]
+
+        tabAliveTimeout = defaults.double(forKey: tabAliveTimeoutKey)
+        if tabAliveTimeout == 0 { // Default value if not set
+            tabAliveTimeout = 3 * 60 // 3 minutes
+        }
+
+        tabRemovalTimeout = defaults.double(forKey: tabRemovalTimeoutKey)
+        if tabRemovalTimeout == 0 { // Default value if not set
+            tabRemovalTimeout = 2 * 60 // 2 minutes
+        }
     }
 
     // MARK: - Per-container helpers
