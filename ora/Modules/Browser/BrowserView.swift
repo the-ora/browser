@@ -175,7 +175,7 @@ struct BrowserView: View {
             if let tab = newTab, !tab.isWebViewReady {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
                     tab.restoreTransientState(
-                        historyManger: historyManager,
+                        historyManager: historyManager,
                         downloadManager: downloadManager,
                         tabManager: tabManager,
                         isPrivate: privacyMode.isPrivate
@@ -191,7 +191,7 @@ struct BrowserView: View {
             if let tab = tabManager.activeTab, !tab.isWebViewReady {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     tab.restoreTransientState(
-                        historyManger: historyManager,
+                        historyManager: historyManager,
                         downloadManager: downloadManager,
                         tabManager: tabManager,
                         isPrivate: privacyMode.isPrivate

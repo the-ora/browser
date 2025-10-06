@@ -259,7 +259,7 @@ class Tab: ObservableObject, Identifiable {
     }
 
     func restoreTransientState(
-        historyManger: HistoryManager,
+        historyManager: HistoryManager,
         downloadManager: DownloadManager,
         tabManager: TabManager,
         isPrivate: Bool
@@ -288,7 +288,7 @@ class Tab: ObservableObject, Identifiable {
             layer.drawsAsynchronously = true
         }
 
-        self.historyManager = historyManger
+        self.historyManager = historyManager
         self.downloadManager = downloadManager
         self.tabManager = tabManager
         self.isWebViewReady = false

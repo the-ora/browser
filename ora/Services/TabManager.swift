@@ -213,7 +213,7 @@ class TabManager: ObservableObject {
         
         // Initialize the WebView for the new active tab
         newTab.restoreTransientState(
-            historyManger: historyManager ?? HistoryManager(modelContainer: modelContainer, modelContext: modelContext),
+            historyManager: historyManager ?? HistoryManager(modelContainer: modelContainer, modelContext: modelContext),
             downloadManager: downloadManager ?? DownloadManager(
                 modelContainer: modelContainer,
                 modelContext: modelContext
@@ -263,7 +263,7 @@ class TabManager: ObservableObject {
                     
                     // Initialize the WebView for the new active tab
                     newTab.restoreTransientState(
-                        historyManger: historyManager,
+                        historyManager: historyManager,
                         downloadManager: downloadManager ?? DownloadManager(
                             modelContainer: modelContainer,
                             modelContext: modelContext
@@ -313,7 +313,7 @@ class TabManager: ObservableObject {
         {
             activeTab?
                 .restoreTransientState(
-                    historyManger: historyManager,
+                    historyManager: historyManager,
                     downloadManager: downloadManager,
                     tabManager: tabManager,
                     isPrivate: tab.isPrivate
@@ -359,7 +359,7 @@ class TabManager: ObservableObject {
         // Lazy load WebView if not ready
         if !tab.isWebViewReady {
             tab.restoreTransientState(
-                historyManger: tab.historyManager ?? HistoryManager(modelContainer: modelContainer, modelContext: modelContext),
+                historyManager: tab.historyManager ?? HistoryManager(modelContainer: modelContainer, modelContext: modelContext),
                 downloadManager: tab.downloadManager ?? DownloadManager(modelContainer: modelContainer, modelContext: modelContext),
                 tabManager: self,
                 isPrivate: tab.isPrivate
