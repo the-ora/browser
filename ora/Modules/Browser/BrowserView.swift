@@ -37,12 +37,7 @@ struct BrowserView: View {
                         HomeView(sidebarToggle: toggleSidebar)
                     }
                 }
-                
-                
-                
                 ZStack {
-                    
-                    
                     let activeId = tabManager.activeTab?.id
                     ForEach(tabManager.tabsToRender) { tab in
                         if tab.isWebViewReady {
@@ -53,8 +48,6 @@ struct BrowserView: View {
                         }
                     }
                 }
-                
-                
             }
         )
             .hide(sidebarVisibility)

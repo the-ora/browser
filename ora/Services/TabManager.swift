@@ -22,7 +22,7 @@ class TabManager: ObservableObject {
         guard let container = activeContainer else { return [] }
         let specialTabs = container.tabs.filter { $0.type == .pinned || $0.type == .fav || $0.isPlayingMedia }
         let combined = Set(recentTabs + specialTabs)
-        return Array(combined).sorted { ($0.lastAccessedAt ?? Date.distantPast) > ($1.lastAccessedAt ?? Date.distantPast) }
+        return Array(combined)
     }
     
     // Note: Could be made injectable via init parameter if preferred
