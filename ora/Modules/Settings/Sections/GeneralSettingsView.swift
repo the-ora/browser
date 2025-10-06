@@ -30,9 +30,8 @@ struct GeneralSettingsView: View {
                     .padding(12)
                     .background(theme.solidWindowBackgroundColor)
                     .cornerRadius(8)
-                    
-                     if !defaultBrowserManager.isDefault {
-                        
+
+                    if !defaultBrowserManager.isDefault {
                         HStack {
                             Text("Born for your Mac. Make Ora your default browser.")
                             Spacer()

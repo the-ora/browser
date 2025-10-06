@@ -9,6 +9,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSWindow.allowsAutomaticWindowTabbing = false
         AppearanceManager.shared.updateAppearance()
     }
+
     func application(_ application: NSApplication, open urls: [URL]) {
         handleIncomingURLs(urls)
     }
@@ -22,6 +23,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         return WindowFactory.makeMainWindow(rootView: OraRoot())
     }
+
     func handleIncomingURLs(_ urls: [URL]) {
         let window = getWindow()!
         for url in urls {
@@ -59,11 +61,11 @@ class AppState: ObservableObject {
 @main
 struct OraApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    
+
     // Shared model container that uses the same configuration as the main browser
     private let sharedModelContainer: ModelContainer? =
-    try? ModelConfiguration.createOraContainer(isPrivate: false)
-    
+        try? ModelConfiguration.createOraContainer(isPrivate: false)
+
     var body: some Scene {
         WindowGroup(id: "normal") {
             OraRoot()
@@ -74,7 +76,7 @@ struct OraApp: App {
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentMinSize)
         .handlesExternalEvents(matching: [])
-        
+
         WindowGroup("Private", id: "private") {
             OraRoot(isPrivate: true)
                 .frame(minWidth: 500, minHeight: 360)
@@ -84,7 +86,7 @@ struct OraApp: App {
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentMinSize)
         .handlesExternalEvents(matching: [])
-        
+
         Settings {
             if let sharedModelContainer {
                 SettingsContentView()

@@ -177,6 +177,10 @@ struct OraRoot: View {
                         tabManager.selectTabAtIndex(index)
                     }
                 }
+                NotificationCenter.default.addObserver(forName: .showHistory, object: nil, queue: .main) { note in
+                    guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
+                    tabManager.openHistoryTab(historyManager: historyManager, downloadManager: downloadManager)
+                }
                 NotificationCenter.default.addObserver(forName: .openURL, object: nil, queue: .main) { note in
                     let targetWindow = window ?? NSApp.keyWindow
                     if let sender = note.object as? NSWindow {

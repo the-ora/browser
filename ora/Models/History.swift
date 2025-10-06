@@ -8,11 +8,9 @@ final class History {
     var url: URL
     var urlString: String
     var title: String
-    var faviconURL: URL
+    var faviconURL: URL?
     var faviconLocalFile: URL?
-    var createdAt: Date
-    var visitCount: Int
-    var lastAccessedAt: Date
+    var visitedAt: Date? // When this specific visit occurred
 
     @Relationship(inverse: \TabContainer.history) var container: TabContainer?
 
@@ -20,23 +18,18 @@ final class History {
         id: UUID = UUID(),
         url: URL,
         title: String,
-        faviconURL: URL,
+        faviconURL: URL? = nil,
         faviconLocalFile: URL? = nil,
-        createdAt: Date,
-        lastAccessedAt: Date,
-        visitCount: Int,
+        visitedAt: Date? = Date(),
         container: TabContainer? = nil
     ) {
-        let now = Date()
         self.id = id
         self.url = url
         self.urlString = url.absoluteString
         self.title = title
         self.faviconURL = faviconURL
-        self.createdAt = now
-        self.lastAccessedAt = now
-        self.visitCount = visitCount
         self.faviconLocalFile = faviconLocalFile
+        self.visitedAt = visitedAt
         self.container = container
     }
 }

@@ -19,38 +19,30 @@ class HistoryManager: ObservableObject {
         url: URL,
         faviconURL: URL? = nil,
         faviconLocalFile: URL? = nil,
-        container: TabContainer
+        container: TabContainer,
+        isPrivate: Bool = false
     ) {
-        let urlString = url.absoluteString
+        // Don't save history in private mode
+        guard !isPrivate else {
+            logger.debug("Skipping history recording - private mode")
+            return
+        }
+        let now = Date()
 
-        // Check if a history record already exists for this URL
-        let descriptor = FetchDescriptor<History>(
-            predicate: #Predicate {
-                $0.urlString == urlString
-            },
-            sortBy: [.init(\.lastAccessedAt, order: .reverse)]
+        // Create a new history entry for each visit (no more consolidation)
+        let defaultFaviconURL = URL(string: "https://www.google.com/s2/favicons?domain=\(url.host ?? "google.com")")
+        let resolvedFaviconURL = faviconURL ?? defaultFaviconURL
+
+        let historyEntry = History(
+            url: url,
+            title: title,
+            faviconURL: resolvedFaviconURL,
+            faviconLocalFile: faviconLocalFile,
+            visitedAt: now,
+            container: container
         )
 
-        if let existing = try? modelContext.fetch(descriptor).first {
-            existing.visitCount += 1
-            existing.lastAccessedAt = Date() // update last visited time
-        } else {
-            let now = Date()
-            let defaultFaviconURL = URL(string: "https://www.google.com/s2/favicons?domain=\(url.host ?? "google.com")")
-            let fallbackURL = URL(fileURLWithPath: "")
-            let resolvedFaviconURL = faviconURL ?? defaultFaviconURL ?? fallbackURL
-            modelContext.insert(History(
-                url: url,
-                title: title,
-                faviconURL: resolvedFaviconURL,
-                faviconLocalFile: faviconLocalFile,
-                createdAt: now,
-                lastAccessedAt: now,
-                visitCount: 1,
-                container: container
-            ))
-        }
-
+        modelContext.insert(historyEntry)
         try? modelContext.save()
     }
 
@@ -60,8 +52,10 @@ class HistoryManager: ObservableObject {
         // Define the predicate for searching
         let predicate: Predicate<History>
         if trimmedText.isEmpty {
-            // If the search text is empty, return all records
-            predicate = #Predicate { _ in true }
+            // If the search text is empty, return all records for the container
+            predicate = #Predicate { history in
+                history.container != nil && history.container!.id == activeContainerId
+            }
         } else {
             // Case-insensitive substring search on url and title
             predicate = #Predicate { history in
@@ -71,10 +65,10 @@ class HistoryManager: ObservableObject {
             }
         }
 
-        // Create fetch descriptor with predicate and sorting
+        // Create fetch descriptor with predicate and sorting by visitedAt (most recent first)
         let descriptor = FetchDescriptor<History>(
             predicate: predicate,
-            sortBy: [SortDescriptor(\.lastAccessedAt, order: .reverse)]
+            sortBy: [SortDescriptor(\.visitedAt, order: .reverse)]
         )
 
         do {
@@ -103,5 +97,71 @@ class HistoryManager: ObservableObject {
         } catch {
             logger.error("Failed to clear history for container \(container.id): \(error.localizedDescription)")
         }
+    }
+
+    // MARK: - Chronological History Methods
+
+    func getChronologicalHistory(for containerId: UUID, limit: Int? = nil) -> [History] {
+        let containerDescriptor = FetchDescriptor<TabContainer>(
+            predicate: #Predicate<TabContainer> { $0.id == containerId }
+        )
+
+        do {
+            let containers = try modelContext.fetch(containerDescriptor)
+            if let container = containers.first {
+                // Filter out old migrated records without visitedAt timestamps and sort
+                let sortedHistory = container.history
+                    .filter { $0.visitedAt != nil }
+                    .sorted { first, second in
+                        guard let date1 = first.visitedAt, let date2 = second.visitedAt else { return false }
+                        return date1 > date2
+                    }
+
+                // Apply limit if specified
+                let results = if let limit {
+                    Array(sortedHistory.prefix(limit))
+                } else {
+                    sortedHistory
+                }
+
+                return results
+            }
+        } catch {
+            logger.error("Error fetching container: \(error.localizedDescription)")
+        }
+
+        return []
+    }
+
+    func searchChronologicalHistory(_ text: String, activeContainerId: UUID) -> [History] {
+        let trimmedText = text.trimmingCharacters(in: .whitespaces)
+
+        // Get all history for the container first
+        let allHistory = getChronologicalHistory(for: activeContainerId)
+
+        // If no search text, return all
+        if trimmedText.isEmpty {
+            return allHistory
+        }
+
+        // Filter in memory for search text
+        let filteredHistory = allHistory.filter { history in
+            history.urlString.localizedStandardContains(trimmedText) ||
+                history.title.localizedStandardContains(trimmedText)
+        }
+
+        return filteredHistory
+    }
+
+    func deleteHistory(_ history: History) {
+        modelContext.delete(history)
+        try? modelContext.save()
+    }
+
+    func deleteHistories(_ histories: [History]) {
+        for history in histories {
+            modelContext.delete(history)
+        }
+        try? modelContext.save()
     }
 }
