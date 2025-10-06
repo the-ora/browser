@@ -15,7 +15,7 @@ class TabManager: ObservableObject {
     
     var recentTabs: [Tab] {
         guard let container = activeContainer else { return [] }
-        return Array(container.tabs.sorted { ($0.lastAccessedAt ?? Date.distantPast) > ($1.lastAccessedAt ?? Date.distantPast) }.prefix(5))
+        return Array(container.tabs.sorted { ($0.lastAccessedAt ?? Date.distantPast) > ($1.lastAccessedAt ?? Date.distantPast) }.prefix(SettingsStore.shared.maxRecentTabs))
     }
     
     var tabsToRender: [Tab] {

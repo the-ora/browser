@@ -82,6 +82,17 @@ struct GeneralSettingsView: View {
                                 .frame(width: 120)
                             }
                             
+                            HStack {
+                                Text("Maximum recent tabs to keep in view:")
+                                Spacer()
+                                Picker("", selection: $settings.maxRecentTabs) {
+                                    ForEach(1...10, id: \.self) { num in
+                                        Text("\(num)").tag(num)
+                                    }
+                                }
+                                .frame(width: 80)
+                            }
+
                             Text("Note: Pinned and favorite tabs are never automatically removed.")
                                 .font(.caption2)
                                 .foregroundColor(.secondary)

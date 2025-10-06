@@ -148,6 +148,7 @@ class SettingsStore: ObservableObject {
     private let customKeyboardShortcutsKey = "settings.customKeyboardShortcuts"
     private let tabAliveTimeoutKey = "settings.tabAliveTimeout"
     private let tabRemovalTimeoutKey = "settings.tabRemovalTimeout"
+    private let maxRecentTabsKey = "settings.maxRecentTabs"
 
     // MARK: - Per-Container
 
@@ -207,6 +208,10 @@ class SettingsStore: ObservableObject {
         didSet { defaults.set(tabRemovalTimeout, forKey: tabRemovalTimeoutKey) }
     }
 
+    @Published var maxRecentTabs: Int {
+        didSet { defaults.set(maxRecentTabs, forKey: maxRecentTabsKey) }
+    }
+
     init() {
         autoUpdateEnabled = defaults.bool(forKey: autoUpdateKey)
         blockThirdPartyTrackers = defaults.bool(forKey: trackingThirdPartyKey)
@@ -236,6 +241,9 @@ class SettingsStore: ObservableObject {
 
         let removalTimeoutValue = defaults.double(forKey: tabRemovalTimeoutKey)
         tabRemovalTimeout = removalTimeoutValue == 0 ? 24 * 60 * 60 : removalTimeoutValue // 1 day default
+
+        let maxRecentTabsValue = defaults.integer(forKey: maxRecentTabsKey)
+        maxRecentTabs = maxRecentTabsValue == 0 ? 5 : maxRecentTabsValue
     }
 
     // MARK: - Per-container helpers
