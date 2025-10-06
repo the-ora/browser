@@ -5,6 +5,7 @@ struct GeneralSettingsView: View {
     @EnvironmentObject var appearanceManager: AppearanceManager
     @EnvironmentObject var updateService: UpdateService
     @StateObject private var settings = SettingsStore.shared
+    @StateObject private var defaultBrowserManager = DefaultBrowserManager.shared
     @Environment(\.theme) var theme
     
     var body: some View {
@@ -30,16 +31,19 @@ struct GeneralSettingsView: View {
                     .background(theme.solidWindowBackgroundColor)
                     .cornerRadius(8)
                     
-                    HStack {
-                        Text("Born for your Mac. Make Ora your default browser.")
-                        Spacer()
-                        Button("Set Ora as default") { openDefaultBrowserSettings() }
+                     if !defaultBrowserManager.isDefault {
+                        
+                        HStack {
+                            Text("Born for your Mac. Make Ora your default browser.")
+                            Spacer()
+                            Button("Set Ora as default") { DefaultBrowserManager.requestSetAsDefault() }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(8)
+                        .background(theme.solidWindowBackgroundColor)
+                        .cornerRadius(8)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(8)
-                    .background(theme.solidWindowBackgroundColor)
-                    .cornerRadius(8)
-                    
+
                     AppearanceSelector(selection: $appearanceManager.appearance)
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Tab Management")
@@ -136,16 +140,7 @@ struct GeneralSettingsView: View {
             }
         }
     }
-    
-    private func openDefaultBrowserSettings() {
-        guard
-            let url = URL(
-                string: "x-apple.systempreferences:com.apple.preference.general?DefaultWebBrowser"
-            )
-        else { return }
-        NSWorkspace.shared.open(url)
-    }
-    
+
     private func getAppVersion() -> String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
