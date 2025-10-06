@@ -231,15 +231,11 @@ class SettingsStore: ObservableObject {
         customKeyboardShortcuts =
             Self.loadCodable([String: KeyChord].self, key: customKeyboardShortcutsKey) ?? [:]
 
-        tabAliveTimeout = defaults.double(forKey: tabAliveTimeoutKey)
-        if tabAliveTimeout == 0 { // Default value if not set
-            tabAliveTimeout = 3 * 60 // 3 minutes
-        }
+        let aliveTimeoutValue = defaults.double(forKey: tabAliveTimeoutKey)
+        tabAliveTimeout = aliveTimeoutValue == 0 ? 60 * 60 : aliveTimeoutValue // 1 hour default
 
-        tabRemovalTimeout = defaults.double(forKey: tabRemovalTimeoutKey)
-        if tabRemovalTimeout == 0 { // Default value if not set
-            tabRemovalTimeout = 2 * 60 // 2 minutes
-        }
+        let removalTimeoutValue = defaults.double(forKey: tabRemovalTimeoutKey)
+        tabRemovalTimeout = removalTimeoutValue == 0 ? 24 * 60 * 60 : removalTimeoutValue // 1 day default
     }
 
     // MARK: - Per-container helpers

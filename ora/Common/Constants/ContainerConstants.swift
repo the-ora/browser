@@ -6,10 +6,10 @@ enum ContainerConstants {
     static let defaultEmoji = "•"
 
     /// Default time in seconds after which a tab is no longer considered alive
-    static let defaultTabAliveTimeout: TimeInterval = 3 * 60 // 3 minutes
+    static let defaultTabAliveTimeout: TimeInterval = 60 * 60 // 1 hour
 
     /// Default time in seconds after which normal tabs are completely removed
-    static let defaultTabRemovalTimeout: TimeInterval = 2 * 60 // 2 minutes
+    static let defaultTabRemovalTimeout: TimeInterval = 24 * 60 * 60 // 1 day
 
     /// UI constants for container forms and displays
     enum UI {
