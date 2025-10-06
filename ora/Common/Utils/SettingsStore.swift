@@ -237,10 +237,30 @@ class SettingsStore: ObservableObject {
             Self.loadCodable([String: KeyChord].self, key: customKeyboardShortcutsKey) ?? [:]
 
         let aliveTimeoutValue = defaults.double(forKey: tabAliveTimeoutKey)
-        tabAliveTimeout = aliveTimeoutValue == 0 ? 60 * 60 : aliveTimeoutValue // 1 hour default
+        let supportedTimeouts: [TimeInterval] = [
+            60 * 60,           // 1 hour
+            6 * 60 * 60,       // 6 hours
+            12 * 60 * 60,      // 12 hours
+            24 * 60 * 60,      // 1 day
+            2 * 24 * 60 * 60,  // 2 days
+            365 * 24 * 60 * 60 // "Never" sentinel
+        ]
+        let normalizedAlive = Self.normalizeTimeout(
+            aliveTimeoutValue,
+            defaultSeconds: 60 * 60,
+            supported: supportedTimeouts
+        )
+        defaults.set(normalizedAlive, forKey: tabAliveTimeoutKey)
+        tabAliveTimeout = normalizedAlive
 
         let removalTimeoutValue = defaults.double(forKey: tabRemovalTimeoutKey)
-        tabRemovalTimeout = removalTimeoutValue == 0 ? 24 * 60 * 60 : removalTimeoutValue // 1 day default
+        let normalizedRemoval = Self.normalizeTimeout(
+            removalTimeoutValue,
+            defaultSeconds: 24 * 60 * 60,
+            supported: supportedTimeouts
+        )
+        defaults.set(normalizedRemoval, forKey: tabRemovalTimeoutKey)
+        tabRemovalTimeout = normalizedRemoval
 
         let maxRecentTabsValue = defaults.integer(forKey: maxRecentTabsKey)
         maxRecentTabs = maxRecentTabsValue == 0 ? 5 : maxRecentTabsValue
@@ -341,5 +361,23 @@ class SettingsStore: ObservableObject {
         let defaults = UserDefaults.standard
         guard let data = defaults.data(forKey: key) else { return nil }
         return try? JSONDecoder().decode(T.self, from: data)
+    }
+
+    // MARK: - Normalization helpers
+
+    private static func normalizeTimeout(
+        _ raw: TimeInterval,
+        defaultSeconds: TimeInterval,
+        supported: [TimeInterval]
+    ) -> TimeInterval {
+        let value: TimeInterval = raw == 0 ? defaultSeconds : raw
+
+        if supported.contains(value) {
+            return value
+        }
+
+        return supported.min { lhs, rhs in
+            abs(lhs - value) < abs(rhs - value)
+        } ?? defaultSeconds
     }
 }
