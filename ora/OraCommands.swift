@@ -174,6 +174,19 @@ struct OraCommands: Commands {
             Button("Toggle Toolbar") { NotificationCenter.default.post(name: .toggleToolbar, object: NSApp.keyWindow) }
                 .keyboardShortcut(KeyboardShortcuts.App.toggleToolbar.keyboardShortcut)
         }
+
+        CommandGroup(after: .windowList) {
+            Button("Close Window") {
+                if let keyWindow = NSApp.keyWindow, keyWindow.title == "Settings" {
+                    keyWindow.performClose(nil)
+                }
+            }
+            .keyboardShortcut("w", modifiers: .command)
+            .disabled({
+                guard let keyWindow = NSApp.keyWindow else { return true }
+                return keyWindow.title != "Settings"
+            }())
+        }
     }
 
     private func showAboutWindow() {
