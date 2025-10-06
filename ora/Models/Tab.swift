@@ -168,6 +168,12 @@ class Tab: ObservableObject, Identifiable {
 
     func switchSections(from: Tab, to: Tab) {
         from.type = to.type
+        switch to.type {
+        case .pinned, .fav:
+            from.savedURL = from.url
+        case .normal:
+            from.savedURL = nil
+        }
     }
 
     func updateHeaderColor() {
@@ -296,7 +302,8 @@ class Tab: ObservableObject, Identifiable {
         self.syncBackgroundColorFromHex()
         // Load after a short delay to ensure layout
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
-            self.webView.load(URLRequest(url: self.url))
+            let url = if self.type != .normal { self.savedURL } else { self.url }
+            self.webView.load(URLRequest(url: url ?? self.url))
             self.isWebViewReady = true
         }
     }

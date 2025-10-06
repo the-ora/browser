@@ -117,7 +117,7 @@ struct TabItem: View {
             if tabManager.isActive(tab) {
                 tab
                     .restoreTransientState(
-                        historyManger: historyManager,
+                        historyManager: historyManager,
                         downloadManager: downloadManager,
                         tabManager: tabManager,
                         isPrivate: privacyMode.isPrivate
@@ -130,7 +130,7 @@ struct TabItem: View {
                 if !tab.isWebViewReady {
                     tab
                         .restoreTransientState(
-                            historyManger: historyManager,
+                            historyManager: historyManager,
                             downloadManager: downloadManager,
                             tabManager: tabManager,
                             isPrivate: privacyMode.isPrivate
@@ -157,7 +157,7 @@ struct TabItem: View {
                 if !tab.isWebViewReady {
                     tab
                         .restoreTransientState(
-                            historyManger: historyManager,
+                            historyManager: historyManager,
                             downloadManager: downloadManager,
                             tabManager: tabManager,
                             isPrivate: privacyMode.isPrivate

@@ -177,9 +177,15 @@ struct OraCommands: Commands {
 
         CommandGroup(after: .windowList) {
             Button("Close Window") {
-                NSApp.keyWindow?.performClose(nil)
+                if let keyWindow = NSApp.keyWindow, keyWindow.title == "Settings" {
+                    keyWindow.performClose(nil)
+                }
             }
             .keyboardShortcut("w", modifiers: .command)
+            .disabled({
+                guard let keyWindow = NSApp.keyWindow else { return true }
+                return keyWindow.title != "Settings"
+            }())
         }
     }
 
