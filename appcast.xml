@@ -5,45 +5,44 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
-      <title>Version 0.2.3</title>
+      <title>Version 0.2.4</title>
       <description><![CDATA[
-        <h2>Ora Browser v0.2.3</h2>
+        <h2>Ora Browser v0.2.4</h2>
         <p>Changes since last release:</p>
         <div class="changelog">
           <h3>Features</h3>
           <ul>
-            <li>feat: add JavaScript alert, confirm, and prompt handling (#108) — Kenenisa Alemayehu</li>
+            <li>feat: add URL handling and deep linking support (#132) — Kenenisa Alemayehu</li>
+            <li>feat: double click full resize of window (#128) — Chase</li>
+            <li>feat: add ability to edit container name and emoji (#125) — Chase</li>
           </ul>
           <h3>Fixes</h3>
           <ul>
-            <li>fix: prevent appearance update crash when NSApp is nil (#115) — Kenenisa Alemayehu</li>
-            <li>fix(tabs): add keyboard shortcuts for tab selection and notification handling (#106) — Furkan Koseoglu</li>
-            <li>fix: closing tab animation (#53) — Roman Potapov</li>
-            <li>fix(sidebar): fixes sidebar behavior with downloads widgets when side… (#100) — Furkan Koseoglu</li>
-            <li>fix: mini player spacing on sidebar — yonaries</li>
-            <li>fix: min and max launcher width — yonaries</li>
-          </ul>
-          <h3>Chores</h3>
-          <ul>
-            <li>chore: swiftlint — yonaries</li>
-            <li>chore: skip version bump commits in release script — Kenenisa Alemayehu</li>
-            <li>chore: update .gitignore to exclude backup files and remove obsolete appcast.xml.backup — Kenenisa Alemayehu</li>
+            <li>fix: settings model container and spaces UI (#127) — Chase</li>
+            <li>fix: move to container shows proper containers now (#126) — Chase</li>
+            <li>fix(sidebar): update sidebar visibility persistance (#124) — Furkan Koseoglu</li>
+            <li>fix: update user agent string in TabScriptHandler for compatibility — Kenenisa Alemayehu</li>
           </ul>
           <h3>Other</h3>
           <ul>
-            <li>Add custom keyboard shortcut support + update UI (#89) — Joe McLaughlin</li>
-            <li>Add horizontal padding to search bar in LauncherMain SwiftUI view (#110) — FormalSnake</li>
-            <li>Update Wiki link in README.md (#104) — Aether</li>
+            <li>Enhance Tab Management Settings and UI (#139) — Kenenisa Alemayehu</li>
+            <li>Update macOS and License badge in README — Yonathan Dejene</li>
+            <li>Change license from MIT to GPL-2.0 — Kenenisa Alemayehu</li>
+            <li>Delete LICENSE.md — Kenenisa Alemayehu</li>
+            <li>Add GNU General Public License v2 — Kenenisa Alemayehu</li>
+            <li>Prevent Window Drag Interference During Tab Drags and Refactor TabManager for Modularity (#101) — AryanRogye</li>
+            <li>ux: Cleanup search engines implementation (#121) — versecafe</li>
+            <li>ux: Improve page finder (#122) — versecafe</li>
           </ul>
         </div>
       ]]></description>
-      <pubDate>Sat, 20 Sep 2025 08:43:15 +0000</pubDate>
-       <enclosure url="https://github.com/the-ora/browser/releases/download/v0.2.3/Ora-Browser-0.2.3.dmg"
-                  sparkle:version="91"
-                  sparkle:shortVersionString="0.2.3"
-                  length="4531050"
+      <pubDate>Mon, 06 Oct 2025 20:11:13 +0000</pubDate>
+       <enclosure url="https://github.com/the-ora/browser/releases/download/v0.2.4/Ora-Browser-0.2.4.dmg"
+                  sparkle:version="92"
+                  sparkle:shortVersionString="0.2.4"
+                  length="4675900"
                   type="application/octet-stream"
-                   sparkle:edSignature="3wzzuqT6Uo4NLoKLvGQ0p3xWwgiaCi4xNNBUd168jgTnmPLT4hBhR1c8F7st+s9fMm0ZCIhXWiLbt6sV0P/DCQ=="/>
+                   sparkle:edSignature="NCBtkaA9uR347Y+dHHabtdPmfgRQ+HEQiDR7P2oBDLLK1IEX9fo8vGo2PV/tnPszZD+mCD4V3+mRc0IBYpz8Aw=="/>
     </item>
   </channel>
 </rss>
