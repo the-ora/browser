@@ -18,7 +18,6 @@ struct SidebarView: View {
 
     private let columns = Array(repeating: GridItem(spacing: 10), count: 3)
 
-    let isFullscreen: Bool
     var sidebarPosition: SidebarPosition = .primary
 
     private var shouldShowMediaWidget: Bool {
@@ -47,6 +46,10 @@ struct SidebarView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
+            if sidebarPosition != .secondary {
+                WindowControls(isFullscreen: appState.isFullscreen)
+            }
+
             NSPageView(
                 selection: selectedContainerIndex,
                 pageObjects: containers,
@@ -86,7 +89,7 @@ struct SidebarView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(
             EdgeInsets(
-                top: (isFullscreen || sidebarPosition == .secondary) ? 10 : 36,
+                top: 10,
                 leading: 0,
                 bottom: 10,
                 trailing: 0

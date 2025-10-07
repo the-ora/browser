@@ -11,7 +11,6 @@ struct BrowserSplitView: View {
     let sidebarPosition: SidebarPosition
     @ObservedObject var hiddenSidebar: SideHolder
     @ObservedObject var sidebarFraction: FractionHolder
-    @Binding var isFullscreen: Bool
     let toggleSidebar: () -> Void
 
     private var targetSide: SplitSide {
@@ -65,9 +64,7 @@ struct BrowserSplitView: View {
             if hiddenSidebar.side == .secondary {
                 contentView()
             } else {
-                SidebarView(
-                    isFullscreen: isFullscreen, sidebarPosition: .primary
-                )
+                SidebarView(sidebarPosition: .primary)
             }
         } else {
             contentView()
@@ -80,9 +77,7 @@ struct BrowserSplitView: View {
             if hiddenSidebar.side == .primary {
                 contentView()
             } else {
-                SidebarView(
-                    isFullscreen: isFullscreen, sidebarPosition: .secondary
-                )
+                SidebarView(sidebarPosition: .secondary)
             }
         } else {
             contentView()
@@ -93,7 +88,6 @@ struct BrowserSplitView: View {
     private func contentView() -> some View {
         if tabManager.activeTab != nil {
             BrowserContentContainer(
-                isFullscreen: isFullscreen,
                 hiddenSidebar: hiddenSidebar,
                 sidebarPosition: sidebarPosition
             ) {
@@ -101,7 +95,6 @@ struct BrowserSplitView: View {
             }
         } else {
             BrowserContentContainer(
-                isFullscreen: isFullscreen,
                 hiddenSidebar: hiddenSidebar,
                 sidebarPosition: sidebarPosition
             ) {

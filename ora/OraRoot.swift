@@ -72,6 +72,14 @@ struct OraRoot: View {
     var body: some View {
         BrowserView()
             .background(WindowReader(window: $window))
+            .background(
+                WindowAccessor(
+                    isFullscreen: Binding(
+                        get: { appState.isFullscreen },
+                        set: { newValue in appState.isFullscreen = newValue }
+                    )
+                )
+            )
             .environment(\.window, window)
             .environmentObject(appState)
             .environmentObject(tabManager)

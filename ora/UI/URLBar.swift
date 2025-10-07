@@ -78,6 +78,8 @@ struct URLBar: View {
                             action: onSidebarToggle
                         )
                         .oraShortcutHelp("Toggle Sidebar", for: KeyboardShortcuts.App.toggleSidebar)
+                    } else {
+                        WindowControls(isFullscreen: appState.isFullscreen)
                     }
 
                     // Back button

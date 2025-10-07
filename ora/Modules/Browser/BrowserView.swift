@@ -9,7 +9,6 @@ struct BrowserView: View {
     @EnvironmentObject private var historyManager: HistoryManager
     @EnvironmentObject private var privacyMode: PrivacyMode
 
-    @State private var isFullscreen = false
     @State private var isMouseOverSidebar = false
     @State private var showFloatingSidebar = false
     @State private var sidebarPosition: SidebarPosition = .primary
@@ -28,7 +27,6 @@ struct BrowserView: View {
                 sidebarPosition: sidebarPosition,
                 hiddenSidebar: hiddenSidebar,
                 sidebarFraction: currentFraction,
-                isFullscreen: $isFullscreen,
                 toggleSidebar: toggleSidebar
             )
             .ignoresSafeArea(.all)
@@ -37,11 +35,6 @@ struct BrowserView: View {
                 BlurEffectView(material: .underWindowBackground, blendingMode: .behindWindow)
                     .ignoresSafeArea(.all)
             )
-            .background(WindowAccessor(
-                isSidebarHidden: hiddenSidebar.side == .primary || hiddenSidebar.side == .secondary,
-                isFloatingSidebar: $showFloatingSidebar,
-                isFullscreen: $isFullscreen
-            ))
             .overlay {
                 if appState.showLauncher, tabManager.activeTab != nil {
                     LauncherView()
@@ -57,7 +50,6 @@ struct BrowserView: View {
                     isMouseOverSidebar: $isMouseOverSidebar,
                     sidebarFraction: currentFraction,
                     sidebarPosition: sidebarPosition,
-                    isFullscreen: $isFullscreen,
                     isDownloadsPopoverOpen: downloadManager.isDownloadsPopoverOpen
                 )
             }

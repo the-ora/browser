@@ -3,9 +3,9 @@ import SwiftUI
 struct FloatingSidebarOverlay: View {
     @Binding var showFloatingSidebar: Bool
     @Binding var isMouseOverSidebar: Bool
+
     var sidebarFraction: FractionHolder
     let sidebarPosition: SidebarPosition
-    @Binding var isFullscreen: Bool
     let isDownloadsPopoverOpen: Bool
 
     @State private var dragFraction: CGFloat?
@@ -21,7 +21,7 @@ struct FloatingSidebarOverlay: View {
 
             ZStack(alignment: sidebarPosition == .primary ? .leading : .trailing) {
                 if showFloatingSidebar {
-                    FloatingSidebar(isFullscreen: $isFullscreen, sidebarPosition: sidebarPosition)
+                    FloatingSidebar(sidebarPosition: sidebarPosition)
                         .frame(width: floatingWidth)
                         .transition(.move(edge: sidebarPosition == .primary ? .leading : .trailing))
                         .overlay(alignment: sidebarPosition == .primary ? .trailing : .leading) {
