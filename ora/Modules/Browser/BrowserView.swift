@@ -14,21 +14,26 @@ struct BrowserView: View {
     @State private var isMouseOverSidebar = false
     @StateObject private var sidebarFraction = FractionHolder.usingUserDefaults(0.2, key: "ui.sidebar.fraction")
     @StateObject private var sidebarVisibility = SideHolder.usingUserDefaults(key: "ui.sidebar.visibility")
-    
+
     private func toggleSidebar() {
         withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
             sidebarVisibility.toggle(.primary)
         }
     }
-    
+
     private func toggleMaximizeWindow() {
-        window?.toggleMaximized()
+        if !isFullscreen {
+            window?.toggleMaximized()
+        }
     }
-    
+
     var body: some View {
         let splitView = HSplit(
             left: {
                 SidebarView(isFullscreen: isFullscreen)
+                    .onTapGesture(count: 2) {
+                        toggleMaximizeWindow()
+                    }
             },
             right: {
                 if tabManager.activeTab == nil {
@@ -50,47 +55,47 @@ struct BrowserView: View {
                 }
             }
         )
-            .hide(sidebarVisibility)
-            .splitter { Splitter.invisible() }
-            .fraction(sidebarFraction)
-            .constraints(
-                minPFraction: 0.16,
-                minSFraction: 0.7,
-                priority: .left,
-                dragToHideP: true
-            )
+        .hide(sidebarVisibility)
+        .splitter { Splitter.invisible() }
+        .fraction(sidebarFraction)
+        .constraints(
+            minPFraction: 0.16,
+            minSFraction: 0.7,
+            priority: .left,
+            dragToHideP: true
+        )
         // In autohide mode, remove any draggable splitter area to unhide
-            .styling(hideSplitter: true)
-            .ignoresSafeArea(.all)
-            .background(theme.subtleWindowBackgroundColor)
-            .background(
-                BlurEffectView(
-                    material: .underWindowBackground,
-                    blendingMode: .behindWindow
-                ).ignoresSafeArea(.all)
+        .styling(hideSplitter: true)
+        .ignoresSafeArea(.all)
+        .background(theme.subtleWindowBackgroundColor)
+        .background(
+            BlurEffectView(
+                material: .underWindowBackground,
+                blendingMode: .behindWindow
+            ).ignoresSafeArea(.all)
+        )
+        .background(
+            WindowAccessor(
+                isSidebarHidden: sidebarVisibility.side == .primary,
+                isFloatingSidebar: $showFloatingSidebar,
+                isFullscreen: $isFullscreen
             )
-            .background(
-                WindowAccessor(
-                    isSidebarHidden: sidebarVisibility.side == .primary,
-                    isFloatingSidebar: $showFloatingSidebar,
-                    isFullscreen: $isFullscreen
-                )
-                .id("showFloatingSidebar = \(showFloatingSidebar)") // Forces WindowAccessor to update (for Traffic
-                // Lights)
-            )
-            .overlay {
-                if appState.showLauncher, tabManager.activeTab != nil {
-                    LauncherView()
-                }
-                
-                if appState.isFloatingTabSwitchVisible {
-                    FloatingTabSwitcher()
-                }
+            .id("showFloatingSidebar = \(showFloatingSidebar)") // Forces WindowAccessor to update (for Traffic
+            // Lights)
+        )
+        .overlay {
+            if appState.showLauncher, tabManager.activeTab != nil {
+                LauncherView()
             }
-        
+
+            if appState.isFloatingTabSwitchVisible {
+                FloatingTabSwitcher()
+            }
+        }
+
         ZStack(alignment: .leading) {
             splitView
-            
+
             if sidebarVisibility.side == .primary {
                 // Floating sidebar with resizable width based on persisted fraction
                 GeometryReader { geo in
@@ -109,9 +114,9 @@ struct BrowserView: View {
                                     Rectangle()
                                         .fill(Color.clear)
                                         .frame(width: 14)
-#if targetEnvironment(macCatalyst) || os(macOS)
+                                    #if targetEnvironment(macCatalyst) || os(macOS)
                                         .cursor(NSCursor.resizeLeftRight)
-#endif
+                                    #endif
                                         .contentShape(Rectangle())
                                         .gesture(
                                             DragGesture()
@@ -183,9 +188,6 @@ struct BrowserView: View {
                 }
             }
         }
-        .onTapGesture(count: 2) {
-            toggleMaximizeWindow()
-        }
         .onAppear {
             // Restore active tab on app startup if not already ready
             if let tab = tabManager.activeTab, !tab.isWebViewReady {
@@ -200,7 +202,7 @@ struct BrowserView: View {
             }
         }
     }
-    
+
     @ViewBuilder
     private func webView(for tab: Tab) -> some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -222,24 +224,24 @@ struct BrowserView: View {
                             tab.retryNavigation()
                         },
                         onGoBack: tab.webView.canGoBack
-                        ? {
-                            tab.webView.goBack()
-                            tab.clearNavigationError()
-                        } : nil
+                            ? {
+                                tab.webView.goBack()
+                                tab.clearNavigationError()
+                            } : nil
                     )
                     .id(tab.id)
                 } else {
                     ZStack(alignment: .topTrailing) {
                         WebView(webView: tab.webView)
                             .id(tab.id)
-                        
+
                         if appState.showFinderIn == tab.id {
                             FindView(webView: tab.webView)
                                 .padding(.top, 16)
                                 .padding(.trailing, 16)
                                 .zIndex(1000)
                         }
-                        
+
                         if let hovered = tab.hoveredLinkURL, !hovered.isEmpty {
                             LinkPreview(text: hovered)
                         }

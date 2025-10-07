@@ -5,10 +5,9 @@
 //  Created by keni on 9/30/25.
 //
 
-
-import CoreServices
 import AppKit
 import Combine
+import CoreServices
 
 class DefaultBrowserManager: ObservableObject {
     static let shared = DefaultBrowserManager()
@@ -38,7 +37,8 @@ class DefaultBrowserManager: ObservableObject {
     static func checkIsDefault() -> Bool {
         guard let testURL = URL(string: "http://example.com"),
               let appURL = NSWorkspace.shared.urlForApplication(toOpen: testURL),
-              let appBundle = Bundle(url: appURL) else {
+              let appBundle = Bundle(url: appURL)
+        else {
             return false
         }
 
