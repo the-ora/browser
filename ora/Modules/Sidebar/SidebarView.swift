@@ -4,6 +4,7 @@ import SwiftUI
 
 struct SidebarView: View {
     @Environment(\.theme) private var theme
+    @Environment(\.window) var window: NSWindow?
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var historyManger: HistoryManager
     @EnvironmentObject var downloadManager: DownloadManager
@@ -91,11 +92,18 @@ struct SidebarView: View {
                 trailing: 0
             )
         )
+        .onTapGesture(count: 2) {
+            toggleMaximizeWindow()
+        }
     }
 
     private func onContainerSelected(container: TabContainer) {
         withAnimation(.easeOut(duration: 0.1)) {
             tabManager.activateContainer(container)
         }
+    }
+
+    private func toggleMaximizeWindow() {
+        window?.toggleMaximized()
     }
 }

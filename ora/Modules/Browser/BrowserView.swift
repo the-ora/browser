@@ -3,7 +3,6 @@ import SwiftUI
 
 struct BrowserView: View {
     @Environment(\.theme) var theme
-    @Environment(\.window) var window: NSWindow?
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var downloadManager: DownloadManager
@@ -92,9 +91,6 @@ struct BrowserView: View {
                 }
             }
         }
-        .onTapGesture(count: 2) {
-            toggleMaximizeWindow()
-        }
         .onAppear {
             if let tab = tabManager.activeTab, !tab.isWebViewReady {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
@@ -128,9 +124,5 @@ struct BrowserView: View {
             hiddenSidebar.side =
                 sidebarPosition == .primary ? .primary : .secondary
         }
-    }
-
-    private func toggleMaximizeWindow() {
-        window?.toggleMaximized()
     }
 }
