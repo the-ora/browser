@@ -5,7 +5,7 @@ import SwiftUI
     import os.log
 
     private let logger = Logger(
-        subsystem: "com.juniperphoton.photonutilityview", category: "NSPageView"
+        subsystem: "com.orabrowser.app", category: "NSPageView"
     )
 
     /// A ``NSViewControllerRepresentable`` for showing ``NSPageController``.
