@@ -11,14 +11,13 @@ struct SidebarView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var privacyMode: PrivacyMode
     @EnvironmentObject var media: MediaController
+    @EnvironmentObject var sidebarManager: SidebarManager
 
     @Query var containers: [TabContainer]
     @Query(filter: nil, sort: [.init(\History.lastAccessedAt, order: .reverse)])
     var histories: [History]
 
     private let columns = Array(repeating: GridItem(spacing: 10), count: 3)
-
-    let toggleSidebar: (() -> Void)?
 
     @State private var isHoveringSidebarToggle = false
 
@@ -46,20 +45,16 @@ struct SidebarView: View {
         )
     }
 
-    init(toggleSidebar: (() -> Void)? = nil) {
-        self.toggleSidebar = toggleSidebar
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            if appState.sidebarPosition != .secondary {
+            if sidebarManager.sidebarPosition != .secondary {
                 HStack {
                     WindowControls(isFullscreen: appState.isFullscreen)
                     Spacer()
                     if appState.isToolbarHidden {
                         SidebarButton(
-                            position: appState.sidebarPosition,
-                            toggleSidebar: toggleSidebar,
+                            position: sidebarManager.sidebarPosition,
+                            toggleSidebar: sidebarManager.toggleSidebar,
                             isHovering: $isHoveringSidebarToggle,
                             theme: theme
                         )
@@ -68,8 +63,8 @@ struct SidebarView: View {
             } else {
                 if appState.isToolbarHidden {
                     SidebarButton(
-                        position: appState.sidebarPosition,
-                        toggleSidebar: toggleSidebar,
+                        position: sidebarManager.sidebarPosition,
+                        toggleSidebar: sidebarManager.toggleSidebar,
                         isHovering: $isHoveringSidebarToggle,
                         theme: theme
                     )

@@ -1,52 +1,43 @@
 import SwiftUI
 
-enum SidebarPosition {
-    case primary
-    case secondary
-}
-
 struct BrowserSplitView: View {
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var appState: AppState
-
-    @ObservedObject var hiddenSidebar: SideHolder
-    @ObservedObject var sidebarFraction: FractionHolder
-
-    let toggleSidebar: () -> Void
+    @EnvironmentObject var sidebarManager: SidebarManager
 
     private var targetSide: SplitSide {
-        appState.sidebarPosition == .primary ? .primary : .secondary
+        sidebarManager.sidebarPosition == .primary ? .primary : .secondary
     }
 
     private var splitFraction: FractionHolder {
-        appState.sidebarPosition == .primary
-            ? sidebarFraction
-            : sidebarFraction.inverted()
+        sidebarManager.sidebarPosition == .primary
+            ? sidebarManager.currentFraction
+            : sidebarManager.currentFraction.inverted()
     }
 
     private var minPF: CGFloat {
-        appState.sidebarPosition == .primary ? 0.16 : 0.7
+        sidebarManager.sidebarPosition == .primary ? 0.16 : 0.7
     }
 
     private var minSF: CGFloat {
-        appState.sidebarPosition == .primary ? 0.7 : 0.16
+        sidebarManager.sidebarPosition == .primary ? 0.7 : 0.16
     }
 
     private var prioritySide: SplitSide {
-        appState.sidebarPosition == .primary ? .primary : .secondary
+        sidebarManager.sidebarPosition == .primary ? .primary : .secondary
     }
 
     private var dragToHidePFlag: Bool {
-        appState.sidebarPosition == .primary
+        sidebarManager.sidebarPosition == .primary
     }
 
     private var dragToHideSFlag: Bool {
-        appState.sidebarPosition == .secondary
+        sidebarManager.sidebarPosition == .secondary
     }
 
     var body: some View {
         HSplit(left: { primaryPane() }, right: { secondaryPane() })
-            .hide(hiddenSidebar)
+            .hide(sidebarManager.hiddenSidebar)
             .splitter { Splitter.invisible() }
             .fraction(splitFraction)
             .constraints(
@@ -61,11 +52,11 @@ struct BrowserSplitView: View {
 
     @ViewBuilder
     private func primaryPane() -> some View {
-        if appState.sidebarPosition == .primary {
-            if hiddenSidebar.side == .secondary {
+        if sidebarManager.sidebarPosition == .primary {
+            if sidebarManager.hiddenSidebar.side == .secondary {
                 contentView()
             } else {
-                SidebarView(toggleSidebar: toggleSidebar)
+                SidebarView()
             }
         } else {
             contentView()
@@ -74,11 +65,11 @@ struct BrowserSplitView: View {
 
     @ViewBuilder
     private func secondaryPane() -> some View {
-        if appState.sidebarPosition == .secondary {
-            if hiddenSidebar.side == .primary {
+        if sidebarManager.sidebarPosition == .secondary {
+            if sidebarManager.hiddenSidebar.side == .primary {
                 contentView()
             } else {
-                SidebarView(toggleSidebar: toggleSidebar)
+                SidebarView()
             }
         } else {
             contentView()
@@ -88,12 +79,12 @@ struct BrowserSplitView: View {
     @ViewBuilder
     private func contentView() -> some View {
         if tabManager.activeTab != nil {
-            BrowserContentContainer(hiddenSidebar: hiddenSidebar) {
-                BrowserWebContentView(sidebarPosition: appState.sidebarPosition)
+            BrowserContentContainer(hiddenSidebar: sidebarManager.hiddenSidebar) {
+                BrowserWebContentView(sidebarPosition: sidebarManager.sidebarPosition)
             }
         } else {
-            BrowserContentContainer(hiddenSidebar: hiddenSidebar) {
-                HomeView(sidebarToggle: toggleSidebar)
+            BrowserContentContainer(hiddenSidebar: sidebarManager.hiddenSidebar) {
+                HomeView(sidebarToggle: sidebarManager.toggleSidebar)
             }
         }
     }

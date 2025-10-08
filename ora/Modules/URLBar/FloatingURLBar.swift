@@ -32,7 +32,6 @@ struct FloatingURLBar: View {
     @ViewBuilder
     private func hoverStrip(width: CGFloat) -> some View {
         Color.clear
-            .frame(width: width)
             .overlay(
                 GlobalMouseTrackingArea(
                     mouseEntered: Binding(

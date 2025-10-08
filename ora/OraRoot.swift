@@ -20,6 +20,7 @@ struct OraRoot: View {
     @StateObject private var historyManager: HistoryManager
     @StateObject private var downloadManager: DownloadManager
     @StateObject private var privacyMode: PrivacyMode
+    @StateObject private var sidebarManager = SidebarManager()
 
     let tabContext: ModelContext
     let historyContext: ModelContext
@@ -91,6 +92,7 @@ struct OraRoot: View {
             .environmentObject(downloadManager)
             .environmentObject(updateService)
             .environmentObject(privacyMode)
+            .environmentObject(sidebarManager)
             .modelContext(tabContext)
             .modelContext(historyContext)
             .modelContext(downloadContext)

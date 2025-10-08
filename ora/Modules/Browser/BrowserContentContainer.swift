@@ -3,16 +3,13 @@ import SwiftUI
 struct BrowserContentContainer<Content: View>: View {
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var sidebarManager: SidebarManager
 
     let content: () -> Content
     let hiddenSidebar: SideHolder
 
-    private var isSidebarHidden: Bool {
-        hiddenSidebar.side == .primary || hiddenSidebar.side == .secondary
-    }
-
     private var isCompleteFullscreen: Bool {
-        appState.isFullscreen && isSidebarHidden
+        appState.isFullscreen && sidebarManager.isSidebarHidden
     }
 
     private var cornerRadius: CGFloat {
@@ -34,7 +31,7 @@ struct BrowserContentContainer<Content: View>: View {
     var body: some View {
         content()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .clipShape(ConditionallyConcentricRectangle(cornerRadius: isCompleteFullscreen ? 0 : cornerRadius))
+            .clipShape(RoundedRectangle(cornerRadius: isCompleteFullscreen ? 0 : cornerRadius, style: .continuous))
             .padding(
                 isCompleteFullscreen
                     ? EdgeInsets(
@@ -45,13 +42,14 @@ struct BrowserContentContainer<Content: View>: View {
                     )
                     : EdgeInsets(
                         top: 6,
-                        leading: appState.sidebarPosition != .primary || hiddenSidebar.side == .primary ? 6 : 0,
+                        leading: sidebarManager.sidebarPosition != .primary || hiddenSidebar.side == .primary ? 6 : 0,
                         bottom: 6,
-                        trailing: appState.sidebarPosition != .secondary || hiddenSidebar.side == .secondary ? 6 : 0
+                        trailing: sidebarManager.sidebarPosition != .secondary || hiddenSidebar
+                            .side == .secondary ? 6 : 0
                     )
             )
             .animation(.easeInOut(duration: 0.3), value: appState.isFullscreen)
-            .shadow(color: .black.opacity(0.15), radius: cornerRadius, x: 0, y: 2)
+            .shadow(color: .black.opacity(0.15), radius: isCompleteFullscreen ? 0 : cornerRadius, x: 0, y: 2)
             .ignoresSafeArea(.all)
     }
 }

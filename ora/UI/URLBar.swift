@@ -6,6 +6,7 @@ import SwiftUI
 struct URLBar: View {
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var sidebarManager: SidebarManager
 
     @State private var showCopiedAnimation = false
     @State private var startWheelAnimation = false
@@ -69,11 +70,11 @@ struct URLBar: View {
         HStack {
             if let tab = tabManager.activeTab {
                 HStack(spacing: 4) {
-                    if appState.isToolbarHidden || appState.sidebarPosition == .secondary {
+                    if appState.isToolbarHidden || sidebarManager.sidebarPosition == .secondary {
                         WindowControls(isFullscreen: appState.isFullscreen)
                     }
 
-                    if appState.sidebarPosition == .primary {
+                    if sidebarManager.sidebarPosition == .primary {
                         URLBarButton(
                             systemName: "sidebar.left",
                             isEnabled: true,
@@ -246,7 +247,7 @@ struct URLBar: View {
                         action: {}
                     )
 
-                    if appState.sidebarPosition == .secondary {
+                    if sidebarManager.sidebarPosition == .secondary {
                         URLBarButton(
                             systemName: "sidebar.right",
                             isEnabled: true,
