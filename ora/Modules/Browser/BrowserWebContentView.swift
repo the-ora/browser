@@ -15,8 +15,7 @@ struct BrowserWebContentView: View {
                         NotificationCenter.default.post(
                             name: .toggleSidebar, object: nil
                         )
-                    },
-                    sidebarPosition: sidebarPosition
+                    }
                 )
                 .transition(
                     .asymmetric(

@@ -3,7 +3,6 @@ import SwiftUI
 struct FloatingSidebar: View {
     @Environment(\.theme) var theme
 
-    let sidebarPosition: SidebarPosition
     let sidebarCornerRadius: CGFloat = {
         if #available(macOS 26, *) {
             return 13
@@ -16,7 +15,7 @@ struct FloatingSidebar: View {
         let clipShape = ConditionallyConcentricRectangle(cornerRadius: sidebarCornerRadius)
 
         ZStack(alignment: .leading) {
-            SidebarView(sidebarPosition: sidebarPosition)
+            SidebarView()
                 .background(theme.subtleWindowBackgroundColor)
                 .background(BlurEffectView(material: .popover, blendingMode: .withinWindow))
                 .clipShape(clipShape)

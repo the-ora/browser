@@ -9,9 +9,11 @@ struct BrowserView: View {
     @EnvironmentObject private var historyManager: HistoryManager
     @EnvironmentObject private var privacyMode: PrivacyMode
 
+    @State private var isMouseOverURLBar = false
+    @State private var showFloatingURLBar = false
     @State private var isMouseOverSidebar = false
     @State private var showFloatingSidebar = false
-    @State private var sidebarPosition: SidebarPosition = .primary
+
     @StateObject private var primaryFraction = FractionHolder.usingUserDefaults(0.2, key: "ui.sidebar.fraction.primary")
     @StateObject private var secondaryFraction = FractionHolder.usingUserDefaults(
         0.2,
@@ -19,12 +21,17 @@ struct BrowserView: View {
     )
     @StateObject private var hiddenSidebar = SideHolder.usingUserDefaults(key: "ui.sidebar.visibility")
 
-    private var currentFraction: FractionHolder { sidebarPosition == .primary ? primaryFraction : secondaryFraction }
+    private var currentFraction: FractionHolder {
+        appState.sidebarPosition == .primary ? primaryFraction : secondaryFraction
+    }
+
+    private var isSidebarHidden: Bool {
+        hiddenSidebar.side == .primary || hiddenSidebar.side == .secondary
+    }
 
     var body: some View {
-        ZStack(alignment: .leading) {
+        ZStack(alignment: .top) {
             BrowserSplitView(
-                sidebarPosition: sidebarPosition,
                 hiddenSidebar: hiddenSidebar,
                 sidebarFraction: currentFraction,
                 toggleSidebar: toggleSidebar
@@ -44,13 +51,19 @@ struct BrowserView: View {
                 }
             }
 
-            if hiddenSidebar.side == .primary || hiddenSidebar.side == .secondary {
+            if isSidebarHidden {
                 FloatingSidebarOverlay(
                     showFloatingSidebar: $showFloatingSidebar,
                     isMouseOverSidebar: $isMouseOverSidebar,
                     sidebarFraction: currentFraction,
-                    sidebarPosition: sidebarPosition,
                     isDownloadsPopoverOpen: downloadManager.isDownloadsPopoverOpen
+                )
+            }
+
+            if appState.isToolbarHidden, isSidebarHidden {
+                FloatingURLBar(
+                    showFloatingURLBar: $showFloatingURLBar,
+                    isMouseOverURLBar: $isMouseOverURLBar
                 )
             }
         }
@@ -63,7 +76,7 @@ struct BrowserView: View {
             toggleSidebarPosition()
         }
         .onChange(of: downloadManager.isDownloadsPopoverOpen) { _, isOpen in
-            if hiddenSidebar.side == .primary || hiddenSidebar.side == .secondary {
+            if isSidebarHidden {
                 if isOpen {
                     showFloatingSidebar = true
                 } else if !isMouseOverSidebar {
@@ -100,7 +113,7 @@ struct BrowserView: View {
     // MARK: - Actions
 
     private func toggleSidebar() {
-        let targetSide = sidebarPosition == .primary ? SplitSide.primary : .secondary
+        let targetSide = appState.sidebarPosition == .primary ? SplitSide.primary : .secondary
         withAnimation(.spring(response: 0.2, dampingFraction: 1.0)) {
             hiddenSidebar.side =
                 (hiddenSidebar.side == targetSide) ? nil : targetSide
@@ -108,13 +121,13 @@ struct BrowserView: View {
     }
 
     private func toggleSidebarPosition() {
-        let targetSide = sidebarPosition == .primary ? SplitSide.primary : .secondary
+        let targetSide = appState.sidebarPosition == .primary ? SplitSide.primary : .secondary
         let wasHidden = hiddenSidebar.side == targetSide
-        sidebarPosition =
-            (sidebarPosition == .primary) ? .secondary : .primary
+        appState.sidebarPosition =
+            (appState.sidebarPosition == .primary) ? .secondary : .primary
         if wasHidden {
             hiddenSidebar.side =
-                sidebarPosition == .primary ? .primary : .secondary
+                appState.sidebarPosition == .primary ? .primary : .secondary
         }
     }
 }

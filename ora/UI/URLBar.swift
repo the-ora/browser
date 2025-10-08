@@ -14,7 +14,6 @@ struct URLBar: View {
     @Environment(\.colorScheme) var colorScheme
 
     let onSidebarToggle: () -> Void
-    let sidebarPosition: SidebarPosition
 
     private func getForegroundColor(_ tab: Tab) -> Color {
         // Convert backgroundColor to NSColor for luminance calculation
@@ -70,7 +69,11 @@ struct URLBar: View {
         HStack {
             if let tab = tabManager.activeTab {
                 HStack(spacing: 4) {
-                    if sidebarPosition == .primary {
+                    if appState.isToolbarHidden || appState.sidebarPosition == .secondary {
+                        WindowControls(isFullscreen: appState.isFullscreen)
+                    }
+
+                    if appState.sidebarPosition == .primary {
                         URLBarButton(
                             systemName: "sidebar.left",
                             isEnabled: true,
@@ -78,8 +81,6 @@ struct URLBar: View {
                             action: onSidebarToggle
                         )
                         .oraShortcutHelp("Toggle Sidebar", for: KeyboardShortcuts.App.toggleSidebar)
-                    } else {
-                        WindowControls(isFullscreen: appState.isFullscreen)
                     }
 
                     // Back button
@@ -245,7 +246,7 @@ struct URLBar: View {
                         action: {}
                     )
 
-                    if sidebarPosition == .secondary {
+                    if appState.sidebarPosition == .secondary {
                         URLBarButton(
                             systemName: "sidebar.right",
                             isEnabled: true,

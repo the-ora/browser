@@ -7,40 +7,41 @@ enum SidebarPosition {
 
 struct BrowserSplitView: View {
     @EnvironmentObject var tabManager: TabManager
+    @EnvironmentObject var appState: AppState
 
-    let sidebarPosition: SidebarPosition
     @ObservedObject var hiddenSidebar: SideHolder
     @ObservedObject var sidebarFraction: FractionHolder
+
     let toggleSidebar: () -> Void
 
     private var targetSide: SplitSide {
-        sidebarPosition == .primary ? .primary : .secondary
+        appState.sidebarPosition == .primary ? .primary : .secondary
     }
 
     private var splitFraction: FractionHolder {
-        sidebarPosition == .primary
+        appState.sidebarPosition == .primary
             ? sidebarFraction
             : sidebarFraction.inverted()
     }
 
     private var minPF: CGFloat {
-        sidebarPosition == .primary ? 0.16 : 0.7
+        appState.sidebarPosition == .primary ? 0.16 : 0.7
     }
 
     private var minSF: CGFloat {
-        sidebarPosition == .primary ? 0.7 : 0.16
+        appState.sidebarPosition == .primary ? 0.7 : 0.16
     }
 
     private var prioritySide: SplitSide {
-        sidebarPosition == .primary ? .primary : .secondary
+        appState.sidebarPosition == .primary ? .primary : .secondary
     }
 
     private var dragToHidePFlag: Bool {
-        sidebarPosition == .primary
+        appState.sidebarPosition == .primary
     }
 
     private var dragToHideSFlag: Bool {
-        sidebarPosition == .secondary
+        appState.sidebarPosition == .secondary
     }
 
     var body: some View {
@@ -60,11 +61,11 @@ struct BrowserSplitView: View {
 
     @ViewBuilder
     private func primaryPane() -> some View {
-        if sidebarPosition == .primary {
+        if appState.sidebarPosition == .primary {
             if hiddenSidebar.side == .secondary {
                 contentView()
             } else {
-                SidebarView(sidebarPosition: .primary)
+                SidebarView(toggleSidebar: toggleSidebar)
             }
         } else {
             contentView()
@@ -73,11 +74,11 @@ struct BrowserSplitView: View {
 
     @ViewBuilder
     private func secondaryPane() -> some View {
-        if sidebarPosition == .secondary {
+        if appState.sidebarPosition == .secondary {
             if hiddenSidebar.side == .primary {
                 contentView()
             } else {
-                SidebarView(sidebarPosition: .secondary)
+                SidebarView(toggleSidebar: toggleSidebar)
             }
         } else {
             contentView()
@@ -87,17 +88,11 @@ struct BrowserSplitView: View {
     @ViewBuilder
     private func contentView() -> some View {
         if tabManager.activeTab != nil {
-            BrowserContentContainer(
-                hiddenSidebar: hiddenSidebar,
-                sidebarPosition: sidebarPosition
-            ) {
-                BrowserWebContentView(sidebarPosition: sidebarPosition)
+            BrowserContentContainer(hiddenSidebar: hiddenSidebar) {
+                BrowserWebContentView(sidebarPosition: appState.sidebarPosition)
             }
         } else {
-            BrowserContentContainer(
-                hiddenSidebar: hiddenSidebar,
-                sidebarPosition: sidebarPosition
-            ) {
+            BrowserContentContainer(hiddenSidebar: hiddenSidebar) {
                 HomeView(sidebarToggle: toggleSidebar)
             }
         }

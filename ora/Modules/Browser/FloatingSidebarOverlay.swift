@@ -1,11 +1,12 @@
 import SwiftUI
 
 struct FloatingSidebarOverlay: View {
+    @EnvironmentObject private var appState: AppState
+
     @Binding var showFloatingSidebar: Bool
     @Binding var isMouseOverSidebar: Bool
 
     var sidebarFraction: FractionHolder
-    let sidebarPosition: SidebarPosition
     let isDownloadsPopoverOpen: Bool
 
     @State private var dragFraction: CGFloat?
@@ -19,16 +20,16 @@ struct FloatingSidebarOverlay: View {
             let clampedFraction = min(max(currentFraction, minFraction), maxFraction)
             let floatingWidth = max(0, min(totalWidth * clampedFraction, totalWidth))
 
-            ZStack(alignment: sidebarPosition == .primary ? .leading : .trailing) {
+            ZStack(alignment: appState.sidebarPosition == .primary ? .leading : .trailing) {
                 if showFloatingSidebar {
-                    FloatingSidebar(sidebarPosition: sidebarPosition)
+                    FloatingSidebar()
                         .frame(width: floatingWidth)
-                        .transition(.move(edge: sidebarPosition == .primary ? .leading : .trailing))
-                        .overlay(alignment: sidebarPosition == .primary ? .trailing : .leading) {
+                        .transition(.move(edge: appState.sidebarPosition == .primary ? .leading : .trailing))
+                        .overlay(alignment: appState.sidebarPosition == .primary ? .trailing : .leading) {
                             ResizeHandle(
                                 dragFraction: $dragFraction,
                                 sidebarFraction: sidebarFraction,
-                                sidebarPosition: sidebarPosition,
+                                sidebarPosition: appState.sidebarPosition,
                                 floatingWidth: floatingWidth,
                                 totalWidth: totalWidth,
                                 minFraction: minFraction,
@@ -39,7 +40,7 @@ struct FloatingSidebarOverlay: View {
                 }
 
                 HStack(spacing: 0) {
-                    if sidebarPosition == .primary {
+                    if appState.sidebarPosition == .primary {
                         hoverStrip(width: showFloatingSidebar ? floatingWidth : 10)
                         Spacer()
                     } else {
@@ -68,7 +69,7 @@ struct FloatingSidebarOverlay: View {
                             showFloatingSidebar = newValue
                         }
                     ),
-                    edge: sidebarPosition == .primary ? .left : .right,
+                    edge: appState.sidebarPosition == .primary ? .left : .right,
                     padding: 40,
                     slack: 8
                 )

@@ -18,7 +18,9 @@ struct SidebarView: View {
 
     private let columns = Array(repeating: GridItem(spacing: 10), count: 3)
 
-    var sidebarPosition: SidebarPosition = .primary
+    let toggleSidebar: (() -> Void)?
+
+    @State private var isHoveringSidebarToggle = false
 
     private var shouldShowMediaWidget: Bool {
         let activeId = tabManager.activeTab?.id
@@ -44,10 +46,34 @@ struct SidebarView: View {
         )
     }
 
+    init(toggleSidebar: (() -> Void)? = nil) {
+        self.toggleSidebar = toggleSidebar
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            if sidebarPosition != .secondary {
-                WindowControls(isFullscreen: appState.isFullscreen)
+            if appState.sidebarPosition != .secondary {
+                HStack {
+                    WindowControls(isFullscreen: appState.isFullscreen)
+                    Spacer()
+                    if appState.isToolbarHidden {
+                        SidebarButton(
+                            position: appState.sidebarPosition,
+                            toggleSidebar: toggleSidebar,
+                            isHovering: $isHoveringSidebarToggle,
+                            theme: theme
+                        )
+                    }
+                }
+            } else {
+                if appState.isToolbarHidden {
+                    SidebarButton(
+                        position: appState.sidebarPosition,
+                        toggleSidebar: toggleSidebar,
+                        isHovering: $isHoveringSidebarToggle,
+                        theme: theme
+                    )
+                }
             }
 
             NSPageView(
@@ -108,5 +134,34 @@ struct SidebarView: View {
 
     private func toggleMaximizeWindow() {
         window?.toggleMaximized()
+    }
+}
+
+struct SidebarButton: View {
+    var position: SidebarPosition
+    var toggleSidebar: (() -> Void)?
+    @Binding var isHovering: Bool
+    var theme: Theme
+
+    var body: some View {
+        let iconName = position == .secondary ? "sidebar.right" : "sidebar.left"
+
+        Button(action: {
+            toggleSidebar?()
+        }) {
+            Image(systemName: iconName)
+                .font(.system(size: 14, weight: .medium))
+                .frame(width: 30, height: 30)
+                .background(
+                    ConditionallyConcentricRectangle(cornerRadius: 6)
+                        .fill(isHovering ? theme.foreground.opacity(0.1) : Color.clear)
+                )
+        }
+        .buttonStyle(PlainButtonStyle())
+        .padding(.horizontal, 8)
+        .onHover { hovering in
+            isHovering = hovering
+        }
+        .oraShortcutHelp("Toggle Sidebar", for: KeyboardShortcuts.App.toggleSidebar)
     }
 }
