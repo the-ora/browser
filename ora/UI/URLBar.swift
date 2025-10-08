@@ -57,7 +57,8 @@ struct ExtensionIconButton: NSViewRepresentable {
         @objc func clicked(_ sender: NSButton) {
             guard let context = extensionManager.controller.extensionContexts.first(where: { $0.webExtension == ext }),
                   let action = context.action(for: nil), action.presentsPopup,
-                  let popover = action.popupPopover else {
+                  let popover = action.popupPopover
+            else {
                 print("No popup for extension: \(ext.displayName ?? "Unknown")")
                 return
             }
@@ -81,7 +82,7 @@ struct URLBar: View {
     @State private var alertMessage: String?
 
     let onSidebarToggle: () -> Void
-    let size: CGSize = CGSize(width: 32, height: 32)
+    let size: CGSize = .init(width: 32, height: 32)
 
     private func getForegroundColor(_ tab: Tab) -> Color {
         // Convert backgroundColor to NSColor for luminance calculation
@@ -132,7 +133,7 @@ struct URLBar: View {
             picker.show(relativeTo: sourceRect, of: sourceView, preferredEdge: .minY)
         }
     }
-   
+
     private var extensionIconsView: some View {
         HStack(spacing: 4) {
             ForEach(extensionManager.installedExtensions, id: \.self) { ext in
@@ -142,14 +143,14 @@ struct URLBar: View {
         }
         .padding(.horizontal, 4)
         .alert("Notice", isPresented: .constant(alertMessage != nil), actions: {
-                   Button("OK", role: .cancel) {
-                       alertMessage = nil
-                   }
-               }, message: {
-                   if let message = alertMessage {
-                       Text(message)
-                   }
-               })
+            Button("OK", role: .cancel) {
+                alertMessage = nil
+            }
+        }, message: {
+            if let message = alertMessage {
+                Text(message)
+            }
+        })
     }
 
     var body: some View {
@@ -310,12 +311,12 @@ struct URLBar: View {
                         .allowsHitTesting(false)
                     )
 
-                     // Extension icons
-                     if !extensionManager.installedExtensions.isEmpty {
-                         extensionIconsView
-                     }
+                    // Extension icons
+                    if !extensionManager.installedExtensions.isEmpty {
+                        extensionIconsView
+                    }
 
-                     ShareLinkButton(
+                    ShareLinkButton(
                         isEnabled: true,
                         foregroundColor: buttonForegroundColor,
                         onShare: { sourceView, sourceRect in

@@ -71,7 +71,6 @@ struct OraRoot: View {
     }
 
     var body: some View {
-
         BrowserView()
             .background(WindowReader(window: $window))
             .environment(\.window, window)
