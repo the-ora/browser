@@ -32,6 +32,14 @@ struct WindowControlButton: View {
     let type: WindowControlType
     @Binding var isHovered: Bool
 
+    private var buttonSize: CGFloat {
+        if #available(macOS 26.0, *) {
+            return 14
+        } else {
+            return 12
+        }
+    }
+
     private var assetBaseName: String {
         switch type {
         case .close: return "close"
@@ -43,7 +51,7 @@ struct WindowControlButton: View {
     var body: some View {
         Image(isHovered ? "\(assetBaseName)-hover" : "\(assetBaseName)-normal")
             .resizable()
-            .frame(width: 12, height: 12)
+            .frame(width: buttonSize, height: buttonSize)
             .onTapGesture {
                 performAction()
             }
