@@ -43,7 +43,7 @@ struct WindowControlButton: View {
     var body: some View {
         Image(isHovered ? "\(assetBaseName)-hover" : "\(assetBaseName)-normal")
             .resizable()
-            .frame(width: 14, height: 14)
+            .frame(width: 12, height: 12)
             .onTapGesture {
                 performAction()
             }
