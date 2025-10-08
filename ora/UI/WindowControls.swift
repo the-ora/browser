@@ -65,7 +65,7 @@ struct WindowControlButton: View {
         case .minimize:
             window.performMiniaturize(nil)
         case .zoom:
-            window.performZoom(nil)
+            window.toggleFullScreen(nil)
         }
     }
 }
