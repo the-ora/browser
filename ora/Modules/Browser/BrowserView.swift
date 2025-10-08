@@ -20,6 +20,7 @@ struct BrowserView: View {
             sidebarVisibility.toggle(.primary)
         }
     }
+
     private func printExtensionInfo() {
         if let tab = tabManager.activeTab {
             if let controller = tab.webView.configuration.webExtensionController {
@@ -29,14 +30,17 @@ struct BrowserView: View {
                 for extCtx in controller.extensionContexts {
                     print("🔥 Extension Context Properties:")
                     print("  baseURL: \(extCtx.baseURL)")
-                    print("  commands: \(extCtx.commands.map { $0.id })")
+                    print("  commands: \(extCtx.commands.map(\.id))")
                     print("  currentPermissionMatchPatterns: \(extCtx.currentPermissionMatchPatterns)")
-                    print("  currentPermissions: \(extCtx.currentPermissions.map { $0.rawValue })")
+                    print("  currentPermissions: \(extCtx.currentPermissions.map(\.rawValue))")
                     print("  deniedPermissionMatchPatterns: \(extCtx.deniedPermissionMatchPatterns)")
                     print("  deniedPermissions: \(extCtx.deniedPermissions.map { "\($0.key.rawValue): \($0.value)" })")
-                    print("  errors: \(extCtx.errors.map { $0.localizedDescription })")
-                    print("  grantedPermissionMatchPatterns: \(extCtx.grantedPermissionMatchPatterns.map { "\($0.key): \($0.value)" })")
-                    print("  grantedPermissions: \(extCtx.grantedPermissions.map { "\($0.key.rawValue): \($0.value)" })")
+                    print("  errors: \(extCtx.errors.map(\.localizedDescription))")
+                    print(
+                        "  grantedPermissionMatchPatterns: \(extCtx.grantedPermissionMatchPatterns.map { "\($0.key): \($0.value)" })"
+                    )
+                    print("  grantedPermissions: \(extCtx.grantedPermissions.map { "\($0.key.rawValue): \($0.value)" })"
+                    )
                     print("  hasAccessToAllHosts: \(extCtx.hasAccessToAllHosts)")
                     print("  hasAccessToAllURLs: \(extCtx.hasAccessToAllURLs)")
                     print("  hasAccessToPrivateData: \(extCtx.hasAccessToPrivateData)")
@@ -62,10 +66,9 @@ struct BrowserView: View {
                     print("    Display Version: \(ext.displayVersion ?? "None")")
                     print("    Display Description: \(ext.displayDescription ?? "None")")
                     //                            print("    Permissions: \(ext.permissions.map { $0.rawValue })")
-                    //                            print("    Background Content URL: \(ext.backgroundContentURL?.absoluteString ?? "None")")
+                    //                            print("    Background Content URL:
+                    //                            \(ext.backgroundContentURL?.absoluteString ?? "None")")
                     //                            print("    Content Scripts Count: \(ext.contentScripts.count)")
-                    
-                    
                 }
             }
         }
@@ -94,7 +97,7 @@ struct BrowserView: View {
                     }
                 }
             )
-           
+
             .hide(sidebarVisibility)
             .splitter { Splitter.invisible() }
             .fraction(sidebarFraction)
@@ -132,7 +135,6 @@ struct BrowserView: View {
                     FloatingTabSwitcher()
                 }
             }
-           
 
             if sidebarVisibility.side == .primary {
                 // Floating sidebar with resizable width based on persisted fraction

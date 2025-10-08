@@ -5,23 +5,22 @@
 //  Created by keni on 9/17/25.
 //
 
-
+import os.log
 import SwiftUI
 import WebKit
-import os.log
-
 
 // MARK: - Ora Extension Manager
+
 class OraExtensionManager: NSObject, ObservableObject {
     static let shared = OraExtensionManager()
 
-    public var controller: WKWebExtensionController
+    var controller: WKWebExtensionController
     private let logger = Logger(subsystem: "com.ora.browser", category: "ExtensionManager")
 
     @Published var installedExtensions: [WKWebExtension] = []
     var extensionMap: [URL: WKWebExtension] = [:]
     var tabManager: TabManager?
-    
+
     override init() {
         logger.info("Initializing OraExtensionManager")
         let config = WKWebExtensionController.Configuration(identifier: UUID())
@@ -30,18 +29,18 @@ class OraExtensionManager: NSObject, ObservableObject {
         controller.delegate = self
         logger.info("OraExtensionManager initialized successfully")
     }
-    
+
     /// Install an extension from a local file
     @MainActor
     func installExtension(from url: URL) async  {
         logger.info("Starting extension installation from URL: \(url.path)")
-        
+
         Task {
             do {
                 logger.debug("Creating WKWebExtension from resource URL")
                 let webExtension = try await WKWebExtension(resourceBaseURL: url)
                 logger.debug("Extension created successfully: \(webExtension.displayName ?? "Unknown")")
-                
+
                 logger.debug("Creating WKWebExtensionContext")
                 let webContext = WKWebExtensionContext(for: webExtension)
                 webContext.isInspectable = true
@@ -51,7 +50,7 @@ class OraExtensionManager: NSObject, ObservableObject {
 
                 // Load background content if available
                 webContext.loadBackgroundContent { [self] error in
-                    if let error = error {
+                    if let error {
                         self.logger.error("Failed to load background content: \(error.localizedDescription)")
                     } else {
                         self.logger.debug("Background content loaded successfully")
@@ -69,20 +68,19 @@ class OraExtensionManager: NSObject, ObservableObject {
 
                 print("\(controller.extensionContexts.count) ctx")
                 print("\(controller.extensions.count) ext")
-                
+
                 logger.debug("Adding extension to installed extensions list")
                 installedExtensions.append(webExtension)
                 extensionMap[url] = webExtension
-                
+
                 logger.info("Extension installed successfully: \(webExtension.displayName ?? "Unknown")")
             } catch {
                 logger.error("Failed to install extension from \(url.path): \(error.localizedDescription)")
                 print("❌ Failed to install extension: \(error)")
             }
         }
-        
     }
-    
+
     /// Load all available extensions from the extensions directory
     @MainActor
     func loadAllExtensions() async {
@@ -96,7 +94,10 @@ class OraExtensionManager: NSObject, ObservableObject {
         }
 
         do {
-            let contents = try FileManager.default.contentsOfDirectory(at: extensionsDir, includingPropertiesForKeys: [.isDirectoryKey])
+            let contents = try FileManager.default.contentsOfDirectory(
+                at: extensionsDir,
+                includingPropertiesForKeys: [.isDirectoryKey]
+            )
             for url in contents {
                 var isDir: ObjCBool = false
                 if FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir), isDir.boolValue {
@@ -131,30 +132,29 @@ class OraExtensionManager: NSObject, ObservableObject {
 }
 
 // MARK: - Delegate for Permissions & Lifecycle
+
 extension OraExtensionManager: WKWebExtensionControllerDelegate {
-    
     // When extension requests new permissions
     func webExtensionController(
         _ controller: WKWebExtensionController,
         webExtension: WKWebExtension,
         requestsAccessTo permissions: [WKWebExtension.Permission]
     ) async -> Bool {
-        
         let extensionName = webExtension.displayName ?? "Unknown"
-        let permissionNames = permissions.map { $0.rawValue }.joined(separator: ", ")
-        
+        let permissionNames = permissions.map(\.rawValue).joined(separator: ", ")
+
         logger.info("Extension '\(extensionName)' requesting permissions: \(permissionNames)")
-        
+
         // ✅ Show SwiftUI prompt to user
         print("🔒 Extension \(extensionName) requests: \(permissionNames)")
-        
+
         // TODO: Replace with real SwiftUI dialog
         let granted = true // allow for now
         logger.info("Permission request for '\(extensionName)' \(granted ? "granted" : "denied")")
-        
+
         return granted
     }
-    
+
     // Handle background script messages
     func webExtensionController(
         _ controller: WKWebExtensionController,
@@ -177,11 +177,12 @@ extension OraExtensionManager: WKWebExtensionControllerDelegate {
         guard let dict = message as? [String: Any],
               let api = dict["api"] as? String, api == "tabs",
               let method = dict["method"] as? String,
-              let params = dict["params"] as? [String: Any] else {
+              let params = dict["params"] as? [String: Any]
+        else {
             return
         }
 
-        guard let tabManager = tabManager else {
+        guard let tabManager else {
             logger.error("TabManager not available for extension tab API")
             return
         }
@@ -208,7 +209,8 @@ extension OraExtensionManager: WKWebExtensionControllerDelegate {
     private func handleTabsCreate(params: [String: Any], context: WKWebExtensionContext) {
         guard let urlString = params["url"] as? String,
               let url = URL(string: urlString),
-              let container = tabManager?.activeContainer else {
+              let container = tabManager?.activeContainer
+        else {
             return
         }
 
@@ -216,13 +218,30 @@ extension OraExtensionManager: WKWebExtensionControllerDelegate {
         let active = params["active"] as? Bool ?? true
 
         // Create history and download managers if needed
-        let historyManager = HistoryManager(modelContainer: tabManager!.modelContainer, modelContext: tabManager!.modelContext)
-        let downloadManager = DownloadManager(modelContainer: tabManager!.modelContainer, modelContext: tabManager!.modelContext)
+        let historyManager = HistoryManager(
+            modelContainer: tabManager!.modelContainer,
+            modelContext: tabManager!.modelContext
+        )
+        let downloadManager = DownloadManager(
+            modelContainer: tabManager!.modelContainer,
+            modelContext: tabManager!.modelContext
+        )
 
         if active {
-            tabManager?.openTab(url: url, historyManager: historyManager, downloadManager: downloadManager, isPrivate: isPrivate)
+            tabManager?.openTab(
+                url: url,
+                historyManager: historyManager,
+                downloadManager: downloadManager,
+                isPrivate: isPrivate
+            )
         } else {
-            _ = tabManager?.addTab(url: url, container: container, historyManager: historyManager, downloadManager: downloadManager, isPrivate: isPrivate)
+            _ = tabManager?.addTab(
+                url: url,
+                container: container,
+                historyManager: historyManager,
+                downloadManager: downloadManager,
+                isPrivate: isPrivate
+            )
         }
     }
 
@@ -233,7 +252,8 @@ extension OraExtensionManager: WKWebExtensionControllerDelegate {
         for tabIdString in tabIdStrings {
             if let tabId = UUID(uuidString: tabIdString),
                let container = tabManager?.activeContainer,
-               let tab = container.tabs.first(where: { $0.id == tabId }) {
+               let tab = container.tabs.first(where: { $0.id == tabId })
+            {
                 tabManager?.closeTab(tab: tab)
             }
         }
@@ -259,7 +279,12 @@ extension OraExtensionManager: WKWebExtensionControllerDelegate {
         // For now, return all tabs in active container
         guard let container = tabManager?.activeContainer else { return }
         let tabs: [[String: Any]] = container.tabs.map { tab in
-            ["id": tab.id.uuidString, "url": tab.urlString, "title": tab.title, "active": tabManager?.isActive(tab) ?? false] as [String: Any]
+            [
+                "id": tab.id.uuidString,
+                "url": tab.urlString,
+                "title": tab.title,
+                "active": tabManager?.isActive(tab) ?? false
+            ] as [String: Any]
         }
         // Note: Cannot send response back to extension via WKWebExtensionContext
         // Extensions should use events or other mechanisms
@@ -273,7 +298,12 @@ extension OraExtensionManager: WKWebExtensionControllerDelegate {
               let container = tabManager?.activeContainer,
               let tab = container.tabs.first(where: { $0.id == tabId }) else { return }
 
-        let tabInfo: [String: Any] = ["id": tab.id.uuidString, "url": tab.urlString, "title": tab.title, "active": tabManager?.isActive(tab) ?? false]
+        let tabInfo: [String: Any] = [
+            "id": tab.id.uuidString,
+            "url": tab.urlString,
+            "title": tab.title,
+            "active": tabManager?.isActive(tab) ?? false
+        ]
         // Note: Cannot send response back to extension via WKWebExtensionContext
         logger.debug("Tab get result: \(tabInfo)")
     }

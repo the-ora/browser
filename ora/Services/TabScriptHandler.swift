@@ -103,9 +103,8 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
                 forIdentifier: containerId
             )
         }
-      
+
         configuration.webExtensionController = OraExtensionManager.shared.controller
-        
 
         // Performance optimizations
         configuration.allowsAirPlayForMediaPlayback = true
@@ -119,7 +118,7 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
 //        if #unavailable(macOS 10.12) {
 //            // Picture in picture not available on older macOS versions
 //        } else {
-////            configuration.allowsPictureInPictureMediaPlaybook = true
+        ////            configuration.allowsPictureInPictureMediaPlaybook = true
 //        }
 
         // Enable media playback without user interaction
@@ -146,7 +145,8 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
 
         // Download the file
         guard let (data, response) = try? await URLSession.shared.data(from: url),
-              let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+              let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200
+        else {
             logger.error("Failed to download extension")
             return
         }
@@ -157,7 +157,8 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         try? data.write(to: tempZipURL)
 
         // Extract
-        let extensionsDir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!.appendingPathComponent("extensions")
+        let extensionsDir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+            .appendingPathComponent("extensions")
         if !FileManager.default.fileExists(atPath: extensionsDir.path) {
             try? FileManager.default.createDirectory(at: extensionsDir, withIntermediateDirectories: true)
         }

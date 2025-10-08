@@ -1,8 +1,8 @@
 import AppKit
+import Foundation
 import os.log
 import SwiftUI
 @preconcurrency import WebKit
-import Foundation
 
 private let logger = Logger(subsystem: "com.orabrowser.ora", category: "WebViewNavigationDelegate")
 
@@ -252,11 +252,11 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
                 """
             )
         if navigationAction.modifierFlags.contains(.command),
-            let url = navigationAction.request.url,
-            let tab = self.tab,
-            let tabManager = tab.tabManager,
-            let historyManager = tab.historyManager,
-            let downloadManager = tab.downloadManager
+           let url = navigationAction.request.url,
+           let tab = self.tab,
+           let tabManager = tab.tabManager,
+           let historyManager = tab.historyManager,
+           let downloadManager = tab.downloadManager
         {
             // Open link in new tab
             DispatchQueue.main.async {
@@ -272,8 +272,6 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
             decisionHandler(.cancel)
             return
         }
-
-
 
         // Allow normal navigation
         decisionHandler(.allow)
@@ -454,7 +452,8 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
 
         // Download the file
         guard let (data, response) = try? await URLSession.shared.data(from: url),
-              let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+              let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200
+        else {
             logger.error("Failed to download extension")
             return
         }
@@ -470,7 +469,8 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
         }
 
         // Extract
-        let extensionsDir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!.appendingPathComponent("extensions")
+        let extensionsDir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+            .appendingPathComponent("extensions")
         if !FileManager.default.fileExists(atPath: extensionsDir.path) {
             try? FileManager.default.createDirectory(at: extensionsDir, withIntermediateDirectories: true)
         }
