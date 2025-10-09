@@ -22,7 +22,7 @@ struct ExtensionIconView: NSViewRepresentable {
 
 struct ExtensionIconButton: NSViewRepresentable {
     let ext: WKWebExtension
-    let extensionManager: OraExtensionManager
+    let extensionManager: ExtensionManager
 
     func makeNSView(context: Context) -> NSButton {
         let button = NSButton()
@@ -47,9 +47,9 @@ struct ExtensionIconButton: NSViewRepresentable {
 
     class Coordinator: NSObject {
         let ext: WKWebExtension
-        let extensionManager: OraExtensionManager
+        let extensionManager: ExtensionManager
 
-        init(ext: WKWebExtension, extensionManager: OraExtensionManager) {
+        init(ext: WKWebExtension, extensionManager: ExtensionManager) {
             self.ext = ext
             self.extensionManager = extensionManager
         }
@@ -72,7 +72,7 @@ struct ExtensionIconButton: NSViewRepresentable {
 struct URLBar: View {
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var appState: AppState
-    @EnvironmentObject var extensionManager: OraExtensionManager
+    @EnvironmentObject var extensionManager: ExtensionManager
 
     @State private var showCopiedAnimation = false
     @State private var startWheelAnimation = false

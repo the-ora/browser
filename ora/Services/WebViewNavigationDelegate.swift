@@ -491,7 +491,7 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
             process.waitUntilExit()
             if process.terminationStatus == 0 {
                 logger.info("Extraction successful, installing extension")
-                await OraExtensionManager.shared.installExtension(from: extractDir)
+                await ExtensionManager.shared.installExtension(from: extractDir)
                 // Reload the tab
                 DispatchQueue.main.async {
                     tab.webView.reload()

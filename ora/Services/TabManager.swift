@@ -389,6 +389,7 @@ class TabManager: ObservableObject {
         tab.updateHeaderColor()
 
         try? modelContext.save()
+        // Note: Controller API has no setActive; skipping explicit activation.
     }
 
     // Activate a tab by its persistent id. If the tab is in a

@@ -103,8 +103,9 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
                 forIdentifier: containerId
             )
         }
-
-        configuration.webExtensionController = OraExtensionManager.shared.controller
+      
+        configuration.webExtensionController = ExtensionManager.shared.controller
+        
 
         // Performance optimizations
         configuration.allowsAirPlayForMediaPlayback = true
@@ -179,7 +180,7 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
 
         if process.terminationStatus == 0 {
             logger.info("Extraction successful, installing extension")
-            await OraExtensionManager.shared.installExtension(from: extractDir)
+            await ExtensionManager.shared.installExtension(from: extractDir)
             // Reload the tab
             DispatchQueue.main.async {
                 tab.webView.reload()

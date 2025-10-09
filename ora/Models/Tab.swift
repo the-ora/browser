@@ -51,6 +51,7 @@ class Tab: ObservableObject, Identifiable {
     @Transient @Published var failedURL: URL?
     @Transient @Published var hoveredLinkURL: String?
     @Transient var isPrivate: Bool = false
+    @Transient var extensionTabWrapper: ExtensionTabWrapper?
 
     @Relationship(inverse: \TabContainer.tabs) var container: TabContainer
 
@@ -101,6 +102,7 @@ class Tab: ObservableObject, Identifiable {
 
         config.tab = self
         config.mediaController = tabManager.mediaController
+        self.attachExtension()
         // Configure WebView for performance
         webView.allowsMagnification = true
         webView.allowsBackForwardNavigationGestures = true
@@ -251,6 +253,7 @@ class Tab: ObservableObject, Identifiable {
         tabManager: TabManager,
         isPrivate: Bool
     ) {
+        self.attachExtension()
         // Avoid double initialization
         if webView.url != nil { return }
 
@@ -349,6 +352,11 @@ class Tab: ObservableObject, Identifiable {
     }
 
     func destroyWebView() {
+        if let wrapper = extensionTabWrapper {
+            print("[Tab] destroyWebView didCloseTab wrapperId=\(wrapper.id) tabId=\(id.uuidString)")
+            ExtensionManager.shared.controller.didCloseTab(wrapper)
+            extensionTabWrapper = nil
+        }
         webView.stopLoading()
         webView.navigationDelegate = nil
         webView.uiDelegate = nil
@@ -379,6 +387,21 @@ class Tab: ObservableObject, Identifiable {
         if let url = failedURL {
             let request = URLRequest(url: url)
             webView.load(request)
+        }
+    }
+    func attachExtension(){
+        if extensionTabWrapper == nil {
+            let newId = ExtensionManager.shared.nextTabId()
+            print("[Tab] attachExtension creating wrapper wrapperId=\(newId) tabId=\(id.uuidString)")
+            let wrapper = ExtensionTabWrapper(nativeTab: self, id: newId)
+            extensionTabWrapper = wrapper
+            Task { @MainActor in
+                ExtensionManager.shared.ensureWindowOpened()
+                ExtensionManager.shared.controller.didOpenTab(wrapper)
+                print("[ExtMgr] didOpenTab wrapperId=\(newId)")
+            }
+        } else {
+            print("[Tab] attachExtension skipped (already attached) tabId=\(id.uuidString) wrapperId=\(extensionTabWrapper?.id ?? -1)")
         }
     }
 }

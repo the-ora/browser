@@ -20,7 +20,7 @@ struct OraRoot: View {
     @StateObject private var historyManager: HistoryManager
     @StateObject private var downloadManager: DownloadManager
     @StateObject private var privacyMode: PrivacyMode
-    @StateObject private var extensionManager = OraExtensionManager.shared
+    @StateObject private var extensionManager = ExtensionManager.shared
 
     let tabContext: ModelContext
     let historyContext: ModelContext
@@ -110,7 +110,7 @@ struct OraRoot: View {
                     }
                 }
 
-                OraExtensionManager.shared.tabManager = tabManager
+                ExtensionManager.shared.tabManager = tabManager
                 Task {
                     await extensionManager.loadAllExtensions()
                 }

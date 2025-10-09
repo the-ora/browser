@@ -10,9 +10,8 @@ import SwiftUI
 import WebKit
 
 // MARK: - Ora Extension Manager
-
-class OraExtensionManager: NSObject, ObservableObject {
-    static let shared = OraExtensionManager()
+class ExtensionManager: NSObject, ObservableObject {
+    static let shared = ExtensionManager()
 
     var controller: WKWebExtensionController
     private let logger = Logger(subsystem: "com.ora.browser", category: "ExtensionManager")
@@ -20,7 +19,10 @@ class OraExtensionManager: NSObject, ObservableObject {
     @Published var installedExtensions: [WKWebExtension] = []
     var extensionMap: [URL: WKWebExtension] = [:]
     var tabManager: TabManager?
-
+    private var nextId: Int = 1
+    private var nextWindowId: Int = 1
+    private(set) var mainWindow: ExtensionWindowWrapper?
+    
     override init() {
         logger.info("Initializing OraExtensionManager")
         let config = WKWebExtensionController.Configuration(identifier: UUID())
@@ -28,6 +30,29 @@ class OraExtensionManager: NSObject, ObservableObject {
         super.init()
         controller.delegate = self
         logger.info("OraExtensionManager initialized successfully")
+        print("[ExtMgr] controller ready with identifier=\(config.identifier?.uuidString ?? "nil")")
+    }
+
+    func nextTabId() -> Int {
+        let current = nextId
+        nextId += 1
+        return current
+    }
+
+    func nextWindowID() -> Int {
+        let current = nextWindowId
+        nextWindowId += 1
+        return current
+    }
+
+    @MainActor
+    func ensureWindowOpened() {
+        if mainWindow == nil {
+            let window = ExtensionWindowWrapper(id: nextWindowID())
+            mainWindow = window
+            controller.didOpenWindow(window)
+            print("[ExtMgr] didOpenWindow id=\(window.id)")
+        }
     }
 
     /// Install an extension from a local file
@@ -40,13 +65,16 @@ class OraExtensionManager: NSObject, ObservableObject {
                 logger.debug("Creating WKWebExtension from resource URL")
                 let webExtension = try await WKWebExtension(resourceBaseURL: url)
                 logger.debug("Extension created successfully: \(webExtension.displayName ?? "Unknown")")
-
+                print("[ExtMgr] created extension name=\(webExtension.displayName ?? "Unknown") base=\(url.path)")
+                
                 logger.debug("Creating WKWebExtensionContext")
                 let webContext = WKWebExtensionContext(for: webExtension)
                 webContext.isInspectable = true
+                print("[ExtMgr] context created for=\(webExtension.displayName ?? "Unknown")")
 
                 logger.debug("Loading extension context into controller")
                 try controller.load(webContext)
+                print("[ExtMgr] context loaded for=\(webExtension.displayName ?? "Unknown")")
 
                 // Load background content if available
                 webContext.loadBackgroundContent { [self] error in
@@ -61,10 +89,36 @@ class OraExtensionManager: NSObject, ObservableObject {
                 if let allUrlsPattern = try? WKWebExtension.MatchPattern(string: "<all_urls>") {
                     webContext.setPermissionStatus(.grantedExplicitly, for: allUrlsPattern)
                     logger.debug("Granted <all_urls> permission for extension")
+                    print("[ExtMgr] granted <all_urls> for=\(webExtension.displayName ?? "Unknown")")
                 }
                 let storagePermission = WKWebExtension.Permission.storage
                 webContext.setPermissionStatus(.grantedExplicitly, for: storagePermission)
                 logger.debug("Granted storage permission for extension")
+                print("[ExtMgr] granted storage for=\(webExtension.displayName ?? "Unknown")")
+
+
+                let permissionsToGrant: [WKWebExtension.Permission] = [
+                    .activeTab,
+                    .alarms,
+                    .clipboardWrite,
+                    .contextMenus,
+                    .cookies,
+                    .declarativeNetRequest,
+                    .declarativeNetRequestFeedback,
+                    .declarativeNetRequestWithHostAccess,
+                    .menus,
+                    .nativeMessaging,
+                    .scripting,
+                    .storage,
+                    .tabs,
+                    .unlimitedStorage,
+                    .webNavigation,
+                    .webRequest
+                ]
+                for permission in permissionsToGrant {
+                    webContext.setPermissionStatus(.grantedExplicitly, for: permission)
+                    print("[ExtMgr] granted \(permission) for=\(webExtension.displayName ?? "Unknown")")
+                }
 
                 print("\(controller.extensionContexts.count) ctx")
                 print("\(controller.extensions.count) ext")
@@ -132,8 +186,8 @@ class OraExtensionManager: NSObject, ObservableObject {
 }
 
 // MARK: - Delegate for Permissions & Lifecycle
-
-extension OraExtensionManager: WKWebExtensionControllerDelegate {
+extension ExtensionManager: WKWebExtensionControllerDelegate {
+    
     // When extension requests new permissions
     func webExtensionController(
         _ controller: WKWebExtensionController,
@@ -166,6 +220,14 @@ extension OraExtensionManager: WKWebExtensionControllerDelegate {
         logger.debug("Received message from extension '\(extensionName)': \(String(describing: message))")
 
         print("📩 Message from \(extensionName): \(message)")
+
+        if let dict = message as? [String: Any] {
+            let api = dict["api"] as? String ?? "<none>"
+            let method = dict["method"] as? String ?? "<none>"
+            print("[ExtMgr] route api=\(api) method=\(method)")
+        } else {
+            print("[ExtMgr] non-dict message received")
+        }
 
         // Handle tab API messages
         handleTabAPIMessage(message, from: context)
@@ -275,20 +337,30 @@ extension OraExtensionManager: WKWebExtensionControllerDelegate {
 
     @MainActor
     private func handleTabsQuery(params: [String: Any], context: WKWebExtensionContext) {
-        // Query tabs
-        // For now, return all tabs in active container
-        guard let container = tabManager?.activeContainer else { return }
-        let tabs: [[String: Any]] = container.tabs.map { tab in
-            [
-                "id": tab.id.uuidString,
-                "url": tab.urlString,
-                "title": tab.title,
-                "active": tabManager?.isActive(tab) ?? false
-            ] as [String: Any]
+        // Diagnostics: enumerate all containers and tabs
+        guard let tm = tabManager else {
+            print("[ExtMgr] tabs.query: tabManager is nil")
+            return
         }
-        // Note: Cannot send response back to extension via WKWebExtensionContext
-        // Extensions should use events or other mechanisms
-        logger.debug("Tabs query result: \(tabs)")
+        let containers = tm.containers
+        print("[ExtMgr] tabs.query: containers=\(containers.count)")
+
+        var totalTabs = 0
+        for (ci, container) in containers.enumerated() {
+            print("[ExtMgr] container[\(ci)] id=\(container.id) tabs=\(container.tabs.count)")
+            for (ti, tab) in container.tabs.enumerated() {
+                totalTabs += 1
+                let wrapperId = tab.extensionTabWrapper?.id
+                let isActive = tm.isActive(tab)
+                print("  [ExtMgr] tab[\(ti)] uuid=\(tab.id) wrapperId=\(wrapperId ?? -1) active=\(isActive) url=\(tab.urlString)")
+            }
+        }
+        print("[ExtMgr] tabs.query: totalTabsEnumerated=\(totalTabs)")
+
+        // Maintain previous behavior (no reply), but log a brief summary for active container
+        if let active = tm.activeContainer {
+            print("[ExtMgr] tabs.query: activeContainerTabs=\(active.tabs.count)")
+        }
     }
 
     @MainActor

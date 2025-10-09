@@ -45,19 +45,13 @@ struct ExtensionsSettingsView: View {
                             Spacer()
                             Button("Install") {
                                 Task {
-                                    await OraExtensionManager.shared.installExtension(from: dir)
-
-                                    // Reload view if extension has been installed.
-                                    viewModel.isInstalled = true
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                        viewModel.isInstalled = false
-                                    }
+                                    await ExtensionManager.shared.installExtension(from: dir)
                                 }
                             }
                             .buttonStyle(.bordered)
-                            if let extensionToUninstall = OraExtensionManager.shared.extensionMap[dir] {
+                            if let extensionToUninstall = ExtensionManager.shared.extensionMap[dir] {
                                 Button("Delete") {
-                                    OraExtensionManager.shared.uninstallExtension(extensionToUninstall)
+                                    ExtensionManager.shared.uninstallExtension(extensionToUninstall)
                                     // Remove the directory
                                     try? FileManager.default.removeItem(at: dir)
                                     // Reload directories
