@@ -68,7 +68,7 @@ struct OraCommands: Commands {
             }
             .keyboardShortcut(KeyboardShortcuts.App.toggleSidebar.keyboardShortcut)
 
-            Button(sidebarPosition == SidebarPosition.primary ? "Right side tabs" : "Left side tabs") {
+            Button(sidebarPosition == SidebarPosition.primary ? "Right Side Tabs" : "Left Side Tabs") {
                 NotificationCenter.default.post(name: .toggleSidebarPosition, object: nil)
             }
 
