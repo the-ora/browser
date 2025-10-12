@@ -47,10 +47,7 @@ struct SidebarView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            if sidebarManager.sidebarPosition != .secondary {
-                WindowControls(isFullscreen: appState.isFullscreen)
-            }
-
+            SidebarToolbar()
             NSPageView(
                 selection: selectedContainerIndex,
                 pageObjects: containers,
@@ -90,7 +87,7 @@ struct SidebarView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(
             EdgeInsets(
-                top: 10,
+                top: appState.isToolbarHidden ? 10 : 0,
                 leading: 0,
                 bottom: 10,
                 trailing: 0
@@ -109,34 +106,5 @@ struct SidebarView: View {
 
     private func toggleMaximizeWindow() {
         window?.toggleMaximized()
-    }
-}
-
-struct SidebarButton: View {
-    var position: SidebarPosition
-    var toggleSidebar: (() -> Void)?
-    @Binding var isHovering: Bool
-    var theme: Theme
-
-    var body: some View {
-        let iconName = position == .secondary ? "sidebar.right" : "sidebar.left"
-
-        Button(action: {
-            toggleSidebar?()
-        }) {
-            Image(systemName: iconName)
-                .font(.system(size: 14, weight: .medium))
-                .frame(width: 30, height: 30)
-                .background(
-                    ConditionallyConcentricRectangle(cornerRadius: 6)
-                        .fill(isHovering ? theme.foreground.opacity(0.1) : Color.clear)
-                )
-        }
-        .buttonStyle(PlainButtonStyle())
-        .padding(.horizontal, 8)
-        .onHover { hovering in
-            isHovering = hovering
-        }
-        .oraShortcutHelp("Toggle Sidebar", for: KeyboardShortcuts.App.toggleSidebar)
     }
 }
