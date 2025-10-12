@@ -4,6 +4,10 @@ struct FloatingURLBar: View {
     @Binding var showFloatingURLBar: Bool
     @Binding var isMouseOverURLBar: Bool
 
+    private var triggerAreaPadding: CGFloat {
+        showFloatingURLBar ? 50 : 16
+    }
+
     var body: some View {
         ZStack(alignment: .top) {
             if showFloatingURLBar {
@@ -30,7 +34,7 @@ struct FloatingURLBar: View {
                 Spacer()
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 40)
+            .frame(height: triggerAreaPadding)
         }
         .animation(.easeInOut(duration: 0.1), value: showFloatingURLBar)
     }
@@ -50,9 +54,10 @@ struct FloatingURLBar: View {
                         }
                     ),
                     edge: .top,
-                    padding: 40,
+                    padding: triggerAreaPadding,
                     slack: 8
                 )
+                .id(triggerAreaPadding)
             )
     }
 }
