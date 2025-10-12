@@ -42,7 +42,7 @@ struct BrowserView: View {
                 )
             }
 
-            if appState.isToolbarHidden, sidebarManager.isSidebarHidden {
+            if appState.isToolbarHidden {
                 FloatingURLBar(
                     showFloatingURLBar: $showFloatingURLBar,
                     isMouseOverURLBar: $isMouseOverURLBar

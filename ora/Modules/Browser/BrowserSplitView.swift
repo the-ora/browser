@@ -52,25 +52,24 @@ struct BrowserSplitView: View {
 
     @ViewBuilder
     private func primaryPane() -> some View {
-        if sidebarManager.sidebarPosition == .primary {
-            if sidebarManager.hiddenSidebar.side == .secondary {
-                contentView()
-            } else {
-                SidebarView()
-            }
-        } else {
-            contentView()
-        }
+        paneContent(
+            isSidebarPane: sidebarManager.sidebarPosition == .primary,
+            isOtherPaneHidden: sidebarManager.hiddenSidebar.side == .secondary
+        )
     }
 
     @ViewBuilder
     private func secondaryPane() -> some View {
-        if sidebarManager.sidebarPosition == .secondary {
-            if sidebarManager.hiddenSidebar.side == .primary {
-                contentView()
-            } else {
-                SidebarView()
-            }
+        paneContent(
+            isSidebarPane: sidebarManager.sidebarPosition == .secondary,
+            isOtherPaneHidden: sidebarManager.hiddenSidebar.side == .primary
+        )
+    }
+
+    @ViewBuilder
+    private func paneContent(isSidebarPane: Bool, isOtherPaneHidden: Bool) -> some View {
+        if isSidebarPane, !isOtherPaneHidden {
+            SidebarView()
         } else {
             contentView()
         }
@@ -79,12 +78,12 @@ struct BrowserSplitView: View {
     @ViewBuilder
     private func contentView() -> some View {
         if tabManager.activeTab != nil {
-            BrowserContentContainer(hiddenSidebar: sidebarManager.hiddenSidebar) {
-                BrowserWebContentView(sidebarPosition: sidebarManager.sidebarPosition)
+            BrowserContentContainer {
+                BrowserWebContentView()
             }
         } else {
-            BrowserContentContainer(hiddenSidebar: sidebarManager.hiddenSidebar) {
-                HomeView(sidebarToggle: sidebarManager.toggleSidebar)
+            BrowserContentContainer {
+                HomeView()
             }
         }
     }

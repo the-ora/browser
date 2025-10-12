@@ -1,14 +1,14 @@
 import SwiftUI
 
-enum SidebarPosition {
+enum SidebarPosition: String, Hashable {
     case primary
     case secondary
 }
 
 @MainActor
 class SidebarManager: ObservableObject {
-    @Published var isSidebarHidden: Bool = false
-    @Published var sidebarPosition: SidebarPosition = .primary
+    @AppStorage("ui.sidebar.hidden") var isSidebarHidden: Bool = false
+    @AppStorage("ui.sidebar.position") var sidebarPosition: SidebarPosition = .primary
 
     @Published var primaryFraction = FractionHolder.usingUserDefaults(0.2, key: "ui.sidebar.fraction.primary")
     @Published var secondaryFraction = FractionHolder.usingUserDefaults(0.2, key: "ui.sidebar.fraction.secondary")
@@ -31,10 +31,9 @@ class SidebarManager: ObservableObject {
     }
 
     func toggleSidebarPosition() {
-        let targetSide = sidebarPosition == .primary ? SplitSide.primary : .secondary
-        let wasHidden = hiddenSidebar.side == targetSide
-        sidebarPosition = (sidebarPosition == .primary) ? .secondary : .primary
-        if wasHidden {
+        let isCurrentSidebarHidden = hiddenSidebar.side == (sidebarPosition == .primary ? .primary : .secondary)
+        sidebarPosition = sidebarPosition == .primary ? .secondary : .primary
+        if isCurrentSidebarHidden {
             hiddenSidebar.side = sidebarPosition == .primary ? .primary : .secondary
         }
     }

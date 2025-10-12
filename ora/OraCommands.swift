@@ -1,10 +1,10 @@
-import AppKit
 import SwiftUI
 
 struct OraCommands: Commands {
     @AppStorage("AppAppearance") private var appearanceRaw: String = AppAppearance.system.rawValue
+    @AppStorage("ui.sidebar.hidden") private var isSidebarHidden: Bool = false
+    @AppStorage("ui.sidebar.position") private var sidebarPosition: SidebarPosition = .primary
     @Environment(\.openWindow) private var openWindow
-    @ObservedObject private var shortcutManager = CustomKeyboardShortcutManager.shared
 
     var body: some Commands {
         CommandGroup(replacing: .newItem) {
@@ -63,12 +63,12 @@ struct OraCommands: Commands {
         }
 
         CommandGroup(after: .sidebar) {
-            Button("Toggle Sidebar") {
+            Button(isSidebarHidden ? "Show Sidebar" : "Hide Sidebar") {
                 NotificationCenter.default.post(name: .toggleSidebar, object: nil)
             }
             .keyboardShortcut(KeyboardShortcuts.App.toggleSidebar.keyboardShortcut)
 
-            Button("Toggle Sidebar Position") {
+            Button(sidebarPosition == SidebarPosition.primary ? "Right side tabs" : "Left side tabs") {
                 NotificationCenter.default.post(name: .toggleSidebarPosition, object: nil)
             }
 

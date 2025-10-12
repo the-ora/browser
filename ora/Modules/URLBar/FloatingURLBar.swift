@@ -15,6 +15,12 @@ struct FloatingURLBar: View {
                     }
                 )
                 .shadow(color: Color.black.opacity(0.2), radius: 10, y: 4)
+                .overlay(
+                    Rectangle()
+                        .frame(height: 0.5)
+                        .foregroundColor(Color(.separatorColor)),
+                    alignment: .bottom
+                )
                 .transition(.move(edge: .top).combined(with: .opacity))
                 .zIndex(1)
             }

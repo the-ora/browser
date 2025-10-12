@@ -48,27 +48,7 @@ struct SidebarView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             if sidebarManager.sidebarPosition != .secondary {
-                HStack {
-                    WindowControls(isFullscreen: appState.isFullscreen)
-                    Spacer()
-                    if appState.isToolbarHidden {
-                        SidebarButton(
-                            position: sidebarManager.sidebarPosition,
-                            toggleSidebar: sidebarManager.toggleSidebar,
-                            isHovering: $isHoveringSidebarToggle,
-                            theme: theme
-                        )
-                    }
-                }
-            } else {
-                if appState.isToolbarHidden {
-                    SidebarButton(
-                        position: sidebarManager.sidebarPosition,
-                        toggleSidebar: sidebarManager.toggleSidebar,
-                        isHovering: $isHoveringSidebarToggle,
-                        theme: theme
-                    )
-                }
+                WindowControls(isFullscreen: appState.isFullscreen)
             }
 
             NSPageView(

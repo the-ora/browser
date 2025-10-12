@@ -6,7 +6,6 @@ struct BrowserContentContainer<Content: View>: View {
     @EnvironmentObject var sidebarManager: SidebarManager
 
     let content: () -> Content
-    let hiddenSidebar: SideHolder
 
     private var isCompleteFullscreen: Bool {
         appState.isFullscreen && sidebarManager.isSidebarHidden
@@ -21,10 +20,8 @@ struct BrowserContentContainer<Content: View>: View {
     }
 
     init(
-        hiddenSidebar: SideHolder,
         @ViewBuilder content: @escaping () -> Content
     ) {
-        self.hiddenSidebar = hiddenSidebar
         self.content = content
     }
 
@@ -42,9 +39,10 @@ struct BrowserContentContainer<Content: View>: View {
                     )
                     : EdgeInsets(
                         top: 6,
-                        leading: sidebarManager.sidebarPosition != .primary || hiddenSidebar.side == .primary ? 6 : 0,
+                        leading: sidebarManager.sidebarPosition != .primary || sidebarManager.hiddenSidebar
+                            .side == .primary ? 6 : 0,
                         bottom: 6,
-                        trailing: sidebarManager.sidebarPosition != .secondary || hiddenSidebar
+                        trailing: sidebarManager.sidebarPosition != .secondary || sidebarManager.hiddenSidebar
                             .side == .secondary ? 6 : 0
                     )
             )

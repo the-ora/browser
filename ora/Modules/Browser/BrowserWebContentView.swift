@@ -5,8 +5,6 @@ struct BrowserWebContentView: View {
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject private var appState: AppState
 
-    let sidebarPosition: SidebarPosition
-
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             if !appState.isToolbarHidden {
