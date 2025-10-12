@@ -6,7 +6,7 @@ struct SidebarView: View {
     @Environment(\.theme) private var theme
     @Environment(\.window) var window: NSWindow?
     @EnvironmentObject var tabManager: TabManager
-    @EnvironmentObject var historyManger: HistoryManager
+    @EnvironmentObject var historyManager: HistoryManager
     @EnvironmentObject var downloadManager: DownloadManager
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var privacyMode: PrivacyMode
@@ -63,7 +63,7 @@ struct SidebarView: View {
                 )
                 .padding(.horizontal, 10)
                 .environmentObject(tabManager)
-                .environmentObject(historyManger)
+                .environmentObject(historyManager)
                 .environmentObject(downloadManager)
                 .environmentObject(appState)
                 .environmentObject(privacyMode)

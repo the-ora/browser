@@ -22,4 +22,7 @@ extension Notification.Name {
     // Per-window settings/events
     static let setAppearance = Notification.Name("SetAppearance") // userInfo: ["appearance": String]
     static let checkForUpdates = Notification.Name("CheckForUpdates")
+
+    // AppDelegate → UI routing
+    static let openURL = Notification.Name("OpenURL") // userInfo: ["url": URL]
 }

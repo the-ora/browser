@@ -7,7 +7,7 @@ struct SpacesSettingsView: View {
     @StateObject private var settings = SettingsStore.shared
     @State private var searchService = SearchEngineService()
     @State private var selectedContainerId: UUID?
-    @EnvironmentObject var historyManger: HistoryManager
+    @EnvironmentObject var historyManager: HistoryManager
 
     private var selectedContainer: TabContainer? {
         containers.first { $0.id == selectedContainerId } ?? containers.first
@@ -153,7 +153,7 @@ struct SpacesSettingsView: View {
                                     .frame(maxWidth: .infinity, alignment: .leading)
 
                                     Button("Clear History") {
-                                        historyManger.clearContainerHistory(container)
+                                        historyManager.clearContainerHistory(container)
                                     }
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                 }

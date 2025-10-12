@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ImportDataButton: View {
     @EnvironmentObject var tabManager: TabManager
-    @EnvironmentObject var historyManger: HistoryManager
+    @EnvironmentObject var historyManager: HistoryManager
     @EnvironmentObject var downloadManager: DownloadManager
     @EnvironmentObject var privacyMode: PrivacyMode
 
@@ -36,7 +36,7 @@ struct ImportDataButton: View {
                                     title: tab.title,
                                     url: url,
                                     container: container,
-                                    historyManager: historyManger,
+                                    historyManager: historyManager,
                                     downloadManager: downloadManager,
                                     isPrivate: privacyMode.isPrivate
                                 )
@@ -73,7 +73,7 @@ struct ImportDataButton: View {
                                         title: tab.title,
                                         url: url,
                                         container: container,
-                                        historyManager: historyManger,
+                                        historyManager: historyManager,
                                         downloadManager: downloadManager,
                                         isPrivate: privacyMode.isPrivate
                                     )
