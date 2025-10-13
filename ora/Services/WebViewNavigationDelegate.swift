@@ -218,6 +218,31 @@ let navigationScript = """
             return document.title;
         }
     };
+    window.__oraTriggerPiP = function(isActive = false) {
+        const video = document.querySelector('video');
+
+        function hasAudio(video) {
+            if (!video) return false;
+            if (video.audioTracks && video.audioTracks.length > 0) return true;
+            if (!video.muted && video.volume > 0) return true;
+            return false;
+        }
+
+        if (
+            video &&
+            video.tagName === 'VIDEO' &&
+            !document.pictureInPictureElement &&
+            !video.paused &&
+            !isActive &&
+            hasAudio(video)
+        ) {
+            video.requestPictureInPicture()
+                .catch(e => {});
+        } else if (document.pictureInPictureElement) {
+            document.exitPictureInPicture()
+                .catch(e => {});
+        }
+    };
 
     post({ type: 'ready', title: document.title });
 })();

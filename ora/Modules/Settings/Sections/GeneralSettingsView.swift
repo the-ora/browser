@@ -92,12 +92,14 @@ struct GeneralSettingsView: View {
                                 .frame(width: 80)
                             }
 
-                            Text("Note: Pinned and favorite tabs are never automatically removed.")
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .padding(.vertical, 8)
+                             Text("Note: Pinned and favorite tabs are never automatically removed.")
+                                 .font(.caption2)
+                                 .foregroundColor(.secondary)
+                         }
+
+                         Toggle("Auto Picture-in-Picture on tab switch", isOn: $settings.autoPiPEnabled)
+                     }
+                     .padding(.vertical, 8)
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Updates")
                             .font(.headline)
