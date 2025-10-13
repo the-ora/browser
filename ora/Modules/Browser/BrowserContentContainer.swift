@@ -2,34 +2,35 @@ import SwiftUI
 
 struct BrowserContentContainer<Content: View>: View {
     @EnvironmentObject var tabManager: TabManager
-    let content: () -> Content
-    let isFullscreen: Bool
-    let hideState: SideHolder
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var sidebarManager: SidebarManager
 
-    let sidebarCornerRadius: CGFloat = {
+    let content: () -> Content
+
+    private var isCompleteFullscreen: Bool {
+        appState.isFullscreen && sidebarManager.isSidebarHidden
+    }
+
+    private var cornerRadius: CGFloat {
         if #available(macOS 26, *) {
-            return 8
+            return 13
         } else {
             return 6
         }
-    }()
+    }
 
-    init(isFullscreen: Bool, hideState: SideHolder, @ViewBuilder content: @escaping () -> Content) {
-        self.isFullscreen = isFullscreen
-        self.hideState = hideState
+    init(
+        @ViewBuilder content: @escaping () -> Content
+    ) {
         self.content = content
     }
 
     var body: some View {
         content()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .clipShape(
-                ConditionallyConcentricRectangle(
-                    cornerRadius: isFullscreen && hideState.side == .primary ? 0 : sidebarCornerRadius
-                )
-            )
+            .clipShape(RoundedRectangle(cornerRadius: isCompleteFullscreen ? 0 : cornerRadius, style: .continuous))
             .padding(
-                isFullscreen && hideState.side == .primary
+                isCompleteFullscreen
                     ? EdgeInsets(
                         top: 0,
                         leading: 0,
@@ -38,12 +39,15 @@ struct BrowserContentContainer<Content: View>: View {
                     )
                     : EdgeInsets(
                         top: 6,
-                        leading: hideState.side == .primary ? 6 : 0,
+                        leading: sidebarManager.sidebarPosition != .primary || sidebarManager.hiddenSidebar
+                            .side == .primary ? 6 : 0,
                         bottom: 6,
-                        trailing: 6
+                        trailing: sidebarManager.sidebarPosition != .secondary || sidebarManager.hiddenSidebar
+                            .side == .secondary ? 6 : 0
                     )
             )
-            .shadow(color: .black.opacity(0.15), radius: sidebarCornerRadius, x: 0, y: 2)
+            .animation(.easeInOut(duration: 0.3), value: appState.isFullscreen)
+            .shadow(color: .black.opacity(0.15), radius: isCompleteFullscreen ? 0 : cornerRadius, x: 0, y: 2)
             .ignoresSafeArea(.all)
     }
 }

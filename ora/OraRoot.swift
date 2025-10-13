@@ -13,7 +13,6 @@ final class PrivacyMode: ObservableObject {
 struct OraRoot: View {
     @StateObject private var appState = AppState()
     @StateObject private var keyModifierListener = KeyModifierListener()
-    @StateObject private var appearanceManager = AppearanceManager()
     @StateObject private var updateService = UpdateService()
     @StateObject private var mediaController: MediaController
     @StateObject private var tabManager: TabManager
@@ -21,6 +20,8 @@ struct OraRoot: View {
     @StateObject private var downloadManager: DownloadManager
     @StateObject private var privacyMode: PrivacyMode
     @StateObject private var extensionManager = ExtensionManager.shared
+    @StateObject private var sidebarManager = SidebarManager()
+    @StateObject private var toolbarManager = ToolbarManager()
 
     let tabContext: ModelContext
     let historyContext: ModelContext
@@ -73,6 +74,14 @@ struct OraRoot: View {
     var body: some View {
         BrowserView()
             .background(WindowReader(window: $window))
+            .background(
+                WindowAccessor(
+                    isFullscreen: Binding(
+                        get: { appState.isFullscreen },
+                        set: { newValue in appState.isFullscreen = newValue }
+                    )
+                )
+            )
             .environment(\.window, window)
             .environmentObject(appState)
             .environmentObject(tabManager)
@@ -80,11 +89,13 @@ struct OraRoot: View {
             .environmentObject(mediaController)
             .environmentObject(keyModifierListener)
             .environmentObject(CustomKeyboardShortcutManager.shared)
-            .environmentObject(appearanceManager)
+            .environmentObject(AppearanceManager.shared)
             .environmentObject(downloadManager)
             .environmentObject(updateService)
             .environmentObject(privacyMode)
             .environmentObject(extensionManager)
+            .environmentObject(sidebarManager)
+            .environmentObject(toolbarManager)
             .modelContext(tabContext)
             .modelContext(historyContext)
             .modelContext(downloadContext)
@@ -134,12 +145,12 @@ struct OraRoot: View {
                 }
                 NotificationCenter.default.addObserver(forName: .toggleFullURL, object: nil, queue: .main) { note in
                     guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
-                    appState.showFullURL.toggle()
+                    toolbarManager.showFullURL.toggle()
                 }
                 NotificationCenter.default.addObserver(forName: .toggleToolbar, object: nil, queue: .main) { note in
                     guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
                     withAnimation(.easeInOut(duration: 0.2)) {
-                        appState.isToolbarHidden.toggle()
+                        toolbarManager.isToolbarHidden.toggle()
                     }
                 }
                 NotificationCenter.default.addObserver(forName: .reloadPage, object: nil, queue: .main) { note in
@@ -171,7 +182,7 @@ struct OraRoot: View {
                     if let raw = note.userInfo?["appearance"] as? String,
                        let mode = AppAppearance(rawValue: raw)
                     {
-                        appearanceManager.appearance = mode
+                        AppearanceManager.shared.appearance = mode
                     }
                 }
                 NotificationCenter.default.addObserver(forName: .checkForUpdates, object: nil, queue: .main) { note in

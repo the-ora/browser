@@ -29,8 +29,7 @@ class Tab: ObservableObject, Identifiable {
     var favicon: URL? // Add favicon property
     var createdAt: Date
     var lastAccessedAt: Date?
-    
-    
+
     var type: TabType
     var order: Int
     var faviconLocalFile: URL?
