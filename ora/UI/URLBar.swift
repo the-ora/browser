@@ -6,6 +6,8 @@ import SwiftUI
 struct URLBar: View {
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var sidebarManager: SidebarManager
+    @EnvironmentObject var toolbarManager: ToolbarManager
 
     @State private var showCopiedAnimation = false
     @State private var startWheelAnimation = false
@@ -45,7 +47,7 @@ struct URLBar: View {
     }
 
     private func getDisplayURL(_ tab: Tab) -> String {
-        if appState.showFullURL {
+        if toolbarManager.showFullURL {
             return tab.url.absoluteString
         } else {
             return tab.url.host ?? tab.url.absoluteString
@@ -69,13 +71,19 @@ struct URLBar: View {
         HStack {
             if let tab = tabManager.activeTab {
                 HStack(spacing: 4) {
-                    URLBarButton(
-                        systemName: "sidebar.left",
-                        isEnabled: true,
-                        foregroundColor: buttonForegroundColor,
-                        action: onSidebarToggle
-                    )
-                    .oraShortcutHelp("Toggle Sidebar", for: KeyboardShortcuts.App.toggleSidebar)
+                    if toolbarManager.isToolbarHidden || sidebarManager.sidebarPosition == .secondary {
+                        WindowControls(isFullscreen: appState.isFullscreen)
+                    }
+
+                    if sidebarManager.sidebarPosition == .primary {
+                        URLBarButton(
+                            systemName: "sidebar.left",
+                            isEnabled: true,
+                            foregroundColor: buttonForegroundColor,
+                            action: onSidebarToggle
+                        )
+                        .oraShortcutHelp("Toggle Sidebar", for: KeyboardShortcuts.App.toggleSidebar)
+                    }
 
                     // Back button
                     URLBarButton(
@@ -204,7 +212,7 @@ struct URLBar: View {
                     .padding(.horizontal, 8)
                     .background(
                         RoundedRectangle(cornerRadius: 6, style: .continuous)
-                            .fill(getUrlFieldColor(tab).opacity(0.12))
+                            .fill(getUrlFieldColor(tab).opacity(0.08))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 6, style: .continuous)
                                     .stroke(
@@ -239,6 +247,16 @@ struct URLBar: View {
                         foregroundColor: buttonForegroundColor,
                         action: {}
                     )
+
+                    if sidebarManager.sidebarPosition == .secondary {
+                        URLBarButton(
+                            systemName: "sidebar.right",
+                            isEnabled: true,
+                            foregroundColor: buttonForegroundColor,
+                            action: onSidebarToggle
+                        )
+                        .oraShortcutHelp("Toggle Sidebar", for: KeyboardShortcuts.App.toggleSidebar)
+                    }
                 }
                 .padding(4)
                 .onAppear {
@@ -252,7 +270,7 @@ struct URLBar: View {
                         editingURLString = getDisplayURL(tab)
                     }
                 }
-                .onChange(of: appState.showFullURL) { _, _ in
+                .onChange(of: toolbarManager.showFullURL) { _, _ in
                     if !isEditing, let tab = tabManager.activeTab {
                         editingURLString = getDisplayURL(tab)
                     }

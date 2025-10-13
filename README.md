@@ -8,11 +8,11 @@
 </div>
 
 <p align="center">
-    <a href="https://www.apple.com/macos/"><img src="https://badgen.net/badge/macOS/14+/blue" alt="macOS"></a>
+    <a href="https://www.apple.com/macos/"><img src="https://badgen.net/badge/macOS/15+/blue" alt="macOS"></a>
     <a href="https://developer.apple.com/xcode/"><img src="https://badgen.net/badge/Xcode/15+/blue" alt="Xcode"></a>
     <a href="https://swift.org"><img src="https://badgen.net/badge/Swift/5.9/orange" alt="Swift Version"></a>
     <a href="https://brew.sh"><img src="https://badgen.net/badge/Homebrew/required/yellow" alt="Homebrew"></a>
-    <a href="LICENSE.md"><img src="https://badgen.net/badge/License/MIT/green" alt="License: MIT"></a>
+    <a href="LICENSE.md"><img src="https://badgen.net/badge/License/GPL-2.0/green" alt="License: MIT"></a>
 </p>
 
 > **⚠️ Disclaimer**  
@@ -117,5 +117,5 @@ Questions or support? Join the community on [Discord](https://discord.gg/9aZWH52
 
 ## License
 
-Ora is open source and licensed under the [MIT License](LICENSE.md).  
-Feel free to use, modify, and distribute it under the terms of the MIT License.
+Ora is open source and licensed under the [GPL-2.0 license](LICENSE).  
+Feel free to use, modify, and distribute it under the terms of the GPL-2.0 license.

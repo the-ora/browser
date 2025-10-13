@@ -48,6 +48,7 @@ struct LauncherMain: View {
     @EnvironmentObject var downloadManager: DownloadManager
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var toolbarManager: ToolbarManager
     @EnvironmentObject var privacyMode: PrivacyMode
     @State var focusedElement: UUID = .init()
     @StateObject private var faviconService = FaviconService()
@@ -148,7 +149,7 @@ struct LauncherMain: View {
                     action: {
                         if !tab.isWebViewReady {
                             tab.restoreTransientState(
-                                historyManger: historyManager,
+                                historyManager: historyManager,
                                 downloadManager: downloadManager,
                                 tabManager: tabManager,
                                 isPrivate: privacyMode.isPrivate
