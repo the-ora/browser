@@ -236,7 +236,8 @@ class TabManager: ObservableObject {
         historyManager: HistoryManager,
         downloadManager: DownloadManager? = nil,
         focusAfterOpening: Bool = true,
-        isPrivate: Bool
+        isPrivate: Bool,
+        loadSilently:Bool = false
     ) -> Tab? {
         if let container = activeContainer {
             if let host = url.host {
@@ -265,8 +266,9 @@ class TabManager: ObservableObject {
                     activeTab = newTab
                     activeTab?.maybeIsActive = true
                     newTab.lastAccessedAt = Date()
-
-                    // Initialize the WebView for the new active tab
+                }
+                if focusAfterOpening || loadSilently {
+                 // Initialize the WebView for the new active tab
                     newTab.restoreTransientState(
                         historyManager: historyManager,
                         downloadManager: downloadManager ?? DownloadManager(
@@ -509,8 +511,10 @@ class TabManager: ObservableObject {
             historyManager: historyManager,
             downloadManager: tab.downloadManager,
             focusAfterOpening: false,
-            isPrivate: tab.isPrivate
+            isPrivate: tab.isPrivate,
+            loadSilently: true
         ) else { return }
+        self.reorderTabs(from:tab,toTab:newTab)
     }
 }
 
