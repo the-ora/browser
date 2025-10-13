@@ -5,44 +5,43 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
-      <title>Version 0.2.4</title>
+      <title>Version 0.2.5</title>
       <description><![CDATA[
-        <h2>Ora Browser v0.2.4</h2>
+        <h2>Ora Browser v0.2.5</h2>
         <p>Changes since last release:</p>
         <div class="changelog">
           <h3>Features</h3>
           <ul>
-            <li>feat: add URL handling and deep linking support (#132) — Kenenisa Alemayehu</li>
-            <li>feat: double click full resize of window (#128) — Chase</li>
-            <li>feat: add ability to edit container name and emoji (#125) — Chase</li>
+            <li>feat: support for duplicate tab (#129) — Brooksolomon</li>
+            <li>feat: Add Auto Picture-in-Picture Feature and Refactor Favicon Handling (#146) — Kenenisa Alemayehu</li>
+            <li>feat: enhance brew release workflow with optional inputs for version and DMG URL — Kenenisa Alemayehu</li>
+            <li>feat: brew release cask automation — Kenenisa Alemayehu</li>
           </ul>
           <h3>Fixes</h3>
           <ul>
-            <li>fix: settings model container and spaces UI (#127) — Chase</li>
-            <li>fix: move to container shows proper containers now (#126) — Chase</li>
-            <li>fix(sidebar): update sidebar visibility persistance (#124) — Furkan Koseoglu</li>
-            <li>fix: update user agent string in TabScriptHandler for compatibility — Kenenisa Alemayehu</li>
+            <li>fix: update GitHub token to HOMEBREW_SECRET in brew release workflow — Kenenisa Alemayehu</li>
+            <li>fix: update paths for ora.rb in brew release workflow — Kenenisa Alemayehu</li>
+            <li>fix: sed for ora.rb — Kenenisa Alemayehu</li>
+            <li>fix: update GitHub token in brew release workflow — Kenenisa Alemayehu</li>
+          </ul>
+          <h3>Chores</h3>
+          <ul>
+            <li>chore: update discord link — Yonathan Dejene</li>
           </ul>
           <h3>Other</h3>
           <ul>
-            <li>Enhance Tab Management Settings and UI (#139) — Kenenisa Alemayehu</li>
-            <li>Update macOS and License badge in README — Yonathan Dejene</li>
-            <li>Change license from MIT to GPL-2.0 — Kenenisa Alemayehu</li>
-            <li>Delete LICENSE.md — Kenenisa Alemayehu</li>
-            <li>Add GNU General Public License v2 — Kenenisa Alemayehu</li>
-            <li>Prevent Window Drag Interference During Tab Drags and Refactor TabManager for Modularity (#101) — AryanRogye</li>
-            <li>ux: Cleanup search engines implementation (#121) — versecafe</li>
-            <li>ux: Improve page finder (#122) — versecafe</li>
+            <li>added swiftformat — yonaries</li>
+            <li>Add Left/Right Sidebar Positioning, Floating URL Bar, and Toolbar Enhancements (#133) — Yonathan Dejene</li>
           </ul>
         </div>
       ]]></description>
-      <pubDate>Mon, 06 Oct 2025 20:11:13 +0000</pubDate>
-       <enclosure url="https://github.com/the-ora/browser/releases/download/v0.2.4/Ora-Browser-0.2.4.dmg"
-                  sparkle:version="92"
-                  sparkle:shortVersionString="0.2.4"
-                  length="4675900"
+      <pubDate>Mon, 13 Oct 2025 20:41:08 +0000</pubDate>
+       <enclosure url="https://github.com/the-ora/browser/releases/download/v0.2.5/Ora-Browser-0.2.5.dmg"
+                  sparkle:version="93"
+                  sparkle:shortVersionString="0.2.5"
+                  length="4823836"
                   type="application/octet-stream"
-                   sparkle:edSignature="NCBtkaA9uR347Y+dHHabtdPmfgRQ+HEQiDR7P2oBDLLK1IEX9fo8vGo2PV/tnPszZD+mCD4V3+mRc0IBYpz8Aw=="/>
+                   sparkle:edSignature="a4beTLCi7kMhmqbuI57XRbOooPWonvq9d/5aou/kPuY9mqJW2uNLDFLKhcFUmdJdye3ZarkSkcZkrPEhCguCAg=="/>
     </item>
   </channel>
 </rss>
