@@ -100,6 +100,7 @@ final class MediaController: ObservableObject {
                 // Update tab's isPlayingMedia property
                 tabRefs[tab.id]?.value?.isPlayingMedia = false
             }
+
         case "removed":
             if let idx = sessions.firstIndex(where: { $0.tabID == id }) {
                 sessions.remove(at: idx)
@@ -238,8 +239,6 @@ final class MediaController: ObservableObject {
             }
         }
     }
-
-
 }
 
 // Payload from injected JS

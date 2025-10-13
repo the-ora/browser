@@ -11,7 +11,6 @@ struct LauncherView: View {
     @Environment(\.theme) private var theme
     @StateObject private var searchEngineService = SearchEngineService()
 
-
     @State private var input = ""
     @State private var isVisible = false
     @FocusState private var isTextFieldFocused: Bool
