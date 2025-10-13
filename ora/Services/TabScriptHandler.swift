@@ -29,6 +29,7 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
                     let oldTitle = tab.title
                     tab.title = update.title
                     tab.url = URL(string: update.href) ?? tab.url
+                    print("incoming favicon: \(update.favicon)")
                     tab
                         .setFavicon(
                             faviconURLDefault: URL(string: update.favicon)

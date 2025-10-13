@@ -15,6 +15,7 @@ final class MediaController: ObservableObject {
         var canGoNext: Bool
         var canGoPrevious: Bool
         var lastActive: Date
+        var wasPlayed: Bool
     }
 
     // Published list of sessions ordered by recency (most recent first)
@@ -40,7 +41,7 @@ final class MediaController: ObservableObject {
     // MARK: - Public accessors
 
     var primary: Session? { visibleSessions.first }
-    var visibleSessions: [Session] { sessions }
+    var visibleSessions: [Session] { sessions.filter(\.wasPlayed) }
 
     // MARK: - Receive events from JS bridge
 
@@ -59,7 +60,8 @@ final class MediaController: ObservableObject {
                 volume: 1.0,
                 canGoNext: false,
                 canGoPrevious: false,
-                lastActive: Date()
+                lastActive: Date(),
+                wasPlayed: false
             )
             sessions.insert(session, at: 0)
             return 0
@@ -72,17 +74,14 @@ final class MediaController: ObservableObject {
             sessions[idx].isPlaying = playing
             // Update tab's isPlayingMedia property
             tabRefs[tab.id]?.value?.isPlayingMedia = playing
-            if let newTitle = event.title, !newTitle.isEmpty { sessions[idx].title = newTitle }
             if let vol = event.volume { sessions[idx].volume = clamp(vol) }
             // Update recency when it starts playing
             if playing { sessions[idx].lastActive = Date()
                 moveToFront(index: idx)
             }
-
-        case "ready":
-            if let idx = sessions.firstIndex(where: { $0.tabID == id }) {
-                if let newTitle = event.title, !newTitle.isEmpty { sessions[idx].title = newTitle }
-            }
+            if let wasPlayed = event.wasPlayed { sessions[idx].wasPlayed = wasPlayed }
+//        case "ready":
+            // Session is already ensured in other cases
 
         case "volume":
             if let idx = sessions.firstIndex(where: { $0.tabID == id }), let vol = event.volume {
@@ -101,13 +100,13 @@ final class MediaController: ObservableObject {
                 // Update tab's isPlayingMedia property
                 tabRefs[tab.id]?.value?.isPlayingMedia = false
             }
-
-        case "titleChange":
-            if let idx = sessions.firstIndex(where: { $0.tabID == id }),
-               let newTitle = event.title, !newTitle.isEmpty
-            {
-                sessions[idx].title = newTitle
+        case "removed":
+            if let idx = sessions.firstIndex(where: { $0.tabID == id }) {
+                sessions.remove(at: idx)
             }
+            // Update tab's isPlayingMedia property
+            tabRefs[tab.id]?.value?.isPlayingMedia = false
+            self.removeSession(for: tab.id)
 
         default:
             break
@@ -165,6 +164,16 @@ final class MediaController: ObservableObject {
         isVisible = !visibleSessions.isEmpty
     }
 
+    func removeSession(for tabID: UUID) {
+        if let idx = sessions.firstIndex(where: { $0.tabID == tabID }) {
+            sessions.remove(at: idx)
+        }
+        // Update tab's isPlayingMedia property
+        tabRefs[tabID]?.value?.isPlayingMedia = false
+        tabRefs[tabID] = nil
+        isVisible = !visibleSessions.isEmpty
+    }
+
     // Helpers
     func volume(of tabID: UUID) -> Double { sessions.first(where: { $0.tabID == tabID })?.volume ?? 1.0 }
     func canGoNext(of tabID: UUID) -> Bool { sessions.first(where: { $0.tabID == tabID })?.canGoNext ?? false }
@@ -196,13 +205,12 @@ final class MediaController: ObservableObject {
     private func syncTitlesForPlayingSessions() {
         let playingSessions = sessions.filter(\.isPlaying)
         for session in playingSessions {
-            fetchDocumentTitle(for: session.tabID) { [weak self] newTitle in
-                guard let self, let title = newTitle, !title.isEmpty,
-                      let idx = self.sessions.firstIndex(where: { $0.tabID == session.tabID }),
-                      title != self.sessions[idx].title
-                else { return }
-
-                self.sessions[idx].title = title
+            if let tab = tabRefs[session.tabID]?.value,
+               let idx = sessions.firstIndex(where: { $0.tabID == session.tabID }),
+               !tab.title.isEmpty,
+               tab.title != sessions[idx].title
+            {
+                sessions[idx].title = tab.title
             }
         }
     }
@@ -217,35 +225,27 @@ final class MediaController: ObservableObject {
 
     private func scheduleTitleSync(for tabID: UUID, attempts: Int = 6, delay: TimeInterval = 0.25) {
         guard attempts > 0 else { return }
-        let currentTitle = sessions.first(where: { $0.tabID == tabID })?.title
-        fetchDocumentTitle(for: tabID) { [weak self] newTitle in
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
             guard let self else { return }
-            if let title = newTitle, !title.isEmpty, title != currentTitle,
-               let idx = self.sessions.firstIndex(where: { $0.tabID == tabID })
+            if let tab = self.tabRefs[tabID]?.value,
+               let idx = self.sessions.firstIndex(where: { $0.tabID == tabID }),
+               !tab.title.isEmpty,
+               tab.title != self.sessions[idx].title
             {
-                self.sessions[idx].title = title
-            } else {
-                DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                    self.scheduleTitleSync(for: tabID, attempts: attempts - 1, delay: delay)
-                }
+                self.sessions[idx].title = tab.title
+            } else if attempts > 1 {
+                self.scheduleTitleSync(for: tabID, attempts: attempts - 1, delay: delay)
             }
         }
     }
 
-    private func fetchDocumentTitle(for tabID: UUID, completion: @escaping (String?) -> Void) {
-        guard let webView = tabRefs[tabID]?.value?.webView else { completion(nil)
-            return
-        }
-        let js = "(function(){ try { return (window.__oraMedia && window.__oraMedia.title && window.__oraMedia.title()) || document.title || ''; } catch(e) { return document.title || ''; } })()"
-        webView.evaluateJavaScript(js) { result, _ in
-            completion(result as? String)
-        }
-    }
+
 }
 
 // Payload from injected JS
 struct MediaEventPayload: Codable {
     let type: String
+    let wasPlayed: Bool?
     let state: String?
     let volume: Double?
     let title: String?

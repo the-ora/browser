@@ -9,10 +9,6 @@ class FaviconService: ObservableObject {
     func getFavicon(for searchURL: String) -> NSImage? {
         guard let domain = extractDomain(from: searchURL) else { return nil }
 
-        if let cachedFavicon = cache[domain] {
-            return cachedFavicon
-        }
-
         // Try to fetch favicon asynchronously
         fetchFavicon(for: domain) { [weak self] favicon in
             if let favicon {
@@ -22,6 +18,10 @@ class FaviconService: ObservableObject {
                     self?.objectWillChange.send()
                 }
             }
+        }
+
+        if let cachedFavicon = cache[domain] {
+            return cachedFavicon
         }
 
         return nil
@@ -47,7 +47,7 @@ class FaviconService: ObservableObject {
     }
 
     func faviconURL(for domain: String) -> URL? {
-        return URL(string: "https://www.google.com/s2/favicons?domain=\(domain)&sz=16")
+        return URL(string: "https://www.google.com/s2/favicons?domain=\(domain)&sz=64")
     }
 
     private func extractDomain(from searchURL: String) -> String? {
@@ -65,15 +65,15 @@ class FaviconService: ObservableObject {
 
     private func fetchFavicon(for domain: String, completion: @escaping (NSImage?) -> Void) {
         let faviconURLs = [
-            "https://www.google.com/s2/favicons?domain=\(domain)&sz=64",
+            "https://www.google.com/s2/favicons?domain=\(domain)&sz=128",
             "https://\(domain)/favicon.ico",
             "https://\(domain)/apple-touch-icon.png"
         ]
-
+print("WTFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
         tryFetchingFavicon(from: faviconURLs, index: 0, completion: completion)
     }
 
-    private func tryFetchingFavicon(from urls: [String], index: Int, completion: @escaping (NSImage?) -> Void) {
+    private func tryFetchingFavicon(from urls: [String], index: Int, completion: @escaping (NSImage?,) -> Void) {
         guard index < urls.count else {
             completion(nil)
             return
@@ -86,6 +86,7 @@ class FaviconService: ObservableObject {
 
         URLSession.shared.dataTask(with: url) { data, _, _ in
             if let data, let image = NSImage(data: data), image.isValid {
+                print("\(url) - \(index)")
                 completion(image)
             } else {
                 self.tryFetchingFavicon(from: urls, index: index + 1, completion: completion)

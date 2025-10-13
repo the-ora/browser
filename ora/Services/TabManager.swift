@@ -342,6 +342,7 @@ class TabManager: ObservableObject {
                     tab.isWebViewReady = false
                     tab.destroyWebView()
                 }
+                self.mediaController.removeSession(for: tab.id)
                 try? self.modelContext.save()
             }
         }

@@ -220,6 +220,9 @@ class Tab: ObservableObject, Identifiable {
             DispatchQueue.main.async {
                 if let title, !title.isEmpty {
                     self?.title = title
+                    if let self {
+                        self.tabManager?.mediaController.syncTitleForTab(self.id, newTitle: title)
+                    }
                 }
             }
         }

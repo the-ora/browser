@@ -47,11 +47,22 @@ private struct MediaPlayerCard: View {
     @State private var showVolume: Bool = false
     @State private var hovered: Bool = false
 
-    private var faviconImage: Image {
+    private var faviconView: some View {
         if let url = session.favicon {
-            return Image(nsImage: NSImage(byReferencing: url))
+            return AnyView(
+                AsyncImage(url: url) { image in
+                    image.resizable()
+                } placeholder: {
+                    Image(systemName: "play.rectangle.fill")
+                        .resizable()
+                }
+            )
+        } else {
+            return AnyView(
+                Image(systemName: "play.rectangle.fill")
+                    .resizable()
+            )
         }
-        return Image(systemName: "play.rectangle.fill")
     }
 
     var body: some View {
@@ -76,8 +87,7 @@ private struct MediaPlayerCard: View {
 
             HStack {
                 Button { tabManager.activateTab(id: session.tabID) } label: {
-                    faviconImage
-                        .resizable()
+                    faviconView
                         .scaledToFit()
                         .frame(width: 18, height: 18)
                         .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
