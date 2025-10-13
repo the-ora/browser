@@ -222,7 +222,7 @@ struct TabItem: View {
         Button(action: onDuplicate) {
             Label("Duplicate Tab", systemImage: "doc.on.doc")
         }
-        .disabled(!tab.isAlive)
+        .disabled(!tab.isWebViewReady)
 
         Divider()
 
