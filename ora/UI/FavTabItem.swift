@@ -9,6 +9,7 @@ struct FavTabItem: View {
     let onTap: () -> Void
     let onFavoriteToggle: () -> Void
     let onClose: () -> Void
+    let onDuplicate: () -> Void
     let onMoveToContainer: (TabContainer) -> Void
 
     @Environment(\.theme) private var theme
@@ -123,6 +124,10 @@ struct FavTabItem: View {
         .contextMenu {
             Button(action: onFavoriteToggle) {
                 Label("Remove from Favorites", systemImage: "star.slash")
+            }
+
+            Button(action: onDuplicate) {
+                Label("Duplicate Tab", systemImage: "doc.on.doc")
             }
 
             // Divider()
