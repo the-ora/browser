@@ -2,12 +2,7 @@ import AppKit
 import SwiftUI
 
 struct WindowAccessor: NSViewRepresentable {
-    let isSidebarHidden: Bool
-    @Binding var isFloatingSidebar: Bool
     @Binding var isFullscreen: Bool
-
-    // Store original button frames to restore them later
-    private static var originalButtonFrames: [NSWindow.ButtonType: NSRect] = [:]
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -21,13 +16,13 @@ struct WindowAccessor: NSViewRepresentable {
             self.parent = parent
         }
 
-        @objc func didEnterFullScreen(_ notification: Notification) {
+        @objc func willEnterFullScreenNotification(_ notification: Notification) {
             guard let window = notification.object as? NSWindow else { return }
             parent.isFullscreen = true
             parent.updateTrafficLights(for: window)
         }
 
-        @objc func didExitFullScreen(_ notification: Notification) {
+        @objc func willExitFullScreenNotification(_ notification: Notification) {
             guard let window = notification.object as? NSWindow else { return }
             parent.isFullscreen = false
             parent.updateTrafficLights(for: window)
@@ -44,17 +39,17 @@ struct WindowAccessor: NSViewRepresentable {
             let coordinator = context.coordinator
 
             let enterObserver = NotificationCenter.default.addObserver(
-                forName: NSWindow.didEnterFullScreenNotification,
+                forName: NSWindow.willEnterFullScreenNotification,
                 object: window,
                 queue: nil,
-                using: coordinator.didEnterFullScreen
+                using: coordinator.willEnterFullScreenNotification
             )
 
             let exitObserver = NotificationCenter.default.addObserver(
-                forName: NSWindow.didExitFullScreenNotification,
+                forName: NSWindow.willExitFullScreenNotification,
                 object: window,
                 queue: nil,
-                using: coordinator.didExitFullScreen
+                using: coordinator.willExitFullScreenNotification
             )
 
             coordinator.observers = [enterObserver, exitObserver]
@@ -76,33 +71,13 @@ struct WindowAccessor: NSViewRepresentable {
     }
 
     private func updateTrafficLights(for window: NSWindow) {
-        NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.25
-            context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-
-            for buttonType in [NSWindow.ButtonType.closeButton, .miniaturizeButton, .zoomButton] {
-                guard let button = window.standardWindowButton(buttonType) else { continue }
-
-                // Store original frame if we haven't already
-                if WindowAccessor.originalButtonFrames[buttonType] == nil {
-                    WindowAccessor.originalButtonFrames[buttonType] = button.frame
-                }
-
-                if let originalFrame = WindowAccessor.originalButtonFrames[buttonType] {
-                    if isSidebarHidden, !isFullscreen {
-                        // Always offset when sidebar is hidden
-                        var newFrame = originalFrame
-                        newFrame.origin.x += 8
-                        newFrame.origin.y -= 8
-                        button.animator().setFrameOrigin(newFrame.origin)
-                    } else {
-                        // Restore to original frame when visible
-                        button.animator().setFrameOrigin(originalFrame.origin)
-                    }
-                }
-
-                button.animator().isHidden = (isSidebarHidden && !isFloatingSidebar && !isFullscreen)
-            }
+        for type in [
+            NSWindow.ButtonType.closeButton,
+            .miniaturizeButton,
+            .zoomButton
+        ] {
+            guard let button = window.standardWindowButton(type) else { continue }
+            button.animator().isHidden = !isFullscreen
         }
     }
 }

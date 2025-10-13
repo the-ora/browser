@@ -5,7 +5,7 @@ import SwiftUI
     import os.log
 
     private let logger = Logger(
-        subsystem: "com.juniperphoton.photonutilityview", category: "NSPageView"
+        subsystem: "com.orabrowser.app", category: "NSPageView"
     )
 
     /// A ``NSViewControllerRepresentable`` for showing ``NSPageController``.
@@ -48,13 +48,9 @@ import SwiftUI
                 return contentView(object)
             }
             controller.idToObject = { [weak controller] id in
-                // Should apply weak reference to the controller to prevent circle causing memory leak.
                 guard let controller else {
                     return nil
                 }
-                // We should refer to controller.pageObjects to get the updated objects, in which controller is a
-                // reference type.
-                // Since NSPageView is a struct type, which can't be captured in the block.
                 return controller.pageObjects.first { page in
                     let pageId = page[keyPath: idKeyPath]
                     return pageId == id
@@ -137,8 +133,6 @@ import SwiftUI
             super.viewDidLoad()
             self.delegate = self
             self.updateDataSource()
-
-            // Configure the page controller to handle horizontal gestures with higher priority
             self.view.wantsLayer = true
         }
 
@@ -148,9 +142,6 @@ import SwiftUI
                 view.frame = self.view.bounds
             }
 
-            // When our container changes size due to SwiftUI layout (e.g., Split resizing),
-            // NSPageController may not immediately resize its current page until a transition occurs.
-            // Force-complete the transition so the current page view adopts the new bounds.
             let currentSize = self.view.bounds.size
             if currentSize != previousBoundsSize {
                 previousBoundsSize = currentSize
@@ -213,7 +204,7 @@ import SwiftUI
         var content: ((T) -> V)?
         var object: T?
 
-        private var hostingView: NSHostingView<V>?
+        private var hostingView: NSHostingView<AnyView>?
 
         override func loadView() {
             self.view = NSView()
@@ -226,7 +217,8 @@ import SwiftUI
                 return
             }
             let view = content(object)
-            let hostingView = NSHostingView(rootView: view)
+            let wrappedView = AnyView(view.ignoresSafeArea())
+            let hostingView = NSHostingView(rootView: wrappedView)
             hostingView.translatesAutoresizingMaskIntoConstraints = false
             self.view.addSubview(hostingView)
             NSLayoutConstraint.activate([

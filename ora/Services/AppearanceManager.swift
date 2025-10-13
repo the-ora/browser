@@ -10,17 +10,10 @@ enum AppAppearance: String, CaseIterable, Identifiable {
 
 class AppearanceManager: ObservableObject {
     static let shared = AppearanceManager()
-    @Published var appearance: AppAppearance {
+    @AppStorage("ui.app.appearance") var appearance: AppAppearance = .system {
         didSet {
             updateAppearance()
-            UserDefaults.standard.set(appearance.rawValue, forKey: "AppAppearance")
         }
-    }
-
-    init() {
-        let saved = UserDefaults.standard.string(forKey: "AppAppearance")
-        self.appearance = AppAppearance(rawValue: saved ?? "") ?? .system
-        updateAppearance()
     }
 
     func updateAppearance() {

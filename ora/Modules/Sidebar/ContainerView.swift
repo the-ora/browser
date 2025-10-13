@@ -6,6 +6,7 @@ struct ContainerView: View {
     let containers: [TabContainer]
 
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var toolbarManager: ToolbarManager
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var privacyMode: PrivacyMode
 
@@ -15,7 +16,7 @@ struct ContainerView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            if appState.isToolbarHidden, let tab = tabManager.activeTab {
+            if toolbarManager.isToolbarHidden, let tab = tabManager.activeTab {
                 SidebarURLDisplay(
                     tab: tab,
                     editingURLString: $editingURLString
