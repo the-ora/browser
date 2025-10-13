@@ -472,8 +472,5 @@ class TabManager: ObservableObject {
             focusAfterOpening: false,
             isPrivate: tab.isPrivate
         ) else { return }
-
-        // Position the duplicated tab immediately after the original tab
-        reorderTabs(from: newTab, toTab: tab)
     }
 }

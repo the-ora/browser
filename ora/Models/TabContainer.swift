@@ -30,39 +30,26 @@ class TabContainer: ObservableObject, Identifiable {
     }
 
     func reorderTabs(from: Tab, to: Tab) {
-        // Get all tabs of the same type, sorted by current order (descending)
-        let sameTypeTabs = tabs.filter { $0.type == from.type }.sorted(by: { $0.order > $1.order })
+        let dir = from.order - to.order > 0 ? -1 : 1
 
-        // Find positions in the sorted array
-        guard let fromIndex = sameTypeTabs.firstIndex(where: { $0.id == from.id }),
-              let toIndex = sameTypeTabs.firstIndex(where: { $0.id == to.id })
-        else {
-            return
-        }
+        let tabOrder = self.tabs.sorted { dir == -1 ? $0.order > $1.order : $0.order < $1.order }
 
-        // Handle the special case where we're moving a tab to after the last position
-        // If from and to are the same tab, or if we're moving the last tab, we need special handling
-        let newToIndex: Int
-        if from.id == to.id {
-            // Moving to the same position - do nothing
-            return
-        } else if fromIndex < toIndex {
-            // Moving forward in the list (down in UI)
-            newToIndex = toIndex
-        } else {
-            // Moving backward in the list (up in UI)
-            newToIndex = toIndex
-        }
+        var started = false
+        for (index, tab) in tabOrder.enumerated() {
+            if tab.id == from.id {
+                started = true
+            }
+            if tab.id == to.id {
+                break
+            }
+            if started {
+                let currentTab = tab
+                let nextTab = tabOrder[index + 1]
 
-        // Create a new array with the tabs in the desired order
-        var reorderedTabs = sameTypeTabs
-        let movedTab = reorderedTabs.remove(at: fromIndex)
-        reorderedTabs.insert(movedTab, at: newToIndex)
-
-        // Update the order values for all tabs of this type
-        let baseOrder = sameTypeTabs.first?.order ?? 1000
-        for (index, tab) in reorderedTabs.enumerated() {
-            tab.order = baseOrder - index
+                let tempOrder = currentTab.order
+                currentTab.order = nextTab.order
+                nextTab.order = tempOrder
+            }
         }
     }
 }
