@@ -70,7 +70,7 @@ class FaviconService: ObservableObject {
         tryFetchingFavicon(from: faviconURLs, index: 0, completion: completion)
     }
     
-    private func tryFetchingFavicon(from urls: [String], index: Int, completion: @escaping (NSImage?,) -> Void) {
+    private func tryFetchingFavicon(from urls: [String], index: Int, completion: @escaping (NSImage?) -> Void) {
         guard index < urls.count else {
             completion(nil)
             return
