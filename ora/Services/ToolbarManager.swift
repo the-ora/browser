@@ -1,8 +1,7 @@
 import Foundation
+import SwiftUI
 
 class ToolbarManager: ObservableObject {
-    @Published var isToolbarHidden: Bool = false
-    @Published var showFullURL: Bool = (UserDefaults.standard.object(forKey: "showFullURL") as? Bool) ?? true {
-        didSet { UserDefaults.standard.set(showFullURL, forKey: "showFullURL") }
-    }
+    @AppStorage("ui.toolbar.hidden") var isToolbarHidden: Bool = false
+    @AppStorage("ui.toolbar.showfullurl") var showFullURL: Bool = true
 }
