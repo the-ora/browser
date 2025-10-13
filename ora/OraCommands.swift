@@ -4,6 +4,8 @@ struct OraCommands: Commands {
     @AppStorage("AppAppearance") private var appearanceRaw: String = AppAppearance.system.rawValue
     @AppStorage("ui.sidebar.hidden") private var isSidebarHidden: Bool = false
     @AppStorage("ui.sidebar.position") private var sidebarPosition: SidebarPosition = .primary
+    @AppStorage("ui.toolbar.hidden") private var isToolbarHidden: Bool = false
+    @AppStorage("ui.toolbar.showfullurl") private var showFullURL: Bool = true
     @Environment(\.openWindow) private var openWindow
 
     var body: some Commands {
@@ -71,10 +73,6 @@ struct OraCommands: Commands {
             Button(sidebarPosition == SidebarPosition.primary ? "Right Side Tabs" : "Left Side Tabs") {
                 NotificationCenter.default.post(name: .toggleSidebarPosition, object: nil)
             }
-
-            Divider()
-
-            Button("Toggle Full URL") { NotificationCenter.default.post(name: .toggleFullURL, object: NSApp.keyWindow) }
         }
 
         CommandGroup(replacing: .appInfo) {
@@ -175,8 +173,15 @@ struct OraCommands: Commands {
         }
 
         CommandGroup(replacing: .toolbar) {
-            Button("Toggle Toolbar") { NotificationCenter.default.post(name: .toggleToolbar, object: NSApp.keyWindow) }
-                .keyboardShortcut(KeyboardShortcuts.App.toggleToolbar.keyboardShortcut)
+            Button(isToolbarHidden ? "Show Toolbar" : "Hide Toolbar") { NotificationCenter.default.post(
+                name: .toggleToolbar,
+                object: NSApp.keyWindow
+            ) }
+            .keyboardShortcut(KeyboardShortcuts.App.toggleToolbar.keyboardShortcut)
+
+            Button(showFullURL ? "Hide Full URL" : "Show Full URL") {
+                NotificationCenter.default.post(name: .toggleFullURL, object: NSApp.keyWindow)
+            }
         }
 
         CommandGroup(after: .windowList) {
