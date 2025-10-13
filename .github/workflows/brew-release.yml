@@ -1,0 +1,42 @@
+name: Update Homebrew Cask
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-cask:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout homebrew-ora repo
+        uses: actions/checkout@v4
+        with:
+          repository: the-ora/homebrew-ora
+          token: ${{ secrets.HOMEBREW_PAT }}
+          ref: main
+
+      - name: Download Ora.dmg from release
+        run: |
+          VERSION="${{ github.event.release.tag_name }}"
+          STRIPPED_VERSION=$(echo "$VERSION" | sed 's/^v//')
+          DOWNLOAD_URL="https://github.com/the-ora/browser/releases/download/${VERSION}/Ora.dmg"
+          curl -L -o Ora.dmg "$DOWNLOAD_URL"
+
+      - name: Compute SHA256
+        run: |
+          SHA256=$(shasum -a 256 Ora.dmg | awk '{print $1}')
+          echo "SHA256=$SHA256" >> $GITHUB_ENV
+          echo "STRIPPED_VERSION=${STRIPPED_VERSION:-$(echo '${{ github.event.release.tag_name }}' | sed 's/^v//')}" >> $GITHUB_ENV
+
+      - name: Update ora.rb
+        run: |
+          sed -i "s/version \\".*\\"/version \\"${{ env.STRIPPED_VERSION }}\\"/g" ora.rb
+          sed -i "s/sha256 \\".*\\"/sha256 \\"${{ env.SHA256 }}\\"/g" ora.rb
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add ora.rb
+          git commit -m "Update Ora cask to ${{ env.STRIPPED_VERSION }} (SHA256: ${{ env.SHA256 }})" || exit 0  # Exit 0 if no changes
+          git push
