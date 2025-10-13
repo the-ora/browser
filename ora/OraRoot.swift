@@ -13,7 +13,6 @@ final class PrivacyMode: ObservableObject {
 struct OraRoot: View {
     @StateObject private var appState = AppState()
     @StateObject private var keyModifierListener = KeyModifierListener()
-    @StateObject private var appearanceManager = AppearanceManager()
     @StateObject private var updateService = UpdateService()
     @StateObject private var mediaController: MediaController
     @StateObject private var tabManager: TabManager
@@ -89,7 +88,7 @@ struct OraRoot: View {
             .environmentObject(mediaController)
             .environmentObject(keyModifierListener)
             .environmentObject(CustomKeyboardShortcutManager.shared)
-            .environmentObject(appearanceManager)
+            .environmentObject(AppearanceManager.shared)
             .environmentObject(downloadManager)
             .environmentObject(updateService)
             .environmentObject(privacyMode)
@@ -176,7 +175,7 @@ struct OraRoot: View {
                     if let raw = note.userInfo?["appearance"] as? String,
                        let mode = AppAppearance(rawValue: raw)
                     {
-                        appearanceManager.appearance = mode
+                        AppearanceManager.shared.appearance = mode
                     }
                 }
                 NotificationCenter.default.addObserver(forName: .checkForUpdates, object: nil, queue: .main) { note in
