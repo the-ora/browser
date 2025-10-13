@@ -78,7 +78,7 @@ struct CustomSearchEngine: Codable, Identifiable, Hashable {
         isAIChat: Bool = false,
         completion: @escaping (CustomSearchEngine) -> Void
     ) {
-        let faviconService = FaviconService()
+        let faviconService = FaviconService.shared
 
         // Try to fetch favicon synchronously first (from cache)
         if let favicon = faviconService.getFavicon(for: searchURL) {
