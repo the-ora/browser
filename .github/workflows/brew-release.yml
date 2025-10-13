@@ -25,7 +25,7 @@ jobs:
         with:
           repository: the-ora/homebrew-ora
           token: ${{ secrets.GITHUB_TOKEN }}
-          ref: main
+          ref: main 
 
       - name: Download Ora.dmg and set version
         run: |
@@ -58,14 +58,14 @@ jobs:
 
       - name: Update ora.rb
         run: |
-          sed -i 's/version ".*"/version "${{ env.STRIPPED_VERSION }}"/g' ora.rb
-          sed -i 's/sha256 ".*"/sha256 "${{ env.SHA256 }}"/g' ora.rb
+          sed -i 's/version ".*"/version "${{ env.STRIPPED_VERSION }}"/g' Casks/ora.rb
+          sed -i 's/sha256 ".*"/sha256 "${{ env.SHA256 }}"/g' Casks/ora.rb
 
       - name: Commit and push changes
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git add ora.rb
+          git add Casks/ora.rb
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
