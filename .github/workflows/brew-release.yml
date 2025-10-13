@@ -3,6 +3,18 @@ name: Update Homebrew Cask
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version for testing (e.g., 0.2.5; omit "v" prefix)'
+        required: false
+        type: string
+        default: ''
+      dmg_url:
+        description: 'Full DMG download URL for testing (e.g., https://github.com/the-ora/browser/releases/download/v0.2.5/Ora.dmg)'
+        required: false
+        type: string
+        default: ''
 
 jobs:
   update-cask:
@@ -13,20 +25,28 @@ jobs:
         with:
           repository: the-ora/homebrew-ora
           token: ${{ secrets.GITHUB_TOKEN }}
-          ref: main
+          ref: main  # Change to your default branch if not 'main' (e.g., 'master')
 
-      - name: Download Ora.dmg from release
+      - name: Download Ora.dmg
         run: |
-          VERSION="${{ github.event.release.tag_name }}"
-          STRIPPED_VERSION=$(echo "$VERSION" | sed 's/^v//')
-          DOWNLOAD_URL="https://github.com/the-ora/browser/releases/download/${VERSION}/Ora.dmg"
-          curl -L -o Ora.dmg "$DOWNLOAD_URL"
+          if [ -n "${{ github.event.inputs.dmg_url }}" ]; then
+            DOWNLOAD_URL="${{ github.event.inputs.dmg_url }}"
+          else
+            VERSION="${{ github.event.release.tag_name }}"
+            STRIPPED_VERSION=$(echo "$VERSION" | sed 's/^v//')
+            DOWNLOAD_URL="https://github.com/the-ora/browser/releases/download/${VERSION}/Ora.dmg"
+          fi
+          curl -L --fail -o Ora.dmg "$DOWNLOAD_URL"
 
       - name: Compute SHA256
         run: |
           SHA256=$(shasum -a 256 Ora.dmg | awk '{print $1}')
           echo "SHA256=$SHA256" >> $GITHUB_ENV
-          echo "STRIPPED_VERSION=${STRIPPED_VERSION:-$(echo '${{ github.event.release.tag_name }}' | sed 's/^v//')}" >> $GITHUB_ENV
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            echo "STRIPPED_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          else
+            echo "STRIPPED_VERSION=$(echo '${{ github.event.release.tag_name }}' | sed 's/^v//')" >> $GITHUB_ENV
+          fi
 
       - name: Update ora.rb
         run: |
@@ -38,5 +58,9 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add ora.rb
-          git commit -m "Update Ora cask to ${{ env.STRIPPED_VERSION }} (SHA256: ${{ env.SHA256 }})" || exit 0  # Exit 0 if no changes
-          git push
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update Ora cask to ${{ env.STRIPPED_VERSION }} (SHA256: ${{ env.SHA256 }})"
+            git push
+          fi
