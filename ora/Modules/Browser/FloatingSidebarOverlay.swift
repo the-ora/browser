@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct FloatingSidebarOverlay: View {
-    @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var sidebarManager: SidebarManager
 
     @Binding var showFloatingSidebar: Bool

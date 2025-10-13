@@ -12,6 +12,7 @@ struct SidebarView: View {
     @EnvironmentObject var privacyMode: PrivacyMode
     @EnvironmentObject var media: MediaController
     @EnvironmentObject var sidebarManager: SidebarManager
+    @EnvironmentObject var toolbarManager: ToolbarManager
 
     @Query var containers: [TabContainer]
     @Query(filter: nil, sort: [.init(\History.lastAccessedAt, order: .reverse)])
@@ -64,6 +65,7 @@ struct SidebarView: View {
                 .environmentObject(downloadManager)
                 .environmentObject(appState)
                 .environmentObject(privacyMode)
+                .environmentObject(toolbarManager)
             }
 
             if shouldShowMediaWidget {
@@ -87,7 +89,7 @@ struct SidebarView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(
             EdgeInsets(
-                top: appState.isToolbarHidden ? 10 : 0,
+                top: toolbarManager.isToolbarHidden ? 10 : 0,
                 leading: 0,
                 bottom: 10,
                 trailing: 0

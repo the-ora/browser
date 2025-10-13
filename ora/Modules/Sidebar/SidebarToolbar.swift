@@ -11,6 +11,7 @@ struct SidebarToolbar: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var sidebarManager: SidebarManager
+    @EnvironmentObject var toolbarManager: ToolbarManager
 
     private var sidebarIcon: String {
         sidebarManager.sidebarPosition == .secondary ? "sidebar.right" : "sidebar.left"
@@ -22,7 +23,7 @@ struct SidebarToolbar: View {
                 WindowControls(isFullscreen: appState.isFullscreen).frame(height: 30)
             }
 
-            if appState.isToolbarHidden {
+            if toolbarManager.isToolbarHidden {
                 HStack(spacing: 0) {
                     if sidebarManager.sidebarPosition == .primary {
                         HStack {

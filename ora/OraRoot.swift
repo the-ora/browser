@@ -21,6 +21,7 @@ struct OraRoot: View {
     @StateObject private var downloadManager: DownloadManager
     @StateObject private var privacyMode: PrivacyMode
     @StateObject private var sidebarManager = SidebarManager()
+    @StateObject private var toolbarManager = ToolbarManager()
 
     let tabContext: ModelContext
     let historyContext: ModelContext
@@ -93,6 +94,7 @@ struct OraRoot: View {
             .environmentObject(updateService)
             .environmentObject(privacyMode)
             .environmentObject(sidebarManager)
+            .environmentObject(toolbarManager)
             .modelContext(tabContext)
             .modelContext(historyContext)
             .modelContext(downloadContext)
@@ -137,12 +139,12 @@ struct OraRoot: View {
                 }
                 NotificationCenter.default.addObserver(forName: .toggleFullURL, object: nil, queue: .main) { note in
                     guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
-                    appState.showFullURL.toggle()
+                    toolbarManager.showFullURL.toggle()
                 }
                 NotificationCenter.default.addObserver(forName: .toggleToolbar, object: nil, queue: .main) { note in
                     guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
                     withAnimation(.easeInOut(duration: 0.2)) {
-                        appState.isToolbarHidden.toggle()
+                        toolbarManager.isToolbarHidden.toggle()
                     }
                 }
                 NotificationCenter.default.addObserver(forName: .reloadPage, object: nil, queue: .main) { note in

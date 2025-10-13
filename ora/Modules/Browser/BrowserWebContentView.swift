@@ -4,11 +4,12 @@ struct BrowserWebContentView: View {
     @Environment(\.theme) var theme
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject private var appState: AppState
+    @EnvironmentObject private var toolbarManager: ToolbarManager
     let tab: Tab
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            if !appState.isToolbarHidden {
+            if !toolbarManager.isToolbarHidden {
                 URLBar(
                     onSidebarToggle: {
                         NotificationCenter.default.post(

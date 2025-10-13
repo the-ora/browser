@@ -9,6 +9,7 @@ struct BrowserView: View {
     @EnvironmentObject private var historyManager: HistoryManager
     @EnvironmentObject private var privacyMode: PrivacyMode
     @EnvironmentObject private var sidebarManager: SidebarManager
+    @EnvironmentObject private var toolbarManager: ToolbarManager
 
     @State private var isMouseOverURLBar = false
     @State private var showFloatingURLBar = false
@@ -42,7 +43,7 @@ struct BrowserView: View {
                 )
             }
 
-            if appState.isToolbarHidden {
+            if toolbarManager.isToolbarHidden {
                 FloatingURLBar(
                     showFloatingURLBar: $showFloatingURLBar,
                     isMouseOverURLBar: $isMouseOverURLBar

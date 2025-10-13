@@ -3,6 +3,7 @@ import SwiftUI
 struct BrowserSplitView: View {
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var toolbarManager: ToolbarManager
     @EnvironmentObject var sidebarManager: SidebarManager
 
     private var targetSide: SplitSide {
