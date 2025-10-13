@@ -41,19 +41,19 @@ class Tab: ObservableObject, Identifiable {
     @Transient @Published var backgroundColor: Color = .black
     @Transient var historyManager: HistoryManager?
     @Transient var downloadManager: DownloadManager?
-    @Transient var tabManager: TabManager?
-    // Not persisted: in-memory only
-    @Transient var webView: WKWebView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
-    @Transient var navigationDelegate: WebViewNavigationDelegate?
-    @Transient @Published var isWebViewReady: Bool = false
-    @Transient @Published var loadingProgress: Double = 10.0
-    @Transient var colorUpdated = false
-    @Transient var maybeIsActive = false
-    @Transient @Published var hasNavigationError: Bool = false
-    @Transient @Published var navigationError: Error?
-    @Transient @Published var failedURL: URL?
-    @Transient @Published var hoveredLinkURL: String?
-    @Transient var isPrivate: Bool = false
+     @Transient var tabManager: TabManager?
+     // Not persisted: in-memory only
+     @Transient var webView: WKWebView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
+     @Transient var navigationDelegate: WebViewNavigationDelegate?
+     @Transient @Published var isWebViewReady: Bool = false
+     @Transient @Published var loadingProgress: Double = 10.0
+     @Transient var colorUpdated = false
+     @Transient var maybeIsActive = false
+     @Transient @Published var hasNavigationError: Bool = false
+     @Transient @Published var navigationError: Error?
+     @Transient @Published var failedURL: URL?
+     @Transient @Published var hoveredLinkURL: String?
+     @Transient var isPrivate: Bool = false
 
     @Relationship(inverse: \TabContainer.tabs) var container: TabContainer
 
@@ -64,20 +64,20 @@ class Tab: ObservableObject, Identifiable {
         return Date().timeIntervalSince(lastAccessed) < timeout
     }
 
-    init(
-        id: UUID = UUID(),
-        url: URL,
-        title: String,
-        favicon: URL? = nil,
-        container: TabContainer,
-        type: TabType = .normal,
-        isPlayingMedia: Bool = false,
-        order: Int,
-        historyManager: HistoryManager? = nil,
-        downloadManager: DownloadManager? = nil,
-        tabManager: TabManager,
-        isPrivate: Bool
-    ) {
+     init(
+         id: UUID = UUID(),
+         url: URL,
+         title: String,
+         favicon: URL? = nil,
+         container: TabContainer,
+         type: TabType = .normal,
+         isPlayingMedia: Bool = false,
+         order: Int,
+         historyManager: HistoryManager? = nil,
+         downloadManager: DownloadManager? = nil,
+         tabManager: TabManager,
+         isPrivate: Bool
+     ) {
         let nowDate = Date()
         self.id = id
         self.url = url
@@ -104,10 +104,10 @@ class Tab: ObservableObject, Identifiable {
         )
 
         self.order = order
-        self.historyManager = historyManager
-        self.downloadManager = downloadManager
-        self.tabManager = tabManager
-        self.isPrivate = isPrivate
+         self.historyManager = historyManager
+         self.downloadManager = downloadManager
+         self.tabManager = tabManager
+         self.isPrivate = isPrivate
 
         config.tab = self
         config.mediaController = tabManager.mediaController
@@ -140,30 +140,27 @@ class Tab: ObservableObject, Identifiable {
         backgroundColorHex = color.toHex() ?? "#000000"
     }
 
-    func setFavicon(faviconURLDefault: URL? = nil) {
-        guard let host = self.url.host else { return }
+     func setFavicon(faviconURLDefault: URL? = nil) {
+         guard let host = self.url.host else { return }
 
-        let faviconURL = faviconURLDefault != nil ? faviconURLDefault! :
-            URL(string: "https://www.google.com/s2/favicons?domain=\(host)")!
-        self.favicon = faviconURL
+         let domain = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
+         let faviconURL = faviconURLDefault ?? URL(string: "https://www.google.com/s2/favicons?domain=\(domain)")!
+         self.favicon = faviconURL
 
-        // Infer extension from URL or fallback to png
-        let ext = faviconURL.pathExtension.isEmpty ? "png" : faviconURL.pathExtension
-        let fileName = "\(self.id.uuidString).\(ext)"
-        let saveURL = FileManager.default.faviconDirectory.appendingPathComponent(fileName)
+         // Infer extension from URL or fallback to png
+         let ext = faviconURL.pathExtension.isEmpty ? "png" : faviconURL.pathExtension
+         let fileName = "\(self.id.uuidString).\(ext)"
+         let saveURL = FileManager.default.faviconDirectory.appendingPathComponent(fileName)
 
-        Task {
-            do {
-                let (data, _) = try await URLSession.shared.data(from: faviconURL)
-                try data.write(to: saveURL, options: .atomic)
-
-                self.faviconLocalFile = saveURL
-
-            } catch {
-                // Failed to download/save favicon
-            }
-        }
-    }
+         FaviconService.shared.downloadAndSaveFavicon(for: domain, to: saveURL) { sourceURL, success in
+             if success {
+                 self.faviconLocalFile = saveURL
+                 if let sourceURL {
+                     self.favicon = sourceURL
+                 }
+             }
+         }
+     }
 
     func switchSections(from: Tab, to: Tab) {
         from.type = to.type
@@ -266,12 +263,12 @@ class Tab: ObservableObject, Identifiable {
         self.updateHeaderColor()
     }
 
-    func restoreTransientState(
-        historyManager: HistoryManager,
-        downloadManager: DownloadManager,
-        tabManager: TabManager,
-        isPrivate: Bool
-    ) {
+     func restoreTransientState(
+         historyManager: HistoryManager,
+         downloadManager: DownloadManager,
+         tabManager: TabManager,
+         isPrivate: Bool
+     ) {
         // Avoid double initialization
         if webView.url != nil { return }
 
@@ -296,10 +293,10 @@ class Tab: ObservableObject, Identifiable {
             layer.drawsAsynchronously = true
         }
 
-        self.historyManager = historyManager
-        self.downloadManager = downloadManager
-        self.tabManager = tabManager
-        self.isWebViewReady = false
+         self.historyManager = historyManager
+         self.downloadManager = downloadManager
+         self.tabManager = tabManager
+         self.isWebViewReady = false
         self.setupNavigationDelegate()
         self.syncBackgroundColorFromHex()
         // Load after a short delay to ensure layout
