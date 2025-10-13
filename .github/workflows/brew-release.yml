@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: the-ora/homebrew-ora
-          token: ${{ secrets.HOMEBREW_PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           ref: main
 
       - name: Download Ora.dmg from release
