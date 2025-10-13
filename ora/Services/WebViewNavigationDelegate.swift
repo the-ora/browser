@@ -111,36 +111,46 @@ let navigationScript = """
 
     const stateFrom = (el) => ({
         type: 'state',
+        wasPlayed: el && el.__oraWasPlayed,
         state: el && !el.paused ? 'playing' : 'paused',
         volume: el ? (el.muted ? 0 : el.volume) : undefined,
         title: document.title
     });
-
-    // Enhanced title change monitoring for media sessions
-    let lastMediaTitle = document.title;
-    function checkTitleChange() {
-        if (document.title !== lastMediaTitle) {
-            lastMediaTitle = document.title;
-            // If any media is currently playing, send a title update
-            const activeMedia = document.querySelector('video:not([paused]), audio:not([paused])');
-            if (activeMedia) {
-                post({ type: 'titleChange', title: document.title });
+    function watchRemoval(element, callback) {
+        const observer = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                for (const removed of mutation.removedNodes) {
+                    if (removed === element || removed.contains(element)) {
+                        callback();
+                        observer.disconnect();
+                        return;
+                    }
+                }
             }
-        }
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
     }
 
     function attach(el) {
         if (!el || el.__oraAttached) return;
         el.__oraAttached = true;
         const update = () => post(stateFrom(el));
-        el.addEventListener('play', update);
+        el.addEventListener('play', ()=>{
+            update();
+            el.__oraWasPlayed = true;
+        });
         el.addEventListener('pause', update);
         el.addEventListener('ended', () => post({ type: 'ended' }));
         el.addEventListener('volumechange', () =>
             post({ type: 'volume', volume: el.muted ? 0 : el.volume })
         );
         // If already playing, announce
-        if (!el.paused) update();
+        if (!el.paused) {
+            el.__oraWasPlayed = true;
+            update();
+        }
+        watchRemoval(el, () => post({ type: 'removed' }));
     }
 
     function scan() {
@@ -151,9 +161,6 @@ let navigationScript = """
     const mo = new MutationObserver(scan);
     mo.observe(document.documentElement, { childList: true, subtree: true });
     scan();
-
-    // Set up periodic title checking for active media
-    setInterval(checkTitleChange, 1000);
 
     window.__oraMedia = {
         active: null,
@@ -216,6 +223,31 @@ let navigationScript = """
         },
         title() {
             return document.title;
+        }
+    };
+    window.__oraTriggerPiP = function(isActive = false) {
+        const video = document.querySelector('video');
+
+        function hasAudio(video) {
+            if (!video) return false;
+            if (video.audioTracks && video.audioTracks.length > 0) return true;
+            if (!video.muted && video.volume > 0) return true;
+            return false;
+        }
+
+        if (
+            video &&
+            video.tagName === 'VIDEO' &&
+            !document.pictureInPictureElement &&
+            !video.paused &&
+            !isActive &&
+            hasAudio(video)
+        ) {
+            video.requestPictureInPicture()
+                .catch(e => {});
+        } else if (document.pictureInPictureElement) {
+            document.exitPictureInPicture()
+                .catch(e => {});
         }
     };
 

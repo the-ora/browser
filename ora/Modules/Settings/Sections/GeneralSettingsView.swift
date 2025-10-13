@@ -96,6 +96,8 @@ struct GeneralSettingsView: View {
                                 .font(.caption2)
                                 .foregroundColor(.secondary)
                         }
+
+                        Toggle("Auto Picture-in-Picture on tab switch", isOn: $settings.autoPiPEnabled)
                     }
                     .padding(.vertical, 8)
                     VStack(alignment: .leading, spacing: 12) {
