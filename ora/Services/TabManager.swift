@@ -7,7 +7,17 @@ import WebKit
 @MainActor
 class TabManager: ObservableObject {
     @Published var activeContainer: TabContainer?
-    @Published var activeTab: Tab?
+    @Published var activeTab: Tab? {
+        willSet {
+            guard let tab = activeTab, SettingsStore.shared.autoPiPEnabled else { return }
+            tab.webView.evaluateJavaScript("window.__oraTriggerPiP()")
+        }
+        didSet {
+            guard let tab = activeTab, SettingsStore.shared.autoPiPEnabled else { return }
+            tab.webView.evaluateJavaScript("window.__oraTriggerPiP(true)")
+        }
+    }
+
     let modelContainer: ModelContainer
     let modelContext: ModelContext
     let mediaController: MediaController
@@ -333,6 +343,7 @@ class TabManager: ObservableObject {
                     tab.isWebViewReady = false
                     tab.destroyWebView()
                 }
+                self.mediaController.removeSession(for: tab.id)
                 try? self.modelContext.save()
             }
         }

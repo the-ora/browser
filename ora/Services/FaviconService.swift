@@ -3,15 +3,13 @@ import CoreImage
 import SwiftUI
 
 class FaviconService: ObservableObject {
+    static let shared = FaviconService()
+
     private var cache: [String: NSImage] = [:]
     private var colorCache: [String: Color] = [:]
 
     func getFavicon(for searchURL: String) -> NSImage? {
         guard let domain = extractDomain(from: searchURL) else { return nil }
-
-        if let cachedFavicon = cache[domain] {
-            return cachedFavicon
-        }
 
         // Try to fetch favicon asynchronously
         fetchFavicon(for: domain) { [weak self] favicon in
@@ -22,6 +20,10 @@ class FaviconService: ObservableObject {
                     self?.objectWillChange.send()
                 }
             }
+        }
+
+        if let cachedFavicon = cache[domain] {
+            return cachedFavicon
         }
 
         return nil
@@ -47,7 +49,7 @@ class FaviconService: ObservableObject {
     }
 
     func faviconURL(for domain: String) -> URL? {
-        return URL(string: "https://www.google.com/s2/favicons?domain=\(domain)&sz=16")
+        return URL(string: "https://www.google.com/s2/favicons?domain=\(domain)&sz=64")
     }
 
     private func extractDomain(from searchURL: String) -> String? {
@@ -64,12 +66,7 @@ class FaviconService: ObservableObject {
     }
 
     private func fetchFavicon(for domain: String, completion: @escaping (NSImage?) -> Void) {
-        let faviconURLs = [
-            "https://www.google.com/s2/favicons?domain=\(domain)&sz=64",
-            "https://\(domain)/favicon.ico",
-            "https://\(domain)/apple-touch-icon.png"
-        ]
-
+        let faviconURLs = self.getFaviconURLs(for: domain)
         tryFetchingFavicon(from: faviconURLs, index: 0, completion: completion)
     }
 
@@ -91,6 +88,51 @@ class FaviconService: ObservableObject {
                 self.tryFetchingFavicon(from: urls, index: index + 1, completion: completion)
             }
         }.resume()
+    }
+
+    private func getFaviconURLs(for domain: String) -> [String] {
+        let faviconURLs = [
+            "https://www.google.com/s2/favicons?domain=\(domain)&sz=64",
+            "https://\(domain)/favicon.ico",
+            "https://\(domain)/apple-touch-icon.png"
+        ]
+        return faviconURLs
+    }
+
+    private func tryFetchingFaviconData(from urls: [String], index: Int, completion: @escaping (Data?, URL?) -> Void) {
+        guard index < urls.count else {
+            completion(nil, nil)
+            return
+        }
+
+        guard let url = URL(string: urls[index]) else {
+            tryFetchingFaviconData(from: urls, index: index + 1, completion: completion)
+            return
+        }
+
+        URLSession.shared.dataTask(with: url) { data, _, _ in
+            if let data {
+                completion(data, url)
+            } else {
+                self.tryFetchingFaviconData(from: urls, index: index + 1, completion: completion)
+            }
+        }.resume()
+    }
+
+    func downloadAndSaveFavicon(for domain: String, to saveURL: URL, completion: @escaping (URL?, Bool) -> Void) {
+        let faviconURLs = self.getFaviconURLs(for: domain)
+        tryFetchingFaviconData(from: faviconURLs, index: 0) { data, url in
+            if let data, let url {
+                do {
+                    try data.write(to: saveURL, options: .atomic)
+                    completion(url, true)
+                } catch {
+                    completion(nil, false)
+                }
+            } else {
+                completion(nil, false)
+            }
+        }
     }
 }
 

@@ -51,7 +51,7 @@ struct LauncherMain: View {
     @EnvironmentObject var toolbarManager: ToolbarManager
     @EnvironmentObject var privacyMode: PrivacyMode
     @State var focusedElement: UUID = .init()
-    @StateObject private var faviconService = FaviconService()
+
     @StateObject private var searchEngineService = SearchEngineService()
 
     @State private var suggestions: [LauncherSuggestion] = []
@@ -68,8 +68,8 @@ struct LauncherMain: View {
             )
         }
 
-        _ = faviconService.getFavicon(for: engine.searchURL)
-        let faviconURL = faviconService.faviconURL(for: URL(string: engine.searchURL)?.host ?? "")
+        _ = FaviconService.shared.getFavicon(for: engine.searchURL)
+        let faviconURL = FaviconService.shared.faviconURL(for: URL(string: engine.searchURL)?.host ?? "")
 
         return LauncherSuggestion(
             type: .aiChat,

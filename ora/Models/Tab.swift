@@ -145,8 +145,8 @@ class Tab: ObservableObject, Identifiable {
     func setFavicon(faviconURLDefault: URL? = nil) {
         guard let host = self.url.host else { return }
 
-        let faviconURL = faviconURLDefault != nil ? faviconURLDefault! :
-            URL(string: "https://www.google.com/s2/favicons?domain=\(host)")!
+        let domain = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
+        let faviconURL = faviconURLDefault ?? URL(string: "https://www.google.com/s2/favicons?domain=\(domain)")!
         self.favicon = faviconURL
 
         // Infer extension from URL or fallback to png
@@ -154,15 +154,12 @@ class Tab: ObservableObject, Identifiable {
         let fileName = "\(self.id.uuidString).\(ext)"
         let saveURL = FileManager.default.faviconDirectory.appendingPathComponent(fileName)
 
-        Task {
-            do {
-                let (data, _) = try await URLSession.shared.data(from: faviconURL)
-                try data.write(to: saveURL, options: .atomic)
-
+        FaviconService.shared.downloadAndSaveFavicon(for: domain, to: saveURL) { sourceURL, success in
+            if success {
                 self.faviconLocalFile = saveURL
-
-            } catch {
-                // Failed to download/save favicon
+                if let sourceURL {
+                    self.favicon = sourceURL
+                }
             }
         }
     }
@@ -222,6 +219,9 @@ class Tab: ObservableObject, Identifiable {
             DispatchQueue.main.async {
                 if let title, !title.isEmpty {
                     self?.title = title
+                    if let self {
+                        self.tabManager?.mediaController.syncTitleForTab(self.id, newTitle: title)
+                    }
                 }
             }
         }
