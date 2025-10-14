@@ -16,13 +16,17 @@ struct NormalTabsList: View {
             TabContainer
         ) -> Void
     let onAddNewTab: () -> Void
+    let isSidebarCollapsed: Bool
     @Query var containers: [TabContainer]
     @EnvironmentObject var tabManager: TabManager
     @State private var previousTabIds: [UUID] = []
 
     var body: some View {
         VStack(spacing: 8) {
-            NewTabButton(addNewTab: onAddNewTab)
+            NewTabButton(
+                addNewTab: onAddNewTab,
+                isSidebarCollapsed: isSidebarCollapsed
+            )
             ForEach(tabs) { tab in
                 TabItem(
                     tab: tab,
@@ -34,7 +38,8 @@ struct NormalTabsList: View {
                     onClose: { onClose(tab) },
                     onDuplicate: { onDuplicate(tab) },
                     onMoveToContainer: { onMoveToContainer(tab, $0) },
-                    availableContainers: containers
+                    availableContainers: containers,
+                    isSidebarCollapsed: isSidebarCollapsed
                 )
                 .onDrag { onDrag(tab.id) }
                 .onDrop(

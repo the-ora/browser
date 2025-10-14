@@ -73,7 +73,8 @@ struct ContainerView: View {
                             onClose: removeTab,
                             onDuplicate: duplicateTab,
                             onMoveToContainer: moveTab,
-                            containers: containers
+                            containers: containers,
+                            isSidebarCollapsed: isSidebarCollapsed
                         )
                         Divider()
                     }
@@ -87,7 +88,8 @@ struct ContainerView: View {
                         onClose: removeTab,
                         onDuplicate: duplicateTab,
                         onMoveToContainer: moveTab,
-                        onAddNewTab: addNewTab
+                        onAddNewTab: addNewTab,
+                        isSidebarCollapsed: isSidebarCollapsed
                     )
                 }
             }

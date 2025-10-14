@@ -2,6 +2,7 @@ import SwiftUI
 
 struct NewTabButton: View {
     let addNewTab: () -> Void
+    let isSidebarCollapsed: Bool
 
     @State private var isHovering = false
     @Environment(\.theme) private var theme
@@ -11,9 +12,10 @@ struct NewTabButton: View {
             HStack(spacing: 8) {
                 Image(systemName: "plus")
                     .frame(width: 12, height: 12)
-
-                Text("New Tab")
-                    .font(.system(size: 13, weight: .medium))
+                if !isSidebarCollapsed {
+                    Text("New Tab")
+                        .font(.system(size: 13, weight: .medium))
+                }
             }
             .foregroundColor(.secondary)
             .padding(8)

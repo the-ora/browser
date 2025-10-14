@@ -97,6 +97,7 @@ struct TabItem: View {
     @EnvironmentObject var downloadManager: DownloadManager
     @EnvironmentObject var privacyMode: PrivacyMode
     let availableContainers: [TabContainer]
+    let isSidebarCollapsed: Bool
 
     @Environment(\.theme) private var theme
     @State private var isHovering = false
@@ -110,9 +111,11 @@ struct TabItem: View {
                 textColor: textColor,
                 isPlayingMedia: tab.isPlayingMedia
             )
-            tabTitle
-            Spacer()
-            actionButton
+            if !isSidebarCollapsed {
+                tabTitle
+                Spacer()
+                actionButton
+            }
         }
         .onAppear {
             if tabManager.isActive(tab) {

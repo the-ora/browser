@@ -14,6 +14,7 @@ struct PinnedTabsList: View {
     let containers: [TabContainer]
     @EnvironmentObject var tabManager: TabManager
     @Environment(\.theme) var theme
+    let isSidebarCollapsed: Bool
 
     var body: some View {
         VStack(spacing: 8) {
@@ -22,7 +23,7 @@ struct PinnedTabsList: View {
                 .foregroundColor(theme.mutedForeground)
                 .padding(.top, 8)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            if tabs.isEmpty {
+            if tabs.isEmpty, !isSidebarCollapsed {
                 EmptyPinnedTabs()
             } else {
                 ForEach(tabs) { tab in
@@ -36,7 +37,8 @@ struct PinnedTabsList: View {
                         onClose: { onClose(tab) },
                         onDuplicate: { onDuplicate(tab) },
                         onMoveToContainer: { onMoveToContainer(tab, $0) },
-                        availableContainers: containers
+                        availableContainers: containers,
+                        isSidebarCollapsed: isSidebarCollapsed
                     )
                     .onDrag { onDrag(tab.id) }
                     .onDrop(
