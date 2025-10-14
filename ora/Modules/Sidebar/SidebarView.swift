@@ -60,7 +60,7 @@ struct SidebarView: View {
                     container: container,
                     selectedContainer: container.name,
                     containers: containers,
-                    isSidebarCollapsed: isSidebarCollapsed
+                    isSidebarCollapsed: $isSidebarCollapsed
                 )
                 .padding(.horizontal, 10)
                 .environmentObject(tabManager)

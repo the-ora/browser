@@ -17,6 +17,7 @@ struct FavTabsGrid: View {
             Tab,
             TabContainer
         ) -> Void
+    @Binding var isSidebarCollapsed: Bool
 
     private var adaptiveColumns: [GridItem] {
         let maxColumns = 3
@@ -25,51 +26,75 @@ struct FavTabsGrid: View {
     }
 
     var body: some View {
-        LazyVGrid(columns: adaptiveColumns, spacing: 10) {
-            if tabs.isEmpty {
-                EmptyFavTabItem()
-                    .onDrop(
-                        of: [.text],
-                        delegate: SectionDropDelegate(
-                            items: tabs,
-                            draggedItem: $draggedItem,
-                            targetSection: .fav,
-                            tabManager: tabManager
+        if !isSidebarCollapsed {
+            LazyVGrid(columns: adaptiveColumns, spacing: 10) {
+                if tabs.isEmpty {
+                    EmptyFavTabItem()
+                        .onDrop(
+                            of: [.text],
+                            delegate: SectionDropDelegate(
+                                items: tabs,
+                                draggedItem: $draggedItem,
+                                targetSection: .fav,
+                                tabManager: tabManager
+                            )
                         )
-                    )
-            } else {
-                ForEach(tabs) { tab in
-                    FavTabItem(
-                        tab: tab,
-                        isSelected: tabManager.isActive(tab),
-                        isDragging: draggedItem == tab.id,
-                        onTap: { onSelect(tab) },
-                        onFavoriteToggle: { onFavoriteToggle(tab) },
-                        onClose: { onClose(tab) },
-                        onDuplicate: { onDuplicate(tab) },
-                        onMoveToContainer: { onMoveToContainer(tab, $0) }
-                    )
-                    .onDrag { onDrag(tab.id) }
-                    .onDrop(
-                        of: [.text],
-                        delegate: TabDropDelegate(
-                            item: tab,
-                            draggedItem: $draggedItem,
-                            targetSection: .fav
+                } else {
+                    ForEach(tabs) { tab in
+                        FavTabItem(
+                            tab: tab,
+                            isSelected: tabManager.isActive(tab),
+                            isDragging: draggedItem == tab.id,
+                            onTap: { onSelect(tab) },
+                            onFavoriteToggle: { onFavoriteToggle(tab) },
+                            onClose: { onClose(tab) },
+                            onDuplicate: { onDuplicate(tab) },
+                            onMoveToContainer: { onMoveToContainer(tab, $0) }
                         )
-                    )
+                        .onDrag { onDrag(tab.id) }
+                        .onDrop(
+                            of: [.text],
+                            delegate: TabDropDelegate(
+                                item: tab,
+                                draggedItem: $draggedItem,
+                                targetSection: .fav
+                            )
+                        )
+                    }
                 }
             }
-        }
-        .animation(.easeOut(duration: 0.1), value: adaptiveColumns.count)
-        .onDrop(
-            of: [.text],
-            delegate: SectionDropDelegate(
-                items: tabs,
-                draggedItem: $draggedItem,
-                targetSection: .fav,
-                tabManager: tabManager
+            .animation(.easeOut(duration: 0.1), value: adaptiveColumns.count)
+            .onDrop(
+                of: [.text],
+                delegate: SectionDropDelegate(
+                    items: tabs,
+                    draggedItem: $draggedItem,
+                    targetSection: .fav,
+                    tabManager: tabManager
+                )
             )
-        )
+        } else {
+            ForEach(tabs) { tab in
+                FavTabItem(
+                    tab: tab,
+                    isSelected: tabManager.isActive(tab),
+                    isDragging: draggedItem == tab.id,
+                    onTap: { onSelect(tab) },
+                    onFavoriteToggle: { onFavoriteToggle(tab) },
+                    onClose: { onClose(tab) },
+                    onDuplicate: { onDuplicate(tab) },
+                    onMoveToContainer: { onMoveToContainer(tab, $0) }
+                )
+                .onDrag { onDrag(tab.id) }
+                .onDrop(
+                    of: [.text],
+                    delegate: TabDropDelegate(
+                        item: tab,
+                        draggedItem: $draggedItem,
+                        targetSection: .fav
+                    )
+                )
+            }
+        }
     }
 }

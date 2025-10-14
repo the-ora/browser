@@ -4,7 +4,7 @@ struct ContainerView: View {
     let container: TabContainer
     let selectedContainer: String
     let containers: [TabContainer]
-    let isSidebarCollapsed: Bool
+    @Binding var isSidebarCollapsed: Bool
 
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var toolbarManager: ToolbarManager
@@ -37,7 +37,8 @@ struct ContainerView: View {
                     onFavoriteToggle: toggleFavorite,
                     onClose: removeTab,
                     onDuplicate: duplicateTab,
-                    onMoveToContainer: moveTab
+                    onMoveToContainer: moveTab,
+                    isSidebarCollapsed: $isSidebarCollapsed
                 )
             } else {
                 VStack(alignment: .center, spacing: 8) {
