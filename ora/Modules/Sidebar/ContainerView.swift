@@ -87,7 +87,7 @@ struct ContainerView: View {
                         onMoveToContainer: moveTab,
                         onAddNewTab: addNewTab
                     )
-                }
+                }.showsIndicators(false)
             }
         }
         .modifier(OraWindowDragGesture(isDragging: $isDragging))
