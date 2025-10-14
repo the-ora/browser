@@ -19,8 +19,11 @@ struct WebView: NSViewRepresentable {
     }
 
     func makeNSView(context: Context) -> WKWebView {
-        // Don't override uiDelegate - let Tab handle it
-        // webView.uiDelegate = context.coordinator
+        // Set the coordinator as the UI delegate
+        webView.uiDelegate = context.coordinator
+
+        // Store the webView reference in the coordinator for later use
+        context.coordinator.setWebView(webView)
 
         webView.autoresizingMask = [.width, .height]
         webView.layer?.isOpaque = true
@@ -52,6 +55,137 @@ struct WebView: NSViewRepresentable {
         weak var privacyMode: PrivacyMode?
         private var mouseEventMonitor: Any?
         private weak var webView: WKWebView?
+
+        func setWebView(_ webView: WKWebView) {
+            self.webView = webView
+        }
+
+        // MARK: - Permission Handling
+
+        func webView(
+            _ webView: WKWebView,
+            requestMediaCapturePermissionFor origin: WKSecurityOrigin,
+            initiatedByFrame frame: WKFrameInfo,
+            type: WKMediaCaptureType,
+            decisionHandler: @escaping (WKPermissionDecision) -> Void
+        ) {
+            let host = origin.host
+            print("🎥 WebView.Coordinator: Requesting \(type) for \(host)")
+
+            // Determine which permission type is being requested
+            print("🎥 Media capture type raw value: \(type.rawValue)")
+
+            let permissionType: PermissionKind
+            switch type.rawValue {
+            case 0: // .camera
+                print("🎥 Camera only request")
+                permissionType = .camera
+            case 1: // .microphone
+                print("🎥 Microphone only request")
+                permissionType = .microphone
+            case 2: // .cameraAndMicrophone
+                print("🎥 Camera and microphone request")
+                handleCameraAndMicrophonePermission(host: host, webView: webView, decisionHandler: decisionHandler)
+                return
+            default:
+                print("🎥 Unknown media capture type: \(type.rawValue)")
+                decisionHandler(.deny)
+                return
+            }
+
+            // Check if we already have this specific permission configured
+            if let existingPermission = PermissionManager.shared
+                .getExistingPermission(for: host, type: permissionType)
+            {
+                decisionHandler(existingPermission ? .grant : .deny)
+                return
+            }
+
+            // Request new permission with timeout safety
+            var hasResponded = false
+
+            // Set up a timeout to ensure decision handler is always called
+            DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
+                if !hasResponded {
+                    hasResponded = true
+                    decisionHandler(.deny) // Default to deny if no response
+                }
+            }
+
+            // Request the specific permission
+            Task { @MainActor in
+                PermissionManager.shared.requestPermission(
+                    for: permissionType,
+                    from: host,
+                    webView: webView
+                ) { allowed in
+                    if !hasResponded {
+                        hasResponded = true
+                        decisionHandler(allowed ? .grant : .deny)
+                    }
+                }
+            }
+        }
+
+        private func handleCameraAndMicrophonePermission(
+            host: String,
+            webView: WKWebView,
+            decisionHandler: @escaping (WKPermissionDecision) -> Void
+        ) {
+            print("🎥 handleCameraAndMicrophonePermission called for \(host)")
+
+            // Check if we already have both permissions configured
+            let cameraPermission = PermissionManager.shared.getExistingPermission(for: host, type: .camera)
+            let microphonePermission = PermissionManager.shared.getExistingPermission(for: host, type: .microphone)
+
+            if let cameraAllowed = cameraPermission, let microphoneAllowed = microphonePermission {
+                let shouldGrant = cameraAllowed && microphoneAllowed
+                decisionHandler(shouldGrant ? .grant : .deny)
+                return
+            }
+
+            // Request permissions sequentially with timeout safety
+            var hasResponded = false
+
+            // Set up a timeout to ensure decision handler is always called
+            DispatchQueue.main.asyncAfter(deadline: .now() + 60) {
+                if !hasResponded {
+                    hasResponded = true
+                    decisionHandler(.deny) // Default to deny if no response
+                }
+            }
+
+            Task { @MainActor in
+                print("🎥 Requesting camera permission first...")
+                // First request camera permission
+                PermissionManager.shared.requestPermission(
+                    for: .camera,
+                    from: host,
+                    webView: webView
+                ) { cameraAllowed in
+                    print("🎥 Camera permission result: \(cameraAllowed), now requesting microphone...")
+
+                    // Add a small delay to ensure the first request is fully cleared
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        // Then request microphone permission
+                        PermissionManager.shared.requestPermission(
+                            for: .microphone,
+                            from: host,
+                            webView: webView
+                        ) { microphoneAllowed in
+                            print("🎥 Microphone permission result: \(microphoneAllowed)")
+                            if !hasResponded {
+                                hasResponded = true
+                                // Grant only if both are allowed
+                                let shouldGrant = cameraAllowed && microphoneAllowed
+                                print("🎥 Final decision: \(shouldGrant)")
+                                decisionHandler(shouldGrant ? .grant : .deny)
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         init(
             tabManager: TabManager?,
