@@ -546,8 +546,9 @@ struct URLBar: View {
                         action: {
                             showExtensionsPopup.toggle()
                         }
-                    )
-
+                    ).popover(isPresented: $showExtensionsPopup, arrowEdge: .bottom) {
+                        ExtensionsPopupView()
+                    }
                     if sidebarManager.sidebarPosition == .secondary {
                         URLBarButton(
                             systemName: "sidebar.right",

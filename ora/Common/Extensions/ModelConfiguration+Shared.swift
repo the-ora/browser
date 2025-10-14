@@ -9,7 +9,7 @@ extension ModelConfiguration {
         } else {
             return ModelConfiguration(
                 "OraData",
-                schema: Schema([TabContainer.self, History.self, Download.self]),
+                schema: Schema([TabContainer.self, History.self, Download.self, SitePermission.self]),
                 url: URL.applicationSupportDirectory.appending(path: "Ora/OraData.sqlite")
             )
         }
@@ -18,7 +18,7 @@ extension ModelConfiguration {
     /// Creates a ModelContainer using the standard Ora database configuration
     static func createOraContainer(isPrivate: Bool = false) throws -> ModelContainer {
         return try ModelContainer(
-            for: TabContainer.self, History.self, Download.self,
+            for: TabContainer.self, History.self, Download.self, SitePermission.self,
             configurations: oraDatabase(isPrivate: isPrivate)
         )
     }

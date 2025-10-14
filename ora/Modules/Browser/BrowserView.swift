@@ -42,7 +42,8 @@ struct BrowserView: View {
                     isDownloadsPopoverOpen: downloadManager.isDownloadsPopoverOpen
                 )
             }
-
+            // Permission dialog overlay
+            PermissionDialogOverlay()
             if toolbarManager.isToolbarHidden {
                 FloatingURLBar(
                     showFloatingURLBar: $showFloatingURLBar,
