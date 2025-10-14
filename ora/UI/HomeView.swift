@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct HomeView: View {
-    let sidebarToggle: () -> Void
     @Environment(\.theme) var theme
+    @EnvironmentObject private var sidebarManager: SidebarManager
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -15,15 +15,19 @@ struct HomeView: View {
                     BlurEffectView(material: .underWindowBackground, blendingMode: .behindWindow)
                 )
 
-            URLBarButton(
-                systemName: "sidebar.left",
-                isEnabled: true,
-                foregroundColor: theme.foreground.opacity(0.3),
-                action: { sidebarToggle() }
-            )
-            .oraShortcut(KeyboardShortcuts.App.toggleSidebar)
-            .position(x: 20, y: 20)
+            HStack {
+                URLBarButton(
+                    systemName: "sidebar.left",
+                    isEnabled: true,
+                    foregroundColor: theme.foreground.opacity(0.3),
+                    action: { sidebarManager.toggleSidebar() }
+                )
+                .oraShortcut(KeyboardShortcuts.App.toggleSidebar)
+            }
             .zIndex(3)
+            .frame(maxWidth: .infinity, alignment: sidebarManager.sidebarPosition == .primary ? .leading : .trailing)
+            .padding(6)
+            .ignoresSafeArea(.all)
 
             VStack(alignment: .center, spacing: 16) {
                 Image("ora-logo-plain")

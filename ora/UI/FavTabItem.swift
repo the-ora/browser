@@ -9,6 +9,7 @@ struct FavTabItem: View {
     let onTap: () -> Void
     let onFavoriteToggle: () -> Void
     let onClose: () -> Void
+    let onDuplicate: () -> Void
     let onMoveToContainer: (TabContainer) -> Void
 
     @Environment(\.theme) private var theme
@@ -42,13 +43,33 @@ struct FavTabItem: View {
                     textColor: Color(.white)
                 )
             }
+
+            if tab.isPlayingMedia {
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        Image(systemName: "speaker.wave.2.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 8, height: 8)
+                            .foregroundColor(.white.opacity(0.9))
+                            .background(
+                                Circle()
+                                    .fill(Color.black.opacity(0.6))
+                                    .frame(width: 12, height: 12)
+                            )
+                    }
+                }
+                .padding(2)
+            }
         }
         .onTapGesture {
             onTap()
             if !tab.isWebViewReady {
                 tab
                     .restoreTransientState(
-                        historyManger: historyManager,
+                        historyManager: historyManager,
                         downloadManager: downloadManager,
                         tabManager: tabManager,
                         isPrivate: privacyMode.isPrivate
@@ -59,7 +80,7 @@ struct FavTabItem: View {
             if tabManager.isActive(tab) {
                 tab
                     .restoreTransientState(
-                        historyManger: historyManager,
+                        historyManager: historyManager,
                         downloadManager: downloadManager,
                         tabManager: tabManager,
                         isPrivate: privacyMode.isPrivate
@@ -92,7 +113,7 @@ struct FavTabItem: View {
             if !tab.isWebViewReady {
                 tab
                     .restoreTransientState(
-                        historyManger: historyManager,
+                        historyManager: historyManager,
                         downloadManager: downloadManager,
                         tabManager: tabManager,
                         isPrivate: privacyMode.isPrivate
@@ -103,6 +124,10 @@ struct FavTabItem: View {
         .contextMenu {
             Button(action: onFavoriteToggle) {
                 Label("Remove from Favorites", systemImage: "star.slash")
+            }
+
+            Button(action: onDuplicate) {
+                Label("Duplicate Tab", systemImage: "doc.on.doc")
             }
 
             // Divider()

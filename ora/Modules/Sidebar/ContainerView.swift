@@ -6,14 +6,17 @@ struct ContainerView: View {
     let containers: [TabContainer]
 
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var toolbarManager: ToolbarManager
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var privacyMode: PrivacyMode
+
+    @State var isDragging = false
     @State private var draggedItem: UUID?
     @State private var editingURLString: String = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            if appState.isToolbarHidden, let tab = tabManager.activeTab {
+            if toolbarManager.isToolbarHidden, let tab = tabManager.activeTab {
                 SidebarURLDisplay(
                     tab: tab,
                     editingURLString: $editingURLString
@@ -32,6 +35,7 @@ struct ContainerView: View {
                     onSelect: selectTab,
                     onFavoriteToggle: toggleFavorite,
                     onClose: removeTab,
+                    onDuplicate: duplicateTab,
                     onMoveToContainer: moveTab
                 )
             } else {
@@ -54,7 +58,7 @@ struct ContainerView: View {
                 .padding(.horizontal)
             }
 
-            VerticalScrollView {
+            ScrollView(.vertical, showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 16) {
                     if !privacyMode.isPrivate {
                         PinnedTabsList(
@@ -65,6 +69,7 @@ struct ContainerView: View {
                             onPinToggle: togglePin,
                             onFavoriteToggle: toggleFavorite,
                             onClose: removeTab,
+                            onDuplicate: duplicateTab,
                             onMoveToContainer: moveTab,
                             containers: containers
                         )
@@ -78,13 +83,14 @@ struct ContainerView: View {
                         onPinToggle: togglePin,
                         onFavoriteToggle: toggleFavorite,
                         onClose: removeTab,
+                        onDuplicate: duplicateTab,
                         onMoveToContainer: moveTab,
                         onAddNewTab: addNewTab
                     )
                 }
             }
         }
-        .modifier(OraWindowDragGesture())
+        .modifier(OraWindowDragGesture(isDragging: $isDragging))
     }
 
     private var favoriteTabs: [Tab] {
@@ -137,6 +143,7 @@ struct ContainerView: View {
     }
 
     private func dragTab(_ tabId: UUID) -> NSItemProvider {
+        isDragging = true
         draggedItem = tabId
         let provider = TabItemProvider(object: tabId.uuidString as NSString)
         provider.didEnd = {
@@ -146,33 +153,57 @@ struct ContainerView: View {
     }
 
     private func dropTab(_ tabId: String) {
+        isDragging = false
         draggedItem = nil
+    }
+
+    private func duplicateTab(_ tab: Tab) {
+        tabManager.duplicateTab(tab)
     }
 }
 
 private struct OraWindowDragGesture: ViewModifier {
+    @Binding var isDragging: Bool
+
     func body(content: Content) -> some View {
-        if #available(macOS 15.0, *) {
-            content.gesture(WindowDragGesture())
-        } else {
-            content.gesture(BackportWindowDragGesture())
+        Group {
+            if isDragging {
+                content
+            } else {
+                if #available(macOS 15.0, *) {
+                    content.gesture(WindowDragGesture())
+                } else {
+                    content.gesture(BackportWindowDragGesture(isDragging: $isDragging))
+                }
+            }
         }
     }
 }
 
 private struct BackportWindowDragGesture: Gesture {
+    @Binding var isDragging: Bool
+
     struct Value: Equatable {
         static func == (lhs: Value, rhs: Value) -> Bool { true }
     }
 
-    init() {}
+    init(isDragging: Binding<Bool>) {
+        self._isDragging = isDragging
+    }
 
     var body: some Gesture<Value> {
         DragGesture()
             .onChanged { _ in
-                if let nsWindow = NSApp.keyWindow, let event = NSApp.currentEvent {
-                    nsWindow.performDrag(with: event)
+                /// Makes intent cleaner, if we're dragging, then just return
+                /// Maybe some other case needs to be watched for here
+                guard !isDragging else {
+                    return
                 }
+                guard let win = NSApp.keyWindow, let event = NSApp.currentEvent else {
+                    return
+                }
+
+                win.performDrag(with: event)
             }
             .map { _ in Value() }
     }

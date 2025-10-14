@@ -24,9 +24,18 @@ struct SectionDropDelegate: DropDelegate {
 
                 if self.items.isEmpty {
                     // Section is empty, just change type and order
-                    from.type = tabType(for: self.targetSection)
+                    let newType = tabType(for: self.targetSection)
+                    from.type = newType
+                    // Update savedURL when moving into pinned/fav; clear when moving to normal
+                    switch newType {
+                    case .pinned, .fav:
+                        from.savedURL = from.url
+                    case .normal:
+                        from.savedURL = nil
+                    }
                     let maxOrder = container.tabs.max(by: { $0.order < $1.order })?.order ?? 0
                     from.order = maxOrder + 1
+                    try? self.tabManager.modelContext.save()
                 }
                 // else if let to = self.items.last {
                 // if isInSameSection(from: from, to: to) {

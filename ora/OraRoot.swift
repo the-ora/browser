@@ -13,13 +13,14 @@ final class PrivacyMode: ObservableObject {
 struct OraRoot: View {
     @StateObject private var appState = AppState()
     @StateObject private var keyModifierListener = KeyModifierListener()
-    @StateObject private var appearanceManager = AppearanceManager()
     @StateObject private var updateService = UpdateService()
     @StateObject private var mediaController: MediaController
     @StateObject private var tabManager: TabManager
     @StateObject private var historyManager: HistoryManager
     @StateObject private var downloadManager: DownloadManager
     @StateObject private var privacyMode: PrivacyMode
+    @StateObject private var sidebarManager = SidebarManager()
+    @StateObject private var toolbarManager = ToolbarManager()
 
     let tabContext: ModelContext
     let historyContext: ModelContext
@@ -28,19 +29,11 @@ struct OraRoot: View {
 
     init(isPrivate: Bool = false) {
         _privacyMode = StateObject(wrappedValue: PrivacyMode(isPrivate: isPrivate))
-        let modelConfiguration = isPrivate ? ModelConfiguration(isStoredInMemoryOnly: true) : ModelConfiguration(
-            "OraData",
-            schema: Schema([TabContainer.self, History.self, Download.self, SitePermission.self]),
-            url: URL.applicationSupportDirectory.appending(path: "OraData.sqlite")
-        )
 
         let container: ModelContainer
         let modelContext: ModelContext
         do {
-            container = try ModelContainer(
-                for: TabContainer.self, History.self, Download.self, SitePermission.self,
-                configurations: modelConfiguration
-            )
+            container = try ModelConfiguration.createOraContainer(isPrivate: isPrivate)
             modelContext = ModelContext(container)
 
             // Initialize PermissionSettingsStore.shared with the model context
@@ -83,16 +76,27 @@ struct OraRoot: View {
     var body: some View {
         BrowserView()
             .background(WindowReader(window: $window))
+            .background(
+                WindowAccessor(
+                    isFullscreen: Binding(
+                        get: { appState.isFullscreen },
+                        set: { newValue in appState.isFullscreen = newValue }
+                    )
+                )
+            )
+            .environment(\.window, window)
             .environmentObject(appState)
             .environmentObject(tabManager)
             .environmentObject(historyManager)
             .environmentObject(mediaController)
             .environmentObject(keyModifierListener)
             .environmentObject(CustomKeyboardShortcutManager.shared)
-            .environmentObject(appearanceManager)
+            .environmentObject(AppearanceManager.shared)
             .environmentObject(downloadManager)
             .environmentObject(updateService)
             .environmentObject(privacyMode)
+            .environmentObject(sidebarManager)
+            .environmentObject(toolbarManager)
             .modelContext(tabContext)
             .modelContext(historyContext)
             .modelContext(downloadContext)
@@ -137,12 +141,12 @@ struct OraRoot: View {
                 }
                 NotificationCenter.default.addObserver(forName: .toggleFullURL, object: nil, queue: .main) { note in
                     guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
-                    appState.showFullURL.toggle()
+                    toolbarManager.showFullURL.toggle()
                 }
                 NotificationCenter.default.addObserver(forName: .toggleToolbar, object: nil, queue: .main) { note in
                     guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
                     withAnimation(.easeInOut(duration: 0.2)) {
-                        appState.isToolbarHidden.toggle()
+                        toolbarManager.isToolbarHidden.toggle()
                     }
                 }
                 NotificationCenter.default.addObserver(forName: .reloadPage, object: nil, queue: .main) { note in
@@ -174,7 +178,7 @@ struct OraRoot: View {
                     if let raw = note.userInfo?["appearance"] as? String,
                        let mode = AppAppearance(rawValue: raw)
                     {
-                        appearanceManager.appearance = mode
+                        AppearanceManager.shared.appearance = mode
                     }
                 }
                 NotificationCenter.default.addObserver(forName: .checkForUpdates, object: nil, queue: .main) { note in
@@ -186,6 +190,22 @@ struct OraRoot: View {
                     if let index = note.userInfo?["index"] as? Int {
                         tabManager.selectTabAtIndex(index)
                     }
+                }
+                NotificationCenter.default.addObserver(forName: .openURL, object: nil, queue: .main) { note in
+                    let targetWindow = window ?? NSApp.keyWindow
+                    if let sender = note.object as? NSWindow {
+                        guard sender === targetWindow else { return }
+                    } else {
+                        guard NSApp.keyWindow === targetWindow else { return }
+                    }
+                    guard let url = note.userInfo?["url"] as? URL else { return }
+                    tabManager.openTab(
+                        url: url,
+                        historyManager: historyManager,
+                        downloadManager: downloadManager,
+                        focusAfterOpening: true,
+                        isPrivate: privacyMode.isPrivate
+                    )
                 }
             }
     }

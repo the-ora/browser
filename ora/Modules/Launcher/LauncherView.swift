@@ -3,13 +3,13 @@ import SwiftUI
 
 struct LauncherView: View {
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var toolbarManager: ToolbarManager
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var historyManager: HistoryManager
     @EnvironmentObject var downloadManager: DownloadManager
     @EnvironmentObject var privacyMode: PrivacyMode
     @Environment(\.theme) private var theme
     @StateObject private var searchEngineService = SearchEngineService()
-    @StateObject private var faviconService = FaviconService()
 
     @State private var input = ""
     @State private var isVisible = false
@@ -25,7 +25,6 @@ struct LauncherView: View {
                 .first { $0.searchURL == searchEngine.searchURL }
             match = searchEngine.toLauncherMatch(
                 originalAlias: input,
-                faviconService: faviconService,
                 customEngine: customEngine
             )
             input = ""
@@ -37,13 +36,14 @@ struct LauncherView: View {
         var engineToUse = match
 
         if engineToUse == nil,
-           let defaultEngine = searchEngineService.getDefaultSearchEngine(for: tabManager.activeContainer?.id)
+           let defaultEngine = searchEngineService.getDefaultSearchEngine(
+               for: tabManager.activeContainer?.id
+           )
         {
             let customEngine = searchEngineService.settings.customSearchEngines
                 .first { $0.searchURL == defaultEngine.searchURL }
             engineToUse = defaultEngine.toLauncherMatch(
                 originalAlias: correctInput,
-                faviconService: faviconService,
                 customEngine: customEngine
             )
         }
@@ -88,6 +88,7 @@ struct LauncherView: View {
                 color: match?.faviconBackgroundColor ?? match?.color ?? .clear,
                 trigger: match != nil
             )
+            .padding(.horizontal, 20)  // Add horizontal margins around the search bar
             .offset(y: 250)
             .scaleEffect(isVisible ? 1.0 : 0.9)
             .opacity(isVisible ? 1.0 : 0.0)
@@ -101,9 +102,6 @@ struct LauncherView: View {
             .onChange(of: appState.showLauncher) { _, newValue in
                 isVisible = newValue
             }
-            // .onChange(of: theme) { _, newValue in
-            //     searchEngineService.setTheme(newValue)
-            // }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onExitCommand {

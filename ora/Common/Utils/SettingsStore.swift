@@ -35,6 +35,7 @@ struct CustomSearchEngine: Codable, Identifiable, Hashable {
     let aliases: [String]
     let faviconData: Data?
     let faviconBackgroundColorData: Data?
+    let isAIChat: Bool
 
     init(
         id: String = UUID().uuidString,
@@ -42,7 +43,8 @@ struct CustomSearchEngine: Codable, Identifiable, Hashable {
         searchURL: String,
         aliases: [String] = [],
         faviconData: Data? = nil,
-        faviconBackgroundColorData: Data? = nil
+        faviconBackgroundColorData: Data? = nil,
+        isAIChat: Bool = false
     ) {
         self.id = id
         self.name = name
@@ -50,6 +52,7 @@ struct CustomSearchEngine: Codable, Identifiable, Hashable {
         self.aliases = aliases
         self.faviconData = faviconData
         self.faviconBackgroundColorData = faviconBackgroundColorData
+        self.isAIChat = isAIChat
     }
 
     var favicon: NSImage? {
@@ -72,9 +75,10 @@ struct CustomSearchEngine: Codable, Identifiable, Hashable {
         name: String,
         searchURL: String,
         aliases: [String] = [],
+        isAIChat: Bool = false,
         completion: @escaping (CustomSearchEngine) -> Void
     ) {
-        let faviconService = FaviconService()
+        let faviconService = FaviconService.shared
 
         // Try to fetch favicon synchronously first (from cache)
         if let favicon = faviconService.getFavicon(for: searchURL) {
@@ -91,7 +95,8 @@ struct CustomSearchEngine: Codable, Identifiable, Hashable {
                 searchURL: searchURL,
                 aliases: aliases,
                 faviconData: faviconData,
-                faviconBackgroundColorData: colorData
+                faviconBackgroundColorData: colorData,
+                isAIChat: isAIChat
             )
             completion(engine)
         } else {
@@ -116,7 +121,8 @@ struct CustomSearchEngine: Codable, Identifiable, Hashable {
                         searchURL: searchURL,
                         aliases: aliases,
                         faviconData: faviconData,
-                        faviconBackgroundColorData: colorData
+                        faviconBackgroundColorData: colorData,
+                        isAIChat: isAIChat
                     )
                     completion(engine)
                 }
@@ -140,6 +146,10 @@ class SettingsStore: ObservableObject {
     private let customSearchEnginesKey = "settings.customSearchEngines"
     private let globalDefaultSearchEngineKey = "settings.globalDefaultSearchEngine"
     private let customKeyboardShortcutsKey = "settings.customKeyboardShortcuts"
+    private let tabAliveTimeoutKey = "settings.tabAliveTimeout"
+    private let tabRemovalTimeoutKey = "settings.tabRemovalTimeout"
+    private let maxRecentTabsKey = "settings.maxRecentTabs"
+    private let autoPiPEnabledKey = "settings.autoPiPEnabled"
 
     // MARK: - Per-Container
 
@@ -191,6 +201,22 @@ class SettingsStore: ObservableObject {
         didSet { saveCodable(customKeyboardShortcuts, forKey: customKeyboardShortcutsKey) }
     }
 
+    @Published var tabAliveTimeout: TimeInterval {
+        didSet { defaults.set(tabAliveTimeout, forKey: tabAliveTimeoutKey) }
+    }
+
+    @Published var tabRemovalTimeout: TimeInterval {
+        didSet { defaults.set(tabRemovalTimeout, forKey: tabRemovalTimeoutKey) }
+    }
+
+    @Published var maxRecentTabs: Int {
+        didSet { defaults.set(maxRecentTabs, forKey: maxRecentTabsKey) }
+    }
+
+    @Published var autoPiPEnabled: Bool {
+        didSet { defaults.set(autoPiPEnabled, forKey: autoPiPEnabledKey) }
+    }
+
     init() {
         autoUpdateEnabled = defaults.bool(forKey: autoUpdateKey)
         blockThirdPartyTrackers = defaults.bool(forKey: trackingThirdPartyKey)
@@ -214,6 +240,37 @@ class SettingsStore: ObservableObject {
 
         customKeyboardShortcuts =
             Self.loadCodable([String: KeyChord].self, key: customKeyboardShortcutsKey) ?? [:]
+
+        let aliveTimeoutValue = defaults.double(forKey: tabAliveTimeoutKey)
+        let supportedTimeouts: [TimeInterval] = [
+            60 * 60,           // 1 hour
+            6 * 60 * 60,       // 6 hours
+            12 * 60 * 60,      // 12 hours
+            24 * 60 * 60,      // 1 day
+            2 * 24 * 60 * 60,  // 2 days
+            365 * 24 * 60 * 60 // "Never" sentinel
+        ]
+        let normalizedAlive = Self.normalizeTimeout(
+            aliveTimeoutValue,
+            defaultSeconds: 60 * 60,
+            supported: supportedTimeouts
+        )
+        defaults.set(normalizedAlive, forKey: tabAliveTimeoutKey)
+        tabAliveTimeout = normalizedAlive
+
+        let removalTimeoutValue = defaults.double(forKey: tabRemovalTimeoutKey)
+        let normalizedRemoval = Self.normalizeTimeout(
+            removalTimeoutValue,
+            defaultSeconds: 24 * 60 * 60,
+            supported: supportedTimeouts
+        )
+        defaults.set(normalizedRemoval, forKey: tabRemovalTimeoutKey)
+        tabRemovalTimeout = normalizedRemoval
+
+        let maxRecentTabsValue = defaults.integer(forKey: maxRecentTabsKey)
+        maxRecentTabs = maxRecentTabsValue == 0 ? 5 : maxRecentTabsValue
+
+        autoPiPEnabled = defaults.object(forKey: autoPiPEnabledKey) as? Bool ?? true
     }
 
     // MARK: - Per-container helpers
@@ -311,5 +368,23 @@ class SettingsStore: ObservableObject {
         let defaults = UserDefaults.standard
         guard let data = defaults.data(forKey: key) else { return nil }
         return try? JSONDecoder().decode(T.self, from: data)
+    }
+
+    // MARK: - Normalization helpers
+
+    private static func normalizeTimeout(
+        _ raw: TimeInterval,
+        defaultSeconds: TimeInterval,
+        supported: [TimeInterval]
+    ) -> TimeInterval {
+        let value: TimeInterval = raw == 0 ? defaultSeconds : raw
+
+        if supported.contains(value) {
+            return value
+        }
+
+        return supported.min { lhs, rhs in
+            abs(lhs - value) < abs(rhs - value)
+        } ?? defaultSeconds
     }
 }

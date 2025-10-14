@@ -113,6 +113,21 @@ enum KeyboardShortcuts {
             category: "Tabs",
             defaultChord: KeyChord(keyEquivalent: .init("9"), modifiers: [.command])
         )
+
+        static func keyboardShortcut(for index: Int) -> KeyboardShortcut {
+            switch index {
+            case 1: return tab1.keyboardShortcut
+            case 2: return tab2.keyboardShortcut
+            case 3: return tab3.keyboardShortcut
+            case 4: return tab4.keyboardShortcut
+            case 5: return tab5.keyboardShortcut
+            case 6: return tab6.keyboardShortcut
+            case 7: return tab7.keyboardShortcut
+            case 8: return tab8.keyboardShortcut
+            case 9: return tab9.keyboardShortcut
+            default: return tab1.keyboardShortcut
+            }
+        }
     }
 
     // MARK: - Navigation

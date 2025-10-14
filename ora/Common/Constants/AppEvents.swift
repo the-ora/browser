@@ -2,6 +2,7 @@ import Foundation
 
 extension Notification.Name {
     static let toggleSidebar = Notification.Name("ToggleSidebar")
+    static let toggleSidebarPosition = Notification.Name("ToggleSidebarPosition")
     static let copyAddressURL = Notification.Name("CopyAddressURL")
 
     static let showLauncher = Notification.Name("ShowLauncher")
@@ -21,4 +22,7 @@ extension Notification.Name {
     // Per-window settings/events
     static let setAppearance = Notification.Name("SetAppearance") // userInfo: ["appearance": String]
     static let checkForUpdates = Notification.Name("CheckForUpdates")
+
+    // AppDelegate → UI routing
+    static let openURL = Notification.Name("OpenURL") // userInfo: ["url": URL]
 }

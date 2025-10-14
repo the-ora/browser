@@ -48,15 +48,17 @@ struct LauncherMain: View {
     @EnvironmentObject var downloadManager: DownloadManager
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var toolbarManager: ToolbarManager
     @EnvironmentObject var privacyMode: PrivacyMode
     @State var focusedElement: UUID = .init()
-    @StateObject private var faviconService = FaviconService()
+
     @StateObject private var searchEngineService = SearchEngineService()
 
-    @State private var suggestions: [LauncherSuggestion] = [
-    ]
+    @State private var suggestions: [LauncherSuggestion] = []
 
-    private func createAISuggestion(engineName: SearchEngineID, query: String? = nil) -> LauncherSuggestion {
+    private func createAISuggestion(engineName: SearchEngineID, query: String? = nil)
+        -> LauncherSuggestion
+    {
         guard let engine = searchEngineService.getSearchEngine(engineName) else {
             return LauncherSuggestion(
                 type: .aiChat,
@@ -66,8 +68,8 @@ struct LauncherMain: View {
             )
         }
 
-        let favicon = faviconService.getFavicon(for: engine.searchURL)
-        let faviconURL = faviconService.faviconURL(for: URL(string: engine.searchURL)?.host ?? "")
+        _ = FaviconService.shared.getFavicon(for: engine.searchURL)
+        let faviconURL = FaviconService.shared.faviconURL(for: URL(string: engine.searchURL)?.host ?? "")
 
         return LauncherSuggestion(
             type: .aiChat,
@@ -147,7 +149,7 @@ struct LauncherMain: View {
                     action: {
                         if !tab.isWebViewReady {
                             tab.restoreTransientState(
-                                historyManger: historyManager,
+                                historyManager: historyManager,
                                 downloadManager: downloadManager,
                                 tabManager: tabManager,
                                 isPrivate: privacyMode.isPrivate
@@ -163,13 +165,14 @@ struct LauncherMain: View {
 
     private func appendOpenURLSuggestionIfNeeded(_ text: String) {
         guard let candidateURL = URL(string: text) else { return }
-        let finalURL: URL? = if candidateURL.scheme != nil {
-            candidateURL
-        } else if isValidURL(text) {
-            constructURL(from: text)
-        } else {
-            nil
-        }
+        let finalURL: URL? =
+            if candidateURL.scheme != nil {
+                candidateURL
+            } else if isValidURL(text) {
+                constructURL(from: text)
+            } else {
+                nil
+            }
         guard let url = finalURL else { return }
         suggestions.append(
             LauncherSuggestion(
@@ -318,7 +321,8 @@ struct LauncherMain: View {
                     onMoveDown: {
                         moveFocusedElement(.down)
                     },
-                    cursorColor: match?.faviconBackgroundColor ?? match?.color ?? (theme.foreground),
+                    cursorColor: match?.faviconBackgroundColor ?? match?.color
+                        ?? (theme.foreground),
                     placeholder: getPlaceholder(match: match)
                 )
                 .onChange(of: text) { _, _ in
@@ -349,7 +353,8 @@ struct LauncherMain: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .inset(by: 0.25)
                 .stroke(
-                    Color(match?.faviconBackgroundColor ?? match?.color ?? theme.foreground).opacity(0.15),
+                    Color(match?.faviconBackgroundColor ?? match?.color ?? theme.foreground)
+                        .opacity(0.15),
                     lineWidth: 0.5
                 )
         )
@@ -357,43 +362,21 @@ struct LauncherMain: View {
             color: Color.black.opacity(0.1),
             radius: 40, x: 0, y: 24
         )
-        .padding(.horizontal, 20) // Add horizontal margins around the entire search bar
     }
 
     private func getPlaceholder(match: Match?) -> String {
         if match == nil {
             return "Search the web or enter url..."
         }
-        switch match!.text {
-        case "X":
-            return "Search on X"
-        case "Youtube":
-            return "Search on Youtube"
-        case "Google":
-            return "Search on Google"
-        case "ChatGPT":
-            return "Ask ChatGPT"
-        case "Claude":
-            return "Ask Claude"
-        case "Grok":
-            return "Ask Grok"
-        case "Perplexity":
-            return "Ask Perplexity"
-        case "Reddit":
-            return "Search on Reddit"
-        case "T3Chat":
-            return "Ask T3Chat"
-        case "Gemini":
-            return "Ask Gemini"
-        case "Copilot":
-            return "Ask Copilot"
-        case "GitHub Copilot":
-            return "Ask GitHub Copilot"
-        case "Meta AI":
-            return "Ask Meta AI"
-        default:
-            return "Search on \(match!.text)"
+
+        // Find the search engine by name to get its isAIChat property
+        if let engine = searchEngineService.getSearchEngine(byName: match!.text) {
+            let prefix = engine.isAIChat ? "Ask" : "Search on"
+            return "\(prefix) \(engine.name)"
         }
+
+        // Fallback (should rarely happen)
+        return "Search on \(match!.text)"
     }
 
     private func getIconName(match: Match?, text: String) -> String {

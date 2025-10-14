@@ -6,6 +6,7 @@ struct SidebarURLDisplay: View {
     @Environment(\.theme) private var theme
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var toolbarManager: ToolbarManager
 
     let tab: Tab
     @Binding var editingURLString: String
@@ -115,7 +116,7 @@ struct SidebarURLDisplay: View {
         .onChange(of: tab.url) { _, _ in
             if !isEditing { editingURLString = "" }
         }
-        .onChange(of: appState.showFullURL) { _, _ in
+        .onChange(of: toolbarManager.showFullURL) { _, _ in
             if !isEditing { editingURLString = "" }
         }
         .onChange(of: isEditing) { _, newValue in
@@ -134,7 +135,7 @@ struct SidebarURLDisplay: View {
     }
 
     private func getDisplayURL() -> String {
-        if appState.showFullURL {
+        if toolbarManager.showFullURL {
             return tab.url.absoluteString
         } else {
             return tab.url.host ?? tab.url.absoluteString

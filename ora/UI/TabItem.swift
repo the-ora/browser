@@ -45,9 +45,10 @@ struct FavIcon: View {
     let favicon: URL?
     let faviconLocalFile: URL?
     let textColor: Color
+    var isPlayingMedia: Bool = false
 
     var body: some View {
-        HStack {
+        HStack(spacing: 4) {
             if let favicon, isWebViewReady {
                 AsyncImage(
                     url: favicon
@@ -68,8 +69,16 @@ struct FavIcon: View {
                     textColor: textColor
                 )
             }
+
+            if isPlayingMedia {
+                Image(systemName: "speaker.wave.2.fill")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 8, height: 8)
+                    .foregroundColor(textColor.opacity(0.8))
+            }
         }
-        .frame(width: 16, height: 16)
+        .frame(width: isPlayingMedia ? 28 : 16, height: 16)
     }
 }
 
@@ -81,6 +90,7 @@ struct TabItem: View {
     let onPinToggle: () -> Void
     let onFavoriteToggle: () -> Void
     let onClose: () -> Void
+    let onDuplicate: () -> Void
     let onMoveToContainer: (TabContainer) -> Void
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var historyManager: HistoryManager
@@ -97,7 +107,8 @@ struct TabItem: View {
                 isWebViewReady: tab.isWebViewReady,
                 favicon: tab.favicon,
                 faviconLocalFile: tab.faviconLocalFile,
-                textColor: textColor
+                textColor: textColor,
+                isPlayingMedia: tab.isPlayingMedia
             )
             tabTitle
             Spacer()
@@ -107,7 +118,7 @@ struct TabItem: View {
             if tabManager.isActive(tab) {
                 tab
                     .restoreTransientState(
-                        historyManger: historyManager,
+                        historyManager: historyManager,
                         downloadManager: downloadManager,
                         tabManager: tabManager,
                         isPrivate: privacyMode.isPrivate
@@ -120,7 +131,7 @@ struct TabItem: View {
                 if !tab.isWebViewReady {
                     tab
                         .restoreTransientState(
-                            historyManger: historyManager,
+                            historyManager: historyManager,
                             downloadManager: downloadManager,
                             tabManager: tabManager,
                             isPrivate: privacyMode.isPrivate
@@ -147,7 +158,7 @@ struct TabItem: View {
                 if !tab.isWebViewReady {
                     tab
                         .restoreTransientState(
-                            historyManger: historyManager,
+                            historyManager: historyManager,
                             downloadManager: downloadManager,
                             tabManager: tabManager,
                             isPrivate: privacyMode.isPrivate
@@ -208,23 +219,28 @@ struct TabItem: View {
             )
         }
 
+        Button(action: onDuplicate) {
+            Label("Duplicate Tab", systemImage: "doc.on.doc")
+        }
+        .disabled(!tab.isWebViewReady)
+
         Divider()
 
-        Menu("Move to Container") {
-            ForEach(availableContainers) { container in
-                if tab.container.id != tabManager.activeContainer?.id {
-                    Button(action: { onMoveToContainer(tab.container) }) {
-                        Label {
-                            Text(container.name)
-                        } icon: {
-                            Text(container.emoji) // This is where you show the emoji
+        if availableContainers.count > 1 {
+            Divider()
+
+            Menu("Move to Container") {
+                ForEach(availableContainers) { container in
+                    if tab.container.id != container.id {
+                        Button(action: { onMoveToContainer(container) }) {
+                            Text(container.emoji.isEmpty ? container.name : "\(container.emoji) \(container.name)")
                         }
                     }
                 }
             }
-        }
 
-        Divider()
+            Divider()
+        }
 
         Button(role: .destructive, action: onClose) {
             Label("Close Tab", systemImage: "xmark")

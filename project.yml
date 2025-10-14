@@ -52,6 +52,34 @@ targets:
         NSCameraUsageDescription: "Ora requires access to your camera to support video features."
         NSMicrophoneUsageDescription: "Ora requires access to your microphone to support audio features."
 
+        CFBundleURLTypes:
+          - CFBundleURLName: Ora Browser
+            CFBundleTypeRole: Editor
+            LSHandlerRank: Owner
+            CFBundleURLSchemes:
+              - http
+              - https
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: Web URL
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Owner
+            LSItemContentTypes:
+              - public.url
+          - CFBundleTypeName: HTML document
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Default
+            LSItemContentTypes:
+              - public.html
+          - CFBundleTypeName: XHTML document
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Default
+            LSItemContentTypes:
+              - public.xhtml
+        NSUserActivityTypes:
+          - NSUserActivityTypeBrowsingWeb
+        LSMinimumSystemVersion: "13.0"
+        LSApplicationCategoryType: public.app-category.web-browser
+        
     entitlements:
       path: ora/ora.entitlements
       properties:
@@ -71,8 +99,8 @@ targets:
       base:
         SWIFT_VERSION: 5.9
         CODE_SIGN_STYLE: Automatic
-        MARKETING_VERSION: 0.2.3
-        CURRENT_PROJECT_VERSION: 91
+        MARKETING_VERSION: 0.2.5
+        CURRENT_PROJECT_VERSION: 93
         PRODUCT_NAME: Ora
         PRODUCT_BUNDLE_IDENTIFIER: com.orabrowser.app
         GENERATE_INFOPLIST_FILE: YES
