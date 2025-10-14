@@ -415,6 +415,32 @@ class TabUIDelegate: NSObject, WKUIDelegate {
         // TabUIDelegate initialized
     }
 
+    // Handle new window requests (target="_blank" links)
+    func webView(
+        _ webView: WKWebView,
+        createWebViewWith configuration: WKWebViewConfiguration,
+        for navigationAction: WKNavigationAction,
+        windowFeatures: WKWindowFeatures
+    ) -> WKWebView? {
+        guard let url = navigationAction.request.url,
+              let tabManager = self.tab?.tabManager,
+              let historyManager = self.tab?.historyManager
+        else {
+            return nil
+        }
+
+        // Create a new tab in the background
+        tabManager.openTab(
+            url: url,
+            historyManager: historyManager,
+            downloadManager: self.tab?.downloadManager,
+            isPrivate: self.tab?.isPrivate ?? false
+        )
+
+        // Return nil to prevent creating a new WebView instance
+        return nil
+    }
+
     func webView(
         _ webView: WKWebView,
         requestMediaCapturePermissionFor origin: WKSecurityOrigin,
