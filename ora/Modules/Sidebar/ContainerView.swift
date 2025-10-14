@@ -4,6 +4,7 @@ struct ContainerView: View {
     let container: TabContainer
     let selectedContainer: String
     let containers: [TabContainer]
+    let isSidebarCollapsed: Bool
 
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var toolbarManager: ToolbarManager
