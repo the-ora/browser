@@ -58,7 +58,7 @@ struct ContainerView: View {
                 .padding(.horizontal)
             }
 
-            ScrollView(.vertical) {
+            ScrollView(.vertical, showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 16) {
                     if !privacyMode.isPrivate {
                         PinnedTabsList(
@@ -87,7 +87,7 @@ struct ContainerView: View {
                         onMoveToContainer: moveTab,
                         onAddNewTab: addNewTab
                     )
-                }.showsIndicators(false)
+                }
             }
         }
         .modifier(OraWindowDragGesture(isDragging: $isDragging))
