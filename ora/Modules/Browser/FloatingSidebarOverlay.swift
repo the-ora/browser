@@ -8,7 +8,7 @@ struct FloatingSidebarOverlay: View {
 
     var sidebarFraction: FractionHolder
     let isDownloadsPopoverOpen: Bool
-
+    @Binding var isSidebarCollapsed: Bool
     @State private var dragFraction: CGFloat?
 
     var body: some View {
@@ -22,7 +22,7 @@ struct FloatingSidebarOverlay: View {
 
             ZStack(alignment: sidebarManager.sidebarPosition == .primary ? .leading : .trailing) {
                 if showFloatingSidebar {
-                    FloatingSidebar()
+                    FloatingSidebar(isSidebarCollapsed: $isSidebarCollapsed)
                         .frame(width: floatingWidth)
                         .transition(.move(edge: sidebarManager.sidebarPosition == .primary ? .leading : .trailing))
                         .overlay(alignment: sidebarManager.sidebarPosition == .primary ? .trailing : .leading) {

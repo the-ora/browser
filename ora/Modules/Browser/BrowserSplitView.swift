@@ -5,7 +5,7 @@ struct BrowserSplitView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var toolbarManager: ToolbarManager
     @EnvironmentObject var sidebarManager: SidebarManager
-
+    @Binding var isSidebarCollapsed: Bool
     private var targetSide: SplitSide {
         sidebarManager.sidebarPosition == .primary ? .primary : .secondary
     }
@@ -70,7 +70,7 @@ struct BrowserSplitView: View {
     @ViewBuilder
     private func paneContent(isSidebarPane: Bool, isOtherPaneHidden: Bool) -> some View {
         if isSidebarPane, !isOtherPaneHidden {
-            SidebarView()
+            SidebarView(isSidebarCollapsed: $isSidebarCollapsed)
         } else {
             contentView()
         }

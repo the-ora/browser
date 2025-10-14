@@ -15,10 +15,12 @@ struct BrowserView: View {
     @State private var showFloatingURLBar = false
     @State private var isMouseOverSidebar = false
     @State private var showFloatingSidebar = false
+    @State private var isHoveringSidebarToggle = false
+    @State private var isSidebarCollapsed = false
 
     var body: some View {
         ZStack(alignment: .top) {
-            BrowserSplitView()
+            BrowserSplitView(isSidebarCollapsed: $isSidebarCollapsed)
                 .ignoresSafeArea(.all)
                 .background(theme.subtleWindowBackgroundColor)
                 .background(
@@ -39,7 +41,8 @@ struct BrowserView: View {
                     showFloatingSidebar: $showFloatingSidebar,
                     isMouseOverSidebar: $isMouseOverSidebar,
                     sidebarFraction: sidebarManager.currentFraction,
-                    isDownloadsPopoverOpen: downloadManager.isDownloadsPopoverOpen
+                    isDownloadsPopoverOpen: downloadManager.isDownloadsPopoverOpen,
+                    isSidebarCollapsed: $isSidebarCollapsed
                 )
             }
 

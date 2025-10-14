@@ -21,7 +21,7 @@ struct SidebarView: View {
     private let columns = Array(repeating: GridItem(spacing: 10), count: 3)
 
     @State private var isHoveringSidebarToggle = false
-    @State private var isSidebarCollapsed = false
+    @Binding  var isSidebarCollapsed: Bool
 
     private var shouldShowMediaWidget: Bool {
         let activeId = tabManager.activeTab?.id

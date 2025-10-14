@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct FloatingSidebar: View {
+    @Binding var isSidebarCollapsed: Bool
     @Environment(\.theme) var theme
 
     let sidebarCornerRadius: CGFloat = {
@@ -15,7 +16,7 @@ struct FloatingSidebar: View {
         let clipShape = ConditionallyConcentricRectangle(cornerRadius: sidebarCornerRadius)
 
         ZStack(alignment: .leading) {
-            SidebarView()
+            SidebarView(isSidebarCollapsed: $isSidebarCollapsed)
                 .background(theme.subtleWindowBackgroundColor)
                 .background(BlurEffectView(material: .popover, blendingMode: .withinWindow))
                 .clipShape(clipShape)
