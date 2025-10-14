@@ -58,7 +58,7 @@ struct ContainerView: View {
                 .padding(.horizontal)
             }
 
-            VerticalScrollView {
+            ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     if !privacyMode.isPrivate {
                         PinnedTabsList(
