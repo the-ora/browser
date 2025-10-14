@@ -161,58 +161,6 @@ struct WebView: NSViewRepresentable {
             return webView.bounds.contains(locationInWebView)
         }
 
-        // func webView(
-        //     _ webView: WKWebView,
-        //     requestMediaCapturePermissionFor origin: WKSecurityOrigin,
-        //     initiatedByFrame frame: WKFrameInfo,
-        //     decisionHandler: @escaping (WKPermissionDecision) -> Void
-        // ) {
-        //     let host = origin.host
-        //     print("🎥 WebKit requesting media capture for: \(host)")
-
-        //     // Check if we already have permissions configured for this host
-        //     let cameraPermission = PermissionManager.shared.getExistingPermission(for: host, type: .camera)
-        //     let microphonePermission = PermissionManager.shared.getExistingPermission(for: host, type: .microphone)
-
-        //     print("🎥 Existing permissions - Camera: \(String(describing: cameraPermission)), Microphone:
-        //     \(String(describing: microphonePermission))")
-
-        //     // If both permissions are already configured, use them
-        //     if let cameraAllowed = cameraPermission, let microphoneAllowed = microphonePermission {
-        //         let shouldGrant = cameraAllowed || microphoneAllowed
-        //         print("🎥 Using existing permissions, granting: \(shouldGrant)")
-        //         decisionHandler(shouldGrant ? .grant : .deny)
-        //         return
-        //     }
-
-        //     print("🎥 Requesting new permissions...")
-
-        //     // If permissions aren't configured, we need to request them
-        //     // Since WebKit doesn't specify which media type, we'll request both
-        //     Task { @MainActor in
-        //         // First request camera permission
-        //         PermissionManager.shared.requestPermission(
-        //             for: .camera,
-        //             from: host,
-        //             webView: webView
-        //         ) { cameraAllowed in
-        //             print("🎥 Camera permission result: \(cameraAllowed)")
-        //             // Then request microphone permission
-        //             PermissionManager.shared.requestPermission(
-        //                 for: .microphone,
-        //                 from: host,
-        //                 webView: webView
-        //             ) { microphoneAllowed in
-        //                 print("🎥 Microphone permission result: \(microphoneAllowed)")
-        //                 // Grant if either permission is allowed
-        //                 let shouldGrant = cameraAllowed || microphoneAllowed
-        //                 print("🎥 Final decision: \(shouldGrant)")
-        //                 decisionHandler(shouldGrant ? .grant : .deny)
-        //             }
-        //         }
-        //     }
-        // }
-
         func webView(
             _ webView: WKWebView, runOpenPanelWith parameters: WKOpenPanelParameters,
             initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping ([URL]?) -> Void
@@ -294,37 +242,6 @@ struct WebView: NSViewRepresentable {
             // Return nil to prevent creating a new WebView instance
             // The new tab will handle the navigation
             return nil
-        }
-
-        func webView(
-            _ webView: WKWebView,
-            runJavaScriptAlertPanelWithMessage message: String,
-            initiatedByFrame frame: WKFrameInfo,
-            completionHandler: @escaping () -> Void
-        ) {
-            let alert = NSAlert()
-            alert.messageText = "Alert"
-            alert.informativeText = message
-            alert.alertStyle = .informational
-            alert.addButton(withTitle: "OK")
-            alert.runModal()
-            completionHandler()
-        }
-
-        func webView(
-            _ webView: WKWebView,
-            runJavaScriptConfirmPanelWithMessage message: String,
-            initiatedByFrame frame: WKFrameInfo,
-            completionHandler: @escaping (Bool) -> Void
-        ) {
-            let alert = NSAlert()
-            alert.messageText = "Confirm"
-            alert.informativeText = message
-            alert.alertStyle = .informational
-            alert.addButton(withTitle: "OK")
-            alert.addButton(withTitle: "Cancel")
-            let response = alert.runModal()
-            completionHandler(response == .alertFirstButtonReturn)
         }
 
         func webView(
