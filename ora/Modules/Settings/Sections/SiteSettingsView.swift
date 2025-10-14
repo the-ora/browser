@@ -77,6 +77,14 @@ struct UnifiedPermissionView: View {
     @Query(sort: \SitePermission.host) private var allSitePermissions: [SitePermission]
     @State private var searchText: String = ""
 
+    // Access the shared permission store
+    private var permissionStore: PermissionSettingsStore {
+        guard let store = PermissionSettingsStore.shared else {
+            fatalError("PermissionSettingsStore.shared is not initialized")
+        }
+        return store
+    }
+
     private var allowedSites: [SitePermission] {
         guard let permissionKind else { return [] }
 
@@ -172,7 +180,10 @@ struct UnifiedPermissionView: View {
     }
 
     private func removeSite(_ site: SitePermission) {
-        modelContext.delete(site)
+        // Use the permission store to properly reset the site's permissions
+        permissionStore.removeSite(host: site.host)
+
+        // Refresh the view by forcing a model context save
         try? modelContext.save()
     }
 }

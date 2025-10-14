@@ -80,14 +80,25 @@ final class PermissionSettingsStore: ObservableObject {
     }
 
     func removeSite(host: String) {
-        guard let idx = sitePermissions.firstIndex(where: {
-            $0.host.caseInsensitiveCompare(host) == .orderedSame
-        }) else { return }
+        let normalizedHost = host.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalizedHost.isEmpty else { return }
 
-        let entry = sitePermissions.remove(at: idx)
-        context.delete(entry)
-        saveContext()
-        objectWillChange.send()
+        // Instead of deleting, find and reset the permissions
+        if let site = sitePermissions.first(where: { $0.host.caseInsensitiveCompare(normalizedHost) == .orderedSame }) {
+            // Reset all configured permissions to false
+            if site.cameraConfigured {
+                site.cameraConfigured = false
+                site.cameraAllowed = false
+            }
+            if site.microphoneConfigured {
+                site.microphoneConfigured = false
+                site.microphoneAllowed = false
+            }
+
+            // Save changes
+            saveContext()
+            objectWillChange.send()
+        }
     }
 
     // MARK: - Persistence
