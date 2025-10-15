@@ -204,6 +204,32 @@ struct OraRoot: View {
                         isPrivate: privacyMode.isPrivate
                     )
                 }
+
+                // Clear cache and reload
+                NotificationCenter.default
+                    .addObserver(forName: .clearCacheAndReload, object: nil, queue: .main) { note in
+                        guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
+                        if let activeTab = tabManager.activeTab {
+                            PrivacyService.clearCache(activeTab.container) {
+                                DispatchQueue.main.async {
+                                    activeTab.webView.reload()
+                                }
+                            }
+                        }
+                    }
+
+                // Clear cookies and reload
+                NotificationCenter.default
+                    .addObserver(forName: .clearCookiesAndReload, object: nil, queue: .main) { note in
+                        guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
+                        if let activeTab = tabManager.activeTab {
+                            PrivacyService.clearCookies(activeTab.container) {
+                                DispatchQueue.main.async {
+                                    activeTab.webView.reload()
+                                }
+                            }
+                        }
+                    }
             }
     }
 }
