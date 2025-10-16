@@ -210,7 +210,9 @@ struct OraRoot: View {
                     .addObserver(forName: .clearCacheAndReload, object: nil, queue: .main) { note in
                         guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
                         if let activeTab = tabManager.activeTab {
-                            PrivacyService.clearCache(activeTab.container) {
+                            let host = activeTab.url.host ?? ""
+                            let domain = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
+                            PrivacyService.clearCacheForHost(for: domain, container: activeTab.container) {
                                 DispatchQueue.main.async {
                                     activeTab.webView.reload()
                                 }
@@ -222,8 +224,11 @@ struct OraRoot: View {
                 NotificationCenter.default
                     .addObserver(forName: .clearCookiesAndReload, object: nil, queue: .main) { note in
                         guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
+
                         if let activeTab = tabManager.activeTab {
-                            PrivacyService.clearCookies(activeTab.container) {
+                            let host = activeTab.url.host ?? ""
+                            let domain = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
+                            PrivacyService.clearCookiesForHost(for: host, container: activeTab.container) {
                                 DispatchQueue.main.async {
                                     activeTab.webView.reload()
                                 }
