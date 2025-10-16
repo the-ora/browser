@@ -113,6 +113,16 @@ struct OraCommands: Commands {
             }
             .keyboardShortcut(KeyboardShortcuts.Navigation.reload.keyboardShortcut)
 
+            Button("Clear Cache & Reload") {
+                NotificationCenter.default.post(name: .clearCacheAndReload, object: NSApp.keyWindow)
+            }
+            .keyboardShortcut("r", modifiers: [.command, .shift])
+
+            Button("Clear Cookies & Reload") {
+                NotificationCenter.default.post(name: .clearCookiesAndReload, object: NSApp.keyWindow)
+            }
+            .keyboardShortcut("r", modifiers: [.command, .option, .shift])
+
             Divider()
 
             Button("Back") {
