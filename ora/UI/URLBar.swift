@@ -1,5 +1,36 @@
 import AppKit
+import SwiftData
 import SwiftUI
+import WebKit
+
+struct BoostRow: View {
+    let icon: String
+    let title: String
+    let status: String
+    let isEnabled: Bool
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.primary)
+                .frame(width: 24, height: 24)
+                .background(Color.secondary.opacity(0.1))
+                .cornerRadius(6)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.subheadline)
+                    .foregroundColor(.primary)
+                Text(status)
+                    .font(.caption)
+                    .foregroundColor(isEnabled ? .green : .secondary)
+            }
+
+            Spacer()
+        }
+    }
+}
 
 // MARK: - URLBar
 
@@ -14,6 +45,7 @@ struct URLBar: View {
     @State private var editingURLString: String = ""
     @FocusState private var isEditing: Bool
     @Environment(\.colorScheme) var colorScheme
+    @State private var showExtensionsPopup = false
 
     let onSidebarToggle: () -> Void
 
@@ -245,9 +277,12 @@ struct URLBar: View {
                         systemName: "ellipsis",
                         isEnabled: true,
                         foregroundColor: buttonForegroundColor,
-                        action: {}
-                    )
-
+                        action: {
+                            showExtensionsPopup.toggle()
+                        }
+                    ).popover(isPresented: $showExtensionsPopup, arrowEdge: .bottom) {
+                        ExtensionsPopupView()
+                    }
                     if sidebarManager.sidebarPosition == .secondary {
                         URLBarButton(
                             systemName: "sidebar.right",
@@ -258,6 +293,7 @@ struct URLBar: View {
                         .oraShortcutHelp("Toggle Sidebar", for: KeyboardShortcuts.App.toggleSidebar)
                     }
                 }
+
                 .padding(4)
                 .onAppear {
                     editingURLString = getDisplayURL(tab)

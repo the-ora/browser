@@ -123,7 +123,7 @@ class Tab: ObservableObject, Identifiable {
             layer.drawsAsynchronously = true
         }
 
-        // Set up navigation delegate
+        // Set up navigation delegate and UI delegate
 
         // Don't automatically load URL - let TabManager handle it
         // This prevents all tabs from loading on app launch
@@ -356,16 +356,6 @@ class Tab: ObservableObject, Identifiable {
 
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         // Navigation failed
-    }
-
-    func webView(
-        _ webView: WKWebView,
-        requestMediaCapturePermissionFor origin: WKSecurityOrigin,
-        initiatedByFrame frame: WKFrameInfo,
-        decisionHandler: @escaping (WKPermissionDecision) -> Void
-    ) {
-        // For now, grant all
-        decisionHandler(.grant)
     }
 
     func destroyWebView() {

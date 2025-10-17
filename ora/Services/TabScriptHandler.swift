@@ -115,6 +115,8 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         contentController.add(self, name: "mediaEvent")
         configuration.userContentController = contentController
 
+        // Permission handling is done via WKUIDelegate methods only
+
         return configuration
     }
 

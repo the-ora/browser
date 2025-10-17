@@ -35,6 +35,9 @@ struct OraRoot: View {
         do {
             container = try ModelConfiguration.createOraContainer(isPrivate: isPrivate)
             modelContext = ModelContext(container)
+
+            // Initialize PermissionSettingsStore.shared with the model context
+            PermissionSettingsStore.shared = PermissionSettingsStore(context: modelContext)
         } catch {
             deleteSwiftDataStore("OraData.sqlite")
             fatalError("Failed to initialize ModelContainer: \(error)")
