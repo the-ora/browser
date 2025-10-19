@@ -18,9 +18,15 @@ struct WebView: NSViewRepresentable {
         )
     }
 
-    func makeNSView(context: Context) -> WKWebView {
-        webView.uiDelegate = context.coordinator
+    func makeNSView(context: Context) -> NSView {
+        // Create a wrapper view to avoid AutoLayout constraints on WKWebView
+        // This fixes the Web Inspector flashing issue
+        let wrapperView = NSView()
+        wrapperView.wantsLayer = true
+        wrapperView.autoresizesSubviews = true
 
+        // Configure WebView
+        webView.uiDelegate = context.coordinator
         webView.autoresizingMask = [.width, .height]
         webView.layer?.isOpaque = true
         webView.layer?.drawsAsynchronously = true
@@ -28,10 +34,15 @@ struct WebView: NSViewRepresentable {
         // Add mouse event handling for back/forward buttons
         setupMouseEventHandling(for: webView, coordinator: context.coordinator)
 
-        return webView
+        // Add WebView to wrapper without constraints
+        wrapperView.addSubview(webView)
+        // Seed the initial frame; afterwards rely on autoresizing so Web Inspector can manage its own layout
+        webView.frame = wrapperView.bounds
+
+        return wrapperView
     }
 
-    func updateNSView(_ nsView: WKWebView, context: Context) {
+    func updateNSView(_ nsView: NSView, context: Context) {
         // No update logic needed
     }
 
