@@ -19,6 +19,15 @@ enum DelegateTarget {
             return .divider(id)
         }
     }
+
+    var reparentingBehavior: ReparentingBehavior {
+        switch self {
+        case .tab:
+            return .child
+        case .divider:
+            return .sibling
+        }
+    }
 }
 
 struct TabDropDelegate: DropDelegate {
@@ -31,6 +40,10 @@ struct TabDropDelegate: DropDelegate {
 
     func dropEntered(info: DropInfo) {
         targetedItem = representative.toDropItem(withId: item.id)
+    }
+
+    func dropExited(info: DropInfo) {
+        targetedItem = nil
     }
 
     func dropUpdated(info: DropInfo) -> DropProposal? {
@@ -77,7 +90,8 @@ struct TabDropDelegate: DropDelegate {
                             self.item.container
                                 .reorderTabs(
                                     from: from,
-                                    to: self.item
+                                    to: self.item,
+                                    withReparentingBehavior: representative.reparentingBehavior
                                 )
                         }
                     } else {

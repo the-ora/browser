@@ -70,11 +70,11 @@ struct NormalTabsList: View {
     @Environment(\.theme) private var theme
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 3) {
             NewTabButton(addNewTab: onAddNewTab)
             ForEach(tabsSortedByParent(tabs)) { iTab in
                 let tab = iTab.tab
-                VStack(spacing: 1) {
+                VStack(spacing: 3) {
                     TabItem(
                         tab: tab,
                         isSelected: tabManager.isActive(tab),
@@ -115,7 +115,6 @@ struct NormalTabsList: View {
                                 item: tab,
                                 representative: .divider,
                                 draggedItem: $draggedItem,
-
                                 targetedItem: $targetedDropItem,
                                 targetSection: .normal
                             )
