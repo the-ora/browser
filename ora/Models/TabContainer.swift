@@ -7,8 +7,6 @@ enum ReparentingBehavior {
     case sibling, child
 }
 
-func deparentTab(_ tab: Tab) {}
-
 @Model
 class TabContainer: ObservableObject, Identifiable {
     var id: UUID
