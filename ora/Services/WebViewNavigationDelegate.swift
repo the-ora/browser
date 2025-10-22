@@ -295,7 +295,8 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
                     url: url,
                     historyManager: historyManager,
                     downloadManager: downloadManager,
-                    isPrivate: tab.isPrivate
+                    isPrivate: tab.isPrivate,
+                    parentingTo: tab
                 )
             }
 

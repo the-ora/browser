@@ -247,7 +247,8 @@ class TabManager: ObservableObject {
         downloadManager: DownloadManager? = nil,
         focusAfterOpening: Bool = true,
         isPrivate: Bool,
-        loadSilently: Bool = false
+        loadSilently: Bool = false,
+        parentingTo tab: Tab? = nil
     ) -> Tab? {
         if let container = activeContainer {
             if let host = url.host {
@@ -256,7 +257,7 @@ class TabManager: ObservableObject {
                 let cleanHost = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
 
                 let newTab = Tab(
-                    url: url,
+                    parent: tab, url: url,
                     title: cleanHost,
                     favicon: faviconURL,
                     container: container,

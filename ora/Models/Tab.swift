@@ -56,6 +56,8 @@ class Tab: ObservableObject, Identifiable {
     @Transient var isPrivate: Bool = false
 
     @Relationship(inverse: \TabContainer.tabs) var container: TabContainer
+    @Relationship(deleteRule: .cascade) var children: [Tab]
+    @Relationship(inverse: \Tab.children) var parent: Tab?
 
     /// Whether this tab is considered alive (recently accessed)
     var isAlive: Bool {
@@ -66,6 +68,7 @@ class Tab: ObservableObject, Identifiable {
 
     init(
         id: UUID = UUID(),
+        parent: Tab? = nil,
         url: URL,
         title: String,
         favicon: URL? = nil,
@@ -91,6 +94,10 @@ class Tab: ObservableObject, Identifiable {
         self.isPlayingMedia = isPlayingMedia
         self.container = container
         // Initialize webView with provided configuration or default
+
+        // Tab hierarchy setup
+        self.children = []
+        self.parent = parent
 
         let config = TabScriptHandler()
 

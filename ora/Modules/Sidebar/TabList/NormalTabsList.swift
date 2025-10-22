@@ -1,6 +1,38 @@
 import SwiftData
 import SwiftUI
 
+private struct IndentedTab: Identifiable {
+    let tab: Tab
+    let indentationLevel: Int
+
+    var id: UUID { tab.id }
+}
+
+private func tabsSortedByParent(
+    _ tabs: [Tab],
+    withParentTabSelector parentTabSelector: UUID? = nil,
+    withIndentation indentation: Int = 0
+) -> [IndentedTab] {
+    // Start by finding only parent tags, then recurse down through
+    var output = [IndentedTab]()
+    let roots = tabs.filter { $0.parent?.id == parentTabSelector }.sorted(
+        by: { $0.order < $1.order
+        })
+    for root in roots {
+        output.append(IndentedTab(tab: root, indentationLevel: indentation))
+        output
+            .append(
+                contentsOf: tabsSortedByParent(
+                    root.children,
+                    withParentTabSelector: root.id,
+                    withIndentation: indentation + 1
+                )
+            )
+    }
+
+    return output
+}
+
 struct NormalTabsList: View {
     let tabs: [Tab]
     @Binding var draggedItem: UUID?
@@ -23,7 +55,8 @@ struct NormalTabsList: View {
     var body: some View {
         VStack(spacing: 8) {
             NewTabButton(addNewTab: onAddNewTab)
-            ForEach(tabs) { tab in
+            ForEach(tabsSortedByParent(tabs)) { iTab in
+                let tab = iTab.tab
                 TabItem(
                     tab: tab,
                     isSelected: tabManager.isActive(tab),
@@ -50,6 +83,10 @@ struct NormalTabsList: View {
                     removal: .opacity.combined(with: .move(edge: .top))
                 ))
                 .animation(.spring(response: 0.3, dampingFraction: 0.8), value: shouldAnimate(tab))
+                .padding(
+                    .leading,
+                    CGFloat(integerLiteral: iTab.indentationLevel * 8)
+                )
             }
         }
         .onDrop(
