@@ -183,7 +183,7 @@ struct TabItem: View {
     }
 
     private var tabTitle: some View {
-        Text(tab.title + " \(tab.order)")
+        Text(tab.title)
             .font(.system(size: 13))
             .foregroundColor(textColor)
             .lineLimit(1)

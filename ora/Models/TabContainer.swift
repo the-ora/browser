@@ -7,6 +7,8 @@ enum ReparentingBehavior {
     case sibling, child
 }
 
+func deparentTab(_ tab: Tab) {}
+
 @Model
 class TabContainer: ObservableObject, Identifiable {
     var id: UUID
@@ -46,14 +48,7 @@ class TabContainer: ObservableObject, Identifiable {
         to: Tab,
         withReparentingBehavior reparentingBehavior: ReparentingBehavior = .sibling
     ) {
-        if let parent = from.parent {
-            parent.children.removeAll(where: { $0.id == from.id })
-            for child in parent.children {
-                if child.order > from.order {
-                    child.order -= 1
-                }
-            }
-        }
+        from.deparent()
         switch reparentingBehavior {
         case .sibling:
             to.parent?.children.insert(from, at: 0)
@@ -68,27 +63,5 @@ class TabContainer: ObservableObject, Identifiable {
                 child.order += 1
             }
         }
-
-//        let dir = from.order - to.order > 0 ? -1 : 1
-//
-//        let tabOrder = self.tabs.sorted { dir == -1 ? $0.order > $1.order : $0.order < $1.order }
-//
-//        var started = false
-//        for (index, tab) in tabOrder.enumerated() {
-//            if tab.id == from.id {
-//                started = true
-//            }
-//            if tab.id == to.id {
-//                break
-//            }
-//            if started {
-//                let currentTab = tab
-//                let nextTab = tabOrder[index + 1]
-//
-//                let tempOrder = currentTab.order
-//                currentTab.order = nextTab.order
-//                nextTab.order = tempOrder
-//            }
-//        }
     }
 }

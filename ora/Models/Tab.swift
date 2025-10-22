@@ -409,6 +409,23 @@ class Tab: ObservableObject, Identifiable {
             webView.load(request)
         }
     }
+
+    func deparent() {
+        if let parent = self.parent {
+            parent.children.removeAll(where: { $0.id == id })
+            for child in parent.children {
+                if child.order > self.order {
+                    child.order -= 1
+                }
+            }
+        } else {
+            for sibling in container.tabs {
+                if sibling.order > self.order {
+                    sibling.order -= 1
+                }
+            }
+        }
+    }
 }
 
 extension FileManager {

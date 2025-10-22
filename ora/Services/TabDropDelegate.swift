@@ -60,6 +60,15 @@ struct TabDropDelegate: DropDelegate {
                 if uuid == item.id {
                     return
                 }
+
+                // No assigning a parent to its child
+                var itemParent = item.parent
+                while let parent = itemParent {
+                    if parent.id == uuid {
+                        return
+                    }
+                    itemParent = parent.parent
+                }
                 DispatchQueue.main.async {
                     // First try to find the tab in the target container
                     var from = self.item.container.tabs.first(where: { $0.id == uuid })

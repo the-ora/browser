@@ -120,7 +120,9 @@ class TabManager: ObservableObject {
     // MARK: - Container Public API's
 
     func moveTabToContainer(_ tab: Tab, toContainer: TabContainer) {
+        tab.deparent()
         tab.container = toContainer
+        tab.order = (toContainer.tabs.map((\.order)).max() ?? -1) + 1
         try? modelContext.save()
     }
 
@@ -263,7 +265,7 @@ class TabManager: ObservableObject {
                     container: container,
                     type: .normal,
                     isPlayingMedia: false,
-                    order: parent == nil ? container.tabs.count : (parent!.children.map(\.order).max() ?? -1) + 1,
+                    order: ((parent != nil ? parent!.children : container.tabs).map(\.order).max() ?? -1) + 1,
                     historyManager: historyManager,
                     downloadManager: downloadManager,
                     tabManager: self,
@@ -310,6 +312,8 @@ class TabManager: ObservableObject {
     }
 
     func closeTab(tab: Tab) {
+        tab.deparent()
+
         // If the closed tab was active, select another tab
         if self.activeTab?.id == tab.id {
             if let nextTab = tab.container.tabs
