@@ -8,19 +8,45 @@ extension Array where Element: Hashable {
     }
 }
 
+enum DelegateTarget {
+    case tab, divider
+
+    func toDropItem(withId id: UUID) -> TargetedDropItem {
+        switch self {
+        case .tab:
+            return .tab(id)
+        case .divider:
+            return .divider(id)
+        }
+    }
+}
+
 struct TabDropDelegate: DropDelegate {
     let item: Tab  // to
+    let representative: DelegateTarget
     @Binding var draggedItem: UUID?
+    @Binding var targetedItem: TargetedDropItem?
 
     let targetSection: TabSection
 
     func dropEntered(info: DropInfo) {
-        guard let provider = info.itemProviders(for: [.text]).first else { return }
+        targetedItem = representative.toDropItem(withId: item.id)
+    }
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        .init(operation: .move)
+    }
+
+    func performDrop(info: DropInfo) -> Bool {
+        guard let provider = info.itemProviders(for: [.text]).first else { return false }
         performHapticFeedback(pattern: .alignment)
         provider.loadObject(ofClass: NSString.self) { object, _ in
             if let string = object as? String,
                let uuid = UUID(uuidString: string)
             {
+                if uuid == item.id {
+                    return
+                }
                 DispatchQueue.main.async {
                     // First try to find the tab in the target container
                     var from = self.item.container.tabs.first(where: { $0.id == uuid })
@@ -60,14 +86,8 @@ struct TabDropDelegate: DropDelegate {
                 }
             }
         }
-    }
-
-    func dropUpdated(info: DropInfo) -> DropProposal? {
-        .init(operation: .move)
-    }
-
-    func performDrop(info: DropInfo) -> Bool {
         draggedItem = nil
+        targetedItem = nil
         return true
     }
 }

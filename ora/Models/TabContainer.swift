@@ -30,6 +30,9 @@ class TabContainer: ObservableObject, Identifiable {
     }
 
     func reorderTabs(from: Tab, to: Tab) {
+        from.parent?.children.removeAll(where: { $0.id == from.id })
+        to.children.append(from)
+
         let dir = from.order - to.order > 0 ? -1 : 1
 
         let tabOrder = self.tabs.sorted { dir == -1 ? $0.order > $1.order : $0.order < $1.order }

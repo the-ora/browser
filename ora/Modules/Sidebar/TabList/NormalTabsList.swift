@@ -33,6 +33,21 @@ private func tabsSortedByParent(
     return output
 }
 
+enum TargetedDropItem {
+    case tab(UUID), divider(UUID)
+
+    func imTargeted(withMyIdBeing id: UUID, andType t: DelegateTarget) -> Bool {
+        switch (self, t) {
+        case let (.tab(uuid), .tab):
+            return uuid == id
+        case let (.divider(uuid), .divider):
+            return uuid == id
+        default:
+            return false
+        }
+    }
+}
+
 struct NormalTabsList: View {
     let tabs: [Tab]
     @Binding var draggedItem: UUID?
@@ -51,38 +66,61 @@ struct NormalTabsList: View {
     @Query var containers: [TabContainer]
     @EnvironmentObject var tabManager: TabManager
     @State private var previousTabIds: [UUID] = []
+    @State private var targetedDropItem: TargetedDropItem?
+    @Environment(\.theme) private var theme
 
     var body: some View {
         VStack(spacing: 8) {
             NewTabButton(addNewTab: onAddNewTab)
             ForEach(tabsSortedByParent(tabs)) { iTab in
                 let tab = iTab.tab
-                TabItem(
-                    tab: tab,
-                    isSelected: tabManager.isActive(tab),
-                    isDragging: draggedItem == tab.id,
-                    onTap: { onSelect(tab) },
-                    onPinToggle: { onPinToggle(tab) },
-                    onFavoriteToggle: { onFavoriteToggle(tab) },
-                    onClose: { onClose(tab) },
-                    onDuplicate: { onDuplicate(tab) },
-                    onMoveToContainer: { onMoveToContainer(tab, $0) },
-                    availableContainers: containers
-                )
-                .onDrag { onDrag(tab.id) }
-                .onDrop(
-                    of: [.text],
-                    delegate: TabDropDelegate(
-                        item: tab,
-                        draggedItem: $draggedItem,
-                        targetSection: .normal
+                VStack(spacing: 1) {
+                    TabItem(
+                        tab: tab,
+                        isSelected: tabManager.isActive(tab),
+                        isDragging: draggedItem == tab.id,
+                        isDragTarget: targetedDropItem?.imTargeted(withMyIdBeing: tab.id, andType: .tab) ?? false,
+                        onTap: { onSelect(tab) },
+                        onPinToggle: { onPinToggle(tab) },
+                        onFavoriteToggle: { onFavoriteToggle(tab) },
+                        onClose: { onClose(tab) },
+                        onDuplicate: { onDuplicate(tab) },
+                        onMoveToContainer: { onMoveToContainer(tab, $0) },
+                        availableContainers: containers
                     )
-                )
-                .transition(.asymmetric(
-                    insertion: .opacity.combined(with: .move(edge: .bottom)),
-                    removal: .opacity.combined(with: .move(edge: .top))
-                ))
-                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: shouldAnimate(tab))
+                    .onDrag { onDrag(tab.id) }
+                    .onDrop(
+                        of: [.text],
+                        delegate: TabDropDelegate(
+                            item: tab,
+                            representative: .tab, draggedItem: $draggedItem,
+                            targetedItem: $targetedDropItem,
+                            targetSection: .normal
+                        )
+                    )
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .move(edge: .bottom)),
+                        removal: .opacity.combined(with: .move(edge: .top))
+                    ))
+                    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: shouldAnimate(tab))
+
+                    Capsule()
+                        .frame(height: 3)
+                        .foregroundStyle(theme.accent)
+                        .opacity(targetedDropItem?
+                            .imTargeted(withMyIdBeing: tab.id, andType: .divider) ?? false ? 1.0 : 0.0)
+                        .onDrop(
+                            of: [.text],
+                            delegate: TabDropDelegate(
+                                item: tab,
+                                representative: .divider,
+                                draggedItem: $draggedItem,
+
+                                targetedItem: $targetedDropItem,
+                                targetSection: .normal
+                            )
+                        )
+                }
                 .padding(
                     .leading,
                     CGFloat(integerLiteral: iTab.indentationLevel * 8)
