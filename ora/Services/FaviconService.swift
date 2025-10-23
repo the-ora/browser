@@ -93,8 +93,8 @@ class FaviconService: ObservableObject {
     private func getFaviconURLs(for domain: String) -> [String] {
         let faviconURLs = [
             "https://www.google.com/s2/favicons?domain=\(domain)&sz=64",
+            "https://\(domain)/apple-touch-icon.png",
             "https://\(domain)/favicon.ico",
-            "https://\(domain)/apple-touch-icon.png"
         ]
         return faviconURLs
     }
@@ -119,8 +119,9 @@ class FaviconService: ObservableObject {
         }.resume()
     }
 
-    func downloadAndSaveFavicon(for domain: String, to saveURL: URL, completion: @escaping (URL?, Bool) -> Void) {
-        let faviconURLs = self.getFaviconURLs(for: domain)
+    func downloadAndSaveFavicon(for domain: String,faviconURL: URL, to saveURL: URL, completion: @escaping (URL?, Bool) -> Void) {
+        var faviconURLs = self.getFaviconURLs(for: domain)
+        faviconURLs.insert(faviconURL.absoluteString, at: 0)
         tryFetchingFaviconData(from: faviconURLs, index: 0) { data, url in
             if let data, let url {
                 do {
