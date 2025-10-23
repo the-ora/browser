@@ -152,14 +152,15 @@ class Tab: ObservableObject, Identifiable {
         let fileName = "\(self.id.uuidString).\(ext)"
         let saveURL = FileManager.default.faviconDirectory.appendingPathComponent(fileName)
 
-        FaviconService.shared.downloadAndSaveFavicon(for: domain, to: saveURL) { sourceURL, success in
-            if success {
-                self.faviconLocalFile = saveURL
-                if let sourceURL {
-                    self.favicon = sourceURL
+        FaviconService.shared
+            .downloadAndSaveFavicon(for: domain, faviconURL: faviconURL, to: saveURL) { sourceURL, success in
+                if success {
+                    self.faviconLocalFile = saveURL
+                    if let sourceURL {
+                        self.favicon = sourceURL
+                    }
                 }
             }
-        }
     }
 
     func switchSections(from: Tab, to: Tab) {
