@@ -5,28 +5,33 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
-      <title>Version 0.2.6</title>
+      <title>Version 0.2.7</title>
       <description><![CDATA[
-        <h2>Ora Browser v0.2.6</h2>
+        <h2>Ora Browser v0.2.7</h2>
         <p>Changes since last release:</p>
         <div class="changelog">
+          <h3>Features</h3>
+          <ul>
+            <li>feat: clear cache and cookie reload  (#149) — Brooksolomon</li>
+          </ul>
           <h3>Fixes</h3>
           <ul>
-            <li>fix: updated app data directory to Application Support/Ora/ (#147) — Ifsin</li>
+            <li>fix: weird favicon loading and handling by accept custom favicon URL (#156) — Kenenisa Alemayehu</li>
+            <li>fix(inspector): wrap WKWebView in NSView to prevent flashing inspector section (#150) — Furkan Koseoglu</li>
           </ul>
           <h3>Other</h3>
           <ul>
-            <li>Replace VerticalScrollView with ScrollView (#148) — Yonathan Dejene</li>
+            <li>Update README to mark private browsing mode as completed — Kenenisa Alemayehu</li>
           </ul>
         </div>
       ]]></description>
-      <pubDate>Tue, 14 Oct 2025 15:57:03 +0000</pubDate>
-       <enclosure url="https://github.com/the-ora/browser/releases/download/v0.2.6/Ora-Browser-0.2.6.dmg"
-                  sparkle:version="94"
-                  sparkle:shortVersionString="0.2.6"
-                  length="4815280"
+      <pubDate>Thu, 23 Oct 2025 20:21:52 +0000</pubDate>
+       <enclosure url="https://github.com/the-ora/browser/releases/download/v0.2.7/Ora-Browser-0.2.7.dmg"
+                  sparkle:version="95"
+                  sparkle:shortVersionString="0.2.7"
+                  length="4828537"
                   type="application/octet-stream"
-                   sparkle:edSignature="d551LWpuTEEwkmi9OD3CesM+Wjjfe3XJWMTU1HeZWn3qV070AypCuVMg/ab4cM9IhOtXOLpPuxEiWQdcD14JBw=="/>
+                   sparkle:edSignature="pOiU12KgE13Tg8B9HoBqfic8Gboh7nFHDtL4IV5bO1CdtoOQdmdZUKbbDIWDmFV9D96iDqR2eLxDVeOnzqznBA=="/>
     </item>
   </channel>
 </rss>
