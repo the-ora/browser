@@ -29,12 +29,12 @@ class Tab: ObservableObject, Identifiable {
     var favicon: URL? // Add favicon property
     var createdAt: Date
     var lastAccessedAt: Date?
-    
+
     var type: TabType
     var order: Int
     var faviconLocalFile: URL?
     var backgroundColorHex: String = "#000000"
-    
+
     //    @Transient @Published var backgroundColor: Color = Color(.black)
     @Transient var isPlayingMedia: Bool = false
     @Transient var isLoading: Bool = false
@@ -54,16 +54,16 @@ class Tab: ObservableObject, Identifiable {
     @Transient @Published var failedURL: URL?
     @Transient @Published var hoveredLinkURL: String?
     @Transient var isPrivate: Bool = false
-    
+
     @Relationship(inverse: \TabContainer.tabs) var container: TabContainer
-    
+
     /// Whether this tab is considered alive (recently accessed)
     var isAlive: Bool {
         guard let lastAccessed = lastAccessedAt else { return false }
         let timeout = SettingsStore.shared.tabAliveTimeout
         return Date().timeIntervalSince(lastAccessed) < timeout
     }
-    
+
     init(
         id: UUID = UUID(),
         url: URL,
@@ -82,7 +82,7 @@ class Tab: ObservableObject, Identifiable {
         self.id = id
         self.url = url
         self.urlString = url.absoluteString
-        
+
         self.title = title
         self.favicon = favicon
         self.createdAt = nowDate
@@ -91,9 +91,9 @@ class Tab: ObservableObject, Identifiable {
         self.isPlayingMedia = isPlayingMedia
         self.container = container
         // Initialize webView with provided configuration or default
-        
+
         let config = TabScriptHandler()
-        
+
         self.webView = WKWebView(
             frame: .zero,
             configuration: config
@@ -102,19 +102,19 @@ class Tab: ObservableObject, Identifiable {
                     temporaryStorage: isPrivate
                 ) // if private it's gonna use in-memory storage
         )
-        
+
         self.order = order
         self.historyManager = historyManager
         self.downloadManager = downloadManager
         self.tabManager = tabManager
         self.isPrivate = isPrivate
-        
+
         config.tab = self
         config.mediaController = tabManager.mediaController
         // Configure WebView for performance
         webView.allowsMagnification = true
         webView.allowsBackForwardNavigationGestures = true
-        
+
         // Enable layer-backed view for hardware acceleration
         webView.wantsLayer = true
         webView.isInspectable = true
@@ -122,46 +122,47 @@ class Tab: ObservableObject, Identifiable {
             layer.isOpaque = true
             layer.drawsAsynchronously = true
         }
-        
+
         // Set up navigation delegate
-        
+
         // Don't automatically load URL - let TabManager handle it
         // This prevents all tabs from loading on app launch
         self.isWebViewReady = false
     }
-    
+
     func syncBackgroundColorFromHex() {
         backgroundColor = Color(hex: backgroundColorHex)
     }
-    
+
     // Call this whenever the color is set
     func updateBackgroundColor(_ color: Color) {
         backgroundColor = color
         backgroundColorHex = color.toHex() ?? "#000000"
     }
-    
+
     func setFavicon(faviconURLDefault: URL? = nil) {
         guard let host = self.url.host else { return }
-        
+
         let domain = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
         let faviconURL = faviconURLDefault ?? URL(string: "https://www.google.com/s2/favicons?domain=\(domain)")!
         self.favicon = faviconURL
-        
+
         // Infer extension from URL or fallback to png
         let ext = faviconURL.pathExtension.isEmpty ? "png" : faviconURL.pathExtension
         let fileName = "\(self.id.uuidString).\(ext)"
         let saveURL = FileManager.default.faviconDirectory.appendingPathComponent(fileName)
-        
-        FaviconService.shared.downloadAndSaveFavicon(for: domain, faviconURL: faviconURL, to: saveURL) { sourceURL, success in
-            if success {
-                self.faviconLocalFile = saveURL
-                if let sourceURL {
-                    self.favicon = sourceURL
+
+        FaviconService.shared
+            .downloadAndSaveFavicon(for: domain, faviconURL: faviconURL, to: saveURL) { sourceURL, success in
+                if success {
+                    self.faviconLocalFile = saveURL
+                    if let sourceURL {
+                        self.favicon = sourceURL
+                    }
                 }
             }
-        }
     }
-    
+
     func switchSections(from: Tab, to: Tab) {
         from.type = to.type
         switch to.type {
@@ -171,7 +172,7 @@ class Tab: ObservableObject, Identifiable {
             from.savedURL = nil
         }
     }
-    
+
     func updateHeaderColor() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
             if let wv = self?.webView {
@@ -180,7 +181,7 @@ class Tab: ObservableObject, Identifiable {
             }
         }
     }
-    
+
     func updateHistory() {
         if let historyManager = self.historyManager {
             Task { @MainActor in
@@ -194,18 +195,18 @@ class Tab: ObservableObject, Identifiable {
             }
         }
     }
-    
+
     func maintainSnapShots() {
         if !self.colorUpdated ||  self.webView.isLoading, self.maybeIsActive {
             self.updateHeaderColor()
-            
+
             Timer.scheduledTimer(withTimeInterval: 0.25, repeats: false) { [weak self] _ in
                 guard let tab = self else { return }
                 tab.maintainSnapShots()
             }
         }
     }
-    
+
     func setupNavigationDelegate() {
         let delegate = WebViewNavigationDelegate()
         delegate.tab = self
@@ -240,29 +241,29 @@ class Tab: ObservableObject, Identifiable {
                 self?.isLoading = isLoading
             }
         }
-        
+
         delegate.onProgressChange = { [weak self] progress in
             DispatchQueue.main.async {
                 self?.loadingProgress = progress
             }
         }
-        
+
         self.navigationDelegate = delegate
         webView.navigationDelegate = delegate
     }
-    
+
     func goForward() {
         lastAccessedAt = Date()
         self.webView.goForward()
         self.updateHeaderColor()
     }
-    
+
     func goBack() {
         lastAccessedAt = Date()
         self.webView.goBack()
         self.updateHeaderColor()
     }
-    
+
     func restoreTransientState(
         historyManager: HistoryManager,
         downloadManager: DownloadManager,
@@ -271,9 +272,9 @@ class Tab: ObservableObject, Identifiable {
     ) {
         // Avoid double initialization
         if webView.url != nil { return }
-        
+
         let config = TabScriptHandler()
-        
+
         config.tab = self
         config.mediaController = tabManager.mediaController
         self.webView = WKWebView(
@@ -286,13 +287,13 @@ class Tab: ObservableObject, Identifiable {
         )
         webView.allowsMagnification = true
         webView.allowsBackForwardNavigationGestures = true
-        
+
         webView.wantsLayer = true
         if let layer = webView.layer {
             layer.isOpaque = true
             layer.drawsAsynchronously = true
         }
-        
+
         self.historyManager = historyManager
         self.downloadManager = downloadManager
         self.tabManager = tabManager
@@ -306,7 +307,7 @@ class Tab: ObservableObject, Identifiable {
             self.isWebViewReady = true
         }
     }
-    
+
     func stopMedia(completed: @escaping () -> Void) {
         let js = """
         document.querySelectorAll('video, audio').forEach(el => {
@@ -326,17 +327,17 @@ class Tab: ObservableObject, Identifiable {
         webView.stopLoading()
         webView = WKWebView()
     }
-    
+
     func loadURL(_ urlString: String) {
         lastAccessedAt = Date()
         let input = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
-        
+
         // 1) Try to construct a direct URL (has scheme or valid domain+TLD/IP)
         if let directURL = constructURL(from: input) {
             webView.load(URLRequest(url: directURL))
             return
         }
-        
+
         // 2) Otherwise, treat as a search query using the selected search engine
         let searchEngineService = SearchEngineService()
         if let engine = searchEngineService.getDefaultSearchEngine(for: self.container.id),
@@ -345,19 +346,19 @@ class Tab: ObservableObject, Identifiable {
             webView.load(URLRequest(url: searchURL))
             return
         }
-        
+
         // 3) Fallback to Google if for some reason engine lookup fails
         if let fallbackURL = URL(string: "https://www.google.com/search?client=safari&rls=en&ie=UTF-8&oe=UTF-8&q="
-                                 + (input.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")
+            + (input.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")
         ) {
             webView.load(URLRequest(url: fallbackURL))
         }
     }
-    
+
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         // Navigation failed
     }
-    
+
     func webView(
         _ webView: WKWebView,
         requestMediaCapturePermissionFor origin: WKSecurityOrigin,
@@ -367,7 +368,7 @@ class Tab: ObservableObject, Identifiable {
         // For now, grant all
         decisionHandler(.grant)
     }
-    
+
     func destroyWebView() {
         webView.stopLoading()
         webView.navigationDelegate = nil
@@ -377,7 +378,7 @@ class Tab: ObservableObject, Identifiable {
         webView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
         isWebViewReady = false
     }
-    
+
     func setNavigationError(_ error: Error, for url: URL?) {
         DispatchQueue.main.async {
             self.hasNavigationError = true
@@ -385,7 +386,7 @@ class Tab: ObservableObject, Identifiable {
             self.failedURL = url
         }
     }
-    
+
     func clearNavigationError() {
         DispatchQueue.main.async {
             self.hasNavigationError = false
@@ -393,7 +394,7 @@ class Tab: ObservableObject, Identifiable {
             self.failedURL = nil
         }
     }
-    
+
     func retryNavigation() {
         // Don't clear error state immediately - let onStart callback handle it
         // This prevents showing white background before navigation begins
@@ -420,7 +421,7 @@ extension NSColor {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         var int: UInt64 = 0
         Scanner(string: hex).scanHexInt64(&int)
-        
+
         // swiftlint:disable:next identifier_name
         let r, g, b, a: Double
         switch hex.count {
@@ -437,10 +438,10 @@ extension NSColor {
         default:
             return nil
         }
-        
+
         self.init(calibratedRed: CGFloat(r), green: CGFloat(g), blue: CGFloat(b), alpha: CGFloat(a))
     }
-    
+
     func toHex() -> String? {
         guard let color = usingColorSpace(.deviceRGB) else { return nil }
         // swiftlint:disable:next identifier_name
@@ -451,9 +452,9 @@ extension NSColor {
         let b = Int(color.blueComponent * 255)
         // swiftlint:disable:next identifier_name
         let a = Int(color.alphaComponent * 255)
-        
+
         return a < 255
-        ? String(format: "#%02X%02X%02X%02X", r, g, b, a)
-        : String(format: "#%02X%02X%02X", r, g, b)
+            ? String(format: "#%02X%02X%02X%02X", r, g, b, a)
+            : String(format: "#%02X%02X%02X", r, g, b)
     }
 }
