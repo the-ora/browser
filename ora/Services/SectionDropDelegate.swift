@@ -23,7 +23,20 @@ struct SectionDropDelegate: DropDelegate {
     }
 
     func dropEntered(info: DropInfo) {
-        guard let provider = info.itemProviders(for: [.text]).first else { return }
+        isHovering = true
+    }
+
+    func dropExited(info: DropInfo) {
+        isHovering = false
+    }
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        DropProposal(operation: .move)
+    }
+
+    func performDrop(info: DropInfo) -> Bool {
+        isHovering = false
+        guard let provider = info.itemProviders(for: [.text]).first else { return false }
         performHapticFeedback(pattern: .alignment)
 
         provider.loadObject(ofClass: NSString.self) { object, _ in
@@ -63,15 +76,6 @@ struct SectionDropDelegate: DropDelegate {
                 // }
             }
         }
-    }
-
-    func dropExited(info: DropInfo) {}
-
-    func dropUpdated(info: DropInfo) -> DropProposal? {
-        DropProposal(operation: .move)
-    }
-
-    func performDrop(info: DropInfo) -> Bool {
         draggedItem = nil
         return true
     }

@@ -72,7 +72,8 @@ struct PinnedTabsList: View {
                 items: tabs,
                 draggedItem: $draggedItem,
                 targetSection: .pinned,
-                tabManager: tabManager
+                tabManager: tabManager,
+                isHovering: $isHoveringOverEmpty
             )
         )
         .onChange(of: tabs.count) { _, new in
