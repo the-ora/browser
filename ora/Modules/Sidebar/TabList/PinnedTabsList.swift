@@ -2,8 +2,10 @@ import SwiftData
 import SwiftUI
 
 struct PinnedTabsList: View {
+    @AppStorage("ui.sidebar.pinned.sticky") private var sticky: Bool = true
     let tabs: [Tab]
     @Binding var draggedItem: UUID?
+    @State private var isHoveringOverEmpty = false
     let onDrag: (UUID) -> NSItemProvider
     let onSelect: (Tab) -> Void
     let onPinToggle: (Tab) -> Void
@@ -15,15 +17,28 @@ struct PinnedTabsList: View {
     @EnvironmentObject var tabManager: TabManager
     @Environment(\.theme) var theme
 
+    private var spaceName: String? {
+        if let active = tabManager.activeContainer {
+            return "\(active.emoji) \(active.name)"
+        }
+        return nil
+    }
+
     var body: some View {
         VStack(spacing: 8) {
-            Text("Pinned")
+            Text(spaceName ?? "Pinned")
                 .font(.callout)
                 .foregroundColor(theme.mutedForeground)
                 .padding(.top, 8)
                 .frame(maxWidth: .infinity, alignment: .leading)
             if tabs.isEmpty {
-                EmptyPinnedTabs()
+                Group {
+                    if sticky || isHoveringOverEmpty {
+                        EmptyPinnedTabs()
+                    } else {
+                        Capsule().frame(height: 3).opacity(0)
+                    }
+                }
             } else {
                 ForEach(tabs) { tab in
                     TabItem(
@@ -60,5 +75,10 @@ struct PinnedTabsList: View {
                 tabManager: tabManager
             )
         )
+        .onChange(of: tabs.count) { _, new in
+            if new > 0 {
+                sticky = false
+            }
+        }
     }
 }

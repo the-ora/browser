@@ -4,8 +4,23 @@ import SwiftUI
 struct SectionDropDelegate: DropDelegate {
     let items: [Tab]
     @Binding var draggedItem: UUID?
+    @Binding var isHovering: Bool
     let targetSection: TabSection
     let tabManager: TabManager
+
+    init(
+        items: [Tab],
+        draggedItem: Binding<UUID?>,
+        targetSection: TabSection,
+        tabManager: TabManager,
+        isHovering: Binding<Bool>? = nil
+    ) {
+        self.items = items
+        self._draggedItem = draggedItem
+        self.targetSection = targetSection
+        self.tabManager = tabManager
+        self._isHovering = isHovering ?? .constant(false)
+    }
 
     func dropEntered(info: DropInfo) {
         guard let provider = info.itemProviders(for: [.text]).first else { return }
@@ -49,6 +64,8 @@ struct SectionDropDelegate: DropDelegate {
             }
         }
     }
+
+    func dropExited(info: DropInfo) {}
 
     func dropUpdated(info: DropInfo) -> DropProposal? {
         DropProposal(operation: .move)

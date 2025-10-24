@@ -15,7 +15,7 @@ struct ContainerView: View {
     @State private var editingURLString: String = ""
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 0) {
             if toolbarManager.isToolbarHidden, let tab = tabManager.activeTab {
                 SidebarURLDisplay(
                     tab: tab,
@@ -73,6 +73,7 @@ struct ContainerView: View {
                             onMoveToContainer: moveTab,
                             containers: containers
                         )
+
                         Divider()
                     }
                     NormalTabsList(
