@@ -3,6 +3,10 @@ import SwiftData
 
 // MARK: - TabContainer
 
+enum ReparentingBehavior {
+    case sibling, child
+}
+
 @Model
 class TabContainer: ObservableObject, Identifiable {
     var id: UUID
@@ -29,26 +33,32 @@ class TabContainer: ObservableObject, Identifiable {
         self.lastAccessedAt = nowDate
     }
 
-    func reorderTabs(from: Tab, to: Tab) {
-        let dir = from.order - to.order > 0 ? -1 : 1
-
-        let tabOrder = self.tabs.sorted { dir == -1 ? $0.order > $1.order : $0.order < $1.order }
-
-        var started = false
-        for (index, tab) in tabOrder.enumerated() {
-            if tab.id == from.id {
-                started = true
+    private func pushTabs(in tab: Tab, startingAfter idx: Int) {
+        for tab in tab.children {
+            if tab.order > idx {
+                tab.order += 1
             }
-            if tab.id == to.id {
-                break
-            }
-            if started {
-                let currentTab = tab
-                let nextTab = tabOrder[index + 1]
+        }
+    }
 
-                let tempOrder = currentTab.order
-                currentTab.order = nextTab.order
-                nextTab.order = tempOrder
+    func reorderTabs(
+        from: Tab,
+        to: Tab,
+        withReparentingBehavior reparentingBehavior: ReparentingBehavior = .sibling
+    ) {
+        from.deparent()
+        switch reparentingBehavior {
+        case .sibling:
+            to.parent?.children.insert(from, at: 0)
+            if let parent = to.parent {
+                pushTabs(in: parent, startingAfter: to.order)
+            }
+            from.order = to.order + 1
+        case .child:
+            to.children.insert(from, at: 0)
+            from.order = -1
+            for child in to.children {
+                child.order += 1
             }
         }
     }

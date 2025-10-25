@@ -147,7 +147,9 @@ struct ContainerView: View {
         draggedItem = tabId
         let provider = TabItemProvider(object: tabId.uuidString as NSString)
         provider.didEnd = {
-            draggedItem = nil
+            Task { @MainActor in
+                draggedItem = nil
+            }
         }
         return provider
     }

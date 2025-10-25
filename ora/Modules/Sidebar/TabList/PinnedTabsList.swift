@@ -30,6 +30,7 @@ struct PinnedTabsList: View {
                         tab: tab,
                         isSelected: tabManager.isActive(tab),
                         isDragging: draggedItem == tab.id,
+                        isDragTarget: false,
                         onTap: { onSelect(tab) },
                         onPinToggle: { onPinToggle(tab) },
                         onFavoriteToggle: { onFavoriteToggle(tab) },
@@ -43,7 +44,9 @@ struct PinnedTabsList: View {
                         of: [.text],
                         delegate: TabDropDelegate(
                             item: tab,
+                            representative: .tab,
                             draggedItem: $draggedItem,
+                            targetedItem: .constant(nil),
                             targetSection: .pinned
                         )
                     )

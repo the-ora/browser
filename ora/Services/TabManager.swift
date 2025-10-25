@@ -110,7 +110,9 @@ class TabManager: ObservableObject {
     // MARK: - Container Public API's
 
     func moveTabToContainer(_ tab: Tab, toContainer: TabContainer) {
+        tab.deparent()
         tab.container = toContainer
+        tab.order = (toContainer.tabs.map((\.order)).max() ?? -1) + 1
         try? modelContext.save()
     }
 
@@ -237,7 +239,8 @@ class TabManager: ObservableObject {
         downloadManager: DownloadManager? = nil,
         focusAfterOpening: Bool = true,
         isPrivate: Bool,
-        loadSilently: Bool = false
+        loadSilently: Bool = false,
+        parentingTo parent: Tab? = nil
     ) -> Tab? {
         if let container = activeContainer {
             if let host = url.host {
@@ -246,13 +249,13 @@ class TabManager: ObservableObject {
                 let cleanHost = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
 
                 let newTab = Tab(
-                    url: url,
+                    parent: parent, url: url,
                     title: cleanHost,
                     favicon: faviconURL,
                     container: container,
                     type: .normal,
                     isPlayingMedia: false,
-                    order: container.tabs.count + 1,
+                    order: ((parent != nil ? parent!.children : container.tabs).map(\.order).max() ?? -1) + 1,
                     historyManager: historyManager,
                     downloadManager: downloadManager,
                     tabManager: self,
@@ -296,6 +299,8 @@ class TabManager: ObservableObject {
     }
 
     func closeTab(tab: Tab) {
+        tab.deparent()
+
         // If the closed tab was active, select another tab
         if self.activeTab?.id == tab.id {
             if let nextTab = tab.container.tabs

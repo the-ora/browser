@@ -86,6 +86,7 @@ struct TabItem: View {
     let tab: Tab
     let isSelected: Bool
     let isDragging: Bool
+    let isDragTarget: Bool
     let onTap: () -> Void
     let onPinToggle: () -> Void
     let onFavoriteToggle: () -> Void
@@ -147,6 +148,15 @@ struct TabItem: View {
                 ConditionallyConcentricRectangle(cornerRadius: 10)
                 .stroke(
                     theme.invertedSolidWindowBackgroundColor.opacity(0.25),
+                    style: StrokeStyle(lineWidth: 1, dash: [5, 5])
+                )
+                : nil
+        )
+        .overlay(
+            isDragTarget ?
+                ConditionallyConcentricRectangle(cornerRadius: 10)
+                .stroke(
+                    theme.accent,
                     style: StrokeStyle(lineWidth: 1, dash: [5, 5])
                 )
                 : nil
