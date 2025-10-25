@@ -11,6 +11,7 @@ struct FavTabsGrid: View {
     let onSelect: (Tab) -> Void
     let onFavoriteToggle: (Tab) -> Void
     let onClose: (Tab) -> Void
+    let onDuplicate: (Tab) -> Void
     let onMoveToContainer:
         (
             Tab,
@@ -45,6 +46,7 @@ struct FavTabsGrid: View {
                         onTap: { onSelect(tab) },
                         onFavoriteToggle: { onFavoriteToggle(tab) },
                         onClose: { onClose(tab) },
+                        onDuplicate: { onDuplicate(tab) },
                         onMoveToContainer: { onMoveToContainer(tab, $0) }
                     )
                     .onDrag { onDrag(tab.id) }

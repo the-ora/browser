@@ -90,8 +90,8 @@ struct BrowserSplitView: View {
                     BrowserContentContainer {
                         BrowserWebContentView(tab: tab)
                     }
-                   .opacity(tab.id == activeId ? 1 : 0)
-                   .allowsHitTesting(tab.id == activeId)
+                    .opacity(tab.id == activeId ? 1 : 0)
+                    .allowsHitTesting(tab.id == activeId)
                 }
             }
         }

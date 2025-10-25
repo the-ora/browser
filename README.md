@@ -51,7 +51,7 @@ If you would like to support the project, please consider donating:
 - [x] Developer Tools
 - [ ] Download manager with pause/resume support
 - [ ] iCloud Keychain password autofill
-- [ ] Private browsing mode
+- [x] Private browsing mode
 - [ ] Bookmark management with folders and search
 - [ ] Extensions — (App Store & Chrome extensions)
 - [ ] Split tabs — multiple tabs open side by side

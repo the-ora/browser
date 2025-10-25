@@ -37,4 +37,37 @@ class PrivacyService {
             completion
         )
     }
+
+    static func clearCookiesForHost(for host: String, container: TabContainer, completion: (() -> Void)? = nil) {
+        let dataStore = WKWebsiteDataStore(forIdentifier: container.id)
+        let types: Set<String> = [WKWebsiteDataTypeCookies]
+        dataStore.fetchDataRecords(ofTypes: types) { records in
+            let targetRecords = records.filter { $0.displayName.contains(host) }
+            guard !targetRecords.isEmpty else {
+                completion?()
+                return
+            }
+
+            dataStore.removeData(ofTypes: types, for: targetRecords) {
+                completion?()
+            }
+        }
+    }
+
+    static func clearCacheForHost(for host: String, container: TabContainer, completion: (() -> Void)? = nil) {
+        let dataStore = WKWebsiteDataStore(forIdentifier: container.id)
+        let types: Set<String> = WKWebsiteDataStore.allWebsiteDataTypes()
+
+        dataStore.fetchDataRecords(ofTypes: types) { records in
+            let targetRecords = records.filter { $0.displayName.contains(host) }
+            guard !targetRecords.isEmpty else {
+                completion?()
+                return
+            }
+
+            dataStore.removeData(ofTypes: types, for: targetRecords) {
+                completion?()
+            }
+        }
+    }
 }

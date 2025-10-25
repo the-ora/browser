@@ -238,8 +238,6 @@ final class MediaController: ObservableObject {
             }
         }
     }
-
-
 }
 
 // Payload from injected JS

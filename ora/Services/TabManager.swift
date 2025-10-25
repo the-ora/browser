@@ -245,8 +245,9 @@ class TabManager: ObservableObject {
         historyManager: HistoryManager,
         downloadManager: DownloadManager? = nil,
         focusAfterOpening: Bool = true,
-        isPrivate: Bool
-    ) {
+        isPrivate: Bool,
+        loadSilently: Bool = false
+    ) -> Tab? {
         if let container = activeContainer {
             if let host = url.host {
                 let faviconURL = URL(string: "https://www.google.com/s2/favicons?domain=\(host)")
@@ -274,7 +275,8 @@ class TabManager: ObservableObject {
                     activeTab = newTab
                     activeTab?.maybeIsActive = true
                     newTab.lastAccessedAt = Date()
-                    
+                }
+                if focusAfterOpening || loadSilently {
                     // Initialize the WebView for the new active tab
                     newTab.restoreTransientState(
                         historyManager: historyManager,
@@ -289,8 +291,10 @@ class TabManager: ObservableObject {
                 
                 container.lastAccessedAt = Date()
                 try? modelContext.save()
+                return newTab
             }
         }
+        return nil
     }
     
     func reorderTabs(from: Tab, toTab: Tab) {
@@ -496,7 +500,7 @@ class TabManager: ObservableObject {
         if message.name == "listener",
            let url = message.body as? String
         {
-            // You can update the active tab’s url if needed
+            // You can update the active tab's url if needed
             DispatchQueue.main.async {
                 if let validURL = URL(string: url) {
                     self.activeTab?.url = validURL
@@ -507,6 +511,20 @@ class TabManager: ObservableObject {
                 }
             }
         }
+    }
+
+    func duplicateTab(_ tab: Tab) {
+        // Create a new tab using the existing openTab method
+        guard let historyManager = tab.historyManager else { return }
+        guard let newTab = openTab(
+            url: tab.url,
+            historyManager: historyManager,
+            downloadManager: tab.downloadManager,
+            focusAfterOpening: false,
+            isPrivate: tab.isPrivate,
+            loadSilently: true
+        ) else { return }
+        self.reorderTabs(from: tab, toTab: newTab)
     }
 }
 
