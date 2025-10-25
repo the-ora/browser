@@ -241,7 +241,7 @@ class TabManager: ObservableObject {
     ) -> Tab? {
         if let container = activeContainer {
             if let host = url.host {
-                let faviconURL = URL(string: "https://www.google.com/s2/favicons?domain=\(host)")
+                let faviconURL = URL(string: "https://www.google.com/s2/favicons?domain=\(host)&sz=64")
                 
                 let cleanHost = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
                 

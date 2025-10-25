@@ -144,7 +144,7 @@ class Tab: ObservableObject, Identifiable {
          guard let host = self.url.host else { return }
 
         let domain = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
-        let faviconURL = faviconURLDefault ?? URL(string: "https://www.google.com/s2/favicons?domain=\(domain)")!
+        let faviconURL = faviconURLDefault ?? URL(string: "https://www.google.com/s2/favicons?domain=\(domain)&sz=64")!
         self.favicon = faviconURL
 
          // Infer extension from URL or fallback to png
@@ -152,15 +152,18 @@ class Tab: ObservableObject, Identifiable {
          let fileName = "\(self.id.uuidString).\(ext)"
          let saveURL = FileManager.default.faviconDirectory.appendingPathComponent(fileName)
 
-        FaviconService.shared
-            .downloadAndSaveFavicon(for: domain, faviconURL: faviconURL, to: saveURL) { sourceURL, success in
-                if success {
-                    self.faviconLocalFile = saveURL
-                    if let sourceURL {
-                        self.favicon = sourceURL
-                    }
-                }
-            }
+         FaviconService.shared
+             .downloadAndSaveFavicon(for: domain, faviconURL: faviconURL, to: saveURL) { 
+                [weak self] sourceURL, success in
+                 guard let self = self else { return }
+                 if success {
+                     self.faviconLocalFile = saveURL
+                     if let sourceURL {
+                         self.favicon = sourceURL
+                        print(sourceURL)
+                     }
+                 }
+             }
     }
 
     func switchSections(from: Tab, to: Tab) {
