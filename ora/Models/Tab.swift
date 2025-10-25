@@ -157,9 +157,11 @@ class Tab: ObservableObject, Identifiable {
                 [weak self] sourceURL, success in
                 guard let self else { return }
                 if success {
-                    self.faviconLocalFile = saveURL
-                    if let sourceURL {
-                        self.favicon = sourceURL
+                    Task { @MainActor in
+                        self.faviconLocalFile = saveURL
+                        if let sourceURL {
+                            self.favicon = sourceURL
+                        }
                     }
                 }
             }
