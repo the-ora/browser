@@ -2,8 +2,10 @@ import AppKit
 import SwiftUI
 
 struct FavTabsGrid: View {
+    @AppStorage("ui.sidebar.favorites.sticky") private var sticky: Bool = true
     @Environment(\.theme) var theme
     @EnvironmentObject var tabManager: TabManager
+    @State private var isHoveringOverEmpty: Bool = false
     let tabs: [Tab]
     @Binding var draggedItem: UUID?
     let onDrag: (UUID) -> NSItemProvider
@@ -25,18 +27,26 @@ struct FavTabsGrid: View {
     }
 
     var body: some View {
-        LazyVGrid(columns: adaptiveColumns, spacing: 10) {
+        let isShowingHidden = tabs.isEmpty && !(sticky || isHoveringOverEmpty)
+        LazyVGrid(columns: adaptiveColumns, spacing: isShowingHidden ? 0 : 10) {
             if tabs.isEmpty {
-                EmptyFavTabItem()
-                    .onDrop(
-                        of: [.text],
-                        delegate: SectionDropDelegate(
-                            items: tabs,
-                            draggedItem: $draggedItem,
-                            targetSection: .fav,
-                            tabManager: tabManager
-                        )
+                Group {
+                    if sticky || isHoveringOverEmpty {
+                        EmptyFavTabItem()
+                    } else {
+                        Capsule().frame(height: 3).opacity(0)
+                    }
+                }
+                .onDrop(
+                    of: [.text],
+                    delegate: SectionDropDelegate(
+                        items: tabs,
+                        draggedItem: $draggedItem,
+                        targetSection: .fav,
+                        tabManager: tabManager,
+                        isHovering: $isHoveringOverEmpty
                     )
+                )
             } else {
                 ForEach(tabs) { tab in
                     FavTabItem(
@@ -71,5 +81,10 @@ struct FavTabsGrid: View {
                 tabManager: tabManager
             )
         )
+        .onChange(of: tabs.count) { _, newTabs in
+            if newTabs > 0 {
+                sticky = false
+            }
+        }
     }
 }
