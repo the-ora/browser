@@ -44,6 +44,7 @@ struct LauncherSuggestionItem: View {
     @State private var isHovered = false
     @Environment(\.theme) private var theme
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var toolbarManager: ToolbarManager
 
     init(suggestion: LauncherSuggestion, defaultAI: SearchEngine?, focusedElement: Binding<UUID>) {
         self.suggestion = suggestion

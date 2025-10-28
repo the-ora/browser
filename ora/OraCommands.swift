@@ -1,37 +1,56 @@
-import AppKit
 import SwiftUI
 
 struct OraCommands: Commands {
     @AppStorage("AppAppearance") private var appearanceRaw: String = AppAppearance.system.rawValue
+    @AppStorage("ui.sidebar.hidden") private var isSidebarHidden: Bool = false
+    @AppStorage("ui.sidebar.position") private var sidebarPosition: SidebarPosition = .primary
+    @AppStorage("ui.toolbar.hidden") private var isToolbarHidden: Bool = false
+    @AppStorage("ui.toolbar.showfullurl") private var showFullURL: Bool = true
     @Environment(\.openWindow) private var openWindow
-    @ObservedObject private var shortcutManager = CustomKeyboardShortcutManager.shared
 
     var body: some Commands {
         CommandGroup(replacing: .newItem) {
-            Button("New Window") {
-                openWindow(id: "normal")
-            }
-            .keyboardShortcut(KeyboardShortcuts.Window.new.keyboardShortcut)
+            Button("New Window") { openWindow(id: "normal") }
+                .keyboardShortcut(KeyboardShortcuts.Window.new.keyboardShortcut)
 
-            Button("New Private Window") {
-                openWindow(id: "private")
-            }
-            .keyboardShortcut(KeyboardShortcuts.Window.newPrivate.keyboardShortcut)
+            Button("New Private Window") { openWindow(id: "private") }
+                .keyboardShortcut(KeyboardShortcuts.Window.newPrivate.keyboardShortcut)
 
-            Button("New Tab") { NotificationCenter.default.post(name: .showLauncher, object: NSApp.keyWindow) }
-                .keyboardShortcut(KeyboardShortcuts.Tabs.new.keyboardShortcut)
+            Button("New Tab") {
+                NotificationCenter.default.post(name: .showLauncher, object: NSApp.keyWindow)
+            }.keyboardShortcut(KeyboardShortcuts.Tabs.new.keyboardShortcut)
 
-            Button("Close Tab") { NotificationCenter.default.post(name: .closeActiveTab, object: NSApp.keyWindow) }
-                .keyboardShortcut(KeyboardShortcuts.Tabs.close.keyboardShortcut)
+            Divider()
 
             ImportDataButton()
+
+            Divider()
+
+            Button("Close Tab") {
+                NotificationCenter.default.post(name: .closeActiveTab, object: NSApp.keyWindow)
+            }.keyboardShortcut(KeyboardShortcuts.Tabs.close.keyboardShortcut)
+
+            Button("Close Window") {
+                if let keyWindow = NSApp.keyWindow, keyWindow.title == "Settings" {
+                    keyWindow.performClose(nil)
+                }
+            }
+            .keyboardShortcut("w", modifiers: .command)
+            .disabled({
+                guard let keyWindow = NSApp.keyWindow else { return true }
+                return keyWindow.title != "Settings"
+            }())
         }
 
-        CommandGroup(after: .pasteboard) {
-            Button("Restore") { NotificationCenter.default.post(name: .restoreLastTab, object: NSApp.keyWindow) }
-                .keyboardShortcut(KeyboardShortcuts.Tabs.restore.keyboardShortcut)
+        CommandMenu("Edit") {
+            Button("Restore Last Tab") {
+                NotificationCenter.default.post(name: .restoreLastTab, object: NSApp.keyWindow)
+            }
+            .keyboardShortcut(KeyboardShortcuts.Tabs.restore.keyboardShortcut)
 
-            Button("Find") {
+            Divider()
+
+            Button("Find in Page") {
                 NotificationCenter.default.post(name: .findInPage, object: NSApp.keyWindow)
             }
             .keyboardShortcut(KeyboardShortcuts.Edit.find.keyboardShortcut)
@@ -45,6 +64,7 @@ struct OraCommands: Commands {
         }
 
         CommandGroup(replacing: .sidebar) {
+            // APPEARANCE
             Picker("Appearance", selection: Binding(
                 get: { AppAppearance(rawValue: appearanceRaw) ?? .system },
                 set: { newValue in
@@ -57,137 +77,109 @@ struct OraCommands: Commands {
                 }
             )) {
                 ForEach(AppAppearance.allCases) { mode in
-                    Text(mode.rawValue).tag(mode)
+                    Text(mode.rawValue.capitalized).tag(mode)
                 }
             }
-        }
 
-        CommandGroup(after: .sidebar) {
-            Button("Toggle Sidebar") {
+            Divider()
+
+            // VISIBILITY
+            Button(isSidebarHidden ? "Show Sidebar" : "Hide Sidebar") {
                 NotificationCenter.default.post(name: .toggleSidebar, object: nil)
             }
             .keyboardShortcut(KeyboardShortcuts.App.toggleSidebar.keyboardShortcut)
 
+            Button(isToolbarHidden ? "Show Toolbar" : "Hide Toolbar") {
+                NotificationCenter.default.post(name: .toggleToolbar, object: NSApp.keyWindow)
+            }
+            .keyboardShortcut(KeyboardShortcuts.App.toggleToolbar.keyboardShortcut)
+
             Divider()
 
-            Button("Toggle Full URL") { NotificationCenter.default.post(name: .toggleFullURL, object: NSApp.keyWindow) }
+            // LAYOUT
+            Button(sidebarPosition == .primary ? "Right Side Tabs" : "Left Side Tabs") {
+                NotificationCenter.default.post(name: .toggleSidebarPosition, object: nil)
+            }
+
+            Button(showFullURL ? "Hide Full URL" : "Show Full URL") {
+                NotificationCenter.default.post(name: .toggleFullURL, object: NSApp.keyWindow)
+            }
+            Divider()
+        }
+
+        CommandMenu("Navigation") {
+            Button("Reload Page") {
+                NotificationCenter.default.post(name: .reloadPage, object: NSApp.keyWindow)
+            }
+            .keyboardShortcut(KeyboardShortcuts.Navigation.reload.keyboardShortcut)
+
+            Button("Clear Cache & Reload") {
+                NotificationCenter.default.post(name: .clearCacheAndReload, object: NSApp.keyWindow)
+            }
+            .keyboardShortcut("r", modifiers: [.command, .shift])
+
+            Button("Clear Cookies & Reload") {
+                NotificationCenter.default.post(name: .clearCookiesAndReload, object: NSApp.keyWindow)
+            }
+            .keyboardShortcut("r", modifiers: [.command, .option, .shift])
+
+            Divider()
+
+            Button("Back") {
+                NotificationCenter.default.post(name: .goBack, object: NSApp.keyWindow)
+            }
+            .keyboardShortcut(KeyboardShortcuts.Navigation.back.keyboardShortcut)
+
+            Button("Forward") {
+                NotificationCenter.default.post(name: .goForward, object: NSApp.keyWindow)
+            }
+            .keyboardShortcut(KeyboardShortcuts.Navigation.forward.keyboardShortcut)
+        }
+
+        CommandMenu("Tabs") {
+            Button("Pin Tab") {
+                NotificationCenter.default.post(name: .togglePinTab, object: NSApp.keyWindow)
+            }.keyboardShortcut(KeyboardShortcuts.Tabs.pin.keyboardShortcut)
+
+            Divider()
+
+            Button("Next Tab") {
+                NotificationCenter.default.post(name: .nextTab, object: NSApp.keyWindow)
+            }
+            .keyboardShortcut(KeyboardShortcuts.Tabs.next.keyboardShortcut)
+
+            Button("Previous Tab") {
+                NotificationCenter.default.post(name: .previousTab, object: NSApp.keyWindow)
+            }
+            .keyboardShortcut(KeyboardShortcuts.Tabs.previous.keyboardShortcut)
+
+            Divider()
+
+            // Quick Tab Selection (1–9)
+            ForEach(1 ... 9, id: \.self) { index in
+                Button("Tab \(index)") {
+                    NotificationCenter.default.post(
+                        name: .selectTabAtIndex,
+                        object: NSApp.keyWindow,
+                        userInfo: ["index": index]
+                    )
+                }
+                .keyboardShortcut(KeyboardShortcuts.Tabs.keyboardShortcut(for: index))
+            }
         }
 
         CommandGroup(replacing: .appInfo) {
             Button("About Ora") { showAboutWindow() }
-
-            Button("Check for Updates") { NotificationCenter.default.post(
-                name: .checkForUpdates,
-                object: NSApp.keyWindow
-            ) }
-        }
-
-        CommandMenu("Navigation") {
-            Button("Reload") { NotificationCenter.default.post(name: .reloadPage, object: NSApp.keyWindow) }
-                .keyboardShortcut(KeyboardShortcuts.Navigation.reload.keyboardShortcut)
-            Button("Back") { NotificationCenter.default.post(name: .goBack, object: NSApp.keyWindow) }
-                .keyboardShortcut(KeyboardShortcuts.Navigation.back.keyboardShortcut)
-            Button("Forward") { NotificationCenter.default.post(name: .goForward, object: NSApp.keyWindow) }
-                .keyboardShortcut(KeyboardShortcuts.Navigation.forward.keyboardShortcut)
-        }
-
-        CommandMenu("Tabs") {
-            Button("New Tab") { NotificationCenter.default.post(name: .showLauncher, object: NSApp.keyWindow) }
-                .keyboardShortcut(KeyboardShortcuts.Tabs.new.keyboardShortcut)
-            Button("Pin Tab") { NotificationCenter.default.post(name: .togglePinTab, object: NSApp.keyWindow) }
-                .keyboardShortcut(KeyboardShortcuts.Tabs.pin.keyboardShortcut)
-
-            Divider()
-
-            Button("Next Tab") { NotificationCenter.default.post(name: .nextTab, object: NSApp.keyWindow) }
-                .keyboardShortcut(KeyboardShortcuts.Tabs.next.keyboardShortcut)
-            Button("Previous Tab") { NotificationCenter.default.post(name: .previousTab, object: NSApp.keyWindow) }
-                .keyboardShortcut(KeyboardShortcuts.Tabs.previous.keyboardShortcut)
-
-            Divider()
-
-            Button("Tab 1") { NotificationCenter.default.post(
-                name: .selectTabAtIndex,
-                object: NSApp.keyWindow,
-                userInfo: ["index": 1]
-            ) }
-            .keyboardShortcut(KeyboardShortcuts.Tabs.tab1.keyboardShortcut)
-
-            Button("Tab 2") { NotificationCenter.default.post(
-                name: .selectTabAtIndex,
-                object: NSApp.keyWindow,
-                userInfo: ["index": 2]
-            ) }
-            .keyboardShortcut(KeyboardShortcuts.Tabs.tab2.keyboardShortcut)
-
-            Button("Tab 3") { NotificationCenter.default.post(
-                name: .selectTabAtIndex,
-                object: NSApp.keyWindow,
-                userInfo: ["index": 3]
-            ) }
-            .keyboardShortcut(KeyboardShortcuts.Tabs.tab3.keyboardShortcut)
-
-            Button("Tab 4") { NotificationCenter.default.post(
-                name: .selectTabAtIndex,
-                object: NSApp.keyWindow,
-                userInfo: ["index": 4]
-            ) }
-            .keyboardShortcut(KeyboardShortcuts.Tabs.tab4.keyboardShortcut)
-
-            Button("Tab 5") { NotificationCenter.default.post(
-                name: .selectTabAtIndex,
-                object: NSApp.keyWindow,
-                userInfo: ["index": 5]
-            ) }
-            .keyboardShortcut(KeyboardShortcuts.Tabs.tab5.keyboardShortcut)
-
-            Button("Tab 6") { NotificationCenter.default.post(
-                name: .selectTabAtIndex,
-                object: NSApp.keyWindow,
-                userInfo: ["index": 6]
-            ) }
-            .keyboardShortcut(KeyboardShortcuts.Tabs.tab6.keyboardShortcut)
-
-            Button("Tab 7") { NotificationCenter.default.post(
-                name: .selectTabAtIndex,
-                object: NSApp.keyWindow,
-                userInfo: ["index": 7]
-            ) }
-            .keyboardShortcut(KeyboardShortcuts.Tabs.tab7.keyboardShortcut)
-
-            Button("Tab 8") { NotificationCenter.default.post(
-                name: .selectTabAtIndex,
-                object: NSApp.keyWindow,
-                userInfo: ["index": 8]
-            ) }
-            .keyboardShortcut(KeyboardShortcuts.Tabs.tab8.keyboardShortcut)
-
-            Button("Tab 9") { NotificationCenter.default.post(
-                name: .selectTabAtIndex,
-                object: NSApp.keyWindow,
-                userInfo: ["index": 9]
-            ) }
-            .keyboardShortcut(KeyboardShortcuts.Tabs.tab9.keyboardShortcut)
-        }
-
-        CommandGroup(replacing: .toolbar) {
-            Button("Toggle Toolbar") { NotificationCenter.default.post(name: .toggleToolbar, object: NSApp.keyWindow) }
-                .keyboardShortcut(KeyboardShortcuts.App.toggleToolbar.keyboardShortcut)
-        }
-
-        CommandGroup(after: .windowList) {
-            Button("Close Window") {
-                if let keyWindow = NSApp.keyWindow, keyWindow.title == "Settings" {
-                    keyWindow.performClose(nil)
-                }
+            Button("Check for Updates") {
+                NotificationCenter.default.post(
+                    name: .checkForUpdates,
+                    object: NSApp.keyWindow
+                )
             }
-            .keyboardShortcut("w", modifiers: .command)
-            .disabled({
-                guard let keyWindow = NSApp.keyWindow else { return true }
-                return keyWindow.title != "Settings"
-            }())
         }
     }
+
+    // MARK: - Utility Helpers
 
     private func showAboutWindow() {
         let alert = NSAlert()

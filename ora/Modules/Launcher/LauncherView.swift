@@ -3,13 +3,13 @@ import SwiftUI
 
 struct LauncherView: View {
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var toolbarManager: ToolbarManager
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var historyManager: HistoryManager
     @EnvironmentObject var downloadManager: DownloadManager
     @EnvironmentObject var privacyMode: PrivacyMode
     @Environment(\.theme) private var theme
     @StateObject private var searchEngineService = SearchEngineService()
-    @StateObject private var faviconService = FaviconService()
 
     @State private var input = ""
     @State private var isVisible = false
@@ -25,7 +25,6 @@ struct LauncherView: View {
                 .first { $0.searchURL == searchEngine.searchURL }
             match = searchEngine.toLauncherMatch(
                 originalAlias: input,
-                faviconService: faviconService,
                 customEngine: customEngine
             )
             input = ""
@@ -45,7 +44,6 @@ struct LauncherView: View {
                 .first { $0.searchURL == defaultEngine.searchURL }
             engineToUse = defaultEngine.toLauncherMatch(
                 originalAlias: correctInput,
-                faviconService: faviconService,
                 customEngine: customEngine
             )
         }

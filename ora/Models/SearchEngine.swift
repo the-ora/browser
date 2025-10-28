@@ -34,7 +34,6 @@ struct SearchEngine {
 extension SearchEngine {
     func toLauncherMatch(
         originalAlias: String,
-        faviconService: FaviconService? = nil,
         customEngine: CustomSearchEngine? = nil
     ) -> LauncherMain.Match {
         var favicon: NSImage?
@@ -46,8 +45,8 @@ extension SearchEngine {
             faviconColor = customEngine.faviconBackgroundColor
         } else {
             // For built-in engines, use favicon service
-            favicon = faviconService?.getFavicon(for: searchURL)
-            faviconColor = faviconService?.getFaviconColor(for: searchURL)
+            favicon = FaviconService.shared.getFavicon(for: searchURL)
+            faviconColor = FaviconService.shared.getFaviconColor(for: searchURL)
         }
 
         return LauncherMain.Match(

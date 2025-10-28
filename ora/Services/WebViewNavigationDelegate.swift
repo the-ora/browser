@@ -13,15 +13,36 @@ let navigationScript = """
     let faviconURL = null;
 
     function findFavicon(callback) {
-        const links = document.getElementsByTagName('link');
-        for (let i = 0; i < links.length; i++) {
-            const rel = links[i].getAttribute('rel');
-            if (rel && rel.toLowerCase().includes('icon')) {
-                const href = links[i].getAttribute('href');
-                if (href) return callback(new URL(href, document.baseURI).href);
+        const links = Array.from(document.getElementsByTagName('link'));
+        const icons = links.filter(link => {
+            const rel = link.getAttribute('rel');
+            return rel && rel.toLowerCase().includes('icon');
+        }).map(link => {
+            const href = link.getAttribute('href');
+            const sizes = link.getAttribute('sizes');
+            let size = 32; // Default size for icons without sizes attribute
+            if (sizes) {
+                const match = sizes.match(/(\\d+)x(\\d+)/);
+                if (match && match[1] === match[2]) { // Assume square
+                    size = parseInt(match[1]);
+                }
             }
+            return { href: href ? new URL(href, document.baseURI).href : null, size };
+        }).filter(icon => icon.href);
+
+        // Prefer size >=64 and <256, largest first
+        const preferred = icons
+            .filter(icon => icon.size >= 64 && icon.size < 256)
+            .sort((a, b) => b.size - a.size)[0];
+
+        if (preferred) {
+            callback(preferred.href);
+        } else if (icons.length > 0) {
+            const largest = icons.sort((a, b) => b.size - a.size)[0];
+            callback(largest.href);
+        } else {
+            callback(`https://www.google.com/s2/favicons?domain=${location.hostname}&sz=64`);
         }
-        callback(`https://www.google.com/s2/favicons?domain=${location.hostname}`);
     }
 
     function notifyChange(force = false) {
@@ -111,36 +132,46 @@ let navigationScript = """
 
     const stateFrom = (el) => ({
         type: 'state',
+        wasPlayed: el && el.__oraWasPlayed,
         state: el && !el.paused ? 'playing' : 'paused',
         volume: el ? (el.muted ? 0 : el.volume) : undefined,
         title: document.title
     });
-
-    // Enhanced title change monitoring for media sessions
-    let lastMediaTitle = document.title;
-    function checkTitleChange() {
-        if (document.title !== lastMediaTitle) {
-            lastMediaTitle = document.title;
-            // If any media is currently playing, send a title update
-            const activeMedia = document.querySelector('video:not([paused]), audio:not([paused])');
-            if (activeMedia) {
-                post({ type: 'titleChange', title: document.title });
+    function watchRemoval(element, callback) {
+        const observer = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                for (const removed of mutation.removedNodes) {
+                    if (removed === element || removed.contains(element)) {
+                        callback();
+                        observer.disconnect();
+                        return;
+                    }
+                }
             }
-        }
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
     }
 
     function attach(el) {
         if (!el || el.__oraAttached) return;
         el.__oraAttached = true;
         const update = () => post(stateFrom(el));
-        el.addEventListener('play', update);
+        el.addEventListener('play', ()=>{
+            update();
+            el.__oraWasPlayed = true;
+        });
         el.addEventListener('pause', update);
         el.addEventListener('ended', () => post({ type: 'ended' }));
         el.addEventListener('volumechange', () =>
             post({ type: 'volume', volume: el.muted ? 0 : el.volume })
         );
         // If already playing, announce
-        if (!el.paused) update();
+        if (!el.paused) {
+            el.__oraWasPlayed = true;
+            update();
+        }
+        watchRemoval(el, () => post({ type: 'removed' }));
     }
 
     function scan() {
@@ -151,9 +182,6 @@ let navigationScript = """
     const mo = new MutationObserver(scan);
     mo.observe(document.documentElement, { childList: true, subtree: true });
     scan();
-
-    // Set up periodic title checking for active media
-    setInterval(checkTitleChange, 1000);
 
     window.__oraMedia = {
         active: null,
@@ -216,6 +244,31 @@ let navigationScript = """
         },
         title() {
             return document.title;
+        }
+    };
+    window.__oraTriggerPiP = function(isActive = false) {
+        const video = document.querySelector('video');
+
+        function hasAudio(video) {
+            if (!video) return false;
+            if (video.audioTracks && video.audioTracks.length > 0) return true;
+            if (!video.muted && video.volume > 0) return true;
+            return false;
+        }
+
+        if (
+            video &&
+            video.tagName === 'VIDEO' &&
+            !document.pictureInPictureElement &&
+            !video.paused &&
+            !isActive &&
+            hasAudio(video)
+        ) {
+            video.requestPictureInPicture()
+                .catch(e => {});
+        } else if (document.pictureInPictureElement) {
+            document.exitPictureInPicture()
+                .catch(e => {});
         }
     };
 

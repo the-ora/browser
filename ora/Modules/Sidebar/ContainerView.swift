@@ -6,6 +6,7 @@ struct ContainerView: View {
     let containers: [TabContainer]
 
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var toolbarManager: ToolbarManager
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var privacyMode: PrivacyMode
 
@@ -15,7 +16,7 @@ struct ContainerView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            if appState.isToolbarHidden, let tab = tabManager.activeTab {
+            if toolbarManager.isToolbarHidden, let tab = tabManager.activeTab {
                 SidebarURLDisplay(
                     tab: tab,
                     editingURLString: $editingURLString
@@ -34,6 +35,7 @@ struct ContainerView: View {
                     onSelect: selectTab,
                     onFavoriteToggle: toggleFavorite,
                     onClose: removeTab,
+                    onDuplicate: duplicateTab,
                     onMoveToContainer: moveTab
                 )
             } else {
@@ -56,7 +58,7 @@ struct ContainerView: View {
                 .padding(.horizontal)
             }
 
-            VerticalScrollView {
+            ScrollView(.vertical, showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 16) {
                     if !privacyMode.isPrivate {
                         PinnedTabsList(
@@ -67,6 +69,7 @@ struct ContainerView: View {
                             onPinToggle: togglePin,
                             onFavoriteToggle: toggleFavorite,
                             onClose: removeTab,
+                            onDuplicate: duplicateTab,
                             onMoveToContainer: moveTab,
                             containers: containers
                         )
@@ -80,6 +83,7 @@ struct ContainerView: View {
                         onPinToggle: togglePin,
                         onFavoriteToggle: toggleFavorite,
                         onClose: removeTab,
+                        onDuplicate: duplicateTab,
                         onMoveToContainer: moveTab,
                         onAddNewTab: addNewTab
                     )
@@ -151,6 +155,10 @@ struct ContainerView: View {
     private func dropTab(_ tabId: String) {
         isDragging = false
         draggedItem = nil
+    }
+
+    private func duplicateTab(_ tab: Tab) {
+        tabManager.duplicateTab(tab)
     }
 }
 

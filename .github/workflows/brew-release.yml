@@ -1,0 +1,74 @@
+name: Update Homebrew Cask
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version for testing (e.g., 0.2.5; omit "v" prefix)'
+        required: false
+        type: string
+        default: ''
+      dmg_url:
+        description: 'Full DMG download URL for testing (e.g., https://github.com/the-ora/browser/releases/download/v0.2.5/Ora-Browser-0.2.5.dmg)'
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  update-cask:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout homebrew-ora repo
+        uses: actions/checkout@v4
+        with:
+          repository: the-ora/homebrew-ora
+          token: ${{ secrets.HOMEBREW_SECRET }}  
+          ref: main
+
+      - name: Download Ora.dmg and set version
+        run: |
+          EVENT_NAME="${{ github.event_name }}"
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            if [ -n "${{ github.event.inputs.dmg_url }}" ]; then
+              DOWNLOAD_URL="${{ github.event.inputs.dmg_url }}"
+            else
+              echo "DMG URL is required for manual dispatch"
+              exit 1
+            fi
+            if [ -n "${{ github.event.inputs.version }}" ]; then
+              STRIPPED_VERSION="${{ github.event.inputs.version }}"
+            else
+              echo "Version is required for manual dispatch"
+              exit 1
+            fi
+          else
+            VERSION="${{ github.event.release.tag_name }}"
+            STRIPPED_VERSION=$(echo "$VERSION" | sed 's/^v//')
+            DOWNLOAD_URL="https://github.com/the-ora/browser/releases/download/${VERSION}/Ora-Browser-${STRIPPED_VERSION}.dmg"
+          fi
+          echo "STRIPPED_VERSION=$STRIPPED_VERSION" >> $GITHUB_ENV
+          curl -L --fail -o Ora.dmg "$DOWNLOAD_URL"
+
+      - name: Compute SHA256
+        run: |
+          SHA256=$(shasum -a 256 Ora.dmg | awk '{print $1}')
+          echo "SHA256=$SHA256" >> $GITHUB_ENV
+
+      - name: Update ora.rb
+        run: |
+          sed -i 's/version ".*"/version "${{ env.STRIPPED_VERSION }}"/g' Casks/ora.rb
+          sed -i 's/sha256 ".*"/sha256 "${{ env.SHA256 }}"/g' Casks/ora.rb
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add Casks/ora.rb
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update Ora cask to ${{ env.STRIPPED_VERSION }} (SHA256: ${{ env.SHA256 }})"
+            git push
+          fi

@@ -82,6 +82,20 @@ public class FractionHolder: ObservableObject {
             setter: { fraction in UserDefaults.standard.set(fraction, forKey: key) }
         )
     }
+
+    public func inverted() -> FractionHolder {
+        FractionHolder(
+            1.0 - value,
+            getter: { [weak self] in
+                guard let self else { return 0.5 }
+                return 1.0 - self.value
+            },
+            setter: { [weak self] newValue in
+                guard let self else { return }
+                self.value = 1.0 - newValue
+            }
+        )
+    }
 }
 
 /// An ObservableObject that `Split` view observes to change whether  one of the `SplitSide`s is hidden.

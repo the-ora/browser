@@ -7,7 +7,7 @@ struct GeneralSettingsView: View {
     @StateObject private var settings = SettingsStore.shared
     @StateObject private var defaultBrowserManager = DefaultBrowserManager.shared
     @Environment(\.theme) var theme
-    
+
     var body: some View {
         SettingsContainer(maxContentWidth: 760) {
             Form {
@@ -22,7 +22,7 @@ struct GeneralSettingsView: View {
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
-                        
+
                         Text("Fast, secure, and beautiful browser built for macOS")
                             .font(.caption)
                             .foregroundColor(.secondary)
@@ -30,9 +30,8 @@ struct GeneralSettingsView: View {
                     .padding(12)
                     .background(theme.solidWindowBackgroundColor)
                     .cornerRadius(8)
-                    
-                     if !defaultBrowserManager.isDefault {
-                        
+
+                    if !defaultBrowserManager.isDefault {
                         HStack {
                             Text("Born for your Mac. Make Ora your default browser.")
                             Spacer()
@@ -48,12 +47,12 @@ struct GeneralSettingsView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Tab Management")
                             .font(.headline)
-                        
+
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Automatically clean up old tabs to preserve memory.")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
-                            
+
                             HStack {
                                 Text("Destroy web views after:")
                                 Spacer()
@@ -67,7 +66,7 @@ struct GeneralSettingsView: View {
                                 }
                                 .frame(width: 120)
                             }
-                            
+
                             HStack {
                                 Text("Remove tabs completely after:")
                                 Spacer()
@@ -81,12 +80,12 @@ struct GeneralSettingsView: View {
                                 }
                                 .frame(width: 120)
                             }
-                            
+
                             HStack {
                                 Text("Maximum recent tabs to keep in view:")
                                 Spacer()
                                 Picker("", selection: $settings.maxRecentTabs) {
-                                    ForEach(1...10, id: \.self) { num in
+                                    ForEach(1 ... 10, id: \.self) { num in
                                         Text("\(num)").tag(num)
                                     }
                                 }
@@ -97,46 +96,48 @@ struct GeneralSettingsView: View {
                                 .font(.caption2)
                                 .foregroundColor(.secondary)
                         }
+
+                        Toggle("Auto Picture-in-Picture on tab switch", isOn: $settings.autoPiPEnabled)
                     }
                     .padding(.vertical, 8)
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Updates")
                             .font(.headline)
-                        
+
                         Toggle("Automatically check for updates", isOn: $settings.autoUpdateEnabled)
-                        
+
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
                                 Button("Check for Updates") {
                                     updateService.checkForUpdates()
                                 }
-                                
+
                                 if updateService.isCheckingForUpdates {
                                     ProgressView()
                                         .scaleEffect(0.5)
                                         .frame(width: 16, height: 16)
                                 }
-                                
+
                                 if updateService.updateAvailable {
                                     Text("Update available!")
                                         .foregroundColor(.green)
                                         .font(.caption)
                                 }
                             }
-                            
+
                             if let result = updateService.lastCheckResult {
                                 Text(result)
                                     .font(.caption)
                                     .foregroundColor(updateService.updateAvailable ? .green : .secondary)
                             }
-                            
+
                             // Show current app version
                             if let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
                                 Text("Current version: \(appVersion)")
                                     .font(.caption2)
                                     .foregroundColor(.secondary)
                             }
-                            
+
                             // Show last check time
                             if let lastCheck = updateService.lastCheckDate {
                                 Text("Last checked: \(lastCheck.formatted(date: .abbreviated, time: .shortened))")
@@ -145,8 +146,6 @@ struct GeneralSettingsView: View {
                             }
                         }
                     }
-                    
-                    
                 }
             }
         }

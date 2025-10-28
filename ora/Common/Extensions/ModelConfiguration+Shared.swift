@@ -10,7 +10,7 @@ extension ModelConfiguration {
             return ModelConfiguration(
                 "OraData",
                 schema: Schema([TabContainer.self, History.self, Download.self]),
-                url: URL.applicationSupportDirectory.appending(path: "OraData.sqlite")
+                url: URL.applicationSupportDirectory.appending(path: "Ora/OraData.sqlite")
             )
         }
     }

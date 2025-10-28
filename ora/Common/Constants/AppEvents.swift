@@ -2,6 +2,7 @@ import Foundation
 
 extension Notification.Name {
     static let toggleSidebar = Notification.Name("ToggleSidebar")
+    static let toggleSidebarPosition = Notification.Name("ToggleSidebarPosition")
     static let copyAddressURL = Notification.Name("CopyAddressURL")
 
     static let showLauncher = Notification.Name("ShowLauncher")
@@ -24,4 +25,8 @@ extension Notification.Name {
 
     // AppDelegate → UI routing
     static let openURL = Notification.Name("OpenURL") // userInfo: ["url": URL]
+
+    // Cache and cookies
+    static let clearCacheAndReload = Notification.Name("ClearCacheAndReload")
+    static let clearCookiesAndReload = Notification.Name("ClearCookiesAndReload")
 }
