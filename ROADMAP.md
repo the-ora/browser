@@ -68,7 +68,7 @@ Below is the list of core features planned or completed for the Beta release.
 
 ## 🤝 Contributing & Feedback
 - 💬 Join discussions on [Discord](https://discord.gg/9aZWH52Zjm)  
-- 💡 Suggest features or discuss roadmap items in [GitHub Discussions](https://github.com/the-ora/browser/discussions)  
+- 💡 Suggest features or discuss roadmap items in our discord
 - 📘 See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup instructions
 
 ---
