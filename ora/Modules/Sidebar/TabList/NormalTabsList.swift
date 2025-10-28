@@ -103,14 +103,16 @@ struct NormalTabsList: View {
     var body: some View {
         VStack(spacing: 3) {
             NewTabButton(addNewTab: onAddNewTab)
-            Text("TILESETS: \(tabManager.activeContainer?.tilesets.map(\.id))")
             ForEach(tabsSortedByParent(tabs)) { iTab in
                 VStack(spacing: 3) {
                     HStack {
                         ForEach(iTab.tabs) { tab in
                             TabItem(
                                 tab: tab,
-                                isSelected: tabManager.isActive(tab),
+                                isSelected: iTab.tabs
+                                    .contains(
+                                        where: { t in tabManager.isActive(t)
+                                        }),
                                 isDragging: draggedItem == tab.id,
                                 isDragTarget: targetedDropItem?
                                     .imTargeted(
