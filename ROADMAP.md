@@ -31,7 +31,7 @@ Below is the list of core features planned or completed for the Beta release.
 - [x] Private browsing mode
 - [ ] iCloud Keychain password autofill
 - [x] Passkeys
-- [ ] Permissions
+- [ ] Permissions [#48](https://github.com/the-ora/browser/pull/49)
 - [ ] Ad Blocker
 - [ ] Fingerprint
 
@@ -40,7 +40,7 @@ Below is the list of core features planned or completed for the Beta release.
 
 ### Developer Features
 - [x] Developer Tools
-- [ ] Extensions — Safari & Chrome extensions (beta)
+- [ ] Extensions — Safari & Chrome extensions (beta) [#167](https://github.com/the-ora/browser/pull/137)
 
 ### System Integration
 - [ ] Web notifications
