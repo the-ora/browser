@@ -22,6 +22,8 @@ Below is the list of core features planned or completed for the Beta release.
 - [x] Picture in Picture
 - [ ] Split tabs (side-by-side view)
 - [ ] Peek webview
+- [ ] Settings
+- [ ] History - [#130](https://github.com/the-ora/browser/pull/130)
 
 ### Stability & Performance
 - [x] Session restore after app restart or crash
