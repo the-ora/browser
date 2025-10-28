@@ -22,7 +22,6 @@ Below is the list of core features planned or completed for the Beta release.
 - [x] Picture in Picture
 - [ ] Split tabs (side-by-side view)
 - [ ] Peek webview
-- [ ] Reader mode
 
 ### Stability & Performance
 - [x] Session restore after app restart or crash
@@ -31,8 +30,10 @@ Below is the list of core features planned or completed for the Beta release.
 ### Privacy & Security
 - [x] Private browsing mode
 - [ ] iCloud Keychain password autofill
-- [ ] Passkeys
+- [x] Passkeys
 - [ ] Permissions
+- [ ] Ad Blocker
+- [ ] Fingerprint
 
 ### Personalization
 - [ ] Bookmark management with folders
@@ -54,7 +55,7 @@ Below is the list of core features planned or completed for the Beta release.
 | Phase | Status | Focus |
 |--------|---------|--------|
 | **Alpha (Current)** | 🟢 Active | Core browsing, tabs, session management, and core UIs |
-| **Beta 1** | 🟡 Soon | autofill, bookmarks(folders), downloads, peek,  |
+| **Beta 1** | 🟡 Soon | autofill, bookmarks(folders), downloads, peek, split tab views and more |
 | **Stable 1.0** | ⚪ Future | Extensions, performance, UI polish |
 
 ---
