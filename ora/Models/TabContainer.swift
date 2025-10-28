@@ -15,6 +15,7 @@ class TabContainer: ObservableObject, Identifiable {
     var createdAt: Date
     var lastAccessedAt: Date
 
+    @Relationship(deleteRule: .cascade) var tilesets: [TabTileset] = []
     @Relationship(deleteRule: .cascade) var tabs: [Tab] = []
     @Relationship(deleteRule: .cascade) var folders: [Folder] = []
     @Relationship() var history: [History] = []
@@ -41,12 +42,39 @@ class TabContainer: ObservableObject, Identifiable {
         }
     }
 
+    func removeTabFromTileset(tab: Tab) {
+        guard tab.tileset != nil else { return }
+        for (i, tileset) in tilesets.enumerated() {
+            if let tabIndex = tileset.tabs.firstIndex(of: tab) {
+                tileset.tabs.remove(at: tabIndex)
+                if tileset.tabs.count <= 1 {
+                    tilesets.remove(at: i)
+                }
+                break
+            }
+        }
+        tab.tileset = nil
+    }
+
+    func combineToTileset(withSourceTab src: Tab, andDestinationTab dst: Tab) {
+        // Remove from tabset if exists
+        removeTabFromTileset(tab: src)
+        reorderTabs(from: src, to: dst, withReparentingBehavior: .sibling)
+        if let tabset = tilesets.first(where: { $0.tabs.contains(dst) }) {
+            tabset.tabs.append(src)
+        } else {
+            let ts = TabTileset(tabs: [])
+            tilesets.append(ts)
+            ts.tabs = [src, dst]
+        }
+    }
+
     func reorderTabs(
         from: Tab,
         to: Tab,
         withReparentingBehavior reparentingBehavior: ReparentingBehavior = .sibling
     ) {
-        from.deparent()
+        from.dissociateFromRelatives()
         switch reparentingBehavior {
         case .sibling:
             to.parent?.children.insert(from, at: 0)

@@ -37,14 +37,17 @@ struct PinnedTabsList: View {
                         onClose: { onClose(tab) },
                         onDuplicate: { onDuplicate(tab) },
                         onMoveToContainer: { onMoveToContainer(tab, $0) },
-                        availableContainers: containers
+                        availableContainers: containers,
+                        // TODO: Fix
+                        draggedItem: .constant(nil),
+                        targetedDropItem: .constant(nil)
                     )
                     .onDrag { onDrag(tab.id) }
                     .onDrop(
                         of: [.text],
                         delegate: TabDropDelegate(
                             item: tab,
-                            representative: .tab,
+                            representative: .tab(tabset: true),
                             draggedItem: $draggedItem,
                             targetedItem: .constant(nil),
                             targetSection: .pinned

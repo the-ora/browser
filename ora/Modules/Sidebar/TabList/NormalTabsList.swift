@@ -4,14 +4,16 @@ import SwiftUI
 private struct IndentedTab: Identifiable {
     let tab: Tab
     let indentationLevel: Int
+    let tabs: [Tab]
 
     var id: UUID { tab.id }
 }
 
-private func tabsSortedByParent(
+private func tabsSortedByParentImpl(
     _ tabs: [Tab],
-    withParentTabSelector parentTabSelector: UUID? = nil,
-    withIndentation indentation: Int = 0
+    withParentTabSelector parentTabSelector: UUID?,
+    withIndentation indentation: Int,
+    withTilesetUseSet usedTilesets: inout Set<UUID>
 ) -> [IndentedTab] {
     // Start by finding only parent tags, then recurse down through
     var output = [IndentedTab]()
@@ -19,13 +21,32 @@ private func tabsSortedByParent(
         by: { $0.order < $1.order
         })
     for root in roots {
-        output.append(IndentedTab(tab: root, indentationLevel: indentation))
+        var toAppend = [root]
+        if let tileset = root.tileset {
+            if usedTilesets.contains(tileset.id) {
+                continue
+            }
+            let foundTiles = Set(tileset.tabs.map(\.id))
+            toAppend = tabs.filter { foundTiles.contains($0.id) }
+            assert(!toAppend.isEmpty)
+            usedTilesets.insert(tileset.id)
+        }
         output
             .append(
-                contentsOf: tabsSortedByParent(
+                IndentedTab(
+                    tab: root,
+                    indentationLevel: indentation,
+                    tabs: toAppend
+                )
+            )
+
+        output
+            .append(
+                contentsOf: tabsSortedByParentImpl(
                     root.children,
                     withParentTabSelector: root.id,
-                    withIndentation: indentation + 1
+                    withIndentation: indentation + 1,
+                    withTilesetUseSet: &usedTilesets
                 )
             )
     }
@@ -33,12 +54,22 @@ private func tabsSortedByParent(
     return output
 }
 
+private func tabsSortedByParent(_ tabs: [Tab]) -> [IndentedTab] {
+    var usedTilesets: Set<UUID> = []
+    return tabsSortedByParentImpl(
+        tabs,
+        withParentTabSelector: nil,
+        withIndentation: 0,
+        withTilesetUseSet: &usedTilesets
+    )
+}
+
 enum TargetedDropItem {
-    case tab(UUID), divider(UUID)
+    case tab(id: UUID, tabset: Bool), divider(UUID)
 
     func imTargeted(withMyIdBeing id: UUID, andType t: DelegateTarget) -> Bool {
         switch (self, t) {
-        case let (.tab(uuid), .tab):
+        case let (.tab(uuid, tabsetA), .tab(_)):
             return uuid == id
         case let (.divider(uuid), .divider):
             return uuid == id
@@ -72,47 +103,69 @@ struct NormalTabsList: View {
     var body: some View {
         VStack(spacing: 3) {
             NewTabButton(addNewTab: onAddNewTab)
+            Text("TILESETS: \(tabManager.activeContainer?.tilesets.map(\.id))")
             ForEach(tabsSortedByParent(tabs)) { iTab in
-                let tab = iTab.tab
                 VStack(spacing: 3) {
-                    TabItem(
-                        tab: tab,
-                        isSelected: tabManager.isActive(tab),
-                        isDragging: draggedItem == tab.id,
-                        isDragTarget: targetedDropItem?.imTargeted(withMyIdBeing: tab.id, andType: .tab) ?? false,
-                        onTap: { onSelect(tab) },
-                        onPinToggle: { onPinToggle(tab) },
-                        onFavoriteToggle: { onFavoriteToggle(tab) },
-                        onClose: { onClose(tab) },
-                        onDuplicate: { onDuplicate(tab) },
-                        onMoveToContainer: { onMoveToContainer(tab, $0) },
-                        availableContainers: containers
+                    HStack {
+                        ForEach(iTab.tabs) { tab in
+                            TabItem(
+                                tab: tab,
+                                isSelected: tabManager.isActive(tab),
+                                isDragging: draggedItem == tab.id,
+                                isDragTarget: targetedDropItem?
+                                    .imTargeted(
+                                        withMyIdBeing: tab.id,
+                                        andType: .tab(tabset: false)
+                                    ) ?? false,
+                                onTap: { onSelect(tab)
+                                },
+                                onPinToggle: { onPinToggle(tab) },
+                                onFavoriteToggle: { onFavoriteToggle(tab) },
+                                onClose: { onClose(tab) },
+                                onDuplicate: { onDuplicate(tab) },
+                                onMoveToContainer: { onMoveToContainer(tab, $0) },
+                                availableContainers: containers,
+                                draggedItem: $draggedItem,
+                                targetedDropItem: $targetedDropItem
+                            )
+                            .onDrag { onDrag(tab.id) }
+                            .onDrop(
+                                of: [.text],
+                                delegate: TabDropDelegate(
+                                    item: tab,
+                                    representative: .tab(tabset: false), draggedItem: $draggedItem,
+                                    targetedItem: $targetedDropItem,
+                                    targetSection: .normal
+                                )
+                            )
+                            .transition(.asymmetric(
+                                insertion: .opacity.combined(with: .move(edge: .bottom)),
+                                removal: .opacity.combined(with: .move(edge: .top))
+                            ))
+                            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: shouldAnimate(tab))
+                        }
+                    }
+                    .overlay(
+                        iTab.tabs
+                            .contains(where: { targetedDropItem?.imTargeted(
+                                withMyIdBeing: $0.id,
+                                andType: .tab(tabset: false)
+                            ) ?? false }) ? DragTarget(
+                                tab: iTab.tabs.first!,
+                                draggedItem: $draggedItem,
+                                targetedDropItem: $targetedDropItem
+                            ) : nil
                     )
-                    .onDrag { onDrag(tab.id) }
-                    .onDrop(
-                        of: [.text],
-                        delegate: TabDropDelegate(
-                            item: tab,
-                            representative: .tab, draggedItem: $draggedItem,
-                            targetedItem: $targetedDropItem,
-                            targetSection: .normal
-                        )
-                    )
-                    .transition(.asymmetric(
-                        insertion: .opacity.combined(with: .move(edge: .bottom)),
-                        removal: .opacity.combined(with: .move(edge: .top))
-                    ))
-                    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: shouldAnimate(tab))
 
                     Capsule()
                         .frame(height: 3)
                         .foregroundStyle(theme.accent)
                         .opacity(targetedDropItem?
-                            .imTargeted(withMyIdBeing: tab.id, andType: .divider) ?? false ? 1.0 : 0.0)
+                            .imTargeted(withMyIdBeing: iTab.tabs.first!.id, andType: .divider) ?? false ? 1.0 : 0.0)
                         .onDrop(
                             of: [.text],
                             delegate: TabDropDelegate(
-                                item: tab,
+                                item: iTab.tabs.first!,
                                 representative: .divider,
                                 draggedItem: $draggedItem,
                                 targetedItem: $targetedDropItem,

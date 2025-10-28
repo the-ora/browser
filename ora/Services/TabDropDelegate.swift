@@ -9,12 +9,12 @@ extension Array where Element: Hashable {
 }
 
 enum DelegateTarget {
-    case tab, divider
+    case tab(tabset: Bool), divider
 
     func toDropItem(withId id: UUID) -> TargetedDropItem {
         switch self {
-        case .tab:
-            return .tab(id)
+        case let .tab(tabset):
+            return .tab(id: id, tabset: tabset)
         case .divider:
             return .divider(id)
         }
@@ -53,7 +53,9 @@ struct TabDropDelegate: DropDelegate {
     func performDrop(info: DropInfo) -> Bool {
         guard let provider = info.itemProviders(for: [.text]).first else { return false }
         performHapticFeedback(pattern: .alignment)
-        provider.loadObject(ofClass: NSString.self) { object, _ in
+        provider.loadObject(ofClass: NSString.self) {
+            object,
+                _ in
             if let string = object as? String,
                let uuid = UUID(uuidString: string)
             {
@@ -96,12 +98,22 @@ struct TabDropDelegate: DropDelegate {
                                 dampingFraction: 0.8
                             )
                         ) {
-                            self.item.container
-                                .reorderTabs(
-                                    from: from,
-                                    to: self.item,
-                                    withReparentingBehavior: representative.reparentingBehavior
-                                )
+                            if case let .tab(tabset) = representative,
+                               tabset
+                            {
+                                self.item.container
+                                    .combineToTileset(
+                                        withSourceTab: from,
+                                        andDestinationTab: self.item
+                                    )
+                            } else {
+                                self.item.container
+                                    .reorderTabs(
+                                        from: from,
+                                        to: self.item,
+                                        withReparentingBehavior: representative.reparentingBehavior
+                                    )
+                            }
                         }
                     } else {
                         moveTabBetweenSections(from: from, to: self.item)

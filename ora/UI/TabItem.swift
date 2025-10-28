@@ -98,6 +98,8 @@ struct TabItem: View {
     @EnvironmentObject var downloadManager: DownloadManager
     @EnvironmentObject var privacyMode: PrivacyMode
     let availableContainers: [TabContainer]
+    @Binding var draggedItem: UUID?
+    @Binding var targetedDropItem: TargetedDropItem?
 
     @Environment(\.theme) private var theme
     @State private var isHovering = false
@@ -148,15 +150,6 @@ struct TabItem: View {
                 ConditionallyConcentricRectangle(cornerRadius: 10)
                 .stroke(
                     theme.invertedSolidWindowBackgroundColor.opacity(0.25),
-                    style: StrokeStyle(lineWidth: 1, dash: [5, 5])
-                )
-                : nil
-        )
-        .overlay(
-            isDragTarget ?
-                ConditionallyConcentricRectangle(cornerRadius: 10)
-                .stroke(
-                    theme.accent,
                     style: StrokeStyle(lineWidth: 1, dash: [5, 5])
                 )
                 : nil

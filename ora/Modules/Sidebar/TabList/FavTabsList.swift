@@ -54,7 +54,7 @@ struct FavTabsGrid: View {
                         of: [.text],
                         delegate: TabDropDelegate(
                             item: tab,
-                            representative: .tab,
+                            representative: .tab(tabset: true),
                             draggedItem: $draggedItem, targetedItem:
                             .constant(nil),
                             targetSection: .fav

@@ -120,7 +120,7 @@ class TabManager: ObservableObject {
     // MARK: - Container Public API's
 
     func moveTabToContainer(_ tab: Tab, toContainer: TabContainer) {
-        tab.deparent()
+        tab.dissociateFromRelatives()
         tab.container = toContainer
         tab.order = (toContainer.tabs.map((\.order)).max() ?? -1) + 1
         try? modelContext.save()
@@ -312,7 +312,8 @@ class TabManager: ObservableObject {
     }
 
     func closeTab(tab: Tab) {
-        tab.deparent()
+        tab.dissociateFromRelatives()
+        activeContainer?.removeTabFromTileset(tab: tab)
 
         // If the closed tab was active, select another tab
         if self.activeTab?.id == tab.id {

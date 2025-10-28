@@ -58,6 +58,7 @@ class Tab: ObservableObject, Identifiable {
     @Relationship(inverse: \TabContainer.tabs) var container: TabContainer
     @Relationship(deleteRule: .cascade) var children: [Tab]
     @Relationship(inverse: \Tab.children) var parent: Tab?
+    @Relationship(inverse: \TabTileset.tabs) var tileset: TabTileset?
 
     /// Whether this tab is considered alive (recently accessed)
     var isAlive: Bool {
@@ -411,7 +412,7 @@ class Tab: ObservableObject, Identifiable {
         }
     }
 
-    func deparent() {
+    func dissociateFromRelatives() {
         if let parent = self.parent {
             parent.children.removeAll(where: { $0.id == id })
             for child in parent.children {
