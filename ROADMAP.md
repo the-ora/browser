@@ -55,8 +55,8 @@ Below is the list of core features planned or completed for the Beta release.
 | Phase | Status | Focus |
 |--------|---------|--------|
 | **Alpha (Current)** | 🟢 Active | Core browsing, tabs, session management, and core UIs |
-| **Beta 1** | 🟡 Soon | autofill, bookmarks(folders), downloads, peek, split tab views and more |
-| **Stable 1.0** | ⚪ Future | Extensions, performance, UI polish |
+| **Beta 1** | 🟡 Soon | Autofill, bookmarks(folders), downloads, peek, split tab views and more |
+| **Stable 1.0** | ⚪ Future | Full extensions support, performance, UI polish |
 
 ---
 
