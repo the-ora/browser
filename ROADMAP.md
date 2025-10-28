@@ -40,7 +40,7 @@ Below is the list of core features planned or completed for the Beta release.
 
 ### Developer Features
 - [x] Developer Tools
-- [ ] Extensions — Safari & Chrome extensions (beta) [#167](https://github.com/the-ora/browser/pull/137)
+- [ ] Extensions — Safari & Chrome extensions (beta) [#137](https://github.com/the-ora/browser/pull/137)
 
 ### System Integration
 - [ ] Web notifications
