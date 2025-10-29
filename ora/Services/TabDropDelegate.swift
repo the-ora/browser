@@ -30,6 +30,94 @@ enum DelegateTarget {
     }
 }
 
+extension UUID {
+    static let zero: UUID = .init(uuidString: "00000000-0000-0000-0000-000000000000")!
+}
+
+struct NilDropDelegate: DropDelegate {
+    func dropEntered(info: DropInfo) {}
+
+    func dropExited(info: DropInfo) {}
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        .init(operation: .forbidden)
+    }
+
+    func performDrop(info: DropInfo) -> Bool { false }
+}
+
+/// Adds a tab to the top of the list
+struct TopDropDelegate: DropDelegate {
+    let container: TabContainer
+    @Binding var targetedItem: TargetedDropItem?
+    @Binding var draggedItem: UUID?
+    let representative: DelegateTarget
+    let section: TabSection
+
+    func dropEntered(info: DropInfo) {
+        targetedItem = representative
+            .toDropItem(withId: .zero)
+    }
+
+    func dropExited(info: DropInfo) {
+        targetedItem = nil
+    }
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        .init(operation: .move)
+    }
+
+    func performDrop(info: DropInfo) -> Bool {
+        defer {
+            draggedItem = nil
+            targetedItem = nil
+        }
+
+        guard let provider = info.itemProviders(for: [.text]).first else { return false }
+        performHapticFeedback(pattern: .alignment)
+        provider.loadObject(ofClass: NSString.self) {
+            object,
+                _ in
+            if let string = object as? String,
+               let uuid = UUID(uuidString: string)
+            {
+                DispatchQueue.main.async {
+                    // First try to find the tab in the target container
+                    var from = container.tabs.first(where: { $0.id == uuid })
+
+                    // If not found, try to find it in all containers of the same type
+                    if from == nil {
+                        // Look through all tabs in all containers to find the dragged tab
+                        for container in container.tabs.compactMap(\.container).unique() {
+                            if let foundTab = container.tabs.first(where: { $0.id == uuid }) {
+                                from = foundTab
+                                break
+                            }
+                        }
+                    }
+
+                    guard let from else { return }
+
+                    if Ora.section(for: from) == section {
+                        withAnimation(
+                            .spring(
+                                response: 0.3,
+                                dampingFraction: 0.8
+                            )
+                        ) {
+                            container.bringToTop(tab: from)
+                        }
+                    } else {
+                        from.switchSections(from: from, toSection: section)
+                        container.bringToTop(tab: from)
+                    }
+                }
+            }
+        }
+        return true
+    }
+}
+
 struct TabDropDelegate: DropDelegate {
     let item: Tab  // to
     let representative: DelegateTarget
@@ -51,6 +139,11 @@ struct TabDropDelegate: DropDelegate {
     }
 
     func performDrop(info: DropInfo) -> Bool {
+        defer {
+            draggedItem = nil
+            targetedItem = nil
+        }
+
         guard let provider = info.itemProviders(for: [.text]).first else { return false }
         performHapticFeedback(pattern: .alignment)
         provider.loadObject(ofClass: NSString.self) {
@@ -111,7 +204,8 @@ struct TabDropDelegate: DropDelegate {
                                     .reorderTabs(
                                         from: from,
                                         to: self.item,
-                                        withReparentingBehavior: representative.reparentingBehavior
+                                        withReparentingBehavior: SettingsStore.shared.treeTabsEnabled ? representative
+                                            .reparentingBehavior : .sibling
                                     )
                             }
                         }
@@ -121,8 +215,6 @@ struct TabDropDelegate: DropDelegate {
                 }
             }
         }
-        draggedItem = nil
-        targetedItem = nil
         return true
     }
 }

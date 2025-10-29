@@ -30,11 +30,26 @@ class TabManager: ObservableObject {
         )
     }
 
+    private func addSplitMembers(to tabs: inout Set<Tab>, fromContainer container: TabContainer) {
+        for tileset in container.tilesets {
+            if tileset.tabs.contains(where: { tabs.contains($0) }) {
+                tabs.formUnion(tileset.tabs)
+            }
+        }
+    }
+
+    func isInSplit(tab: Tab) -> Bool {
+        activeContainer?.tilesets.contains(where: {
+            $0.tabs.contains(tab) && ($0.tabs.first(where: { $0.id == activeTab?.id }) != nil)
+        }) ?? false
+    }
+
     var tabsToRender: [Tab] {
         guard let container = activeContainer else { return [] }
         let specialTabs = container.tabs.filter { $0.type == .pinned || $0.type == .fav || $0.isPlayingMedia }
-        let combined = Set(recentTabs + specialTabs)
-        return Array(combined)
+        var combined = Set(recentTabs + specialTabs)
+        addSplitMembers(to: &combined, fromContainer: container)
+        return Array(combined).sorted(by: { $0.order < $1.order })
     }
 
     // Note: Could be made injectable via init parameter if preferred
@@ -218,7 +233,7 @@ class TabManager: ObservableObject {
             isPrivate: isPrivate
         )
         modelContext.insert(newTab)
-        container.tabs.append(newTab)
+        container.addTab(newTab)
         activeTab?.maybeIsActive  = false
         activeTab = newTab
         activeTab?.maybeIsActive  = true
@@ -258,6 +273,8 @@ class TabManager: ObservableObject {
 
                 let cleanHost = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
 
+                let orderBase = (parent != nil ? parent!.children : container.tabs).map(\.order).max() ?? -1
+
                 let newTab = Tab(
                     parent: parent, url: url,
                     title: cleanHost,
@@ -265,14 +282,14 @@ class TabManager: ObservableObject {
                     container: container,
                     type: .normal,
                     isPlayingMedia: false,
-                    order: ((parent != nil ? parent!.children : container.tabs).map(\.order).max() ?? -1) + 1,
+                    order: orderBase + 1,
                     historyManager: historyManager,
                     downloadManager: downloadManager,
                     tabManager: self,
                     isPrivate: isPrivate
                 )
                 modelContext.insert(newTab)
-                container.tabs.append(newTab)
+                container.addTab(newTab)
 
                 if focusAfterOpening {
                     activeTab?.maybeIsActive  = false

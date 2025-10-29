@@ -36,7 +36,7 @@ private func tabsSortedByParentImpl(
                 IndentedTab(
                     tab: root,
                     indentationLevel: indentation,
-                    tabs: toAppend
+                    tabs: toAppend.reversed()
                 )
             )
 
@@ -98,11 +98,30 @@ struct NormalTabsList: View {
     @EnvironmentObject var tabManager: TabManager
     @State private var previousTabIds: [UUID] = []
     @State private var targetedDropItem: TargetedDropItem?
+    @StateObject private var settings = SettingsStore.shared
     @Environment(\.theme) private var theme
 
     var body: some View {
         VStack(spacing: 3) {
             NewTabButton(addNewTab: onAddNewTab)
+
+            Text(
+                "\(String(describing: tabManager.activeContainer?.tilesets.map { $0.tabs.map(\.title) }))"
+            )
+
+            DropCapsule(
+                id: .zero,
+                targetedDropItem: $targetedDropItem,
+                draggedItem: $draggedItem,
+                delegate: TopDropDelegate(
+                    container: tabManager.activeContainer ?? containers.first!,
+                    targetedItem: $targetedDropItem,
+                    draggedItem: $draggedItem,
+                    representative: .divider,
+                    section: .normal
+                )
+            )
+
             ForEach(tabsSortedByParent(tabs)) { iTab in
                 VStack(spacing: 3) {
                     HStack {
@@ -117,10 +136,9 @@ struct NormalTabsList: View {
                                 isDragTarget: targetedDropItem?
                                     .imTargeted(
                                         withMyIdBeing: tab.id,
-                                        andType: .tab(tabset: false)
+                                        andType: .tab(tabset: true)
                                     ) ?? false,
-                                onTap: { onSelect(tab)
-                                },
+                                onTap: { onSelect(tab) },
                                 onPinToggle: { onPinToggle(tab) },
                                 onFavoriteToggle: { onFavoriteToggle(tab) },
                                 onClose: { onClose(tab) },
@@ -148,36 +166,35 @@ struct NormalTabsList: View {
                         }
                     }
                     .overlay(
-                        iTab.tabs
-                            .contains(where: { targetedDropItem?.imTargeted(
-                                withMyIdBeing: $0.id,
-                                andType: .tab(tabset: false)
-                            ) ?? false }) ? DragTarget(
-                                tab: iTab.tabs.first!,
-                                draggedItem: $draggedItem,
-                                targetedDropItem: $targetedDropItem
-                            ) : nil
+                        iTab.tabs.contains(where: { targetedDropItem?.imTargeted(
+                            withMyIdBeing: $0.id,
+                            andType: .tab(tabset: false)
+                        ) ?? false }) ? DragTarget(
+                            tab: iTab.tabs.first!,
+                            draggedItem: $draggedItem,
+                            targetedDropItem: $targetedDropItem,
+                            showTree: settings.treeTabsEnabled
+                        ) : nil
                     )
 
-                    Capsule()
-                        .frame(height: 3)
-                        .foregroundStyle(theme.accent)
-                        .opacity(targetedDropItem?
-                            .imTargeted(withMyIdBeing: iTab.tabs.first!.id, andType: .divider) ?? false ? 1.0 : 0.0)
-                        .onDrop(
-                            of: [.text],
-                            delegate: TabDropDelegate(
-                                item: iTab.tabs.first!,
-                                representative: .divider,
-                                draggedItem: $draggedItem,
-                                targetedItem: $targetedDropItem,
-                                targetSection: .normal
-                            )
+                    DropCapsule(
+                        id: iTab.tabs.first!.id,
+                        targetedDropItem: $targetedDropItem,
+                        draggedItem: $draggedItem,
+                        delegate: TabDropDelegate(
+                            item: iTab.tabs.first!,
+                            representative: .divider,
+                            draggedItem: $draggedItem,
+                            targetedItem: $targetedDropItem,
+                            targetSection: .normal
                         )
+                    )
                 }
                 .padding(
                     .leading,
-                    CGFloat(integerLiteral: iTab.indentationLevel * 8)
+                    CGFloat(
+                        integerLiteral: settings.treeTabsEnabled ? iTab.indentationLevel * 8 : 0
+                    )
                 )
             }
         }

@@ -98,6 +98,10 @@ struct GeneralSettingsView: View {
                         }
 
                         Toggle("Auto Picture-in-Picture on tab switch", isOn: $settings.autoPiPEnabled)
+                        Toggle(
+                            "Use tree-style tabs",
+                            isOn: $settings.treeTabsEnabled
+                        )
                     }
                     .padding(.vertical, 8)
                     VStack(alignment: .leading, spacing: 12) {

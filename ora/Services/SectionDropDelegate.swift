@@ -8,8 +8,8 @@ struct SectionDropDelegate: DropDelegate {
     let tabManager: TabManager
 
     func dropEntered(info: DropInfo) {
-        guard let provider = info.itemProviders(for: [.text]).first else { return }
         performHapticFeedback(pattern: .alignment)
+        guard let provider = info.itemProviders(for: [.text]).first else { return }
 
         provider.loadObject(ofClass: NSString.self) { object, _ in
             guard
@@ -25,6 +25,10 @@ struct SectionDropDelegate: DropDelegate {
                 if self.items.isEmpty {
                     // Section is empty, just change type and order
                     let newType = tabType(for: self.targetSection)
+                    if [.pinned, .fav].contains(newType) {
+                        from.abandonChildren()
+                    }
+                    from.dissociateFromRelatives()
                     from.type = newType
                     // Update savedURL when moving into pinned/fav; clear when moving to normal
                     switch newType {

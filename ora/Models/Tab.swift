@@ -181,6 +181,16 @@ class Tab: ObservableObject, Identifiable {
         }
     }
 
+    func switchSections(from: Tab, toSection sec: TabSection) {
+        from.type = tabType(for: sec)
+        switch sec {
+        case .pinned, .fav:
+            from.savedURL = from.url
+        case .normal:
+            from.savedURL = nil
+        }
+    }
+
     func updateHeaderColor() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
             if let wv = self?.webView {
@@ -426,6 +436,12 @@ class Tab: ObservableObject, Identifiable {
                     sibling.order -= 1
                 }
             }
+        }
+    }
+
+    func abandonChildren() {
+        for child in children {
+            child.parent = parent
         }
     }
 }

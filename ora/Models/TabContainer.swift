@@ -16,7 +16,7 @@ class TabContainer: ObservableObject, Identifiable {
     var lastAccessedAt: Date
 
     @Relationship(deleteRule: .cascade) var tilesets: [TabTileset] = []
-    @Relationship(deleteRule: .cascade) var tabs: [Tab] = []
+    @Relationship(deleteRule: .cascade) private(set) var tabs: [Tab] = []
     @Relationship(deleteRule: .cascade) var folders: [Folder] = []
     @Relationship() var history: [History] = []
 
@@ -34,12 +34,34 @@ class TabContainer: ObservableObject, Identifiable {
         self.lastAccessedAt = nowDate
     }
 
-    private func pushTabs(in tab: Tab, startingAfter idx: Int) {
-        for tab in tab.children {
+    private func pushTabs(in tab: Tab?, startingAfter idx: Int, _ amount: Int = 1) {
+        for tab in tab?.children ?? tabs {
             if tab.order > idx {
-                tab.order += 1
+                tab.order += amount
             }
         }
+    }
+
+    func addTab(_ tab: Tab) {
+        var orderBase: Int
+        if SettingsStore.shared.treeTabsEnabled {
+            orderBase = (tab.parent?.children ?? tabs).map(\.order).max() ?? -1
+        } else if let parent = tab.parent {
+            orderBase = parent.order
+            pushTabs(
+                in: nil,
+                startingAfter: parent.order
+            )
+        } else {
+            orderBase = tabs.map(\.order).max() ?? -1
+        }
+
+        if !SettingsStore.shared.treeTabsEnabled {
+            tab.parent = nil
+        }
+
+        tab.order = orderBase + 1
+        tabs.append(tab)
     }
 
     func removeTabFromTileset(tab: Tab) {
@@ -61,7 +83,8 @@ class TabContainer: ObservableObject, Identifiable {
         removeTabFromTileset(tab: src)
         reorderTabs(from: src, to: dst, withReparentingBehavior: .sibling)
         if let tabset = tilesets.first(where: { $0.tabs.contains(dst) }) {
-            tabset.tabs.append(src)
+            let dstIdx = tabset.tabs.firstIndex(of: dst)!
+            tabset.tabs.insert(src, at: dstIdx + 1)
         } else {
             let ts = TabTileset(tabs: [])
             tilesets.append(ts)
@@ -69,25 +92,47 @@ class TabContainer: ObservableObject, Identifiable {
         }
     }
 
+    func bringToTop(tab target: Tab) {
+        for tab in tabs {
+            if tab.order > target.order {
+                tab.order -= 1
+            } else {
+                tab.order += 1
+            }
+        }
+        target.order = 0
+    }
+
     func reorderTabs(
         from: Tab,
         to: Tab,
         withReparentingBehavior reparentingBehavior: ReparentingBehavior = .sibling
     ) {
+        let containingTilesetTabs = tilesets.first(where: { $0.tabs.contains(from) })?.tabs ?? [from]
+        let numRelevantTabs = containingTilesetTabs.count
+
         from.dissociateFromRelatives()
         switch reparentingBehavior {
         case .sibling:
             to.parent?.children.insert(from, at: 0)
-            if let parent = to.parent {
-                pushTabs(in: parent, startingAfter: to.order)
+            pushTabs(in: to.parent, startingAfter: to.order, numRelevantTabs)
+            for (i, tab) in containingTilesetTabs.enumerated() {
+                tab.order = to.order + 1 + i
             }
-            from.order = to.order + 1
         case .child:
             to.children.insert(from, at: 0)
-            from.order = -1
-            for child in to.children {
-                child.order += 1
+            for (i, tab) in containingTilesetTabs.enumerated() {
+                tab.order = -containingTilesetTabs.count + i
             }
+            for child in to.children {
+                child.order += numRelevantTabs
+            }
+        }
+    }
+
+    func flattenTabs() {
+        for tab in tabs {
+            tab.parent = nil
         }
     }
 }

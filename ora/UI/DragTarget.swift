@@ -12,27 +12,30 @@ struct DragTarget: View {
     let tab: Tab
     @Binding var draggedItem: UUID?
     @Binding var targetedDropItem: TargetedDropItem?
+    let showTree: Bool
     var body: some View {
         HStack {
-            ConditionallyConcentricRectangle(cornerRadius: 10)
-                .stroke(
-                    theme.accent,
-                    style: StrokeStyle(lineWidth: 1, dash: [5, 5])
-                )
-                .overlay {
-                    Image(systemName: "arrow.down.to.line")
-                        .bold()
-                }
-                .onDrop(
-                    of: [.text],
-                    delegate: TabDropDelegate(
-                        item: tab,
-                        representative:
-                        .tab(tabset: false), draggedItem: $draggedItem,
-                        targetedItem: $targetedDropItem,
-                        targetSection: .normal
+            if showTree {
+                ConditionallyConcentricRectangle(cornerRadius: 10)
+                    .stroke(
+                        theme.accent,
+                        style: StrokeStyle(lineWidth: 1, dash: [5, 5])
                     )
-                )
+                    .overlay {
+                        Image(systemName: "arrow.down.to.line")
+                            .bold()
+                    }
+                    .onDrop(
+                        of: [.text],
+                        delegate: TabDropDelegate(
+                            item: tab,
+                            representative:
+                            .tab(tabset: false), draggedItem: $draggedItem,
+                            targetedItem: $targetedDropItem,
+                            targetSection: .normal
+                        )
+                    )
+            }
             ConditionallyConcentricRectangle(cornerRadius: 10)
                 .stroke(
                     theme.accent,

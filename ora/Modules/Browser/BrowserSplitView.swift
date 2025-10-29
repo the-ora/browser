@@ -83,15 +83,26 @@ struct BrowserSplitView: View {
                 HomeView()
             }
         }
+        let activeId = tabManager.activeTab?.id
         ZStack {
-            let activeId = tabManager.activeTab?.id
-            ForEach(tabManager.tabsToRender) { tab in
+            ForEach(tabManager.tabsToRender.filter { !($0.id == activeId || tabManager.isInSplit(tab: $0)) }) { tab in
                 if tab.isWebViewReady {
                     BrowserContentContainer {
                         BrowserWebContentView(tab: tab)
                     }
-                    .opacity(tab.id == activeId ? 1 : 0)
-                    .allowsHitTesting(tab.id == activeId)
+                    .opacity(0)
+                    .allowsHitTesting(
+                        false
+                    )
+                }
+            }
+        }
+        HStack {
+            ForEach(tabManager.tabsToRender.filter { $0.id == activeId || tabManager.isInSplit(tab: $0) }) { tab in
+                if tab.isWebViewReady {
+                    BrowserContentContainer {
+                        BrowserWebContentView(tab: tab)
+                    }
                 }
             }
         }

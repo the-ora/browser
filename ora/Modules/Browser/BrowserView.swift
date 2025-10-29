@@ -1,4 +1,5 @@
 import AppKit
+import SwiftData
 import SwiftUI
 
 struct BrowserView: View {
@@ -10,6 +11,9 @@ struct BrowserView: View {
     @EnvironmentObject private var privacyMode: PrivacyMode
     @EnvironmentObject private var sidebarManager: SidebarManager
     @EnvironmentObject private var toolbarManager: ToolbarManager
+
+    @Query var containers: [TabContainer]
+    @StateObject private var settingsStore: SettingsStore = .shared
 
     @State private var isMouseOverURLBar = false
     @State private var showFloatingURLBar = false
@@ -89,6 +93,12 @@ struct BrowserView: View {
                         isPrivate: privacyMode.isPrivate
                     )
                 }
+            }
+        }
+        .onChange(of: settingsStore.treeTabsEnabled) { _, treeEnabled in
+            if !treeEnabled {
+                // Deparent all tabs in all containers
+                containers.forEach { $0.flattenTabs() }
             }
         }
     }

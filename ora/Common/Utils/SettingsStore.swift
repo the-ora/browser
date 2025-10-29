@@ -150,6 +150,7 @@ class SettingsStore: ObservableObject {
     private let tabRemovalTimeoutKey = "settings.tabRemovalTimeout"
     private let maxRecentTabsKey = "settings.maxRecentTabs"
     private let autoPiPEnabledKey = "settings.autoPiPEnabled"
+    private let treeTabsEnabledKey = "settings.treeTabsEnabled"
 
     // MARK: - Per-Container
 
@@ -217,6 +218,10 @@ class SettingsStore: ObservableObject {
         didSet { defaults.set(autoPiPEnabled, forKey: autoPiPEnabledKey) }
     }
 
+    @Published var treeTabsEnabled: Bool {
+        didSet { defaults.set(treeTabsEnabled, forKey: treeTabsEnabledKey) }
+    }
+
     init() {
         autoUpdateEnabled = defaults.bool(forKey: autoUpdateKey)
         blockThirdPartyTrackers = defaults.bool(forKey: trackingThirdPartyKey)
@@ -271,6 +276,8 @@ class SettingsStore: ObservableObject {
         maxRecentTabs = maxRecentTabsValue == 0 ? 5 : maxRecentTabsValue
 
         autoPiPEnabled = defaults.object(forKey: autoPiPEnabledKey) as? Bool ?? true
+
+        treeTabsEnabled = defaults.object(forKey: treeTabsEnabledKey) as? Bool ?? false
     }
 
     // MARK: - Per-container helpers
