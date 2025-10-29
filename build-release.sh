@@ -90,7 +90,10 @@ rm -f *.dmg
 VERSION=$(grep "MARKETING_VERSION:" project.yml | sed 's/.*MARKETING_VERSION: //' | tr -d ' ')
 DMG_NAME="Ora-Browser-${VERSION}.dmg"
 
-# Create export options plist
+# Set provisioning profile name (from security cms decode)
+PROFILE_NAME="3294b946-1c5f-4079-919a-599d513eff4a"
+
+# Create export options plist (manual signing with profile mapping)
 echo "⚙️  Creating export options..."
 cat >build/exportOptions.plist <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -101,33 +104,35 @@ cat >build/exportOptions.plist <<EOF
     <string>developer-id</string>
     <key>teamID</key>
     <string>$TEAM_ID</string>
-    <key>destination</key>
-    <string>export</string>
     <key>signingStyle</key>
     <string>manual</string>
     <key>signingCertificate</key>
     <string>$SIGNING_IDENTITY</string>
-    <key>stripSwiftSymbols</key>
-    <true/>
+    <key>provisioningProfiles</key>
+    <dict>
+        <key>com.orabrowser.app</key>
+        <string>$PROFILE_NAME</string>
+    </dict>
 </dict>
 </plist>
 EOF
 
 # Generate Xcode project (always regenerate to ensure latest project.yml)
 echo "📋 Generating Xcode project..."
-xcodegen
+# xcodegen
 
 # Build the app directly (faster than archiving)
 echo "🔨 Building release version..."
 xcodebuild build \
+	-project ora.xcodeproj \
 	-scheme ora \
 	-configuration Release \
 	-destination 'platform=macOS' \
 	-derivedDataPath "build/DerivedData" \
 	CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" \
-	CODE_SIGNING_REQUIRED=NO \
-	CODE_SIGNING_ALLOWED=NO \
-	-developmentTeam="$TEAM_ID"
+	-developmentTeam="$TEAM_ID" \
+	CODE_SIGN_ENTITLEMENTS="ora/ora-release.entitlements" \
+	-quiet
 # > /dev/null 2>&1
 
 # Copy the built app to build directory
@@ -140,9 +145,24 @@ else
 	exit 1
 fi
 
+# Embed provisioning profile for restricted entitlements (macOS-specific)
+echo "📝 Embedding macOS provisioning profile..."
+if [ -f "embedded.provisionprofile" ]; then
+	cp "embedded.provisionprofile" "build/Ora.app/Contents/embedded.provisionprofile"
+	if [ $? -eq 0 ]; then
+		echo "✅ Provisioning profile embedded as embedded.provisionprofile"
+	else
+		echo "❌ Failed to embed profile"
+		exit 1
+	fi
+else
+	echo "❌ embedded.provisionprofile not found"
+	exit 1
+fi
+
 # Sign the entire app bundle (with deep)
-echo "🔐 Signing app bundle with Developer ID (deep)..."
-codesign --force --deep --options runtime --timestamp --sign "$SIGNING_IDENTITY" "build/Ora.app"
+echo "🔐 Signing app bundle with Developer ID (deep)... $SIGNING_IDENTITY"
+codesign --force --deep --options runtime --timestamp --entitlements "ora/ora-release.entitlements" --sign "$SIGNING_IDENTITY" "build/Ora.app"
 
 if [ $? -eq 0 ]; then
 	echo "✅ App bundle signed successfully"

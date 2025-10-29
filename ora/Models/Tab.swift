@@ -147,7 +147,7 @@ class Tab: ObservableObject, Identifiable {
         let faviconURL = faviconURLDefault ?? URL(string: "https://www.google.com/s2/favicons?domain=\(domain)&sz=64")!
         self.favicon = faviconURL
 
-        // Infer extension from URL or fallback to png
+        // Infer extension from URL or fallback to pngn
         let ext = faviconURL.pathExtension.isEmpty ? "png" : faviconURL.pathExtension
         let fileName = "\(self.id.uuidString).\(ext)"
         let saveURL = FileManager.default.faviconDirectory.appendingPathComponent(fileName)

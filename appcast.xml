@@ -5,24 +5,89 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
-      <title>Version 0.2.8</title>
+      <title>Version 0.2.9</title>
       <description><![CDATA[
-        <h2>Ora Browser v0.2.8</h2>
+        <h2>Ora Browser v0.2.9</h2>
         <p>Changes since last release:</p>
         <div class="changelog">
           <h3>Features</h3>
           <ul>
-            <li>feat: auto Picture-in-Picture handling and improve favicon handling (#160) — Kenenisa Alemayehu</li>
+            <li>feat: enable passkeys — Kenenisa Alemayehu</li>
+            <li>feat: add URL handling and deep linking support (#132) — Kenenisa Alemayehu</li>
+            <li>feat: double click full resize of window (#128) — Chase</li>
+            <li>feat: add ability to edit container name and emoji (#125) — Chase</li>
+            <li>feat: add JavaScript alert, confirm, and prompt handling (#108) — Kenenisa Alemayehu</li>
+            <li>Feature/global tracker for sidebar (#98) — AryanRogye</li>
+            <li>Feature: allow middle click to open link in new tab (#88) — Omar Sánchez</li>
+            <li>feat: implement window system with private browsing and storage isolation (#80) — Kenenisa Alemayehu</li>
+            <li>feat: add media bar (#57) — Roman Potapov</li>
+            <li>feat: update build-release.sh — Kenenisa Alemayehu</li>
+            <li>feat: per-container storage isolation (#79) — Kenenisa Alemayehu</li>
+          </ul>
+          <h3>Fixes</h3>
+          <ul>
+            <li>fix: adjust indentation in build-release.sh for consistent formatting — Kenenisa Alemayehu</li>
+            <li>fix: settings model container and spaces UI (#127) — Chase</li>
+            <li>fix: move to container shows proper containers now (#126) — Chase</li>
+            <li>fix(sidebar): update sidebar visibility persistance (#124) — Furkan Koseoglu</li>
+            <li>fix: update user agent string in TabScriptHandler for compatibility — Kenenisa Alemayehu</li>
+            <li>fix: prevent appearance update crash when NSApp is nil (#115) — Kenenisa Alemayehu</li>
+            <li>fix(tabs): add keyboard shortcuts for tab selection and notification handling (#106) — Furkan Koseoglu</li>
+            <li>fix: closing tab animation (#53) — Roman Potapov</li>
+            <li>fix(sidebar): fixes sidebar behavior with downloads widgets when side… (#100) — Furkan Koseoglu</li>
+            <li>fix: mini player spacing on sidebar — yonaries</li>
+            <li>fix: min and max launcher width — yonaries</li>
+            <li>fix: update favicon fetching URLs to include Google favicon service — Kenenisa Alemayehu</li>
+            <li>Fix inconsistent spacings, paddings and corner radiuses (#81) — Yonathan Dejene</li>
+            <li>Fix copy URL bug - closure capture issue (#86) — Kenenisa Alemayehu</li>
+            <li>fix: make History.container optional by initializing it to nil — Kenenisa Alemayehu</li>
+            <li>fix: searching for text in url bar (#85) — Roman Potapov</li>
+          </ul>
+          <h3>Chores</h3>
+          <ul>
+            <li>chore: swiftlint — yonaries</li>
+            <li>chore: skip version bump commits in release script — Kenenisa Alemayehu</li>
+            <li>chore: update .gitignore to exclude backup files and remove obsolete appcast.xml.backup — Kenenisa Alemayehu</li>
+            <li>chore: remove unnecessary exit statement from release script — Kenenisa Alemayehu</li>
+            <li>chore: Enhance release script with changelog generation and HTML export — Kenenisa Alemayehu</li>
+            <li>chore: undo to vertical scrollview — yonaries</li>
+            <li>chore!: bump deployment target to macOS 15 — yonaries</li>
+            <li>chore: reduce urlbar spacing — yonaries</li>
+            <li>chore: format files — yonaries</li>
+            <li>chore: update .gitignore to include project.yml.bak — Kenenisa Alemayehu</li>
+          </ul>
+          <h3>Other</h3>
+          <ul>
+            <li>Enhance Tab Management Settings and UI (#139) — Kenenisa Alemayehu</li>
+            <li>Update macOS and License badge in README — Yonathan Dejene</li>
+            <li>Change license from MIT to GPL-2.0 — Kenenisa Alemayehu</li>
+            <li>Delete LICENSE.md — Kenenisa Alemayehu</li>
+            <li>Add GNU General Public License v2 — Kenenisa Alemayehu</li>
+            <li>Prevent Window Drag Interference During Tab Drags and Refactor TabManager for Modularity (#101) — AryanRogye</li>
+            <li>ux: Cleanup search engines implementation (#121) — versecafe</li>
+            <li>ux: Improve page finder (#122) — versecafe</li>
+            <li>Add custom keyboard shortcut support + update UI (#89) — Joe McLaughlin</li>
+            <li>Add horizontal padding to search bar in LauncherMain SwiftUI view (#110) — FormalSnake</li>
+            <li>Update Wiki link in README.md (#104) — Aether</li>
+            <li>Update Wiki link to point to GitHub page — Kenenisa Alemayehu</li>
+            <li>ui: apply concentric rectangle on tabs — yonaries</li>
+            <li>Add new Shape that conditionally uses ConcentricRectangle on 26+ (#83) — Joe McLaughlin</li>
+            <li>refactor: moved sidbar urlbar to container view — yonaries</li>
+            <li>Sidebar Fixes (UX) (#59) — Aarav Gupta</li>
+            <li>backport: WindowDragGesture to macOS 14 (#68) — Aarav Gupta</li>
+            <li>Remove codesigning verification steps from build-release.sh to streamline the build process. — Kenenisa Alemayehu</li>
+            <li>Add checklist for including screenshots in PRs — Yonathan Dejene</li>
+            <li>Enhance build-release.sh with environment variable loading and security checks — Kenenisa Alemayehu</li>
           </ul>
         </div>
       ]]></description>
-      <pubDate>Sat, 25 Oct 2025 09:07:24 +0000</pubDate>
-       <enclosure url="https://github.com/the-ora/browser/releases/download/v0.2.8/Ora-Browser-0.2.8.dmg"
-                  sparkle:version="96"
-                  sparkle:shortVersionString="0.2.8"
-                  length="4828895"
+      <pubDate>Tue, 28 Oct 2025 20:01:07 +0000</pubDate>
+       <enclosure url="https://github.com/the-ora/browser/releases/download/v0.2.9/Ora-Browser-0.2.9.dmg"
+                  sparkle:version="97"
+                  sparkle:shortVersionString="0.2.9"
+                  length="33592320"
                   type="application/octet-stream"
-                   sparkle:edSignature="LKATlPXU7QfNZDdjImo5DjdtiYuGUj3BlWquFgb0FIx4A0gl6dBLG4gw29U5EwSdIK269gRsofH2J2I2l8AHBA=="/>
+                   sparkle:edSignature="YOUR_DSA_SIGNATURE_HERE"/>
     </item>
   </channel>
 </rss>
