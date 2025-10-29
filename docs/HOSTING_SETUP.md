@@ -143,10 +143,10 @@ settings:
 ### Step 1: Build Release
 ```bash
 # Build and package the app
-./build-release.sh
+./scripts/build-release.sh
 
 # Or use the comprehensive release script (auto-increments version)
-./create-release.sh
+./scripts/create-release.sh
 ```
 
 ### Step 2: Sign Release

@@ -19,7 +19,7 @@ Ora Browser uses Ed25519 cryptographic keys to sign and verify app updates for s
 ### Setup Process
 1. **First machine**: Keys auto-generated and saved appropriately
 2. **Additional machines**: Copy `.env` file from first machine
-3. **Release process**: `./create-release.sh` handles key management automatically
+3. **Release process**: `./scripts/create-release.sh` handles key management automatically
 
 ### Security Notes
 - `.env` is in `.gitignore` - it will never be committed
@@ -29,7 +29,7 @@ Ora Browser uses Ed25519 cryptographic keys to sign and verify app updates for s
 
 ## 🔍 Security Checks
 
-Run `./check-security.sh` to verify:
+Run `./scripts/check-security.sh` to verify:
 - Private key exists but is not tracked by git
 - Public key is available for app integration
 - `.gitignore` properly excludes sensitive files

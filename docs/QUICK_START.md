@@ -2,22 +2,22 @@
 
 ## 🚀 Quick Setup (5 minutes)
 
-**Note:** The release script now auto-increments version numbers. Just run `./create-release.sh` without arguments for patch releases.
+**Note:** The release script now auto-increments version numbers. Just run `./scripts/create-release.sh` without arguments for patch releases.
 
 ### 1. Setup Sparkle Tools
 ```bash
 brew install --cask sparkle
 ./setup-sparkle-tools.sh
-./setup-sparkle.sh
+./scripts/setup-sparkle.sh
 ```
 
 ### 2. Build & Sign Release
 ```bash
 # Auto-increment version (recommended)
-./create-release.sh
+./scripts/create-release.sh
 
 # Or specify version manually
-./create-release.sh 0.0.1
+./scripts/create-release.sh 0.0.1
 ```
 
 ### 3. Host Files
@@ -82,7 +82,7 @@ xcodegen
 
 ## 🆘 Need Help?
 
-- **Keys not working:** Run `./setup-sparkle.sh` again
+- **Keys not working:** Run `./scripts/setup-sparkle.sh` again
 - **Signature invalid:** Use `sign_update` command output exactly
 - **Update not found:** Check `SUFeedURL` in Info.plist
 - **DMG won't download:** Verify GitHub release is public

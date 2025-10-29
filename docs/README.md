@@ -18,9 +18,9 @@ This directory contains documentation for Ora Browser development, deployment, a
 - **[../project.yml](../project.yml)** - XcodeGen project configuration
 
 ### 🏗️ Build & Release
-- **[../build-release.sh](../build-release.sh)** - Release build script
-- **[../create-release.sh](../create-release.sh)** - Complete release creation script (auto-increments versions)
-- **[../setup-sparkle.sh](../setup-sparkle.sh)** - Sparkle key generation setup
+- **[../scripts/build-release.sh](../scripts/build-release.sh)** - Release build script
+- **[../scripts/create-release.sh](../scripts/create-release.sh)** - Complete release creation script (auto-increments versions)
+- **[../scripts/setup-sparkle.sh](../scripts/setup-sparkle.sh)** - Sparkle key generation setup
 
 ## 🎯 Key Files for Updates
 
