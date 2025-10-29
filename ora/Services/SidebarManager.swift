@@ -7,6 +7,8 @@ enum SidebarPosition: String, Hashable {
 
 @MainActor
 class SidebarManager: ObservableObject {
+    @AppStorage("ui.sidebar.favorites.sticky") var stickyFavs: Bool = true
+    @AppStorage("ui.sidebar.pinned.sticky") var stickyPinned: Bool = true
     @AppStorage("ui.sidebar.hidden") var isSidebarHidden: Bool = false
     @AppStorage("ui.sidebar.position") var sidebarPosition: SidebarPosition = .primary
 

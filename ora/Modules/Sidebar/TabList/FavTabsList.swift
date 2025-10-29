@@ -2,9 +2,9 @@ import AppKit
 import SwiftUI
 
 struct FavTabsGrid: View {
-    @AppStorage("ui.sidebar.favorites.sticky") private var sticky: Bool = true
     @Environment(\.theme) var theme
     @EnvironmentObject var tabManager: TabManager
+    @EnvironmentObject var sidebarManager: SidebarManager
     @State private var isHoveringOverEmpty: Bool = false
     let tabs: [Tab]
     @Binding var draggedItem: UUID?
@@ -27,11 +27,13 @@ struct FavTabsGrid: View {
     }
 
     var body: some View {
-        let isShowingHidden = tabs.isEmpty && !(sticky || isHoveringOverEmpty)
+        let isShowingHidden = tabs.isEmpty && !(
+            sidebarManager.stickyFavs || isHoveringOverEmpty
+        )
         LazyVGrid(columns: adaptiveColumns, spacing: isShowingHidden ? 0 : 10) {
             if tabs.isEmpty {
                 Group {
-                    if sticky || isHoveringOverEmpty {
+                    if sidebarManager.stickyFavs || isHoveringOverEmpty {
                         EmptyFavTabItem()
                     } else {
                         Capsule().frame(height: 3).opacity(0)
@@ -83,7 +85,7 @@ struct FavTabsGrid: View {
         )
         .onChange(of: tabs.count) { _, newTabs in
             if newTabs > 0 {
-                sticky = false
+                sidebarManager.stickyFavs = false
             }
         }
     }

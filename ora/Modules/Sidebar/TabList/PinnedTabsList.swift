@@ -2,7 +2,6 @@ import SwiftData
 import SwiftUI
 
 struct PinnedTabsList: View {
-    @AppStorage("ui.sidebar.pinned.sticky") private var sticky: Bool = true
     let tabs: [Tab]
     @Binding var draggedItem: UUID?
     @State private var isHoveringOverEmpty = false
@@ -15,6 +14,7 @@ struct PinnedTabsList: View {
     let onMoveToContainer: (Tab, TabContainer) -> Void
     let containers: [TabContainer]
     @EnvironmentObject var tabManager: TabManager
+    @EnvironmentObject var sidebarManager: SidebarManager
     @Environment(\.theme) var theme
 
     private var spaceName: String? {
@@ -33,7 +33,7 @@ struct PinnedTabsList: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             if tabs.isEmpty {
                 Group {
-                    if sticky || isHoveringOverEmpty {
+                    if sidebarManager.stickyPinned || isHoveringOverEmpty {
                         EmptyPinnedTabs()
                     } else {
                         Capsule().frame(height: 3).opacity(0)
@@ -78,7 +78,7 @@ struct PinnedTabsList: View {
         )
         .onChange(of: tabs.count) { _, new in
             if new > 0 {
-                sticky = false
+                sidebarManager.stickyPinned = false
             }
         }
     }
