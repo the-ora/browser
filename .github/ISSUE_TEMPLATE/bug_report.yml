@@ -20,7 +20,7 @@ body:
     id: ora-version
     attributes:
       label: Ora Browser Version
-      placeholder: e.g., 0.8.2 (Build 145)
+      placeholder: e.g., 0.2.7
     validations:
       required: true
 
