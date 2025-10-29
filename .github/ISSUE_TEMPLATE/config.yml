@@ -7,7 +7,3 @@ contact_links:
   - name: 💬 Discussions
     url: https://discord.gg/9aZWH52Zjm
     about: Start a discussion, ask a question, or share ideas that don’t fit as an issue.
-
-issue_template:
-  - bug_report.yml
-  - feature_request.yml
