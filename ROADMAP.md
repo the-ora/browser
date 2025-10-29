@@ -1,4 +1,4 @@
-# 🗺️ Ora Browser Roadmap
+# Ora Browser Roadmap
 
 Ora Browser is currently in **early development**.  
 This roadmap tracks progress toward the **Beta** milestone and beyond.
@@ -55,8 +55,8 @@ Below is the list of core features planned or completed for the Beta release.
 | Phase | Status | Focus |
 |--------|---------|--------|
 | **Alpha (Current)** | 🟢 Active | Core browsing, tabs, session management, and core UIs |
-| **Beta 1** | 🟡 Soon | Autofill, bookmarks(folders), downloads, peek, split tab views and more |
-| **Stable 1.0** | ⚪ Future | Full extensions support, performance, UI polish |
+| **Beta 1** | Soon | Autofill, bookmarks(folders), downloads, peek, split tab views and more |
+| **Stable 1.0** | Future | Full extensions support, performance, UI polish |
 
 ---
 
@@ -66,7 +66,7 @@ Below is the list of core features planned or completed for the Beta release.
 
 ---
 
-## 🤝 Contributing & Feedback
+## Contributing & Feedback
 - 💬 Join discussions on [Discord](https://discord.gg/9aZWH52Zjm)  
 - 💡 Suggest features or discuss roadmap items in our discord
 - 📘 See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup instructions
