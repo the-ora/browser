@@ -11,6 +11,7 @@ struct ContainerView: View {
     @EnvironmentObject var privacyMode: PrivacyMode
 
     @State var isDragging = false
+    @State private var isHovered = false
     @State private var draggedItem: UUID?
     @State private var editingURLString: String = ""
 
@@ -74,7 +75,26 @@ struct ContainerView: View {
                             containers: containers
                         )
 
-                        Divider()
+                        HStack {
+                            ZStack {
+                                Capsule()
+                                    .frame(height: 1)
+                                Text("Clear").bold().font(.footnote).opacity(0)
+                            }
+                            if isHovered {
+                                Button("Clear") {
+                                    withAnimation {
+                                        for tab in container.tabs where tab.type == .normal {
+                                            tabManager.closeTab(tab: tab)
+                                        }
+                                    }
+                                }
+                                .bold()
+                                .font(.footnote)
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .foregroundStyle(.secondary)
                     }
                     NormalTabsList(
                         tabs: normalTabs,
@@ -92,6 +112,11 @@ struct ContainerView: View {
             }
         }
         .modifier(OraWindowDragGesture(isDragging: $isDragging))
+        .onHover { hov in
+            withAnimation {
+                isHovered = hov
+            }
+        }
     }
 
     private var favoriteTabs: [Tab] {
