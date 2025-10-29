@@ -6,12 +6,12 @@ This roadmap tracks progress toward the **Beta** milestone and beyond.
 > Goal: A stable, privacy-first macOS browser with a clean native interface.
 
 # Known issues
-- [] WebViews are stacked on top of eachother to avoid UI jumping round. To acheive this opacity 0|1 is used but this creates an issue where mouse hovering over a certain webview will trigger text in title attributes of webviews wthat are hidden under it.
-- [] Dragging tabs around is not smooth and can produce empty tabs or weird spacings
-- [] Favicons are selected from webpages according to size, there is no logic for selecting favicons based on theme or other options
-- [] When a WebView is restored if there was developer tools open it won't neither open the dev tools or adject it's size back to the way it was
-- [] The try again button after a page fails to load doesn't do anything
-- [] If Ora is set as the default browser and is closed when a link is clicked on other apps, it won't create a new window properly.
+- [ ] WebViews are stacked on top of eachother to avoid UI jumping round. To acheive this opacity 0|1 is used but this creates an issue where mouse hovering over a certain webview will trigger text in title attributes of webviews wthat are hidden under it.
+- [ ] Dragging tabs around is not smooth and can produce empty tabs or weird spacings
+- [ ] Favicons are selected from webpages according to size, there is no logic for selecting favicons based on theme or other options
+- [ ] When a WebView is restored if there was developer tools open it won't neither open the dev tools or adject it's size back to the way it was
+- [ ] The try again button after a page fails to load doesn't do anything
+- [ ] If Ora is set as the default browser and is closed when a link is clicked on other apps, it won't create a new window properly.
 - 
 ---
 
