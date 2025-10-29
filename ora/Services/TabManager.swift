@@ -40,7 +40,7 @@ class TabManager: ObservableObject {
 
     func isInSplit(tab: Tab) -> Bool {
         activeContainer?.tilesets.contains(where: {
-            $0.tabs.contains(tab) && ($0.tabs.first(where: { $0.id == activeTab?.id }) != nil)
+            $0.tabs.contains(tab) && $0.tabs.contains(where: { $0.id == activeTab?.id })
         }) ?? false
     }
 
@@ -391,7 +391,7 @@ class TabManager: ObservableObject {
         try? modelContext.save() // Persist the undo operation
     }
 
-    func activateTab(_ tab: Tab) {
+    private func activateTabInner(_ tab: Tab) {
         activeTab?.maybeIsActive = false
         activeTab = tab
         activeTab?.maybeIsActive = true
@@ -416,6 +416,16 @@ class TabManager: ObservableObject {
         }
         tab.updateHeaderColor()
         try? modelContext.save()
+    }
+
+    func activateTab(_ tab: Tab) {
+        var tabsToActivate = Set([tab])
+        if let activeContainer {
+            addSplitMembers(to: &tabsToActivate, fromContainer: activeContainer)
+        }
+        for tab in tabsToActivate {
+            activateTabInner(tab)
+        }
     }
 
     /// Clean up old tabs that haven't been accessed recently to preserve memory
