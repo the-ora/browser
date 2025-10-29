@@ -30,7 +30,7 @@ class Tab: ObservableObject, Identifiable {
     var createdAt: Date
     var lastAccessedAt: Date?
 
-    var type: TabType
+    private(set) var type: TabType
     var order: Int
     var faviconLocalFile: URL?
     var backgroundColorHex: String = "#000000"
@@ -181,13 +181,13 @@ class Tab: ObservableObject, Identifiable {
         }
     }
 
-    func switchSections(from: Tab, toSection sec: TabSection) {
-        from.type = tabType(for: sec)
-        switch sec {
+    func switchSections(to sec: TabType) {
+        type = sec
+        savedURL = switch sec {
         case .pinned, .fav:
-            from.savedURL = from.url
+            url
         case .normal:
-            from.savedURL = nil
+            nil
         }
     }
 

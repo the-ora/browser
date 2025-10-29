@@ -81,14 +81,22 @@ class TabContainer: ObservableObject, Identifiable {
     func combineToTileset(withSourceTab src: Tab, andDestinationTab dst: Tab) {
         // Remove from tabset if exists
         removeTabFromTileset(tab: src)
-        reorderTabs(from: src, to: dst, withReparentingBehavior: .sibling)
+
         if let tabset = tilesets.first(where: { $0.tabs.contains(dst) }) {
-            let dstIdx = tabset.tabs.firstIndex(of: dst)!
-            tabset.tabs.insert(src, at: dstIdx + 1)
+            tabset.tabs.append(src)
+            reorderTabs(from: src, to: tabset.tabs.last!, withReparentingBehavior: .sibling)
         } else {
+            reorderTabs(from: src, to: dst, withReparentingBehavior: .sibling)
             let ts = TabTileset(tabs: [])
             tilesets.append(ts)
             ts.tabs = [src, dst]
+        }
+    }
+
+    func moveTab(_ tab: Tab, toSection section: TabType) {
+        let tabset = tilesets.first(where: { $0.tabs.contains(tab) })?.tabs ?? [tab]
+        for tab in tabset {
+            tab.switchSections(to: section)
         }
     }
 

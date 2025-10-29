@@ -98,8 +98,9 @@ struct BrowserSplitView: View {
             }
         }
         HStack {
-            ForEach(tabManager.tabsToRender.filter { $0.id == activeId || tabManager.isInSplit(tab: $0) }) { tab in
-                if tab.isWebViewReady {
+            let tabs = tabManager.tabsToRender.filter { $0.id == activeId || tabManager.isInSplit(tab: $0) }
+            if tabs.allSatisfy(\.isWebViewReady) {
+                ForEach(tabs) { tab in
                     BrowserContentContainer {
                         BrowserWebContentView(tab: tab)
                     }

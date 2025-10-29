@@ -52,7 +52,7 @@ struct TopDropDelegate: DropDelegate {
     @Binding var targetedItem: TargetedDropItem?
     @Binding var draggedItem: UUID?
     let representative: DelegateTarget
-    let section: TabSection
+    let section: TabType
 
     func dropEntered(info: DropInfo) {
         targetedItem = representative
@@ -98,7 +98,7 @@ struct TopDropDelegate: DropDelegate {
 
                     guard let from else { return }
 
-                    if Ora.section(for: from) == section {
+                    if from.type == section {
                         withAnimation(
                             .spring(
                                 response: 0.3,
@@ -108,7 +108,7 @@ struct TopDropDelegate: DropDelegate {
                             container.bringToTop(tab: from)
                         }
                     } else {
-                        from.switchSections(from: from, toSection: section)
+                        from.switchSections(to: section)
                         container.bringToTop(tab: from)
                     }
                 }
@@ -124,7 +124,7 @@ struct TabDropDelegate: DropDelegate {
     @Binding var draggedItem: UUID?
     @Binding var targetedItem: TargetedDropItem?
 
-    let targetSection: TabSection
+    let targetSection: TabType
 
     func dropEntered(info: DropInfo) {
         targetedItem = representative.toDropItem(withId: item.id)
@@ -181,10 +181,7 @@ struct TabDropDelegate: DropDelegate {
 
                     guard let from else { return }
 
-                    if isInSameSection(
-                        from: from,
-                        to: self.item
-                    ) {
+                    if from.type == self.item.type {
                         withAnimation(
                             .spring(
                                 response: 0.3,
@@ -210,7 +207,7 @@ struct TabDropDelegate: DropDelegate {
                             }
                         }
                     } else {
-                        moveTabBetweenSections(from: from, to: self.item)
+                        from.switchSections(to: self.item.type)
                     }
                 }
             }

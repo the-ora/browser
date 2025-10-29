@@ -1,7 +1,7 @@
 import SwiftData
 import SwiftUI
 
-private struct IndentedTab: Identifiable {
+struct IndentedTab: Identifiable {
     let tab: Tab
     let indentationLevel: Int
     let tabs: [Tab]
@@ -54,7 +54,7 @@ private func tabsSortedByParentImpl(
     return output
 }
 
-private func tabsSortedByParent(_ tabs: [Tab]) -> [IndentedTab] {
+func tabsSortedByParent(_ tabs: [Tab]) -> [IndentedTab] {
     var usedTilesets: Set<UUID> = []
     return tabsSortedByParentImpl(
         tabs,

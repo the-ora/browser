@@ -4,7 +4,7 @@ import SwiftUI
 struct SectionDropDelegate: DropDelegate {
     let items: [Tab]
     @Binding var draggedItem: UUID?
-    let targetSection: TabSection
+    let targetSection: TabType
     let tabManager: TabManager
 
     func dropEntered(info: DropInfo) {
@@ -24,12 +24,12 @@ struct SectionDropDelegate: DropDelegate {
 
                 if self.items.isEmpty {
                     // Section is empty, just change type and order
-                    let newType = tabType(for: self.targetSection)
+                    let newType = self.targetSection
                     if [.pinned, .fav].contains(newType) {
                         from.abandonChildren()
                     }
                     from.dissociateFromRelatives()
-                    from.type = newType
+                    container.moveTab(from, toSection: newType)
                     // Update savedURL when moving into pinned/fav; clear when moving to normal
                     switch newType {
                     case .pinned, .fav:

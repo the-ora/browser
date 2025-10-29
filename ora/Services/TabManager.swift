@@ -110,11 +110,9 @@ class TabManager: ObservableObject {
 
     func togglePinTab(_ tab: Tab) {
         if tab.type == .pinned {
-            tab.type = .normal
-            tab.savedURL = nil
+            tab.switchSections(to: .normal)
         } else {
-            tab.type = .pinned
-            tab.savedURL = tab.url
+            tab.switchSections(to: .pinned)
         }
 
         try? modelContext.save()
@@ -122,11 +120,9 @@ class TabManager: ObservableObject {
 
     func toggleFavTab(_ tab: Tab) {
         if tab.type == .fav {
-            tab.type = .normal
-            tab.savedURL = nil
+            tab.switchSections(to: .normal)
         } else {
-            tab.type = .fav
-            tab.savedURL = tab.url
+            tab.switchSections(to: .fav)
         }
 
         try? modelContext.save()
