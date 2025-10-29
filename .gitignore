@@ -87,7 +87,7 @@ dsa_pub.pem     # Public key (safe to commit if needed)
 codesign*
 *.bak
 *.backup
-
+*.provisionprofile
 
 # Release artifacts (keep in build/ folder)
 # Uncomment these if you want to commit release artifacts:

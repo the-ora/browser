@@ -70,7 +70,7 @@ See the [Wiki](https://github.com/the-ora/browser/wiki) for comprehensive docume
    ```bash
    git clone https://github.com/the-ora/browser.git
    cd browser
-   ./setup.sh
+    ./scripts/setup.sh
    ```
 
 2. Open and build:
