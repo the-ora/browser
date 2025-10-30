@@ -34,8 +34,12 @@ class TabContainer: ObservableObject, Identifiable {
         self.lastAccessedAt = nowDate
     }
 
-    private func pushTabs(in tab: Tab?, startingAfter idx: Int, _ amount: Int = 1) {
-        for tab in tab?.children ?? tabs {
+    private func pushTabs(
+        in tab: Tab?,
+        ofType type: TabType, startingAfter idx: Int,
+        _ amount: Int = 1
+    ) {
+        for tab in tab?.children ?? tabs where tab.type == type {
             if tab.order > idx {
                 tab.order += amount
             }
@@ -50,6 +54,7 @@ class TabContainer: ObservableObject, Identifiable {
             orderBase = parent.order
             pushTabs(
                 in: nil,
+                ofType: tab.type,
                 startingAfter: parent.order
             )
         } else {
@@ -78,13 +83,14 @@ class TabContainer: ObservableObject, Identifiable {
         tab.tileset = nil
     }
 
+    // TODO: Handle combining two tilesets
     func combineToTileset(withSourceTab src: Tab, andDestinationTab dst: Tab) {
         // Remove from tabset if exists
         removeTabFromTileset(tab: src)
 
         if let tabset = tilesets.first(where: { $0.tabs.contains(dst) }) {
-            tabset.tabs.append(src)
             reorderTabs(from: src, to: tabset.tabs.last!, withReparentingBehavior: .sibling)
+            tabset.tabs.append(src)
         } else {
             reorderTabs(from: src, to: dst, withReparentingBehavior: .sibling)
             let ts = TabTileset(tabs: [])
@@ -97,18 +103,10 @@ class TabContainer: ObservableObject, Identifiable {
         let tabset = tilesets.first(where: { $0.tabs.contains(tab) })?.tabs ?? [tab]
         for tab in tabset {
             tab.switchSections(to: section)
-        }
-    }
-
-    func bringToTop(tab target: Tab) {
-        for tab in tabs {
-            if tab.order > target.order {
-                tab.order -= 1
-            } else {
-                tab.order += 1
+            if [.pinned, .fav].contains(section) {
+                tab.abandonChildren()
             }
         }
-        target.order = 0
     }
 
     func reorderTabs(
@@ -118,14 +116,27 @@ class TabContainer: ObservableObject, Identifiable {
     ) {
         let containingTilesetTabs = tilesets.first(where: { $0.tabs.contains(from) })?.tabs ?? [from]
         let numRelevantTabs = containingTilesetTabs.count
+        reorderTabs(from: from, to: to.type)
 
-        from.dissociateFromRelatives()
         switch reparentingBehavior {
         case .sibling:
-            to.parent?.children.insert(from, at: 0)
-            pushTabs(in: to.parent, startingAfter: to.order, numRelevantTabs)
+            if let parent = to.parent {
+                parent.children.insert(from, at: 0)
+                from.parent = parent
+            } else {
+                from.parent = nil
+            }
+            // Find the highest tab in the tileset to push after
+            let maxToTilesetOrder = tilesets.first(where: { $0.tabs.contains(to) })?.tabs.map(\.order).max() ?? to.order
+
+            pushTabs(
+                in: to.parent,
+                ofType: to.type,
+                startingAfter: maxToTilesetOrder,
+                numRelevantTabs
+            )
             for (i, tab) in containingTilesetTabs.enumerated() {
-                tab.order = to.order + 1 + i
+                tab.order = maxToTilesetOrder + 1 + i
             }
         case .child:
             to.children.insert(from, at: 0)
@@ -135,6 +146,24 @@ class TabContainer: ObservableObject, Identifiable {
             for child in to.children {
                 child.order += numRelevantTabs
             }
+        }
+    }
+
+    func reorderTabs(from: Tab, to: TabType, offsetTargetTypeOrder: Bool = false) {
+        let containingTilesetTabs = tilesets.first(where: { $0.tabs.contains(from) })?.tabs ?? [from]
+
+        containingTilesetTabs.forEach { $0.dissociateFromRelatives() }
+
+        if from.type != to {
+            moveTab(from, toSection: to)
+        }
+        if offsetTargetTypeOrder {
+            for tab in tabs where tab.type == to {
+                tab.order += containingTilesetTabs.count
+            }
+        }
+        for (i, tab) in containingTilesetTabs.enumerated() {
+            tab.order = i
         }
     }
 

@@ -15,7 +15,7 @@ struct DragTarget: View {
     let showTree: Bool
     var body: some View {
         HStack {
-            if showTree {
+            if tab.type == .normal, showTree {
                 ConditionallyConcentricRectangle(cornerRadius: 10)
                     .stroke(
                         theme.accent,
@@ -27,8 +27,8 @@ struct DragTarget: View {
                     }
                     .onDrop(
                         of: [.text],
-                        delegate: TabDropDelegate(
-                            item: tab,
+                        delegate: GeneralDropDelegate(
+                            item: .tab(tab),
                             representative:
                             .tab(tabset: false), draggedItem: $draggedItem,
                             targetedItem: $targetedDropItem,
@@ -47,8 +47,8 @@ struct DragTarget: View {
                 }
                 .onDrop(
                     of: [.text],
-                    delegate: TabDropDelegate(
-                        item: tab,
+                    delegate: GeneralDropDelegate(
+                        item: .tab(tab),
                         representative:
                         .tab(tabset: true), draggedItem: $draggedItem,
                         targetedItem: $targetedDropItem,

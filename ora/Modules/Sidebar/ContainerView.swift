@@ -61,7 +61,7 @@ struct ContainerView: View {
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 16) {
                     if !privacyMode.isPrivate {
-                        PinnedTabsList(
+                        TabsList(
                             tabs: pinnedTabs,
                             draggedItem: $draggedItem,
                             onDrag: dragTab,
@@ -71,11 +71,12 @@ struct ContainerView: View {
                             onClose: removeTab,
                             onDuplicate: duplicateTab,
                             onMoveToContainer: moveTab,
-                            containers: containers
+                            onAddNewTab: addNewTab,
+                            isPinned: true
                         )
                         Divider()
                     }
-                    NormalTabsList(
+                    TabsList(
                         tabs: normalTabs,
                         draggedItem: $draggedItem,
                         onDrag: dragTab,
@@ -85,7 +86,8 @@ struct ContainerView: View {
                         onClose: removeTab,
                         onDuplicate: duplicateTab,
                         onMoveToContainer: moveTab,
-                        onAddNewTab: addNewTab
+                        onAddNewTab: addNewTab,
+                        isPinned: false
                     )
                 }
             }

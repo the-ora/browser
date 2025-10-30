@@ -431,7 +431,7 @@ class Tab: ObservableObject, Identifiable {
                 }
             }
         } else {
-            for sibling in container.tabs {
+            for sibling in container.tabs where sibling.type == type {
                 if sibling.order > self.order {
                     sibling.order -= 1
                 }

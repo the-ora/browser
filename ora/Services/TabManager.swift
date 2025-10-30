@@ -102,18 +102,19 @@ class TabManager: ObservableObject {
     }
 
     func isActive(_ tab: Tab) -> Bool {
-        if let activeTab = self.activeTab {
-            return activeTab.id == tab.id
+        var tabsToActivate = Set([tab])
+        if let activeContainer, let activeTab {
+            addSplitMembers(to: &tabsToActivate, fromContainer: activeContainer)
+            return tabsToActivate.contains(activeTab)
         }
         return false
     }
 
     func togglePinTab(_ tab: Tab) {
-        if tab.type == .pinned {
-            tab.switchSections(to: .normal)
-        } else {
-            tab.switchSections(to: .pinned)
-        }
+        let opposite = tab.type == .pinned ? TabType.normal : .pinned
+
+        tab.container
+            .reorderTabs(from: tab, to: opposite, offsetTargetTypeOrder: true)
 
         try? modelContext.save()
     }
@@ -222,7 +223,7 @@ class TabManager: ObservableObject {
             container: container,
             type: .normal,
             isPlayingMedia: false,
-            order: container.tabs.count + 1,
+            order: 0,
             historyManager: historyManager,
             downloadManager: downloadManager,
             tabManager: self,
@@ -284,7 +285,6 @@ class TabManager: ObservableObject {
                     tabManager: self,
                     isPrivate: isPrivate
                 )
-                modelContext.insert(newTab)
                 container.addTab(newTab)
 
                 if focusAfterOpening {

@@ -3,7 +3,7 @@ import SwiftData
 import SwiftUI
 
 struct FavTabItem: View {
-    let tab: Tab
+    let tabs: [Tab]
     let isSelected: Bool
     let isDragging: Bool
     let onTap: () -> Void
@@ -23,68 +23,37 @@ struct FavTabItem: View {
 
     var body: some View {
         ZStack {
-            if let favicon = tab.favicon, tab.isWebViewReady {
-                AsyncImage(
-                    url: favicon
-                ) { image in
-                    image
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 20, height: 20)
-                } placeholder: {
-                    LocalFavIcon(
-                        faviconLocalFile: tab.faviconLocalFile,
-                        textColor: Color(.white)
-                    )
+            HStack {
+                ForEach(tabs) { tab in
+                    favicon(forTab: tab)
                 }
-            } else {
-                LocalFavIcon(
-                    faviconLocalFile: tab.faviconLocalFile,
-                    textColor: Color(.white)
-                )
-            }
-
-            if tab.isPlayingMedia {
-                VStack {
-                    Spacer()
-                    HStack {
-                        Spacer()
-                        Image(systemName: "speaker.wave.2.fill")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 8, height: 8)
-                            .foregroundColor(.white.opacity(0.9))
-                            .background(
-                                Circle()
-                                    .fill(Color.black.opacity(0.6))
-                                    .frame(width: 12, height: 12)
-                            )
-                    }
-                }
-                .padding(2)
             }
         }
         .onTapGesture {
             onTap()
-            if !tab.isWebViewReady {
-                tab
-                    .restoreTransientState(
-                        historyManager: historyManager,
-                        downloadManager: downloadManager,
-                        tabManager: tabManager,
-                        isPrivate: privacyMode.isPrivate
-                    )
+            for tab in tabs {
+                if !tab.isWebViewReady {
+                    tab
+                        .restoreTransientState(
+                            historyManager: historyManager,
+                            downloadManager: downloadManager,
+                            tabManager: tabManager,
+                            isPrivate: privacyMode.isPrivate
+                        )
+                }
             }
         }
         .onAppear {
-            if tabManager.isActive(tab) {
-                tab
-                    .restoreTransientState(
-                        historyManager: historyManager,
-                        downloadManager: downloadManager,
-                        tabManager: tabManager,
-                        isPrivate: privacyMode.isPrivate
-                    )
+            for tab in tabs {
+                if tabManager.isActive(tab) {
+                    tab
+                        .restoreTransientState(
+                            historyManager: historyManager,
+                            downloadManager: downloadManager,
+                            tabManager: tabManager,
+                            isPrivate: privacyMode.isPrivate
+                        )
+                }
             }
         }
         .foregroundColor(theme.foreground)
@@ -110,14 +79,16 @@ struct FavTabItem: View {
         )
         .onTapGesture {
             onTap()
-            if !tab.isWebViewReady {
-                tab
-                    .restoreTransientState(
-                        historyManager: historyManager,
-                        downloadManager: downloadManager,
-                        tabManager: tabManager,
-                        isPrivate: privacyMode.isPrivate
-                    )
+            for tab in tabs {
+                if !tab.isWebViewReady {
+                    tab
+                        .restoreTransientState(
+                            historyManager: historyManager,
+                            downloadManager: downloadManager,
+                            tabManager: tabManager,
+                            isPrivate: privacyMode.isPrivate
+                        )
+                }
             }
         }
         .onHover { isHovering = $0 }
@@ -147,6 +118,50 @@ struct FavTabItem: View {
             Button(role: .destructive, action: onClose) {
                 Label("Close Tab", systemImage: "xmark")
             }
+        }
+    }
+
+    @ViewBuilder
+    private func favicon(forTab tab: Tab) -> some View {
+        if let favicon = tab.favicon, tab.isWebViewReady {
+            AsyncImage(
+                url: favicon
+            ) { image in
+                image
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
+            } placeholder: {
+                LocalFavIcon(
+                    faviconLocalFile: tab.faviconLocalFile,
+                    textColor: Color(.white)
+                )
+            }
+        } else {
+            LocalFavIcon(
+                faviconLocalFile: tab.faviconLocalFile,
+                textColor: Color(.white)
+            )
+        }
+
+        if tab.isPlayingMedia {
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    Image(systemName: "speaker.wave.2.fill")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 8, height: 8)
+                        .foregroundColor(.white.opacity(0.9))
+                        .background(
+                            Circle()
+                                .fill(Color.black.opacity(0.6))
+                                .frame(width: 12, height: 12)
+                        )
+                }
+            }
+            .padding(2)
         }
     }
 
