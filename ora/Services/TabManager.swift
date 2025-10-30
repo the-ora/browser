@@ -373,8 +373,8 @@ class TabManager: ObservableObject {
         undoManager.undo() // Reverts the last deletion
         try? modelContext.save() // Persist the undo operation
     }
-  
-  func togglePiP(_ currentTab: Tab?, _ oldTab: Tab?) {
+
+    func togglePiP(_ currentTab: Tab?, _ oldTab: Tab?) {
         if currentTab?.id != oldTab?.id, SettingsStore.shared.autoPiPEnabled {
             currentTab?.webView.evaluateJavaScript("window.__oraTriggerPiP(true)")
             oldTab?.webView.evaluateJavaScript("window.__oraTriggerPiP()")
