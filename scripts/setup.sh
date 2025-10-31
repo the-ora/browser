@@ -47,6 +47,7 @@ if [ -d .githooks ]; then
 fi
 echo "✅ Git hooks installed!"
 
+cd ..
 xcodegen
 echo "✅ Xcodegen generated successfully!"
 
