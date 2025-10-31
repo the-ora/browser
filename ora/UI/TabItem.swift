@@ -86,6 +86,7 @@ struct TabItem: View {
     let tab: Tab
     let isSelected: Bool
     let isDragging: Bool
+    let isDragTarget: Bool
     let onTap: () -> Void
     let onPinToggle: () -> Void
     let onFavoriteToggle: () -> Void
@@ -97,6 +98,8 @@ struct TabItem: View {
     @EnvironmentObject var downloadManager: DownloadManager
     @EnvironmentObject var privacyMode: PrivacyMode
     let availableContainers: [TabContainer]
+    @Binding var draggedItem: UUID?
+    @Binding var targetedDropItem: TargetedDropItem?
 
     @Environment(\.theme) private var theme
     @State private var isHovering = false
