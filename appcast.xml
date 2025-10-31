@@ -5,24 +5,25 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
-      <title>Version 0.2.8</title>
+      <title>Version 0.2.9</title>
       <description><![CDATA[
-        <h2>Ora Browser v0.2.8</h2>
+        <h2>Ora Browser v0.2.9</h2>
         <p>Changes since last release:</p>
         <div class="changelog">
-          <h3>Features</h3>
+          <h3>Other</h3>
           <ul>
-            <li>feat: auto Picture-in-Picture handling and improve favicon handling (#160) — Kenenisa Alemayehu</li>
+            <li>Set Favicons on MainThread (#162) — Aarav Gupta</li>
+            <li>Roadmap (#164) — Yonathan Dejene</li>
           </ul>
         </div>
       ]]></description>
-      <pubDate>Sat, 25 Oct 2025 09:07:24 +0000</pubDate>
-       <enclosure url="https://github.com/the-ora/browser/releases/download/v0.2.8/Ora-Browser-0.2.8.dmg"
-                  sparkle:version="96"
-                  sparkle:shortVersionString="0.2.8"
-                  length="4828895"
+      <pubDate>Wed, 29 Oct 2025 16:25:16 +0000</pubDate>
+       <enclosure url="https://github.com/the-ora/browser/releases/download/v0.2.9/Ora-Browser-0.2.9.dmg"
+                  sparkle:version="97"
+                  sparkle:shortVersionString="0.2.9"
+                  length="4831052"
                   type="application/octet-stream"
-                   sparkle:edSignature="LKATlPXU7QfNZDdjImo5DjdtiYuGUj3BlWquFgb0FIx4A0gl6dBLG4gw29U5EwSdIK269gRsofH2J2I2l8AHBA=="/>
+                   sparkle:edSignature="weiAuK6tZctd6glZNO27N+mds4nLlhQi+tKYC8UhE2gAYKbt/7gHJlmU1spAZZkVFWjcSbp4nyrYNaRJDvcpDw=="/>
     </item>
   </channel>
 </rss>
