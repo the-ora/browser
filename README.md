@@ -22,7 +22,7 @@ Ora is currently in early stages of development and **not yet ready for day-to-d
 
 If you would like to support the project, please consider donating:
 
-[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/orabrowser)
+[![Sponsor](https://img.shields.io/badge/sponsor-30363D?style=for-the-badge&logo=GitHub-Sponsors&logoColor=white)](https://github.com/sponsors/the-ora)
 
 ## Features
 
@@ -36,29 +36,9 @@ If you would like to support the project, please consider donating:
 - Quick Launcher for instant navigation and search
 - Developer mode
 
-<details>
-<summary><h2>Way to Beta Version</h2></summary>
+## Roadmap
 
-- [x] Tab management with
-  - containers (spaces),
-  - pinning and reordering
-  - floating tab switcher
-  - [ ] auto-closing
-- [x] Vertical Sidebar
-- [x] Session restore after app restart or crash
-- [x] Keyboard shortcuts for navigation and tabs
-- [x] Picture in Picture
-- [x] Developer Tools
-- [ ] Download manager with pause/resume support
-- [ ] iCloud Keychain password autofill
-- [x] Private browsing mode
-- [ ] Bookmark management with folders and search
-- [ ] Extensions — (App Store & Chrome extensions)
-- [ ] Split tabs — multiple tabs open side by side
-- [ ] Reader mode with adjustable font and themes
-- [ ] Web notifications
-
-</details>
+You can view our current roadmap to beta in [ROADMAP.md](ROADMAP.md). 
 
 ## Wiki
 
@@ -119,3 +99,8 @@ Questions or support? Join the community on [Discord](https://discord.gg/9aZWH52
 
 Ora is open source and licensed under the [GPL-2.0 license](LICENSE).  
 Feel free to use, modify, and distribute it under the terms of the GPL-2.0 license.
+<br />
+<br />
+<a href="https://vercel.com/oss">
+  <img alt="Vercel OSS Program" src="https://vercel.com/oss/program-badge.svg" />
+</a>
