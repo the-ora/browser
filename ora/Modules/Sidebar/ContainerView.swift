@@ -11,11 +11,12 @@ struct ContainerView: View {
     @EnvironmentObject var privacyMode: PrivacyMode
 
     @State var isDragging = false
+    @State private var isHovered = false
     @State private var draggedItem: UUID?
     @State private var editingURLString: String = ""
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 0) {
             if toolbarManager.isToolbarHidden, let tab = tabManager.activeTab {
                 SidebarURLDisplay(
                     tab: tab,
@@ -73,7 +74,27 @@ struct ContainerView: View {
                             onMoveToContainer: moveTab,
                             containers: containers
                         )
-                        Divider()
+
+                        HStack {
+                            ZStack {
+                                Capsule()
+                                    .frame(height: 1)
+                                Text("Clear").bold().font(.footnote).opacity(0)
+                            }
+                            if isHovered {
+                                Button("Clear") {
+                                    withAnimation {
+                                        for tab in container.tabs where tab.type == .normal {
+                                            tabManager.closeTab(tab: tab)
+                                        }
+                                    }
+                                }
+                                .bold()
+                                .font(.footnote)
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .foregroundStyle(.secondary)
                     }
                     NormalTabsList(
                         tabs: normalTabs,
@@ -91,6 +112,11 @@ struct ContainerView: View {
             }
         }
         .modifier(OraWindowDragGesture(isDragging: $isDragging))
+        .onHover { hov in
+            withAnimation {
+                isHovered = hov
+            }
+        }
     }
 
     private var favoriteTabs: [Tab] {
