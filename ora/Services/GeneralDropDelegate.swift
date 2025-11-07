@@ -98,18 +98,18 @@ struct TopDropDelegate: DropDelegate {
 
                     guard let from else { return }
 
-                    if from.type == section {
-                        withAnimation(
-                            .spring(
-                                response: 0.3,
-                                dampingFraction: 0.8
+                    withAnimation(
+                        .spring(
+                            response: 0.3,
+                            dampingFraction: 0.8
+                        )
+                    ) {
+                        container
+                            .reorderTabs(
+                                from: from,
+                                to: section,
+                                offsetTargetTypeOrder: true
                             )
-                        ) {
-                            container.bringToTop(tab: from)
-                        }
-                    } else {
-                        container.reorderTabs(from: from, to: section)
-                        container.bringToTop(tab: from)
                     }
                 }
             }
