@@ -28,19 +28,11 @@ struct FavTabsGrid: View {
         LazyVGrid(columns: adaptiveColumns, spacing: 10) {
             if tabs.isEmpty {
                 EmptyFavTabItem()
-                    .onDrop(
-                        of: [.text],
-                        delegate: SectionDropDelegate(
-                            items: tabs,
-                            draggedItem: $draggedItem,
-                            targetSection: .fav,
-                            tabManager: tabManager
-                        )
-                    )
             } else {
-                ForEach(tabs) { tab in
+                ForEach(tabsSortedByParent(tabs)) { iTab in
+                    let tab = iTab.tabs.first!
                     FavTabItem(
-                        tab: tab,
+                        tabs: iTab.tabs,
                         isSelected: tabManager.isActive(tab),
                         isDragging: draggedItem == tab.id,
                         onTap: { onSelect(tab) },
@@ -52,24 +44,27 @@ struct FavTabsGrid: View {
                     .onDrag { onDrag(tab.id) }
                     .onDrop(
                         of: [.text],
-                        delegate: TabDropDelegate(
-                            item: tab,
-                            draggedItem: $draggedItem,
+                        delegate: GeneralDropDelegate(
+                            item: .tab(tab),
+                            representative: .tab(tabset: true),
+                            draggedItem: $draggedItem, targetedItem:
+                            .constant(nil),
                             targetSection: .fav
                         )
                     )
                 }
             }
         }
-        .animation(.easeOut(duration: 0.1), value: adaptiveColumns.count)
         .onDrop(
             of: [.text],
-            delegate: SectionDropDelegate(
-                items: tabs,
-                draggedItem: $draggedItem,
-                targetSection: .fav,
-                tabManager: tabManager
+            delegate: GeneralDropDelegate(
+                item:
+                .container(
+                    tabManager.activeContainer!),
+                representative: .divider, draggedItem: $draggedItem,
+                targetedItem: .constant(nil), targetSection: .fav
             )
         )
+        .animation(.easeOut(duration: 0.1), value: adaptiveColumns.count)
     }
 }
