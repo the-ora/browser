@@ -24,7 +24,7 @@ struct DownloadsWidget: View {
                 downloadManager.isDownloadsPopoverOpen.toggle()
             }) {
                 HStack(spacing: 8) {
-                    Image(systemName: "arrow.down")
+                    Image(systemName: "arrow.down.circle")
                         .foregroundColor(downloadButtonColor)
                         .frame(width: 12, height: 12)
 

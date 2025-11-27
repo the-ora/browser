@@ -44,6 +44,10 @@ struct GeneralSettingsView: View {
                     }
 
                     AppearanceSelector(selection: $appearanceManager.appearance)
+
+                    ThemeColorPicker()
+                        .padding(.vertical, 8)
+
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Tab Management")
                             .font(.headline)

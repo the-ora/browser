@@ -4,17 +4,32 @@ import SwiftUI
 // swiftlint:disable identifier_name
 struct Theme: Equatable {
     let colorScheme: ColorScheme
+    let customPrimaryColor: String?
+    let customAccentColor: String?
+
+    init(colorScheme: ColorScheme, customPrimaryColor: String? = nil, customAccentColor: String? = nil) {
+        self.colorScheme = colorScheme
+        self.customPrimaryColor = customPrimaryColor
+        self.customAccentColor = customAccentColor
+    }
 
     var primary: Color {
-        Color(hex: "#f3e5d6")
+        if let hex = customPrimaryColor {
+            return Color(hex: hex)
+        }
+        return Color(hex: "#d6f3ea")
     }
 
     var primaryDark: Color {
-        Color(hex: "#63411D")
+        // Use the same color as primary for both light and dark modes
+        return primary
     }
 
     var accent: Color {
-        Color(hex: "#FF5F57")
+        if let hex = customAccentColor {
+            return Color(hex: hex)
+        }
+        return Color(hex: "#575dff")
     }
 
     var background: Color {
@@ -140,8 +155,16 @@ extension EnvironmentValues {
 
 struct ThemeProvider: ViewModifier {
     @Environment(\.colorScheme) private var colorScheme
+    @ObservedObject private var settings = SettingsStore.shared
 
     func body(content: Content) -> some View {
-        content.environment(\.theme, Theme(colorScheme: colorScheme))
+        content.environment(
+            \.theme,
+            Theme(
+                colorScheme: colorScheme,
+                customPrimaryColor: settings.themePrimaryColor,
+                customAccentColor: settings.themeAccentColor
+            )
+        )
     }
 }

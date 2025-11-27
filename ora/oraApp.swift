@@ -49,6 +49,7 @@ func deleteSwiftDataStore(_ loc: String) {
 
 class AppState: ObservableObject {
     @Published var showLauncher: Bool = false
+    @Published var launcherSearchInCurrentTab: Bool = false
     @Published var launcherSearchText: String = ""
     @Published var showFinderIn: UUID?
     @Published var isFloatingTabSwitchVisible: Bool = false
