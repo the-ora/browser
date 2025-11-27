@@ -27,29 +27,11 @@ body:
       required: true
 
   - type: textarea
-    id: fit
-    attributes:
-      label: Fit with Ora’s Goals
-      description: Explain how this aligns with Ora’s goals (fast, secure, beautiful).
-      placeholder: This improves performance by...
-    validations:
-      required: false
-
-  - type: textarea
     id: complexity
     attributes:
       label: Implementation Complexity & User Impact
       description: Your thoughts on how difficult this might be to implement and who benefits.
       placeholder: Seems easy to add since WebKit already supports X...
-    validations:
-      required: false
-
-  - type: textarea
-    id: alternatives
-    attributes:
-      label: Alternatives Considered
-      description: If you’ve thought of other solutions or workarounds, list them here.
-      placeholder: I also tried using Safari extensions, but...
     validations:
       required: false
 
