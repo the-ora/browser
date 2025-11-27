@@ -20,6 +20,14 @@ struct OraCommands: Commands {
                 NotificationCenter.default.post(name: .showLauncher, object: NSApp.keyWindow)
             }.keyboardShortcut(KeyboardShortcuts.Tabs.new.keyboardShortcut)
 
+            Button("Search in Current Tab") {
+                NotificationCenter.default.post(
+                    name: .showLauncher,
+                    object: NSApp.keyWindow,
+                    userInfo: ["searchInCurrentTab": true]
+                )
+            }.keyboardShortcut(KeyboardShortcuts.Address.searchInCurrentTab.keyboardShortcut)
+
             Divider()
 
             ImportDataButton()
@@ -183,13 +191,13 @@ struct OraCommands: Commands {
 
     private func showAboutWindow() {
         let alert = NSAlert()
-        alert.messageText = "Ora Browser"
+        alert.messageText = "Ora"
         alert.informativeText = """
         Version \(getAppVersion())
 
         Fast, secure, and beautiful browser built for macOS.
 
-        © 2025 Ora Browser
+        © 2025 Ora
         """
         alert.alertStyle = .informational
         alert.addButton(withTitle: "OK")

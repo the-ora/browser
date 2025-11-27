@@ -51,15 +51,22 @@ struct LauncherView: View {
         if let engine = engineToUse,
            let url = searchEngineService.createSearchURL(for: engine, query: correctInput)
         {
-            tabManager
-                .openTab(
-                    url: url,
-                    historyManager: historyManager,
-                    downloadManager: downloadManager,
-                    isPrivate: privacyMode.isPrivate
-                )
+            if appState.launcherSearchInCurrentTab, let activeTab = tabManager.activeTab {
+                // Search in current tab
+                activeTab.loadURL(url.absoluteString)
+            } else {
+                // Create new tab (default behavior)
+                tabManager
+                    .openTab(
+                        url: url,
+                        historyManager: historyManager,
+                        downloadManager: downloadManager,
+                        isPrivate: privacyMode.isPrivate
+                    )
+            }
         }
         appState.showLauncher = false
+        appState.launcherSearchInCurrentTab = false
     }
 
     var body: some View {
@@ -101,6 +108,10 @@ struct LauncherView: View {
             }
             .onChange(of: appState.showLauncher) { _, newValue in
                 isVisible = newValue
+                if !newValue {
+                    // Reset the flag when launcher is closed
+                    appState.launcherSearchInCurrentTab = false
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -121,7 +121,18 @@ struct OraRoot: View {
                 NotificationCenter.default.addObserver(forName: .showLauncher, object: nil, queue: .main) { note in
                     guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
                     if tabManager.activeTab != nil {
-                        appState.showLauncher.toggle()
+                        // Check if we should search in current tab
+                        if let searchInCurrentTab = note.userInfo?["searchInCurrentTab"] as? Bool {
+                            appState.launcherSearchInCurrentTab = searchInCurrentTab
+                        } else {
+                            appState.launcherSearchInCurrentTab = false
+                        }
+                        // Only open if not already open, or close if already open
+                        if appState.showLauncher {
+                            appState.showLauncher = false
+                        } else {
+                            appState.showLauncher = true
+                        }
                     }
                 }
                 NotificationCenter.default.addObserver(forName: .closeActiveTab, object: nil, queue: .main) { note in

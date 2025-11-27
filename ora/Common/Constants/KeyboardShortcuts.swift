@@ -203,6 +203,12 @@ enum KeyboardShortcuts {
             category: "Address",
             defaultChord: KeyChord(keyEquivalent: .init("l"), modifiers: [.command])
         )
+        static let searchInCurrentTab = KeyboardShortcutDefinition(
+            id: "address.searchInCurrentTab",
+            name: "Search in Current Tab",
+            category: "Address",
+            defaultChord: KeyChord(keyEquivalent: .init("g"), modifiers: [.command, .shift])
+        )
     }
 
     // MARK: - Edit
@@ -329,7 +335,7 @@ enum KeyboardShortcuts {
         Window.new, Window.newPrivate, Window.close, Window.fullscreen,
 
         // Address
-        Address.copyURL, Address.focus,
+        Address.copyURL, Address.focus, Address.searchInCurrentTab,
 
         // Edit
         Edit.find, Edit.findNext, Edit.findPrevious,
