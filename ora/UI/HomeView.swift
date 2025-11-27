@@ -27,6 +27,7 @@ struct HomeView: View {
             .zIndex(3)
             .frame(maxWidth: .infinity, alignment: sidebarManager.sidebarPosition == .primary ? .leading : .trailing)
             .padding(6)
+            .padding(.top, 6)
             .ignoresSafeArea(.all)
 
             VStack(alignment: .center, spacing: 16) {
