@@ -62,14 +62,14 @@ final class BaseVerticalScrollView: NSScrollView {
     }
 }
 
-struct VerticalScrollView<Content: View>: NSViewRepresentable {
+public struct VerticalScrollView<Content: View>: NSViewRepresentable {
     let content: Content
 
-    init(@ViewBuilder content: () -> Content) {
+    public init(@ViewBuilder content: () -> Content) {
         self.content = content()
     }
 
-    func makeNSView(context: Context) -> NSView {
+    public func makeNSView(context: Context) -> NSView {
         let hostingView = NSHostingView(rootView: content)
         let scrollView = BaseVerticalScrollView(contentView: hostingView)
 
@@ -80,7 +80,7 @@ struct VerticalScrollView<Content: View>: NSViewRepresentable {
         return scrollView
     }
 
-    func updateNSView(_ nsView: NSView, context: Context) {
+    public func updateNSView(_ nsView: NSView, context: Context) {
         guard
             let scrollView = nsView as? BaseVerticalScrollView,
             let hostingView = scrollView.documentView?.subviews.first
