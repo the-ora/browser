@@ -3,6 +3,7 @@ import SwiftUI
 #if canImport(AppKit) && !targetEnvironment(macCatalyst)
     import AppKit
     import os.log
+    import QuartzCore
 
     private let logger = Logger(
         subsystem: "com.orabrowser.app", category: "NSPageView"
@@ -149,6 +150,16 @@ import SwiftUI
             }
         }
 
+        override func animation(forKey key: NSAnimatablePropertyKey) -> Any? {
+            if key == "selectedIndex" {
+                let animation = CABasicAnimation()
+                animation.duration = 0.1
+                animation.timingFunction = CAMediaTimingFunction(name: .easeOut)
+                return animation
+            }
+            return super.animation(forKey: key)
+        }
+
         func updateDataSource() {
             self.arrangedObjects = pageObjects
             logger.log("NSPageView updateDataSource \(self.arrangedObjects.count)")
@@ -158,7 +169,9 @@ import SwiftUI
             logger.log("NSPageView updateSelectedIndex \(index), animated \(animated)")
 
             if animated {
-                NSAnimationContext.runAnimationGroup { _ in
+                NSAnimationContext.runAnimationGroup { context in
+                    context.duration = 0.1
+                    context.timingFunction = CAMediaTimingFunction(name: .easeOut)
                     self.animator().selectedIndex = index
                 } completionHandler: {
                     self.completeTransition()
