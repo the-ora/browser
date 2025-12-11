@@ -386,7 +386,8 @@ class WebViewNavigationDelegate: NSObject, WKNavigationDelegate {
                 return
             }
 
-            tab?.setNavigationError(error, for: webView.url)
+            let failingURL = nsError.userInfo[NSURLErrorFailingURLErrorKey] as? URL ?? webView.url
+            tab?.setNavigationError(error, for: failingURL)
             onProgressChange?(100.0)
         }
         originalURL = nil // Clear stored URL on navigation failure
