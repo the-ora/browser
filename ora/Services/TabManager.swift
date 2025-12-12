@@ -20,11 +20,26 @@ class TabManager: ObservableObject {
         )
     }
 
+    private func addSplitMembers(to tabs: inout Set<Tab>, fromContainer container: TabContainer) {
+        for tileset in container.tilesets {
+            if tileset.tabs.contains(where: { tabs.contains($0) }) {
+                tabs.formUnion(tileset.tabs)
+            }
+        }
+    }
+
+    func isInSplit(tab: Tab) -> Bool {
+        activeContainer?.tilesets.contains(where: {
+            $0.tabs.contains(tab) && $0.tabs.contains(where: { $0.id == activeTab?.id })
+        }) ?? false
+    }
+
     var tabsToRender: [Tab] {
         guard let container = activeContainer else { return [] }
         let specialTabs = container.tabs.filter { $0.type == .pinned || $0.type == .fav || $0.isPlayingMedia }
-        let combined = Set(recentTabs + specialTabs)
-        return Array(combined)
+        var combined = Set(recentTabs + specialTabs)
+        addSplitMembers(to: &combined, fromContainer: container)
+        return Array(combined).sorted(by: { $0.order < $1.order })
     }
 
     // Note: Could be made injectable via init parameter if preferred
@@ -77,31 +92,28 @@ class TabManager: ObservableObject {
     }
 
     func isActive(_ tab: Tab) -> Bool {
-        if let activeTab = self.activeTab {
-            return activeTab.id == tab.id
+        var tabsToActivate = Set([tab])
+        if let activeContainer, let activeTab {
+            addSplitMembers(to: &tabsToActivate, fromContainer: activeContainer)
+            return tabsToActivate.contains(activeTab)
         }
         return false
     }
 
     func togglePinTab(_ tab: Tab) {
-        if tab.type == .pinned {
-            tab.type = .normal
-            tab.savedURL = nil
-        } else {
-            tab.type = .pinned
-            tab.savedURL = tab.url
-        }
+        let opposite = tab.type == .pinned ? TabType.normal : .pinned
+
+        tab.container
+            .reorderTabs(from: tab, to: opposite, offsetTargetTypeOrder: true)
 
         try? modelContext.save()
     }
 
     func toggleFavTab(_ tab: Tab) {
         if tab.type == .fav {
-            tab.type = .normal
-            tab.savedURL = nil
+            tab.switchSections(to: .normal)
         } else {
-            tab.type = .fav
-            tab.savedURL = tab.url
+            tab.switchSections(to: .fav)
         }
 
         try? modelContext.save()
@@ -110,7 +122,9 @@ class TabManager: ObservableObject {
     // MARK: - Container Public API's
 
     func moveTabToContainer(_ tab: Tab, toContainer: TabContainer) {
+        tab.dissociateFromRelatives()
         tab.container = toContainer
+        tab.order = (toContainer.tabs.map((\.order)).max() ?? -1) + 1
         try? modelContext.save()
     }
 
@@ -199,14 +213,14 @@ class TabManager: ObservableObject {
             container: container,
             type: .normal,
             isPlayingMedia: false,
-            order: container.tabs.count + 1,
+            order: 0,
             historyManager: historyManager,
             downloadManager: downloadManager,
             tabManager: self,
             isPrivate: isPrivate
         )
         modelContext.insert(newTab)
-        container.tabs.append(newTab)
+        container.addTab(newTab)
         activeTab?.maybeIsActive  = false
         activeTab = newTab
         activeTab?.maybeIsActive  = true
@@ -237,7 +251,8 @@ class TabManager: ObservableObject {
         downloadManager: DownloadManager? = nil,
         focusAfterOpening: Bool = true,
         isPrivate: Bool,
-        loadSilently: Bool = false
+        loadSilently: Bool = false,
+        parentingTo parent: Tab? = nil
     ) -> Tab? {
         if let container = activeContainer {
             if let host = url.host {
@@ -245,21 +260,22 @@ class TabManager: ObservableObject {
 
                 let cleanHost = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
 
+                let orderBase = (parent != nil ? parent!.children : container.tabs).map(\.order).max() ?? -1
+
                 let newTab = Tab(
-                    url: url,
+                    parent: parent, url: url,
                     title: cleanHost,
                     favicon: faviconURL,
                     container: container,
                     type: .normal,
                     isPlayingMedia: false,
-                    order: container.tabs.count + 1,
+                    order: orderBase + 1,
                     historyManager: historyManager,
                     downloadManager: downloadManager,
                     tabManager: self,
                     isPrivate: isPrivate
                 )
-                modelContext.insert(newTab)
-                container.tabs.append(newTab)
+                container.addTab(newTab)
 
                 if focusAfterOpening {
                     activateTab(newTab)
@@ -296,6 +312,9 @@ class TabManager: ObservableObject {
     }
 
     func closeTab(tab: Tab) {
+        tab.dissociateFromRelatives()
+        activeContainer?.removeTabFromTileset(tab: tab)
+
         // If the closed tab was active, select another tab
         if self.activeTab?.id == tab.id {
             if let nextTab = tab.container.tabs
@@ -362,7 +381,7 @@ class TabManager: ObservableObject {
         }
     }
 
-    func activateTab(_ tab: Tab) {
+    private func activateTabInner(_ tab: Tab) {
         // Toggle Picture-in-Picture on tab switch
         togglePiP(tab, activeTab)
 
@@ -391,6 +410,16 @@ class TabManager: ObservableObject {
         }
         tab.updateHeaderColor()
         try? modelContext.save()
+    }
+
+    func activateTab(_ tab: Tab) {
+        var tabsToActivate = Set([tab])
+        if let activeContainer {
+            addSplitMembers(to: &tabsToActivate, fromContainer: activeContainer)
+        }
+        for tab in tabsToActivate {
+            activateTabInner(tab)
+        }
     }
 
     /// Clean up old tabs that haven't been accessed recently to preserve memory
