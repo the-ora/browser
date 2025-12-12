@@ -150,6 +150,8 @@ class SettingsStore: ObservableObject {
     private let tabRemovalTimeoutKey = "settings.tabRemovalTimeout"
     private let maxRecentTabsKey = "settings.maxRecentTabs"
     private let autoPiPEnabledKey = "settings.autoPiPEnabled"
+    private let themePrimaryColorKey = "settings.theme.primaryColor"
+    private let themeAccentColorKey = "settings.theme.accentColor"
 
     // MARK: - Per-Container
 
@@ -217,6 +219,14 @@ class SettingsStore: ObservableObject {
         didSet { defaults.set(autoPiPEnabled, forKey: autoPiPEnabledKey) }
     }
 
+    @Published var themePrimaryColor: String? {
+        didSet { defaults.set(themePrimaryColor, forKey: themePrimaryColorKey) }
+    }
+
+    @Published var themeAccentColor: String? {
+        didSet { defaults.set(themeAccentColor, forKey: themeAccentColorKey) }
+    }
+
     init() {
         autoUpdateEnabled = defaults.bool(forKey: autoUpdateKey)
         blockThirdPartyTrackers = defaults.bool(forKey: trackingThirdPartyKey)
@@ -271,6 +281,9 @@ class SettingsStore: ObservableObject {
         maxRecentTabs = maxRecentTabsValue == 0 ? 5 : maxRecentTabsValue
 
         autoPiPEnabled = defaults.object(forKey: autoPiPEnabledKey) as? Bool ?? true
+
+        themePrimaryColor = defaults.string(forKey: themePrimaryColorKey)
+        themeAccentColor = defaults.string(forKey: themeAccentColorKey)
     }
 
     // MARK: - Per-container helpers
