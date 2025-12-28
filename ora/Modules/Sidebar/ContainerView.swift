@@ -81,7 +81,7 @@ struct ContainerView: View {
                                     .frame(height: 1)
                                 Text("Clear").bold().font(.footnote).opacity(0)
                             }
-                            if isHovered {
+                            if isHovered, !normalTabs.isEmpty {
                                 Button("Clear") {
                                     withAnimation {
                                         for tab in container.tabs where tab.type == .normal {
