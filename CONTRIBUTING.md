@@ -29,7 +29,7 @@ Please be respectful to maintainers and disclose AI assistance.
 
 2. Run the setup script to install tools, configure git hooks, and generate the Xcode project:
    ```bash
-   ./setup.sh
+   ./scripts/setup.sh
    ```
 
 3. Open in Xcode and build:
@@ -42,7 +42,7 @@ Please be respectful to maintainers and disclose AI assistance.
 
 ### Formatting & Linting
 
-Code formatting and linting are automatically enforced via git hooks (installed by `./setup.sh`):
+Code formatting and linting are automatically enforced via git hooks (installed by `./scripts/setup.sh`):
 
 - **SwiftFormat**: Handles code formatting
 - **SwiftLint**: Enforces coding standards
@@ -176,7 +176,7 @@ Ora uses [Sparkle](https://sparkle-project.org/) for automatic updates. All buil
    ```bash
    brew install --cask sparkle
    ./setup-sparkle-tools.sh
-   ./setup-sparkle.sh
+   ./scripts/setup-sparkle.sh
    ```
    This generates DSA keys in `build/` directory.
 
@@ -187,7 +187,7 @@ Ora uses [Sparkle](https://sparkle-project.org/) for automatic updates. All buil
 
 4. **Create a release:**
    ```bash
-   ./create-release.sh 0.0.2 build/dsa_priv.pem
+   ./scripts/create-release.sh 0.0.2 build/dsa_priv.pem
    ```
    This builds, signs, and prepares release files in `build/`.
 

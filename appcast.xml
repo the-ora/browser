@@ -5,33 +5,39 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
-      <title>Version 0.2.7</title>
+      <title>Version 0.2.11</title>
       <description><![CDATA[
-        <h2>Ora Browser v0.2.7</h2>
+        <h2>Ora Browser v0.2.11</h2>
         <p>Changes since last release:</p>
         <div class="changelog">
           <h3>Features</h3>
           <ul>
-            <li>feat: clear cache and cookie reload  (#149) — Brooksolomon</li>
+            <li>feat(setup): add navigation to parent directory before running xcodegen — Kenenisa Alemayehu</li>
           </ul>
           <h3>Fixes</h3>
           <ul>
-            <li>fix: weird favicon loading and handling by accept custom favicon URL (#156) — Kenenisa Alemayehu</li>
-            <li>fix(inspector): wrap WKWebView in NSView to prevent flashing inspector section (#150) — Furkan Koseoglu</li>
+            <li>fix: use specific failing URL from error info for navigation failures (#198) — Danil Kazakov</li>
+          </ul>
+          <h3>Chores</h3>
+          <ul>
+            <li>chore(docs): remove HOSTING_SETUP.md documentation — Kenenisa Alemayehu</li>
           </ul>
           <h3>Other</h3>
           <ul>
-            <li>Update README to mark private browsing mode as completed — Kenenisa Alemayehu</li>
+            <li>Update feature_request.yml — Yonathan Dejene</li>
+            <li>Revise support section and add roadmap — Yonathan Dejene</li>
+            <li>refactor(pre-push): update script path to use subdirectory — Kenenisa Alemayehu</li>
+            <li>refactor(git-blame): remove `.git-blame-ignore-revs` file — Kenenisa Alemayehu</li>
           </ul>
         </div>
       ]]></description>
-      <pubDate>Thu, 23 Oct 2025 20:21:52 +0000</pubDate>
-       <enclosure url="https://github.com/the-ora/browser/releases/download/v0.2.7/Ora-Browser-0.2.7.dmg"
-                  sparkle:version="95"
-                  sparkle:shortVersionString="0.2.7"
-                  length="4828537"
+      <pubDate>Thu, 11 Dec 2025 13:38:16 +0000</pubDate>
+       <enclosure url="https://github.com/the-ora/browser/releases/download/v0.2.11/Ora-Browser-0.2.11.dmg"
+                  sparkle:version="99"
+                  sparkle:shortVersionString="0.2.11"
+                  length="4833099"
                   type="application/octet-stream"
-                   sparkle:edSignature="pOiU12KgE13Tg8B9HoBqfic8Gboh7nFHDtL4IV5bO1CdtoOQdmdZUKbbDIWDmFV9D96iDqR2eLxDVeOnzqznBA=="/>
+                   sparkle:edSignature="GMIA/ojqC6eStCMT6cWqHwum6w12blZXTCQa4EjwdWoX6tRwOG6XNNuwkML9t1Mij30iooqZAV+LPmzVRxDCCQ=="/>
     </item>
   </channel>
 </rss>

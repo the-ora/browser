@@ -1,0 +1,9 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Contribution Guide
+    url: https://github.com/the-ora/browser/blob/main/CONTRIBUTING.md
+    about: Read this before opening a new issue or PR.
+
+  - name: 💬 Discussions
+    url: https://discord.gg/9aZWH52Zjm
+    about: Start a discussion, ask a question, or share ideas that don’t fit as an issue.

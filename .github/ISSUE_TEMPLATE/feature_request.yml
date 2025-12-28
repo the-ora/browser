@@ -1,0 +1,44 @@
+name: 💡 Feature Request
+description: Suggest a new idea or improvement for Ora Browser
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for contributing to Ora’s future!  
+        Please share as much detail as possible about your idea.
+
+  - type: textarea
+    id: feature
+    attributes:
+      label: Describe the Feature
+      description: A clear description of what the feature is and what problem it solves.
+      placeholder: Explain your feature idea in detail.
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: Describe how users (including yourself) would use this feature.
+      placeholder: I’d use this to quickly switch between Spaces without reopening tabs...
+    validations:
+      required: true
+
+  - type: textarea
+    id: complexity
+    attributes:
+      label: Implementation Complexity & User Impact
+      description: Your thoughts on how difficult this might be to implement and who benefits.
+      placeholder: Seems easy to add since WebKit already supports X...
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any extra context, links, or mockups.
+    validations:
+      required: false

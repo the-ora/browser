@@ -4,13 +4,11 @@ import SwiftUI
 
 class FaviconService: ObservableObject {
     static let shared = FaviconService()
-
     private var cache: [String: NSImage] = [:]
     private var colorCache: [String: Color] = [:]
 
     func getFavicon(for searchURL: String) -> NSImage? {
         guard let domain = extractDomain(from: searchURL) else { return nil }
-
         // Try to fetch favicon asynchronously
         fetchFavicon(for: domain) { [weak self] favicon in
             if let favicon {
@@ -104,12 +102,10 @@ class FaviconService: ObservableObject {
             completion(nil, nil)
             return
         }
-
         guard let url = URL(string: urls[index]) else {
             tryFetchingFaviconData(from: urls, index: index + 1, completion: completion)
             return
         }
-
         URLSession.shared.dataTask(with: url) { data, _, _ in
             if let data {
                 completion(data, url)

@@ -373,7 +373,7 @@ echo "✅ Sparkle setup complete!"
 
 # Build the release
 echo "🔨 Building release..."
-BUILD_SCRIPT="./build-release.sh"
+BUILD_SCRIPT="./scripts/build-release.sh"
 
 # Ensure we're in the project root directory
 if [ ! -f "project.yml" ] || [ ! -d "ora" ]; then
@@ -390,7 +390,7 @@ if [ -f "$BUILD_SCRIPT" ]; then
 else
     echo "❌ build-release.sh not found at $BUILD_SCRIPT!"
     echo "Current directory: $(pwd)"
-    ls -la build-release.sh 2>/dev/null || echo "build-release.sh not found in current directory"
+    ls -la scripts/build-release.sh 2>/dev/null || echo "scripts/build-release.sh not found in current directory"
     exit 1
 fi
 
@@ -529,9 +529,9 @@ deploy_to_github_pages() {
 
 # Upload DMG to GitHub releases
 echo "📤 Uploading DMG to GitHub releases..."
-if [ -f "upload-dmg.sh" ]; then
-    chmod +x upload-dmg.sh
-    ./upload-dmg.sh "$VERSION" "$DMG_FILE"
+if [ -f "scripts/upload-dmg.sh" ]; then
+    chmod +x scripts/upload-dmg.sh
+    ./scripts/upload-dmg.sh "$VERSION" "$DMG_FILE"
 else
     echo "⚠️  upload-dmg.sh not found, skipping automatic upload"
 fi

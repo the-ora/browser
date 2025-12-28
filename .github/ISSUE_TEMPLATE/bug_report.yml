@@ -1,0 +1,80 @@
+name: 🐛 Bug Report
+description: Report a reproducible issue or unexpected behavior in Ora Browser
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug!  
+        Please fill out the details below as clearly as possible.
+
+  - type: input
+    id: os-version
+    attributes:
+      label: macOS Version
+      placeholder: e.g., macOS Sequoia 15.0
+    validations:
+      required: true
+
+  - type: input
+    id: ora-version
+    attributes:
+      label: Ora Browser Version
+      placeholder: e.g., 0.2.7
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the Issue
+      description: A clear and concise description of what the bug is.
+      placeholder: Tell us what went wrong.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: List the exact steps to reproduce the issue.
+      placeholder: |
+        1. Open Ora
+        2. Go to example.com
+        3. Click on ...
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      placeholder: It should have opened the page instantly...
+    validations:
+      required: false
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      placeholder: The page froze and showed a blank view...
+    validations:
+      required: false
+
+  - type: textarea
+    id: console
+    attributes:
+      label: Console / Error Messages
+      description: Paste any relevant logs or error outputs if available.
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Add any relevant screenshots or recordings.
+    validations:
+      required: false

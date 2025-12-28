@@ -7,17 +7,7 @@ import WebKit
 @MainActor
 class TabManager: ObservableObject {
     @Published var activeContainer: TabContainer?
-    @Published var activeTab: Tab? {
-        willSet {
-            guard let tab = activeTab, SettingsStore.shared.autoPiPEnabled else { return }
-            tab.webView.evaluateJavaScript("window.__oraTriggerPiP()")
-        }
-        didSet {
-            guard let tab = activeTab, SettingsStore.shared.autoPiPEnabled else { return }
-            tab.webView.evaluateJavaScript("window.__oraTriggerPiP(true)")
-        }
-    }
-
+    @Published var activeTab: Tab?
     let modelContainer: ModelContainer
     let modelContext: ModelContext
     let mediaController: MediaController
@@ -251,7 +241,7 @@ class TabManager: ObservableObject {
     ) -> Tab? {
         if let container = activeContainer {
             if let host = url.host {
-                let faviconURL = URL(string: "https://www.google.com/s2/favicons?domain=\(host)")
+                let faviconURL = URL(string: "https://www.google.com/s2/favicons?domain=\(host)&sz=64")
 
                 let cleanHost = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
 
@@ -272,10 +262,7 @@ class TabManager: ObservableObject {
                 container.tabs.append(newTab)
 
                 if focusAfterOpening {
-                    activeTab?.maybeIsActive  = false
-                    activeTab = newTab
-                    activeTab?.maybeIsActive = true
-                    newTab.lastAccessedAt = Date()
+                    activateTab(newTab)
                 }
                 if focusAfterOpening || loadSilently {
                     // Initialize the WebView for the new active tab
@@ -368,7 +355,18 @@ class TabManager: ObservableObject {
         try? modelContext.save() // Persist the undo operation
     }
 
+    func togglePiP(_ currentTab: Tab?, _ oldTab: Tab?) {
+        if currentTab?.id != oldTab?.id, SettingsStore.shared.autoPiPEnabled {
+            currentTab?.webView.evaluateJavaScript("window.__oraTriggerPiP(true)")
+            oldTab?.webView.evaluateJavaScript("window.__oraTriggerPiP()")
+        }
+    }
+
     func activateTab(_ tab: Tab) {
+        // Toggle Picture-in-Picture on tab switch
+        togglePiP(tab, activeTab)
+
+        // Activate the tab
         activeTab?.maybeIsActive = false
         activeTab = tab
         activeTab?.maybeIsActive = true
