@@ -100,6 +100,9 @@ struct TabItem: View {
 
     @Environment(\.theme) private var theme
     @State private var isHovering = false
+    @State private var isRenaming = false
+    @State private var newTitle = ""
+    @FocusState private var isTextFieldFocused: Bool
 
     var body: some View {
         HStack {
@@ -124,6 +127,11 @@ struct TabItem: View {
                         isPrivate: privacyMode.isPrivate
                     )
             }
+        }
+        .onTapGesture(count: 2) {
+            newTitle = tab.customTitle ?? tab.title
+            isRenaming = true
+            isTextFieldFocused = true
         }
         .onTapGesture {
             onTap()
@@ -152,20 +160,6 @@ struct TabItem: View {
                 : nil
         )
         .contentShape(ConditionallyConcentricRectangle(cornerRadius: 10))
-        .onTapGesture {
-            onTap()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
-                if !tab.isWebViewReady {
-                    tab
-                        .restoreTransientState(
-                            historyManager: historyManager,
-                            downloadManager: downloadManager,
-                            tabManager: tabManager,
-                            isPrivate: privacyMode.isPrivate
-                        )
-                }
-            }
-        }
         .onHover { isHovering = $0 }
         .contextMenu { contextMenuItems }
         .animation(.spring(response: 0.2, dampingFraction: 0.8), value: isDragging)
@@ -173,10 +167,33 @@ struct TabItem: View {
     }
 
     private var tabTitle: some View {
-        Text(tab.title)
-            .font(.system(size: 13))
-            .foregroundColor(textColor)
-            .lineLimit(1)
+        Group {
+            if isRenaming {
+                TextField("Tab Title", text: $newTitle, onCommit: {
+                    tab.customTitle = newTitle.isEmpty ? nil : newTitle
+                    isRenaming = false
+                })
+                .font(.system(size: 13))
+                .textFieldStyle(.plain)
+                .foregroundColor(textColor)
+                .focused($isTextFieldFocused)
+                .onAppear {
+                    isTextFieldFocused = true
+                }
+                .onChange(of: isTextFieldFocused) { _, newValue in
+                    if !newValue, isRenaming {
+                        tab.customTitle = newTitle.isEmpty ? nil : newTitle
+                        isRenaming = false
+                    }
+                }
+
+            } else {
+                Text(tab.customTitle ?? tab.title)
+                    .font(.system(size: 13))
+                    .foregroundColor(textColor)
+                    .lineLimit(1)
+            }
+        }
     }
 
     private var backgroundColor: Color {
@@ -205,6 +222,16 @@ struct TabItem: View {
 
     @ViewBuilder
     private var contextMenuItems: some View {
+        Button(action: {
+            newTitle = tab.customTitle ?? tab.title
+            isRenaming = true
+            isTextFieldFocused = true
+        }) {
+            Label("Rename Tab", systemImage: "pencil")
+        }
+
+        Divider()
+
         Button(action: onPinToggle) {
             Label(
                 tab.type == .pinned ? "Unpin Tab" : "Pin Tab",

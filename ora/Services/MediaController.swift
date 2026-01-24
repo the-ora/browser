@@ -53,9 +53,10 @@ final class MediaController: ObservableObject {
             if let idx = sessions.firstIndex(where: { $0.tabID == id }) { return idx }
             let session = Session(
                 tabID: id,
-                title: tab.title,
+                title: tab.customTitle ?? tab.title,
                 pageURL: tab.url,
                 favicon: tab.faviconLocalFile ?? tab.favicon,
+
                 isPlaying: false,
                 volume: 1.0,
                 canGoNext: false,
@@ -207,11 +208,12 @@ final class MediaController: ObservableObject {
         let playingSessions = sessions.filter(\.isPlaying)
         for session in playingSessions {
             if let tab = tabRefs[session.tabID]?.value,
-               let idx = sessions.firstIndex(where: { $0.tabID == session.tabID }),
-               !tab.title.isEmpty,
-               tab.title != sessions[idx].title
+               let idx = sessions.firstIndex(where: { $0.tabID == session.tabID })
             {
-                sessions[idx].title = tab.title
+                let displayTitle = tab.customTitle ?? tab.title
+                if !displayTitle.isEmpty, displayTitle != sessions[idx].title {
+                    sessions[idx].title = displayTitle
+                }
             }
         }
     }
@@ -229,13 +231,14 @@ final class MediaController: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
             guard let self else { return }
             if let tab = self.tabRefs[tabID]?.value,
-               let idx = self.sessions.firstIndex(where: { $0.tabID == tabID }),
-               !tab.title.isEmpty,
-               tab.title != self.sessions[idx].title
+               let idx = self.sessions.firstIndex(where: { $0.tabID == tabID })
             {
-                self.sessions[idx].title = tab.title
-            } else if attempts > 1 {
-                self.scheduleTitleSync(for: tabID, attempts: attempts - 1, delay: delay)
+                let displayTitle = tab.customTitle ?? tab.title
+                if !displayTitle.isEmpty, displayTitle != self.sessions[idx].title {
+                    self.sessions[idx].title = displayTitle
+                } else if attempts > 1 {
+                    self.scheduleTitleSync(for: tabID, attempts: attempts - 1, delay: delay)
+                }
             }
         }
     }

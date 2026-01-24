@@ -26,6 +26,8 @@ class Tab: ObservableObject, Identifiable {
     var urlString: String
     var savedURL: URL?
     var title: String
+    var customTitle: String?
+
     var favicon: URL? // Add favicon property
     var createdAt: Date
     var lastAccessedAt: Date?
@@ -223,11 +225,12 @@ class Tab: ObservableObject, Identifiable {
                 if let title, !title.isEmpty {
                     self?.title = title
                     if let self {
-                        self.tabManager?.mediaController.syncTitleForTab(self.id, newTitle: title)
+                        self.tabManager?.mediaController.syncTitleForTab(self.id, newTitle: self.customTitle ?? title)
                     }
                 }
             }
         }
+
         delegate.onURLChange = { [weak self] url in
             DispatchQueue.main.async {
                 if let url {

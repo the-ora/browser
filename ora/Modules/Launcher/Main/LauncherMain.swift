@@ -142,7 +142,8 @@ struct LauncherMain: View {
             suggestions.append(
                 LauncherSuggestion(
                     type: .openedTab,
-                    title: tab.title,
+                    title: tab.customTitle ?? tab.title,
+
                     url: tab.url,
                     faviconURL: tab.favicon,
                     faviconLocalFile: tab.faviconLocalFile,
