@@ -4,19 +4,20 @@ struct ContainerForm: View {
     @Binding var name: String
     @Binding var emoji: String
     @Binding var isEmojiPickerOpen: Bool
-    @FocusState.Binding var isTextFieldFocused: Bool
 
     let onSubmit: () -> Void
     let defaultEmoji: String
 
     @Environment(\.theme) private var theme
     @State private var isEmojiPickerHovering = false
+    @FocusState private var isNameFocused: Bool
 
     var body: some View {
         HStack(spacing: 8) {
             emojiPickerButton
             nameTextField
         }
+        .onAppear { isNameFocused = true }
     }
 
     private var emojiPickerButton: some View {
@@ -35,7 +36,8 @@ struct ContainerForm: View {
                         .easeOut(duration: ContainerConstants.Animation.emojiPickerDuration),
                         value: emoji.isEmpty
                     )
-                    .background(isEmojiPickerHovering ? Color.gray.opacity(0.3) : Color.gray.opacity(0.2))
+                    .background(isEmojiPickerHovering ? theme.mutedBackground.opacity(0.8)
+                        : theme.mutedBackground)
                     .cornerRadius(ContainerConstants.UI.cornerRadius)
 
                 if emoji.isEmpty {
@@ -54,27 +56,17 @@ struct ContainerForm: View {
             })
         }
         .frame(width: ContainerConstants.UI.emojiButtonSize, height: ContainerConstants.UI.emojiButtonSize)
-        .background(isEmojiPickerHovering ? Color.gray.opacity(0.3) : Color.gray.opacity(0.2))
         .cornerRadius(ContainerConstants.UI.cornerRadius)
         .buttonStyle(.plain)
         .onHover { isEmojiPickerHovering = $0 }
     }
 
     private var nameTextField: some View {
-        TextField("Name", text: $name)
-            .textFieldStyle(.plain)
-            .frame(maxWidth: .infinity)
-            .padding(8)
-            .background(Color.gray.opacity(0.1))
-            .cornerRadius(ContainerConstants.UI.cornerRadius)
-            .focused($isTextFieldFocused)
-            .onSubmit(onSubmit)
-            .overlay(
-                RoundedRectangle(cornerRadius: ContainerConstants.UI.cornerRadius, style: .continuous)
-                    .stroke(
-                        isTextFieldFocused ? theme.foreground.opacity(0.5) : theme.border,
-                        lineWidth: isTextFieldFocused ? 2 : 1
-                    )
-            )
+        OraInput(
+            text: $name,
+            placeholder: "eg. work, streaming, finance...",
+            onSubmit: onSubmit
+        )
+        .focused($isNameFocused)
     }
 }
