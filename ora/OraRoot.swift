@@ -21,6 +21,7 @@ struct OraRoot: View {
     @StateObject private var privacyMode: PrivacyMode
     @StateObject private var sidebarManager = SidebarManager()
     @StateObject private var toolbarManager = ToolbarManager()
+    @StateObject private var dialogManager = DialogManager()
 
     let tabContext: ModelContext
     let historyContext: ModelContext
@@ -94,11 +95,31 @@ struct OraRoot: View {
             .environmentObject(privacyMode)
             .environmentObject(sidebarManager)
             .environmentObject(toolbarManager)
+            .environmentObject(dialogManager)
+            .dialogs(manager: dialogManager)
             .modelContext(tabContext)
             .modelContext(historyContext)
             .modelContext(downloadContext)
             .withTheme()
             .onAppear {
+                // Dialog keyboard shortcuts (highest priority — checked first)
+                keyModifierListener.registerKeyDownHandler { event in
+                    // Escape: dismiss top dialog
+                    if event.keyCode == 53, !dialogManager.dialogs.isEmpty {
+                        DispatchQueue.main.async { dialogManager.dismissTop() }
+                        return true
+                    }
+                    // Return: confirm top dialog (only if it carries a confirm action)
+                    if event.keyCode == 36, let onConfirm = dialogManager.dialogs.last?.onConfirm {
+                        DispatchQueue.main.async {
+                            onConfirm()
+                            dialogManager.dismissTop()
+                        }
+                        return true
+                    }
+                    return false
+                }
+
                 keyModifierListener.registerKeyDownHandler { event in
                     guard !appState.isFloatingTabSwitchVisible else { return false }
 

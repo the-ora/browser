@@ -16,6 +16,10 @@ enum ContainerConstants {
         static let normalButtonWidth: CGFloat = 28
         static let compactButtonWidth: CGFloat = 12
         static let popoverWidth: CGFloat = 300
+        static let newContainerDialogWidth: CGFloat = 450
+        static let newContainerDialogHeight: CGFloat = 380
+        static let minDialogWidth: CGFloat = 370
+        static let minDialogHeight: CGFloat = 250
         static let emojiButtonSize: CGFloat = 32
         static let cornerRadius: CGFloat = 10
     }
