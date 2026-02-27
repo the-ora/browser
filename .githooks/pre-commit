@@ -1,28 +1,23 @@
 #!/bin/bash
+set -e
 
-echo "🎨 Running SwiftFormat..."
 if ! command -v swiftformat >/dev/null 2>&1; then
-    echo "⚠️ SwiftFormat not installed. Install with 'brew install swiftformat' or execute './setup.sh.'"
-    exit 1
-fi
-swiftformat . --quiet
-if [ $? -ne 0 ]; then
-    echo "❌ SwiftFormat failed."
+    echo "error: swiftformat not installed. Run ./scripts/setup.sh" >&2
     exit 1
 fi
 
-echo "🔍 Running SwiftLint..."
 if ! command -v swiftlint >/dev/null 2>&1; then
-    echo "⚠️ SwiftLint not installed. Install with 'brew install swiftlint' or execute './setup.sh.'"
+    echo "error: swiftlint not installed. Run ./scripts/setup.sh" >&2
     exit 1
 fi
-swiftlint --quiet
+
+echo "Running SwiftFormat..."
+swiftformat . --quiet
+
+echo "Running SwiftLint..."
 swiftlint lint --fix --strict
-if [ $? -ne 0 ]; then
-    echo "❌ SwiftLint failed."
-    exit 1
-fi
 
-git add .
+# Re-stage files modified by formatters
+git add -u
 
-echo "✅ Pre-commit checks passed!"
+echo "Pre-commit checks passed."
