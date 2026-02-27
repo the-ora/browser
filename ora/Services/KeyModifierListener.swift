@@ -1,6 +1,6 @@
 import SwiftUI
 
-/* 
+/*
  * KeyModifierListener is an ObservableObject that monitors keyboard modifier key changes and global key down events.
  *
  * It publishes the current modifier flags via the `modifierFlags` property, which updates whenever modifier keys are pressed or released.
