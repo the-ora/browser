@@ -2,7 +2,7 @@ import AppKit
 import Foundation
 
 extension NSWindow {
-    // Private key for storing the previous frame in UserDefaults
+    /// Private key for storing the previous frame in UserDefaults
     private static let previousFrameKey = "window.previousFrame"
 
     /// Stores the current frame as the previous frame before maximizing

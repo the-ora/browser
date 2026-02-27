@@ -27,7 +27,7 @@ class TabManager: ObservableObject {
         return Array(combined)
     }
 
-    // Note: Could be made injectable via init parameter if preferred
+    /// Note: Could be made injectable via init parameter if preferred
     let tabSearchingService: TabSearchingProviding
 
     @Query(sort: \TabContainer.lastAccessedAt, order: .reverse) var containers: [TabContainer]
@@ -180,7 +180,7 @@ class TabManager: ObservableObject {
 
     func addTab(
         title: String = "Untitled",
-        /// Will Always Work
+        // Will Always Work
         url: URL = URL(string: "about:blank")!,
         container: TabContainer,
         favicon: URL? = nil,
@@ -442,8 +442,8 @@ class TabManager: ObservableObject {
         cleanupTimer?.invalidate()
     }
 
-    // Activate a tab by its persistent id. If the tab is in a
-    // different container, also activate that container.
+    /// Activate a tab by its persistent id. If the tab is in a
+    /// different container, also activate that container.
     func activateTab(id: UUID) {
         let allContainers = fetchContainers()
         for container in allContainers {

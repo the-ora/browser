@@ -105,7 +105,7 @@ struct DownloadProgressView: View {
     }
 
     private var progressText: String {
-        let text: String = switch download.status {
+        return switch download.status {
         case .downloading:
             if download.displayFileSize > 0 {
                 "\(download.formattedDownloadedSize) of \(download.formattedFileSize)"
@@ -121,7 +121,5 @@ struct DownloadProgressView: View {
         default:
             "Pending"
         }
-
-        return text
     }
 }

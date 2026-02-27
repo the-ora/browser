@@ -25,9 +25,18 @@ public struct Splitter: SplitDivider {
     @EnvironmentObject private var layout: LayoutHolder
     @ObservedObject public var styling: SplitStyling
     @State private var dividerColor: Color  // Changes based on styling.previewHide
-    private var color: Color { privateColor ?? styling.color }
-    private var inset: CGFloat { privateInset ?? styling.inset }
-    private var visibleThickness: CGFloat { privateVisibleThickness ?? styling.visibleThickness }
+    private var color: Color {
+        privateColor ?? styling.color
+    }
+
+    private var inset: CGFloat {
+        privateInset ?? styling.inset
+    }
+
+    private var visibleThickness: CGFloat {
+        privateVisibleThickness ?? styling.visibleThickness
+    }
+
     private var invisibleThickness: CGFloat {
         privateInvisibleThickness ?? styling.invisibleThickness
     }

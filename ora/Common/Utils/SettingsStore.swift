@@ -3,7 +3,10 @@ import Foundation
 import SwiftUI
 
 struct SitePermissionSettings: Codable, Hashable, Identifiable {
-    var id: String { host }
+    var id: String {
+        host
+    }
+
     let host: String
     var camera: Bool
     var microphone: Bool
@@ -16,7 +19,9 @@ enum AutoClearTabsAfter: String, CaseIterable, Identifiable, Codable {
     case oneHour = "1 Hour"
     case oneDay = "1 Day"
     case oneWeek = "1 Week"
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var seconds: TimeInterval? {
         switch self {

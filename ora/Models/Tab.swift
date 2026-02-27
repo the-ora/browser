@@ -134,7 +134,7 @@ class Tab: ObservableObject, Identifiable {
         backgroundColor = Color(hex: backgroundColorHex)
     }
 
-    // Call this whenever the color is set
+    /// Call this whenever the color is set
     func updateBackgroundColor(_ color: Color) {
         backgroundColor = color
         backgroundColorHex = color.toHex() ?? "#000000"

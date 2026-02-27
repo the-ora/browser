@@ -23,10 +23,13 @@ extension Notification.Name {
     static let setAppearance = Notification.Name("SetAppearance") // userInfo: ["appearance": String]
     static let checkForUpdates = Notification.Name("CheckForUpdates")
 
-    // AppDelegate → UI routing
+    /// AppDelegate → UI routing
     static let openURL = Notification.Name("OpenURL") // userInfo: ["url": URL]
 
     // Cache and cookies
     static let clearCacheAndReload = Notification.Name("ClearCacheAndReload")
     static let clearCookiesAndReload = Notification.Name("ClearCookiesAndReload")
+
+    /// App lifecycle
+    static let quitRequested = Notification.Name("QuitRequested")
 }

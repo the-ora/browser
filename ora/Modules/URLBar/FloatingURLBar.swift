@@ -39,7 +39,6 @@ struct FloatingURLBar: View {
         .animation(.easeInOut(duration: 0.1), value: showFloatingURLBar)
     }
 
-    @ViewBuilder
     private func hoverStrip(width: CGFloat) -> some View {
         Color.clear
             .overlay(

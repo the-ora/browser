@@ -11,7 +11,6 @@ struct Toast: Identifiable {
 }
 
 extension View {
-    @ViewBuilder
     func toast(toasts: Binding<[Toast]>) -> some View {
         self.frame(maxWidth: .infinity, maxHeight: .infinity)
             .overlay(alignment: .bottom) {

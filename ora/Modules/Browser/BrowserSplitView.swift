@@ -51,7 +51,6 @@ struct BrowserSplitView: View {
             .styling(hideSplitter: true)
     }
 
-    @ViewBuilder
     private func primaryPane() -> some View {
         paneContent(
             isSidebarPane: sidebarManager.sidebarPosition == .primary,
@@ -59,7 +58,6 @@ struct BrowserSplitView: View {
         )
     }
 
-    @ViewBuilder
     private func secondaryPane() -> some View {
         paneContent(
             isSidebarPane: sidebarManager.sidebarPosition == .secondary,

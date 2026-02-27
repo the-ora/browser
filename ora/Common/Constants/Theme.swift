@@ -45,6 +45,14 @@ struct Theme: Equatable {
         colorScheme == .dark ? .white.opacity(0.17) : self.primaryDark.opacity(0.1)
     }
 
+    var popoverBackground: Color {
+        colorScheme == .dark ? Color(hex: "#242424") : .white
+    }
+
+    var popoverMutedBackground: Color {
+        colorScheme == .dark ? Color(hex: "#1d1d1d") : self.primaryDark.opacity(0.1)
+    }
+
     var mutedForeground: Color {
         .secondary
     }
@@ -85,7 +93,7 @@ struct Theme: Equatable {
         Color(hex: "#799EFF")
     }
 
-    // Search engine colors
+    /// Search engine colors
     var grok: Color {
         colorScheme == .dark ? .white : .black
     }

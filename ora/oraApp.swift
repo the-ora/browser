@@ -10,6 +10,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         AppearanceManager.shared.updateAppearance()
     }
 
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        let targetWindow = NSApp.keyWindow ?? NSApp.windows.first(where: { $0.isVisible })
+        guard let targetWindow else { return .terminateNow }
+        NotificationCenter.default.post(name: .quitRequested, object: targetWindow)
+        return .terminateLater
+    }
+
     func application(_ application: NSApplication, open urls: [URL]) {
         handleIncomingURLs(urls)
     }
@@ -35,8 +42,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-extension Notification.Name {}
-
 func deleteSwiftDataStore(_ loc: String) {
     let fileManager = FileManager.default
     let storeURL = URL.applicationSupportDirectory.appending(path: loc)
@@ -59,7 +64,7 @@ class AppState: ObservableObject {
 struct OraApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
-    // Shared model container that uses the same configuration as the main browser
+    /// Shared model container that uses the same configuration as the main browser
     private let sharedModelContainer: ModelContainer? =
         try? ModelConfiguration.createOraContainer(isPrivate: false)
 

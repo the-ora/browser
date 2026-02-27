@@ -52,14 +52,12 @@ struct FindView: View {
         .zIndex(1000)
     }
 
-    @ViewBuilder
     private var searchIcon: some View {
         Image(systemName: "magnifyingglass")
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(colorScheme == .dark ? .white.opacity(0.8) : .black.opacity(0.7))
     }
 
-    @ViewBuilder
     private var searchTextField: some View {
         TextField("Find in page", text: $searchText)
             .textFieldStyle(.plain)
@@ -108,13 +106,11 @@ struct FindView: View {
             }
     }
 
-    @ViewBuilder
     private var textFieldBackground: some View {
         Rectangle()
             .fill(theme.mutedBackground)
     }
 
-    @ViewBuilder
     private var textFieldBorder: some View {
         RoundedRectangle(cornerRadius: 8, style: .continuous)
             .stroke(
@@ -125,7 +121,6 @@ struct FindView: View {
             )
     }
 
-    @ViewBuilder
     private var matchCounter: some View {
         // Fixed width container to prevent jumping
         HStack {
@@ -147,7 +142,6 @@ struct FindView: View {
         .frame(minWidth: 80)  // Fixed minimum width
     }
 
-    @ViewBuilder
     private var matchCounterBadge: some View {
         HStack(spacing: 3) {
             Text("\(currentMatch)")
@@ -173,7 +167,6 @@ struct FindView: View {
         .cornerRadius(6)
     }
 
-    @ViewBuilder
     private var noMatchesBadge: some View {
         Text("No matches")
             .font(.system(size: 11, weight: .medium))
@@ -189,7 +182,6 @@ struct FindView: View {
             .cornerRadius(6)
     }
 
-    @ViewBuilder
     private var navigationButtons: some View {
         HStack(spacing: 2) {
             previousButton
@@ -199,7 +191,6 @@ struct FindView: View {
         .background(navigationButtonsBackground)
     }
 
-    @ViewBuilder
     private var previousButton: some View {
         Button(action: {
             Task { @MainActor in
@@ -220,7 +211,6 @@ struct FindView: View {
         )
     }
 
-    @ViewBuilder
     private var nextButton: some View {
         Button(action: {
             Task { @MainActor in
@@ -241,14 +231,12 @@ struct FindView: View {
         )
     }
 
-    @ViewBuilder
     private var buttonSeparator: some View {
         Rectangle()
             .fill(Color.gray.opacity(0.3))
             .frame(width: 1, height: 20)
     }
 
-    @ViewBuilder
     private var navigationButtonsBackground: some View {
         RoundedRectangle(cornerRadius: 6, style: .continuous)
             .fill(colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
@@ -258,7 +246,6 @@ struct FindView: View {
             )
     }
 
-    @ViewBuilder
     private var closeButton: some View {
         Button(action: {
             Task { @MainActor in
@@ -273,7 +260,6 @@ struct FindView: View {
         .buttonStyle(PlainButtonStyle())
     }
 
-    @ViewBuilder
     private var backgroundView: some View {
         RoundedRectangle(cornerRadius: 16, style: .continuous)
             .fill(.ultraThinMaterial)
@@ -283,7 +269,6 @@ struct FindView: View {
             )
     }
 
-    @ViewBuilder
     private var borderView: some View {
         RoundedRectangle(cornerRadius: 16, style: .continuous)
             .stroke(theme.border, lineWidth: 1)

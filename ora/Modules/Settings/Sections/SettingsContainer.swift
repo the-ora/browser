@@ -15,7 +15,6 @@ struct SettingsContainer<Content: View>: View {
         }
     }
 
-    @ViewBuilder
     private var inner: some View {
         HStack(alignment: .top) {
             Spacer(minLength: 0)

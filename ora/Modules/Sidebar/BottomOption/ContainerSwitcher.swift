@@ -6,11 +6,10 @@ struct ContainerSwitcher: View {
 
     @Environment(\.theme) private var theme
     @EnvironmentObject var tabManager: TabManager
+    @EnvironmentObject var dialogManager: DialogManager
     @Query var containers: [TabContainer]
 
     @State private var hoveredContainer: UUID?
-    @State private var editingContainer: TabContainer?
-    @State private var isEditModalOpen = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -33,14 +32,6 @@ struct ContainerSwitcher: View {
         }
         .padding(0)
         .frame(height: 28)
-        .popover(isPresented: $isEditModalOpen) {
-            if let container = editingContainer {
-                EditContainerModal(
-                    container: container,
-                    isPresented: $isEditModalOpen
-                )
-            }
-        }
     }
 
     @ViewBuilder
@@ -88,11 +79,23 @@ struct ContainerSwitcher: View {
         }
         .contextMenu {
             Button("Edit Container") {
-                editingContainer = container
-                isEditModalOpen = true
+                dialogManager.show { id in
+                    EditContainerModal(
+                        container: container,
+                        dismiss: { dialogManager.dismiss(id: id) }
+                    )
+                }
             }
             Button("Delete Container") {
-                tabManager.deleteContainer(container)
+                dialogManager.confirm(
+                    title: "Delete \"\(container.name)\"?",
+                    message: "All tabs in this space will be permanently removed.",
+                    icon: .spaceCards,
+                    confirmLabel: "Delete",
+                    variant: .destructive
+                ) {
+                    tabManager.deleteContainer(container)
+                }
             }
             .disabled(containers.count == 1) // disabled to avoid crashes
         }

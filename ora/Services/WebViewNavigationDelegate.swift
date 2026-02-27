@@ -5,7 +5,7 @@ import SwiftUI
 
 private let logger = Logger(subsystem: "com.orabrowser.ora", category: "WebViewNavigationDelegate")
 
-// JavaScript for monitoring URL, title, and favicon changes
+/// JavaScript for monitoring URL, title, and favicon changes
 let navigationScript = """
 (function () {
     let lastHref = location.href;
