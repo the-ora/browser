@@ -76,7 +76,7 @@
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.web-browser</string>
 	<key>LSMinimumSystemVersion</key>
-	<string>13.0</string>
+	<string>15.0</string>
 	<key>NSUserActivityTypes</key>
 	<array>
 		<string>NSUserActivityTypeBrowsingWeb</string>

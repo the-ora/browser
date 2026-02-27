@@ -74,9 +74,9 @@ targets:
               - public.xhtml
         NSUserActivityTypes:
           - NSUserActivityTypeBrowsingWeb
-        LSMinimumSystemVersion: "13.0"
+        LSMinimumSystemVersion: "15.0"
         LSApplicationCategoryType: public.app-category.web-browser
-        
+
     entitlements:
       path: ora/ora.entitlements
       properties:
