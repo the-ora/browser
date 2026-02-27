@@ -13,6 +13,9 @@ final class DialogManager: ObservableObject {
     }
 
     func dismiss(id: String) {
+        if let dialog = dialogs.first(where: { $0.id == id }) {
+            dialog.onDismiss?()
+        }
         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
             dialogs.removeAll(where: { $0.id == id })
         }
@@ -33,22 +36,38 @@ final class DialogManager: ObservableObject {
         title: String,
         message: String? = nil,
         icon: OraIconType? = nil,
+        iconImage: Image? = nil,
         confirmLabel: String = "Confirm",
         variant: OraButtonVariant = .default,
-        onConfirm: @escaping () -> Void
+        onConfirm: @escaping () -> Void,
+        onCancel: (() -> Void)? = nil
     ) {
+        final class ConfirmState { var confirmed = false }
+        let state = ConfirmState()
+
         var dialog = Dialog { id in
             ConfirmDialogView(
                 title: title,
                 message: message,
                 icon: icon,
+                iconImage: iconImage,
                 confirmLabel: confirmLabel,
                 confirmVariant: variant,
-                onConfirm: onConfirm,
+                onConfirm: {
+                    state.confirmed = true
+                    onConfirm()
+                    self.dismiss(id: id)
+                },
                 onCancel: { self.dismiss(id: id) }
             )
         }
-        dialog.onConfirm = onConfirm
+        dialog.onConfirm = {
+            state.confirmed = true
+            onConfirm()
+        }
+        dialog.onDismiss = {
+            if !state.confirmed { onCancel?() }
+        }
         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
             dialogs.append(dialog)
         }

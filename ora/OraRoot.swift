@@ -134,6 +134,24 @@ struct OraRoot: View {
                     return false
                 }
 
+                // Cmd+Q quit confirmation
+                NotificationCenter.default.addObserver(forName: .quitRequested, object: nil, queue: .main) { note in
+                    guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
+                    guard window != nil else {
+                        NSApp.reply(toApplicationShouldTerminate: true)
+                        return
+                    }
+                    dialogManager.confirm(
+                        title: "Quit Ora?",
+                        message: "Are you sure you want to quit?",
+                        iconImage: Image("OraColorLogo"),
+                        confirmLabel: "Quit",
+                        variant: .destructive,
+                        onConfirm: { NSApp.reply(toApplicationShouldTerminate: true) },
+                        onCancel: { NSApp.reply(toApplicationShouldTerminate: false) }
+                    )
+                }
+
                 if SettingsStore.shared.autoUpdateEnabled {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                         updateService.checkForUpdatesInBackground()

@@ -29,4 +29,7 @@ extension Notification.Name {
     // Cache and cookies
     static let clearCacheAndReload = Notification.Name("ClearCacheAndReload")
     static let clearCookiesAndReload = Notification.Name("ClearCookiesAndReload")
+
+    // App lifecycle
+    static let quitRequested = Notification.Name("QuitRequested")
 }

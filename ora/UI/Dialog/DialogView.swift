@@ -7,6 +7,7 @@ struct ConfirmDialogView: View {
     var message: String?
     var icon: OraIconType?
     var iconColor: Color?
+    var iconImage: Image?
     var confirmLabel: String = "Confirm"
     var confirmVariant: OraButtonVariant = .default
     let onConfirm: () -> Void
@@ -19,7 +20,18 @@ struct ConfirmDialogView: View {
         VStack(alignment: .leading, spacing: 0) {
             // Inner content
             VStack(alignment: .leading, spacing: 0) {
-                if let icon {
+                if let iconImage {
+                    Group {
+                        iconImage
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 42, height: 42)
+                    }
+                    .padding(2)
+                    .background(Color.white)
+                    .cornerRadius(12)
+                    .padding(.bottom, 16)
+                } else if let icon {
                     OraIcons(icon: icon, size: .custom(42), color: iconColor ?? theme.mutedForeground)
                         .padding(.bottom, 16)
                 }

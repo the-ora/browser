@@ -86,7 +86,7 @@ struct OraButton: View {
         case .default:
             return isHovering ? theme.foreground.opacity(0.85) : theme.foreground
         case .secondary:
-            return isHovering ? theme.mutedBackground.opacity(0.7) : theme.mutedBackground
+            return isHovering ? theme.mutedBackground.opacity(0.5) : theme.mutedBackground.opacity(0.8)
         case .outline, .ghost:
             return isHovering ? theme.mutedBackground : .clear
         case .destructive:
