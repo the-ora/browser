@@ -1,7 +1,0 @@
-#!/bin/bash
-set -e
-
-echo "Running debug build..."
-./scripts/xcbuild-debug.sh
-
-echo "Build passed."

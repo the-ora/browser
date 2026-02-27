@@ -34,11 +34,9 @@ ensure_formula xcodegen xcodegen
 ensure_formula swiftlint swiftlint
 ensure_formula swiftformat swiftformat
 ensure_formula xcbeautify xcbeautify
+ensure_formula lefthook lefthook
 
-git config core.hooksPath .githooks
-if [ -d .githooks ]; then
-    chmod -R +x .githooks || true
-fi
+lefthook install
 echo "Git hooks installed."
 
 xcodegen
