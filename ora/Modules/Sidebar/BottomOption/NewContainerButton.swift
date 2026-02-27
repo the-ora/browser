@@ -6,11 +6,13 @@ struct NewContainerButton: View {
 
     @Environment(\.theme) private var theme
     @EnvironmentObject var dialogManager: DialogManager
+    @EnvironmentObject var tabManager: TabManager
 
     var body: some View {
         Button(action: {
             dialogManager.show { id in
                 NewContainerDialog(dismiss: { dialogManager.dismiss(id: id) })
+                    .environmentObject(tabManager)
             }
         }) {
             HStack {

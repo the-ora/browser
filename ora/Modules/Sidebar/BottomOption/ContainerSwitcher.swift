@@ -84,6 +84,7 @@ struct ContainerSwitcher: View {
                         container: container,
                         dismiss: { dialogManager.dismiss(id: id) }
                     )
+                    .environmentObject(tabManager)
                 }
             }
             Button("Delete Container") {
