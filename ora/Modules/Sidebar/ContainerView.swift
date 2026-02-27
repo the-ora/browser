@@ -184,7 +184,9 @@ private struct BackportWindowDragGesture: Gesture {
     @Binding var isDragging: Bool
 
     struct Value: Equatable {
-        static func == (lhs: Value, rhs: Value) -> Bool { true }
+        static func == (lhs: Value, rhs: Value) -> Bool {
+            true
+        }
     }
 
     init(isDragging: Binding<Bool>) {
@@ -194,8 +196,8 @@ private struct BackportWindowDragGesture: Gesture {
     var body: some Gesture<Value> {
         DragGesture()
             .onChanged { _ in
-                /// Makes intent cleaner, if we're dragging, then just return
-                /// Maybe some other case needs to be watched for here
+                // Makes intent cleaner, if we're dragging, then just return
+                // Maybe some other case needs to be watched for here
                 guard !isDragging else {
                     return
                 }

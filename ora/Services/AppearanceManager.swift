@@ -5,7 +5,9 @@ enum AppAppearance: String, CaseIterable, Identifiable {
     case light = "Light"
     case dark = "Dark"
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 }
 
 class AppearanceManager: ObservableObject {

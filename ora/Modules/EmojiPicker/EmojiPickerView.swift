@@ -60,7 +60,7 @@ struct EmojiPickerView: View {
         }
     }
 
-    // Map category names to bottom icons (customize based on JSON or screenshot)
+    /// Map category names to bottom icons (customize based on JSON or screenshot)
     private func categoryIcon(for category: String) -> String {
         switch category.lowercased() {
         case let str where str.contains("smileys"): return "face.smiling.inverse"
@@ -75,7 +75,7 @@ struct EmojiPickerView: View {
     }
 }
 
-// Custom Search Bar
+/// Custom Search Bar
 struct SearchBar: View {
     @Binding var text: String
 

@@ -362,9 +362,7 @@ public struct Split<P: View, D: SplitDivider, S: View>: View {
     // MARK: Modifiers
 
     /// Return a new Split with the `splitter` set to the `splitter` passed-in.
-    public func splitter<T>(@ViewBuilder _ splitter: @escaping () -> T) -> Split<P, T, S>
-        where T: View
-    {
+    public func splitter<T: View>(@ViewBuilder _ splitter: @escaping () -> T) -> Split<P, T, S> {
         return Split<P, T, S>(
             layout, fraction: fraction, hide: hide, constraints: constraints, onDrag: onDrag,
             primary: { primary }, splitter: splitter, secondary: { secondary }

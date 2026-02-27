@@ -7,8 +7,8 @@ struct GlobalMediaPlayer: View {
 
     @State private var isHovered: Bool = false
 
-    // Show up to 4 sessions when hovered, otherwise only the most recent one.
-    // Exclude the currently active tab's media session.
+    /// Show up to 4 sessions when hovered, otherwise only the most recent one.
+    /// Exclude the currently active tab's media session.
     private var sessionsToShow: [MediaController.Session] {
         let activeId = tabManager.activeTab?.id
         let visible = media.visibleSessions.filter { session in

@@ -81,9 +81,7 @@ class UpdateService: NSObject, ObservableObject {
 
 extension UpdateService: SPUUpdaterDelegate {
     func feedURLString(for updater: SPUUpdater) -> String? {
-        let feedURL = "https://the-ora.github.io/browser/appcast.xml"
-
-        return feedURL
+        return "https://the-ora.github.io/browser/appcast.xml"
     }
 
     func updater(_ updater: SPUUpdater, didFindValidUpdate item: SUAppcastItem) {

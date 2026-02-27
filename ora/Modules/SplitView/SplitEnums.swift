@@ -31,12 +31,22 @@ public enum SplitSide: String {
     case top
     case bottom
 
-    public var isPrimary: Bool { self == .primary || self == .left || self == .top }
-    public var isSecondary: Bool { self == .secondary || self == .right || self == .bottom }
+    public var isPrimary: Bool {
+        self == .primary || self == .left || self == .top
+    }
+
+    public var isSecondary: Bool {
+        self == .secondary || self == .right || self == .bottom
+    }
 }
 
 /// A SplitSide is generally optional. If so, then if nil, it is neither primary nor secondary.
 public extension SplitSide? {
-    var isPrimary: Bool { self == nil ? false : self!.isPrimary }
-    var isSecondary: Bool { self == nil ? false : self!.isSecondary }
+    var isPrimary: Bool {
+        self == nil ? false : self!.isPrimary
+    }
+
+    var isSecondary: Bool {
+        self == nil ? false : self!.isSecondary
+    }
 }

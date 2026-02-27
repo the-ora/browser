@@ -5,7 +5,10 @@ import WebKit
 @MainActor
 final class MediaController: ObservableObject {
     struct Session: Identifiable, Equatable {
-        var id: UUID { tabID }
+        var id: UUID {
+            tabID
+        }
+
         var tabID: UUID
         var title: String
         var pageURL: URL
@@ -22,9 +25,11 @@ final class MediaController: ObservableObject {
     @Published private(set) var sessions: [Session] = []
     @Published var isVisible: Bool = false
 
-    // Weak references to tabs by id so we can run JS in the right webview
+    /// Weak references to tabs by id so we can run JS in the right webview
     private final class WeakTab { weak var value: Tab?
-        init(_ value: Tab?) { self.value = value }
+        init(_ value: Tab?) {
+            self.value = value
+        }
     }
 
     private var tabRefs: [UUID: WeakTab] = [:]
@@ -40,8 +45,13 @@ final class MediaController: ObservableObject {
 
     // MARK: - Public accessors
 
-    var primary: Session? { visibleSessions.first }
-    var visibleSessions: [Session] { sessions.filter(\.wasPlayed) }
+    var primary: Session? {
+        visibleSessions.first
+    }
+
+    var visibleSessions: [Session] {
+        sessions.filter(\.wasPlayed)
+    }
 
     // MARK: - Receive events from JS bridge
 
@@ -175,10 +185,18 @@ final class MediaController: ObservableObject {
         isVisible = !visibleSessions.isEmpty
     }
 
-    // Helpers
-    func volume(of tabID: UUID) -> Double { sessions.first(where: { $0.tabID == tabID })?.volume ?? 1.0 }
-    func canGoNext(of tabID: UUID) -> Bool { sessions.first(where: { $0.tabID == tabID })?.canGoNext ?? false }
-    func canGoPrevious(of tabID: UUID) -> Bool { sessions.first(where: { $0.tabID == tabID })?.canGoPrevious ?? false }
+    /// Helpers
+    func volume(of tabID: UUID) -> Double {
+        sessions.first(where: { $0.tabID == tabID })?.volume ?? 1.0
+    }
+
+    func canGoNext(of tabID: UUID) -> Bool {
+        sessions.first(where: { $0.tabID == tabID })?.canGoNext ?? false
+    }
+
+    func canGoPrevious(of tabID: UUID) -> Bool {
+        sessions.first(where: { $0.tabID == tabID })?.canGoPrevious ?? false
+    }
 
     // MARK: - Private
 
@@ -193,7 +211,9 @@ final class MediaController: ObservableObject {
         webView.evaluateJavaScript(javaScript, completionHandler: nil)
     }
 
-    private func clamp(_ value: Double) -> Double { max(0, min(1, value)) }
+    private func clamp(_ value: Double) -> Double {
+        max(0, min(1, value))
+    }
 
     private func startPeriodicTitleSync() {
         titleSyncTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
@@ -241,7 +261,7 @@ final class MediaController: ObservableObject {
     }
 }
 
-// Payload from injected JS
+/// Payload from injected JS
 struct MediaEventPayload: Codable {
     let type: String
     let wasPlayed: Bool?

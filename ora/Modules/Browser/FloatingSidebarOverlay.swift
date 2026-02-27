@@ -53,7 +53,6 @@ struct FloatingSidebarOverlay: View {
         }
     }
 
-    @ViewBuilder
     private func hoverStrip(width: CGFloat) -> some View {
         Color.clear
             .frame(width: width)

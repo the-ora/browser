@@ -10,7 +10,9 @@ struct KeyChord: Equatable, Codable {
     let keyEquivalent: KeyEquivalent
     let modifiers: SwiftUI.EventModifiers
 
-    var keyboardShortcut: KeyboardShortcut { KeyboardShortcut(keyEquivalent, modifiers: modifiers) }
+    var keyboardShortcut: KeyboardShortcut {
+        KeyboardShortcut(keyEquivalent, modifiers: modifiers)
+    }
 
     // MARK: - String-based storage for Codable support
 

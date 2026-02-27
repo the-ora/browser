@@ -93,7 +93,7 @@ struct Theme: Equatable {
         Color(hex: "#799EFF")
     }
 
-    // Search engine colors
+    /// Search engine colors
     var grok: Color {
         colorScheme == .dark ? .white : .black
     }

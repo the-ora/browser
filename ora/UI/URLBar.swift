@@ -22,8 +22,7 @@ struct URLBar: View {
         let nsColor = NSColor(tab.backgroundColor)
         if let ciColor = CIColor(color: nsColor) {
             let luminance = 0.299 * ciColor.red + 0.587 * ciColor.green + 0.114 * ciColor.blue
-            let baseColor: Color = luminance < 0.5 ? .white : .black
-            return baseColor
+            return luminance < 0.5 ? .white : .black
         } else {
             // Fallback to black if CIColor conversion fails
             return .black

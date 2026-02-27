@@ -1,7 +1,7 @@
 import Foundation
 import SwiftData
 
-// SwiftData model for a browsing history entry
+/// SwiftData model for a browsing history entry
 @Model
 final class History {
     @Attribute(.unique) var id: UUID // Unique identifier

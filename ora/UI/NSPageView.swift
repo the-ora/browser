@@ -105,9 +105,7 @@ import SwiftUI
         }
     }
 
-    class NSPageViewContainerController<T, V>: NSPageController, NSPageControllerDelegate
-        where V: View
-    {
+    class NSPageViewContainerController<T, V: View>: NSPageController, NSPageControllerDelegate {
         var pageObjects: [T] = []
 
         var idFromObject: ((T) -> String)?
@@ -200,7 +198,7 @@ import SwiftUI
         }
     }
 
-    class NSPageViewContentController<T, V>: NSViewController where V: View {
+    class NSPageViewContentController<T, V: View>: NSViewController {
         var content: ((T) -> V)?
         var object: T?
 

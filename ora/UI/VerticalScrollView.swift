@@ -42,7 +42,9 @@ final class BaseVerticalScrollView: NSScrollView {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { nil }
+    required init?(coder: NSCoder) {
+        nil
+    }
 
     override func scrollWheel(with event: NSEvent) {
         if abs(event.scrollingDeltaX) > 0, abs(event.scrollingDeltaY) < .ulpOfOne {
@@ -63,11 +65,7 @@ final class BaseVerticalScrollView: NSScrollView {
 }
 
 struct VerticalScrollView<Content: View>: NSViewRepresentable {
-    let content: Content
-
-    init(@ViewBuilder content: () -> Content) {
-        self.content = content()
-    }
+    @ViewBuilder let content: Content
 
     func makeNSView(context: Context) -> NSView {
         let hostingView = NSHostingView(rootView: content)
@@ -90,7 +88,7 @@ struct VerticalScrollView<Content: View>: NSViewRepresentable {
         hostingView.rootView = content
     }
 
-    // Make the representable adopt the proposed size from SwiftUI
+    /// Make the representable adopt the proposed size from SwiftUI
     func sizeThatFits(
         _ proposal: ProposedViewSize,
         nsView: NSView,

@@ -1,6 +1,6 @@
 import SwiftUI
 
-// Attach app shortcuts that update as overrides change.
+/// Attach app shortcuts that update as overrides change.
 private struct OraKeyboardShortcutModifier: ViewModifier {
     let shortcut: KeyboardShortcutDefinition
     @EnvironmentObject private var shortcutManager: CustomKeyboardShortcutManager
@@ -11,7 +11,7 @@ private struct OraKeyboardShortcutModifier: ViewModifier {
     }
 }
 
-// Attach a tooltip that includes the current shortcut display.
+/// Attach a tooltip that includes the current shortcut display.
 private struct OraShortcutHelpModifier: ViewModifier {
     let helpText: String
     let shortcut: KeyboardShortcutDefinition

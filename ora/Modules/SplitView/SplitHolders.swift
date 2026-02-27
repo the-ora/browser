@@ -20,7 +20,9 @@ public class LayoutHolder: ObservableObject {
     public var getter: (() -> SplitLayout)?
     public var setter: ((SplitLayout) -> Void)?
 
-    public var isHorizontal: Bool { value == .horizontal }
+    public var isHorizontal: Bool {
+        value == .horizontal
+    }
 
     public init(
         _ layout: SplitLayout? = nil,
@@ -115,7 +117,10 @@ public class SideHolder: ObservableObject {
         set { setValue(newValue) }
     }
 
-    public var oldSide: SplitSide? { oldValue }
+    public var oldSide: SplitSide? {
+        oldValue
+    }
+
     private var oldValue: SplitSide?
 
     public init(_ hide: SplitSide? = nil, getter: (() -> SplitSide?)? = nil, setter: ((SplitSide?) -> Void)? = nil) {

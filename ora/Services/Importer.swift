@@ -157,8 +157,7 @@ func getRoot() -> Root? {
 
     do {
         let data = try Data(contentsOf: url)
-        let root = try JSONDecoder().decode(Root.self, from: data)
-        return root
+        return try JSONDecoder().decode(Root.self, from: data)
     } catch {
         logger.error("Decoding failed: \(error.localizedDescription)")
         return nil

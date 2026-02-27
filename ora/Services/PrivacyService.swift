@@ -5,7 +5,9 @@ enum CookiesPolicy: String, CaseIterable, Identifiable, Codable {
     case allowAll = "Allow all"
     case blockThirdParty = "Block third-party"
     case blockAll = "Block all"
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 }
 
 class PrivacyService {

@@ -78,7 +78,6 @@ struct ConfirmDialogView: View {
 // MARK: - View extension
 
 extension View {
-    @ViewBuilder
     func dialogs(manager: DialogManager) -> some View {
         self.frame(maxWidth: .infinity, maxHeight: .infinity)
             .overlay {
@@ -119,5 +118,7 @@ private struct DialogsOverlay: View {
 
 private struct DialogContentView: View {
     let content: AnyView
-    var body: some View { content }
+    var body: some View {
+        content
+    }
 }
