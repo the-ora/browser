@@ -1,96 +1,64 @@
 #!/bin/bash
 set -e
 
-# Ora Browser Release Build Script
-# This script builds a release version of Ora Browser for distribution
+# build-release.sh
+# Builds, signs, and packages a release DMG for distribution.
 
-# Load environment variables from .env file
 load_env() {
-    if [ -f ".env" ]; then
-        echo "📝 Loading environment variables from .env..."
-        # Use export-all mode to safely source values with spaces/parentheses
-        set -a
-        # shellcheck disable=SC1091
-        . ./.env
-        set +a
-    else
-        echo "❌ .env file not found!"
-        echo "   Please create a .env file with the following keys:"
-        echo "   APPLE_ID=your-apple-id@example.com"
-        echo "   TEAM_ID=your-team-id"
-        echo "   APP_SPECIFIC_PASSWORD_KEYCHAIN=your-keychain-item-name"
-        echo "   SIGNING_IDENTITY=\"Developer ID Application: Your Name (YOUR_TEAM_ID)\""
+    if [ ! -f ".env" ]; then
+        echo "error: .env file not found." >&2
+        echo "" >&2
+        echo "Create a .env file with the following variables:" >&2
+        echo "  APPLE_ID=your-apple-id@example.com" >&2
+        echo "  TEAM_ID=your-team-id" >&2
+        echo "  APP_SPECIFIC_PASSWORD_KEYCHAIN=your-keychain-item-name" >&2
+        echo "  SIGNING_IDENTITY=\"Developer ID Application: Your Name (TEAM_ID)\"" >&2
         exit 1
     fi
 
-    # Validate required environment variables
-    REQUIRED_VARS=("APPLE_ID" "TEAM_ID" "APP_SPECIFIC_PASSWORD_KEYCHAIN" "SIGNING_IDENTITY")
-    for var in "${REQUIRED_VARS[@]}"; do
-        if [ -z "${!var}" ]; then
-            echo "❌ Missing required environment variable: $var"
-            echo "   Ensure it is defined in .env"
+    set -a
+    # shellcheck disable=SC1091
+    . ./.env
+    set +a
+
+    local required_vars=(APPLE_ID TEAM_ID APP_SPECIFIC_PASSWORD_KEYCHAIN SIGNING_IDENTITY)
+    for var in "${required_vars[@]}"; do
+        if [ -z "${!var:-}" ]; then
+            echo "error: Missing required variable: $var (check your .env)" >&2
             exit 1
         fi
     done
-    echo "✅ Environment variables loaded successfully"
 }
 
-# Call the function to load .env
 load_env
-
-# Export development team for xcodegen
 export DEVELOPMENT_TEAM="$TEAM_ID"
 
-echo "🏗️  Building Ora Browser Release..."
+VERSION=$(grep "MARKETING_VERSION:" project.yml | sed 's/.*MARKETING_VERSION: //' | tr -d ' ')
+DMG_NAME="Ora-Browser-${VERSION}.dmg"
 
-# Clean previous builds but preserve DSA keys and appcast
-echo "🧹 Cleaning previous builds..."
-# Preserve important files
-if [ -f "build/dsa_priv.pem" ]; then
-    mv build/dsa_priv.pem /tmp/dsa_priv.pem.backup
-fi
-if [ -f "build/dsa_pub.pem" ]; then
-    mv build/dsa_pub.pem /tmp/dsa_pub.pem.backup
-fi
-if [ -f "build/appcast.xml" ]; then
-    mv build/appcast.xml /tmp/appcast.xml.backup
-fi
-if [ -f "appcast.xml" ]; then
-    mv appcast.xml /tmp/root_appcast.xml.backup
-fi
-if [ -f "build/.gitkeep" ]; then
-    mv build/.gitkeep /tmp/.gitkeep.backup
-fi
+echo "Building Ora Browser v${VERSION} (Release)..."
+
+# Preserve files that must survive a clean build
+preserve() { [ -f "$1" ] && mv "$1" "$2"; }
+restore()   { [ -f "$2" ] && mv "$2" "$1"; }
+
+preserve build/dsa_priv.pem  /tmp/ora_build_dsa_priv.pem
+preserve build/dsa_pub.pem   /tmp/ora_build_dsa_pub.pem
+preserve build/appcast.xml   /tmp/ora_build_appcast.xml
+preserve appcast.xml         /tmp/ora_root_appcast.xml
+preserve build/.gitkeep      /tmp/ora_build_gitkeep
 
 rm -rf build/
 mkdir -p build
 
-# Restore preserved files
-if [ -f "/tmp/dsa_priv.pem.backup" ]; then
-    mv /tmp/dsa_priv.pem.backup build/dsa_priv.pem
-fi
-if [ -f "/tmp/dsa_pub.pem.backup" ]; then
-    mv /tmp/dsa_pub.pem.backup build/dsa_pub.pem
-fi
-if [ -f "/tmp/appcast.xml.backup" ]; then
-    mv /tmp/appcast.xml.backup build/appcast.xml
-fi
-if [ -f "/tmp/root_appcast.xml.backup" ]; then
-    mv /tmp/root_appcast.xml.backup appcast.xml
-fi
-if [ -f "/tmp/.gitkeep.backup" ]; then
-    mv /tmp/.gitkeep.backup build/.gitkeep
-fi
+restore build/dsa_priv.pem   /tmp/ora_build_dsa_priv.pem
+restore build/dsa_pub.pem    /tmp/ora_build_dsa_pub.pem
+restore build/appcast.xml    /tmp/ora_build_appcast.xml
+restore appcast.xml          /tmp/ora_root_appcast.xml
+restore build/.gitkeep       /tmp/ora_build_gitkeep
 
-# Clean up any leftover DMG files
-rm -f *.dmg
+rm -f ./*.dmg
 
-# # Get version from project.yml
-VERSION=$(grep "MARKETING_VERSION:" project.yml | sed 's/.*MARKETING_VERSION: //' | tr -d ' ')
-DMG_NAME="Ora-Browser-${VERSION}.dmg"
-
-# Create export options plist
-echo "⚙️  Creating export options..."
 cat > build/exportOptions.plist << EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -112,124 +80,74 @@ cat > build/exportOptions.plist << EOF
 </plist>
 EOF
 
-# Generate Xcode project (always regenerate to ensure latest project.yml)
-echo "📋 Generating Xcode project..."
+echo "Generating Xcode project..."
 xcodegen
 
-# Build the app directly (faster than archiving)
-echo "🔨 Building release version..."
+echo "Building..."
 xcodebuild build \
     -scheme ora \
     -configuration Release \
     -destination "platform=macOS" \
     -derivedDataPath "build/DerivedData" \
-        > /dev/null 2>&1
+    > /dev/null 2>&1
 
-# Copy the built app to build directory
-echo "📦 Copying built app..."
-if [ -d "build/DerivedData/Build/Products/Release/Ora.app" ]; then
-    ditto "build/DerivedData/Build/Products/Release/Ora.app" "build/Ora.app"
-    echo "✅ App copied to build directory"
-else
-    echo "❌ Built app not found in expected location"
+echo "Copying app bundle..."
+if [ ! -d "build/DerivedData/Build/Products/Release/Ora.app" ]; then
+    echo "error: Built app not found at expected path." >&2
     exit 1
 fi
+ditto "build/DerivedData/Build/Products/Release/Ora.app" "build/Ora.app"
 
-# Sign the entire app bundle (with deep)
-echo "🔐 Signing app bundle with Developer ID (deep)..."
+echo "Signing app bundle..."
 codesign --force --deep --options runtime --timestamp --sign "$SIGNING_IDENTITY" "build/Ora.app"
 
-
-if [ $? -eq 0 ]; then
-    echo "✅ App bundle signed successfully"
-else
-    echo "❌ Failed to sign app bundle"
+if ! command -v create-dmg >/dev/null 2>&1; then
+    echo "error: create-dmg not found. Install it with: brew install create-dmg" >&2
     exit 1
 fi
 
-# Create DMG if create-dmg is available
-if command -v create-dmg &> /dev/null; then
-    if [ -d "build/Ora.app" ]; then
-        echo "💿 Creating DMG..."
-        # Remove any existing DMG first
-        rm -f "build/${DMG_NAME}"
-        # Create DMG with signed app
-        create-dmg \
-            --app-drop-link 600 185 \
-            --window-size 800 400 \
-            --volname "Ora Browser" \
-            "build/${DMG_NAME}" \
-            "build/Ora.app" 2>/dev/null || {
-                echo "⚠️  create-dmg had warnings but continuing..."
-            }
-        # Rename DMG if it was created with temporary name
-        TEMP_DMG=$(ls build/rw.*.${DMG_NAME} 2>/dev/null | head -1)
-        if [ -n "$TEMP_DMG" ]; then
-            mv "$TEMP_DMG" "build/${DMG_NAME}"
-        fi
+echo "Creating DMG..."
+rm -f "build/${DMG_NAME}"
+create-dmg \
+    --app-drop-link 600 185 \
+    --window-size 800 400 \
+    --volname "Ora Browser" \
+    "build/${DMG_NAME}" \
+    "build/Ora.app" 2>/dev/null || true
 
-        # Verify DMG was created
-        if [ -f "build/${DMG_NAME}" ]; then
-            echo "✅ DMG created successfully"
-        else
-            echo "❌ DMG creation failed!"
-            exit 1
-        fi
+# create-dmg may stage the output under a temporary name
+TEMP_DMG=$(ls build/rw.*.${DMG_NAME} 2>/dev/null | head -1)
+if [ -n "$TEMP_DMG" ]; then
+    mv "$TEMP_DMG" "build/${DMG_NAME}"
+fi
 
-        # Sign the DMG
-        echo "🔐 Signing DMG with Developer ID..."
-        codesign -f --timestamp -s "$SIGNING_IDENTITY" "build/${DMG_NAME}"
-        if [ $? -eq 0 ]; then
-            echo "✅ DMG signed successfully"
-        else
-            echo "❌ Failed to sign DMG"
-            exit 1
-        fi
-
-       
-    else
-        echo "❌ Ora.app not found in build directory. Cannot create DMG."
-        exit 1
-    fi
-else
-    echo "⚠️  create-dmg not found. Skipping DMG creation."
-    echo "Install with: brew install create-dmg"
+if [ ! -f "build/${DMG_NAME}" ]; then
+    echo "error: DMG creation failed." >&2
     exit 1
 fi
 
-# Verify DMG creation
-if [ -f "build/${DMG_NAME}" ]; then
-    echo "✅ Release build complete!"
-    echo "📁 Release files in build/:"
-    ls -la build/
-    echo ""
-    echo "🚀 Ready for distribution:"
-    echo "   - build/${DMG_NAME} ($(du -h build/${DMG_NAME} | cut -f1))"
-    echo "   - build/Ora.app (macOS application)"
-else
-    echo "❌ DMG creation failed!"
-    exit 1
-fi
+echo "Signing DMG..."
+codesign -f --timestamp -s "$SIGNING_IDENTITY" "build/${DMG_NAME}"
 
-echo "🚀 Uploading for notarization..."
+echo "Notarizing..."
 xcrun notarytool submit "build/${DMG_NAME}" \
-  --apple-id "$APPLE_ID" \
-  --team-id "$TEAM_ID" \
-  --password "${APP_SPECIFIC_PASSWORD_KEYCHAIN}" \
-  --wait
+    --apple-id "$APPLE_ID" \
+    --team-id "$TEAM_ID" \
+    --password "${APP_SPECIFIC_PASSWORD_KEYCHAIN}" \
+    --wait
 
-# Staple the ticket to the DMG
+echo "Stapling notarization ticket..."
 xcrun stapler staple "build/${DMG_NAME}"
 xcrun stapler staple "build/Ora.app"
-echo "✅ Stapled notarization ticket"
 
-# Security check - ensure .env is not committed
-echo "🔒 Security Check:"
+# Security check
 if git ls-files 2>/dev/null | grep -q "\.env$"; then
-    echo "❌ SECURITY VIOLATION: .env file is tracked by git!"
-    echo "   This contains sensitive credentials! Run:"
-    echo "   git rm --cached .env"
-    echo "   git commit -m 'Remove .env from tracking'"
+    echo "error: .env is tracked by git. Remove it with:" >&2
+    echo "  git rm --cached .env && git commit -m 'Remove .env from tracking'" >&2
     exit 1
 fi
-echo "✅ Security check passed - .env not committed"
+
+echo ""
+echo "Release build complete."
+echo "  build/${DMG_NAME} ($(du -h "build/${DMG_NAME}" | cut -f1))"
+echo "  build/Ora.app"

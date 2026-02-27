@@ -1,38 +1,33 @@
 #!/bin/bash
+set -e
 
-echo "🔒 Checking Ora Browser Security..."
+echo "Checking Ora Browser security..."
 
-# Check if private key exists
 if [ -f "build/dsa_priv.pem" ]; then
-    echo "✅ DSA private key found in build/dsa_priv.pem"
-
-    # Check if it's in git (it shouldn't be)
+    echo "  DSA private key found: build/dsa_priv.pem"
     if git ls-files | grep -q "dsa_priv.pem"; then
-        echo "❌ SECURITY ISSUE: Private key is tracked by git!"
-        echo "   Run: git rm --cached build/dsa_priv.pem"
+        echo "error: Private key is tracked by git. Remove it with:" >&2
+        echo "  git rm --cached build/dsa_priv.pem" >&2
         exit 1
-    else
-        echo "✅ Private key is not tracked by git"
     fi
+    echo "  Private key is not tracked by git"
 else
-    echo "⚠️  DSA private key not found - will be generated on next release"
+    echo "  DSA private key not found; will be generated on next release"
 fi
 
-# Check if public key exists
 if [ -f "build/dsa_pub.pem" ]; then
-    echo "✅ DSA public key found in build/dsa_pub.pem"
+    echo "  DSA public key found: build/dsa_pub.pem"
 else
-    echo "⚠️  DSA public key not found"
+    echo "  DSA public key not found"
 fi
 
-# Check .gitignore
 if grep -q "dsa_priv.pem" .gitignore; then
-    echo "✅ Private key is properly ignored in .gitignore"
+    echo "  Private key is listed in .gitignore"
 else
-    echo "❌ SECURITY ISSUE: Private key not in .gitignore!"
+    echo "error: Private key is not listed in .gitignore" >&2
     exit 1
 fi
 
 echo ""
-echo "🔐 Security check complete!"
-echo "Remember: Never commit build/dsa_priv.pem to version control!"
+echo "Security check passed."
+echo "Note: Never commit build/dsa_priv.pem to version control."

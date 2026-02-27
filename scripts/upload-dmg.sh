@@ -1,41 +1,35 @@
 #!/bin/bash
 set -e
 
-# Upload DMG to GitHub Releases Script
-# This script uploads the built DMG to GitHub releases
+REPO="the-ora/browser"
 
 if [ $# -lt 1 ]; then
-    echo "Usage: $0 <version> [dmg_file]"
-    echo "Example: $0 0.0.18 build/Ora-Browser.dmg"
+    echo "Usage: $0 <version> [dmg_file]" >&2
+    echo "Example: $0 0.0.18 build/Ora-Browser-0.0.18.dmg" >&2
     exit 1
 fi
 
 VERSION=$1
 DMG_FILE=${2:-"build/Ora-Browser.dmg"}
-REPO="the-ora/browser"
 
-echo "📤 Uploading Ora Browser v$VERSION DMG to GitHub..."
+echo "Uploading Ora Browser v$VERSION to GitHub releases..."
 
-# Check if gh CLI is installed
-if ! command -v gh &> /dev/null; then
-    echo "❌ GitHub CLI (gh) not found. Please install it first:"
-    echo "   brew install gh"
-    echo "   gh auth login"
+if ! command -v gh >/dev/null 2>&1; then
+    echo "error: GitHub CLI not found. Install it:" >&2
+    echo "  brew install gh && gh auth login" >&2
     exit 1
 fi
 
-# Check if DMG file exists
 if [ ! -f "$DMG_FILE" ]; then
-    echo "❌ DMG file not found: $DMG_FILE"
+    echo "error: DMG not found: $DMG_FILE" >&2
     exit 1
 fi
 
-# Check if release already exists
-if gh release view "v$VERSION" --repo "$REPO" &> /dev/null; then
-    echo "📋 Release v$VERSION already exists. Uploading DMG to existing release..."
+if gh release view "v$VERSION" --repo "$REPO" >/dev/null 2>&1; then
+    echo "Release v$VERSION already exists; uploading to it..."
     gh release upload "v$VERSION" "$DMG_FILE" --repo "$REPO" --clobber
 else
-    echo "📋 Creating new release v$VERSION..."
+    echo "Creating release v$VERSION..."
     gh release create "v$VERSION" "$DMG_FILE" \
         --repo "$REPO" \
         --title "Ora Browser v$VERSION" \
@@ -43,5 +37,5 @@ else
         --generate-notes
 fi
 
-echo "✅ Successfully uploaded $DMG_FILE to GitHub release v$VERSION"
-echo "🔗 Release URL: https://github.com/$REPO/releases/tag/v$VERSION"
+echo "Uploaded $DMG_FILE to GitHub release v$VERSION"
+echo "Release URL: https://github.com/$REPO/releases/tag/v$VERSION"

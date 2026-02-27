@@ -1,54 +1,48 @@
 #!/bin/bash
-
 set -euo pipefail
 
-REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
-cd "$REPO_DIR"
+PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$PROJECT_ROOT"
 
-echo "🔍 Checking dependencies..."
+echo "Checking dependencies..."
 
 ensure_formula() {
-  local cmd_name="$1"
-  local formula_name="$2"
+    local cmd="$1"
+    local formula="$2"
 
-  if command -v "$cmd_name" >/dev/null 2>&1; then
-    echo "✅ $cmd_name already installed"
-    return 0
-  fi
+    if command -v "$cmd" >/dev/null 2>&1; then
+        echo "  $cmd: ok"
+        return 0
+    fi
 
-  echo "⬇️  Installing $cmd_name..."
+    if ! command -v brew >/dev/null 2>&1; then
+        echo "error: Homebrew is required. Install it from https://brew.sh" >&2
+        exit 1
+    fi
 
-  if ! command -v brew >/dev/null 2>&1; then
-    echo "❌ Homebrew is not installed. Please install Homebrew first to proceed: https://brew.sh"
-    exit 1
-  fi
+    echo "  Installing $formula..."
+    brew list --formula "$formula" >/dev/null 2>&1 || brew install "$formula"
 
-  # Install the formula if it's not already present
-  if ! brew list --formula "$formula_name" >/dev/null 2>&1; then
-    brew install "$formula_name"
-  fi
-
-  if command -v "$cmd_name" >/dev/null 2>&1; then
-    echo "✅ $cmd_name installed"
-  else
-    echo "❌ Failed to install $cmd_name"
-    exit 1
-  fi
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+        echo "error: Failed to install $cmd" >&2
+        exit 1
+    fi
+    echo "  $cmd: ok"
 }
 
-ensure_formula Xcodegen xcodegen
-ensure_formula Swiftlint swiftlint
-ensure_formula Swiftformat swiftformat
-ensure_formula Xcbeautify xcbeautify
+ensure_formula xcodegen xcodegen
+ensure_formula swiftlint swiftlint
+ensure_formula swiftformat swiftformat
+ensure_formula xcbeautify xcbeautify
 
 git config core.hooksPath .githooks
 if [ -d .githooks ]; then
-  chmod -R +x .githooks || true
+    chmod -R +x .githooks || true
 fi
-echo "✅ Git hooks installed!"
+echo "Git hooks installed."
 
-cd ..
 xcodegen
-echo "✅ Xcodegen generated successfully!"
+echo "Xcode project generated."
 
-echo "🎉 Setup complete."
+echo ""
+echo "Setup complete."
