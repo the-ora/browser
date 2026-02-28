@@ -38,6 +38,49 @@ Please be respectful to maintainers and disclose AI assistance.
    ```
    In Xcode: select the `ora` scheme and Run (⌘R)
 
+## ⚡ Hot Reloading
+
+Ora supports live UI hot reloading via [InjectionIII](https://github.com/johnno1962/InjectionIII), letting you see SwiftUI changes instantly without rebuilding.
+
+### Setup
+
+1. Install **InjectionIII** from the [Mac App Store](https://apps.apple.com/app/injectioniii/id1380446739)
+
+2. Launch InjectionIII, click **Open Project** in the menu bar icon, and select the `browser` folder
+
+3. Build and run the app from Xcode (Debug scheme). You should see a green status in the InjectionIII menu bar icon on launch, confirming the connection.
+
+### How it works
+
+- The debug build loads `macOSInjection.bundle` from InjectionIII at startup
+- `EMIT_FRONTEND_COMMAND_LINES = YES` (set in the Debug build config) lets InjectionIII find the exact compiler flags Xcode used, so it can recompile individual files correctly
+- `-Xlinker -interposable` (also Debug-only) makes function calls replaceable at runtime without a restart
+- Root views (`OraRoot`, `BrowserView`, `SidebarView`) use `@ObserveInjection` + `.enableInjection()` to explicitly re-evaluate their body after injection
+
+### Usage
+
+Once the app is running with a green InjectionIII status, edit any Swift file and save — changes appear live. To add hot reload support to a new view:
+
+```swift
+import Inject
+
+struct MyView: View {
+    @ObserveInjection var inject
+
+    var body: some View {
+        // ...
+        .enableInjection()
+    }
+}
+```
+
+> Hot reloading is Debug-only. The `Inject` package, bundle loads, and linker flags are all gated to Debug builds and have zero impact on Release.
+
+### Limitations
+
+- You cannot add, remove, or reorder stored properties during injection — rebuild required for layout changes
+- `private` members in extensions may not inject correctly; prefer internal access during active development
+
 ## 📝 Code Style & Standards
 
 ### Formatting & Linting
