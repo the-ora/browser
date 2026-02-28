@@ -1,4 +1,5 @@
 import Foundation
+import Inject
 import SwiftData
 import SwiftUI
 
@@ -22,6 +23,8 @@ struct OraRoot: View {
     @StateObject private var sidebarManager = SidebarManager()
     @StateObject private var toolbarManager = ToolbarManager()
     @StateObject private var dialogManager = DialogManager()
+
+    @ObserveInjection var inject
 
     let tabContext: ModelContext
     let historyContext: ModelContext
@@ -101,6 +104,7 @@ struct OraRoot: View {
             .modelContext(historyContext)
             .modelContext(downloadContext)
             .withTheme()
+            .enableInjection()
             .onAppear {
                 // Dialog keyboard shortcuts (highest priority — checked first)
                 keyModifierListener.registerKeyDownHandler { event in

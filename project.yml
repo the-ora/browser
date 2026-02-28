@@ -6,6 +6,9 @@ packages:
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
     from: 2.6.0
+  Inject:
+    url: https://github.com/krzysztofzablocki/Inject
+    from: 1.5.2
 
 targets:
   ora:
@@ -22,6 +25,7 @@ targets:
         optional: true
     dependencies:
       - package: Sparkle
+      - package: Inject
 
     preBuildScripts:
       - name: "Copy Icon Bundle"
@@ -107,8 +111,12 @@ targets:
       configs:
         Debug:
           ASSETCATALOG_COMPILER_APPICON_NAME: OraIconDev
+          CODE_SIGN_ENTITLEMENTS: ora/ora-debug.entitlements
+          EMIT_FRONTEND_COMMAND_LINES: YES
+          OTHER_LDFLAGS: "-Xlinker -interposable"
         Release:
           ASSETCATALOG_COMPILER_APPICON_NAME: OraIcon
+          CODE_SIGN_ENTITLEMENTS: ora/ora.entitlements
 
 schemes:
   ora:

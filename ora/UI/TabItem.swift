@@ -92,6 +92,7 @@ struct TabItem: View {
     let onClose: () -> Void
     let onDuplicate: () -> Void
     let onMoveToContainer: (TabContainer) -> Void
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var historyManager: HistoryManager
     @EnvironmentObject var downloadManager: DownloadManager
@@ -185,7 +186,11 @@ struct TabItem: View {
         } else if isSelected {
             return theme.activeTabBackground
         } else if isHovering {
-            return theme.activeTabBackground.opacity(0.3)
+            if colorScheme == .dark {
+                return theme.activeTabBackground.opacity(0.3)
+            } else {
+                return theme.activeTabBackground.opacity(0.1)
+            }
         }
         return .clear
     }

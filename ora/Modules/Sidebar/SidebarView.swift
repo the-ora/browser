@@ -1,4 +1,5 @@
 import AppKit
+import Inject
 import SwiftData
 import SwiftUI
 
@@ -19,6 +20,8 @@ struct SidebarView: View {
     var histories: [History]
 
     private let columns = Array(repeating: GridItem(spacing: 10), count: 3)
+
+    @ObserveInjection var inject
 
     @State private var isHoveringSidebarToggle = false
 
@@ -98,6 +101,7 @@ struct SidebarView: View {
         .onTapGesture(count: 2) {
             toggleMaximizeWindow()
         }
+        .enableInjection()
     }
 
     private func onContainerSelected(container: TabContainer) {

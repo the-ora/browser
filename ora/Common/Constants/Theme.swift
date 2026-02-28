@@ -10,7 +10,7 @@ struct Theme: Equatable {
     }
 
     var primaryDark: Color {
-        Color(hex: "#63411D")
+        Color(hex: "#141414")
     }
 
     var accent: Color {
