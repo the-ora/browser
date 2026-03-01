@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: macos-14
+    runs-on: macos-latest
     
     steps:
     - name: Check architecture
@@ -20,7 +20,7 @@ jobs:
     - name: Setup Xcode
       uses: maxim-lobanov/setup-xcode@v1
       with:
-        xcode-version: '15.4'
+        xcode-version: latest-stable
     
     - name: Show Xcode version
       run: xcodebuild -version
