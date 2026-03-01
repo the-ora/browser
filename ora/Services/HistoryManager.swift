@@ -36,10 +36,8 @@ class HistoryManager: ObservableObject {
             existing.lastAccessedAt = Date() // update last visited time
         } else {
             let now = Date()
-            let defaultFaviconURL =
-                URL(string: "https://www.google.com/s2/favicons?domain=\(url.host ?? "google.com")&sz=64")
-            let fallbackURL = URL(fileURLWithPath: "")
-            let resolvedFaviconURL = faviconURL ?? defaultFaviconURL ?? fallbackURL
+            let defaultFaviconURL = FaviconService.shared.faviconURL(for: url.host ?? "")
+            let resolvedFaviconURL = faviconURL ?? defaultFaviconURL ?? url
             modelContext.insert(History(
                 url: url,
                 title: title,

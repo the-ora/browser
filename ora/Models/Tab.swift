@@ -14,7 +14,7 @@ enum TabType: String, Codable {
 struct URLUpdate: Codable {
     let href: String
     let title: String
-    let favicon: String
+    let favicon: String?
 }
 
 // MARK: - Tab
@@ -140,16 +140,14 @@ class Tab: ObservableObject, Identifiable {
         backgroundColorHex = color.toHex() ?? "#000000"
     }
 
-    func setFavicon(faviconURLDefault: URL? = nil) {
+    func setFavicon() {
         guard let host = self.url.host else { return }
 
         let domain = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
-        let faviconURL = faviconURLDefault ?? URL(string: "https://www.google.com/s2/favicons?domain=\(domain)&sz=64")!
+        guard let faviconURL = FaviconService.shared.faviconURL(for: domain) else { return }
         self.favicon = faviconURL
 
-        // Infer extension from URL or fallback to png
-        let ext = faviconURL.pathExtension.isEmpty ? "png" : faviconURL.pathExtension
-        let fileName = "\(self.id.uuidString).\(ext)"
+        let fileName = "\(self.id.uuidString).png"
         let saveURL = FileManager.default.faviconDirectory.appendingPathComponent(fileName)
 
         FaviconService.shared

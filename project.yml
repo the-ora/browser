@@ -9,6 +9,9 @@ packages:
   Inject:
     url: https://github.com/krzysztofzablocki/Inject
     from: 1.5.2
+  FaviconFinder:
+    url: https://github.com/will-lumley/FavIconFinder
+    exactVersion: 5.1.5
 
 targets:
   ora:
@@ -26,6 +29,7 @@ targets:
     dependencies:
       - package: Sparkle
       - package: Inject
+      - package: FaviconFinder
 
     preBuildScripts:
       - name: "Copy Icon Bundle"

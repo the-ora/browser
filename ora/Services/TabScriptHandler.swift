@@ -29,10 +29,7 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
                     let oldTitle = tab.title
                     tab.title = update.title
                     tab.url = URL(string: update.href) ?? tab.url
-                    tab
-                        .setFavicon(
-                            faviconURLDefault: URL(string: update.favicon)
-                        )
+                    tab.setFavicon()
                     tab.updateHistory()
 
                     // If title changed and there are active media sessions, update them

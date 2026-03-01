@@ -5,52 +5,18 @@ import SwiftUI
 
 private let logger = Logger(subsystem: "com.orabrowser.ora", category: "WebViewNavigationDelegate")
 
-/// JavaScript for monitoring URL, title, and favicon changes
+/// JavaScript for monitoring URL and title changes
 let navigationScript = """
 (function () {
     let lastHref = location.href;
     let lastTitle = document.title;
-    let faviconURL = null;
-
-    function findFavicon(callback) {
-        const links = Array.from(document.getElementsByTagName('link'));
-        const icons = links.filter(link => {
-            const rel = link.getAttribute('rel');
-            return rel && rel.toLowerCase().includes('icon');
-        }).map(link => {
-            const href = link.getAttribute('href');
-            const sizes = link.getAttribute('sizes');
-            let size = 32; // Default size for icons without sizes attribute
-            if (sizes) {
-                const match = sizes.match(/(\\d+)x(\\d+)/);
-                if (match && match[1] === match[2]) { // Assume square
-                    size = parseInt(match[1]);
-                }
-            }
-            return { href: href ? new URL(href, document.baseURI).href : null, size };
-        }).filter(icon => icon.href);
-
-        // Prefer size >=64 and <256, largest first
-        const preferred = icons
-            .filter(icon => icon.size >= 64 && icon.size < 256)
-            .sort((a, b) => b.size - a.size)[0];
-
-        if (preferred) {
-            callback(preferred.href);
-        } else if (icons.length > 0) {
-            const largest = icons.sort((a, b) => b.size - a.size)[0];
-            callback(largest.href);
-        } else {
-            callback(`https://www.google.com/s2/favicons?domain=${location.hostname}&sz=64`);
-        }
-    }
 
     function notifyChange(force = false) {
         if (force || location.href !== lastHref || document.title !== lastTitle) {
             lastHref = location.href;
             lastTitle = document.title;
             window.webkit.messageHandlers.listener.postMessage(
-                JSON.stringify({ href: lastHref, title: lastTitle, favicon: faviconURL })
+                JSON.stringify({ href: lastHref, title: lastTitle })
             );
         }
     }
@@ -61,13 +27,12 @@ let navigationScript = """
 
     setInterval(() => notifyChange(), 500);
     window.addEventListener('popstate', () => notifyChange(true));
-    findFavicon((icon) => { faviconURL = icon; notifyChange(true); });
+    notifyChange(true);
 
     // Hover link detection: post hovered link URL via linkHover handler
     function postHover(url) {
         try { window.webkit.messageHandlers.linkHover.postMessage(url || ""); } catch (e) {}
     }
-    let hoverTimer = null;
     function onMouseOver(e) {
         const a = e.target.closest && e.target.closest('a[href]');
         const href = a ? a.href : '';

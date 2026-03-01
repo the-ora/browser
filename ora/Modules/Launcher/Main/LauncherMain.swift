@@ -69,7 +69,7 @@ struct LauncherMain: View {
         }
 
         _ = FaviconService.shared.getFavicon(for: engine.searchURL)
-        let faviconURL = FaviconService.shared.faviconURL(for: URL(string: engine.searchURL)?.host ?? "")
+        let faviconURL = FaviconService.shared.faviconURL(forSearchURL: engine.searchURL)
 
         return LauncherSuggestion(
             type: .aiChat,
