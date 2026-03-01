@@ -11,7 +11,7 @@ packages:
     from: 1.5.2
   FaviconFinder:
     url: https://github.com/will-lumley/FavIconFinder
-    exactVersion: 5.0.4
+    exactVersion: 5.1.5
 
 targets:
   ora:
