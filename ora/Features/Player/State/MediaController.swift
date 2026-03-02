@@ -123,7 +123,7 @@ final class MediaController: ObservableObject {
             break
         }
 
-        isVisible = !sessions.isEmpty
+        isVisible = !visibleSessions.isEmpty
     }
 
     // MARK: - Controls (per session, default to primary)
