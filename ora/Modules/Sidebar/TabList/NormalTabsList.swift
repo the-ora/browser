@@ -20,6 +20,10 @@ struct NormalTabsList: View {
     @EnvironmentObject var tabManager: TabManager
     @State private var previousTabIds: [UUID] = []
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         VStack(spacing: 8) {
             NewTabButton(addNewTab: onAddNewTab)
@@ -67,6 +71,7 @@ struct NormalTabsList: View {
         .onChange(of: tabs.map(\.id)) { newTabIds in
             previousTabIds = newTabIds
         }
+        .enableInjection()
     }
 
     private func shouldAnimate(_ tab: Tab) -> Bool {

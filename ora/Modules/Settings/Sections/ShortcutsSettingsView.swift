@@ -9,6 +9,10 @@ struct ShortcutsSettingsView: View {
         return KeyboardShortcuts.itemsByCategory
     }
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         SettingsContainer(maxContentWidth: 760, usesScrollView: false) {
             List {
@@ -36,6 +40,7 @@ struct ShortcutsSettingsView: View {
                 }
             }
         }
+        .enableInjection()
     }
 
     private func handleAction(for item: KeyboardShortcutDefinition, action: ShortcutRowView.Action) {
@@ -77,6 +82,10 @@ struct ShortcutRowView: View {
     let isOverriden: Bool
     let isEditing: Bool
     let handler: Action.Handler
+
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
 
     var body: some View {
         HStack(spacing: 16) {
@@ -126,11 +135,16 @@ struct ShortcutRowView: View {
             .animation(.easeInOut(duration: 0.1), value: isEditing)
         }
         .padding(.vertical, 4)
+        .enableInjection()
     }
 }
 
 struct PulsingBorderView: View {
     @State private var isPulsing = false
+
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
 
     var body: some View {
         RoundedRectangle(cornerRadius: 6)
@@ -141,5 +155,6 @@ struct PulsingBorderView: View {
             .onAppear {
                 isPulsing = true
             }
+            .enableInjection()
     }
 }

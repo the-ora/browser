@@ -88,6 +88,10 @@ struct ImportDataButton: View {
         }
     }
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         Menu("Import Data") {
             Button("Arc") {
@@ -100,5 +104,6 @@ struct ImportDataButton: View {
                 // importChrome()
             }
         }
+        .enableInjection()
     }
 }

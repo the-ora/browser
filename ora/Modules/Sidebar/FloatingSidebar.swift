@@ -11,6 +11,10 @@ struct FloatingSidebar: View {
         }
     }()
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         let clipShape = ConditionallyConcentricRectangle(cornerRadius: sidebarCornerRadius)
 
@@ -24,5 +28,6 @@ struct FloatingSidebar: View {
                 )
         }
         .padding(6)
+        .enableInjection()
     }
 }

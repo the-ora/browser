@@ -3,6 +3,10 @@ import SwiftUI
 struct PrivacySecuritySettingsView: View {
     @StateObject private var settings = SettingsStore.shared
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         SettingsContainer(maxContentWidth: 760) {
             Form {
@@ -30,5 +34,6 @@ struct PrivacySecuritySettingsView: View {
                 }
             }
         }
+        .enableInjection()
     }
 }

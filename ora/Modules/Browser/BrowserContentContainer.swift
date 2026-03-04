@@ -25,6 +25,10 @@ struct BrowserContentContainer<Content: View>: View {
         self.content = content
     }
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         content()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -49,5 +53,6 @@ struct BrowserContentContainer<Content: View>: View {
             .animation(.easeInOut(duration: 0.3), value: appState.isFullscreen)
             .shadow(color: .black.opacity(0.15), radius: isCompleteFullscreen ? 0 : cornerRadius, x: 0, y: 2)
             .ignoresSafeArea(.all)
+            .enableInjection()
     }
 }

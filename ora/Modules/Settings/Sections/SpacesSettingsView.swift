@@ -13,6 +13,10 @@ struct SpacesSettingsView: View {
         containers.first { $0.id == selectedContainerId } ?? containers.first
     }
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         SettingsContainer(maxContentWidth: 1040, usesScrollView: false) {
             HStack(spacing: 0) {
@@ -181,5 +185,6 @@ struct SpacesSettingsView: View {
             }
         }
         .onAppear { if selectedContainerId == nil { selectedContainerId = containers.first?.id } }
+        .enableInjection()
     }
 }

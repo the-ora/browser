@@ -9,6 +9,10 @@ struct LinkPreview: View {
         return "Ora \(version)"
     }
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         VStack {
             Spacer()
@@ -51,5 +55,6 @@ struct LinkPreview: View {
         .transition(.opacity)
         .animation(.easeOut(duration: 0.1), value: text)
         .zIndex(900)
+        .enableInjection()
     }
 }

@@ -8,6 +8,10 @@ struct URLBarButton: View {
     let action: () -> Void
     @State private var isHovering = false
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         Button(action: action) {
             Image(systemName: systemName)
@@ -26,5 +30,6 @@ struct URLBarButton: View {
         .onHover { hovering in
             isHovering = hovering
         }
+        .enableInjection()
     }
 }

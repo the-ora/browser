@@ -1,5 +1,4 @@
 import AppKit
-import Inject
 import SwiftUI
 
 struct BrowserView: View {

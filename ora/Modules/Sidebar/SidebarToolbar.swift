@@ -17,6 +17,10 @@ struct SidebarToolbar: View {
         sidebarManager.sidebarPosition == .secondary ? "sidebar.right" : "sidebar.left"
     }
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         HStack(spacing: 0) {
             if sidebarManager.sidebarPosition != .secondary {
@@ -92,5 +96,6 @@ struct SidebarToolbar: View {
             }
         }
         .padding(0)
+        .enableInjection()
     }
 }

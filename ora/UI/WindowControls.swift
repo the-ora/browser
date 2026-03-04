@@ -48,6 +48,10 @@ struct WindowControlButton: View {
         }
     }
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         Image(isHovered ? "\(assetBaseName)-hover" : "\(assetBaseName)-normal")
             .resizable()
@@ -55,6 +59,7 @@ struct WindowControlButton: View {
             .onTapGesture {
                 performAction()
             }
+            .enableInjection()
     }
 
     private func performAction() {

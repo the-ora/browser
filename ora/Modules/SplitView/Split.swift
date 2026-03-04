@@ -52,6 +52,10 @@ public struct Split<P: View, D: SplitDivider, S: View>: View {
     /// The previous position as we drag the `splitter`
     @State private var previousPosition: CGFloat?
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     public var body: some View {
         GeometryReader { geometry in
             let horizontal = layout.isHorizontal
@@ -111,6 +115,7 @@ public struct Split<P: View, D: SplitDivider, S: View>: View {
             .environmentObject(layout)
             .onChange(of: fraction.value) { _, new in constrainedFraction = new }
         }
+        .enableInjection()
     }
 
     /// Public init only allows `primary` and `secondary`, with `splitter` defaulting to Splitter.

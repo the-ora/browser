@@ -149,7 +149,12 @@ extension EnvironmentValues {
 struct ThemeProvider: ViewModifier {
     @Environment(\.colorScheme) private var colorScheme
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     func body(content: Content) -> some View {
         content.environment(\.theme, Theme(colorScheme: colorScheme))
+            .enableInjection()
     }
 }

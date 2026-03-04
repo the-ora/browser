@@ -74,6 +74,10 @@ struct ToastView: View {
     let action: () -> Void
     @Environment(\.theme) private var theme
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         HStack(spacing: 8) {
             if let systemImage {
@@ -94,5 +98,6 @@ struct ToastView: View {
         .background(theme.foreground)
         .cornerRadius(10)
         .shadow(radius: 10)
+        .enableInjection()
     }
 }

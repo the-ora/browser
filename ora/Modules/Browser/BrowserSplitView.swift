@@ -36,6 +36,10 @@ struct BrowserSplitView: View {
         sidebarManager.sidebarPosition == .secondary
     }
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         HSplit(left: { primaryPane() }, right: { secondaryPane() })
             .hide(sidebarManager.hiddenSidebar)
@@ -49,6 +53,7 @@ struct BrowserSplitView: View {
                 dragToHideS: dragToHideSFlag
             )
             .styling(hideSplitter: true)
+            .enableInjection()
     }
 
     private func primaryPane() -> some View {

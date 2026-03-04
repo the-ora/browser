@@ -6,6 +6,10 @@ struct GradientAnimatingBorder: ViewModifier {
     @State private var isAnimating = false
     @State private var showBorder = false
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     func body(content: Content) -> some View {
         content
             .overlay {
@@ -82,5 +86,6 @@ struct GradientAnimatingBorder: ViewModifier {
                     }
                 }
             }
+            .enableInjection()
     }
 }

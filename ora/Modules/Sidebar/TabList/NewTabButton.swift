@@ -6,6 +6,10 @@ struct NewTabButton: View {
     @State private var isHovering = false
     @Environment(\.theme) private var theme
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         Button(action: addNewTab) {
             HStack(spacing: 8) {
@@ -24,5 +28,6 @@ struct NewTabButton: View {
         }
         .buttonStyle(.plain)
         .onHover { isHovering = $0 }
+        .enableInjection()
     }
 }

@@ -66,6 +66,10 @@ struct URLBar: View {
         }
     }
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         HStack {
             if let tab = tabManager.activeTab {
@@ -300,5 +304,6 @@ struct URLBar: View {
                 )
             }
         }
+        .enableInjection()
     }
 }

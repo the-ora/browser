@@ -6,6 +6,10 @@ struct EmojiPickerView: View {
     @StateObject private var viewModel = EmojiViewModel()
     @State private var hoveredEmoji: String?
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         emojiContentView
             .frame(width: 400, height: 400)
@@ -18,6 +22,7 @@ struct EmojiPickerView: View {
                         .foregroundColor(.red)
                 }
             }
+            .enableInjection()
     }
 
     private var emojiContentView: some View {
@@ -79,6 +84,10 @@ struct EmojiPickerView: View {
 struct SearchBar: View {
     @Binding var text: String
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         HStack {
             Image(systemName: "magnifyingglass")
@@ -90,5 +99,6 @@ struct SearchBar: View {
         .padding(8)
         .background(Color.gray.opacity(0.2))
         .cornerRadius(8)
+        .enableInjection()
     }
 }

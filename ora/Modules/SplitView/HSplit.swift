@@ -17,6 +17,10 @@ public struct HSplit<P: View, D: SplitDivider, S: View>: View {
     private let splitter: D
     private let secondary: S
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     public var body: some View {
         Split(primary: { primary }, secondary: { secondary })
             .layout(LayoutHolder(.horizontal))
@@ -25,6 +29,7 @@ public struct HSplit<P: View, D: SplitDivider, S: View>: View {
             .splitter { splitter }
             .fraction(fraction)
             .hide(hide)
+            .enableInjection()
     }
 
     public init(@ViewBuilder left: @escaping () -> P, @ViewBuilder right: @escaping () -> S)

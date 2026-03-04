@@ -11,6 +11,10 @@ struct LauncherSuggestionsView: View {
     @Binding var suggestions: [LauncherSuggestion]
     @Binding var focusedElement: UUID
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             ForEach(suggestions) { suggestion in
@@ -35,5 +39,6 @@ struct LauncherSuggestionsView: View {
         // .onChange(of: theme) { _, newValue in
         //     searchEngineService.setTheme(newValue)
         // }
+        .enableInjection()
     }
 }

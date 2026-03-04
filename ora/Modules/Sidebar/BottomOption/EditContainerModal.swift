@@ -11,6 +11,10 @@ struct EditContainerModal: View {
     @State private var emoji: String = ""
     @State private var isEmojiPickerOpen = false
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         // Outer frame
         VStack(alignment: .leading, spacing: 0) {
@@ -38,6 +42,7 @@ struct EditContainerModal: View {
         .cornerRadius(14)
         .shadow(color: .black.opacity(0.25), radius: 20, y: 8)
         .onAppear { setupInitialValues() }
+        .enableInjection()
     }
 
     private var headerView: some View {

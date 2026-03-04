@@ -7,6 +7,10 @@ struct BrowserWebContentView: View {
     @EnvironmentObject private var toolbarManager: ToolbarManager
     let tab: Tab
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             if !toolbarManager.isToolbarHidden {
@@ -62,5 +66,6 @@ struct BrowserWebContentView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+        .enableInjection()
     }
 }

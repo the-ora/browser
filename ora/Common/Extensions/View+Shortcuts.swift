@@ -5,9 +5,14 @@ private struct OraKeyboardShortcutModifier: ViewModifier {
     let shortcut: KeyboardShortcutDefinition
     @EnvironmentObject private var shortcutManager: CustomKeyboardShortcutManager
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     func body(content: Content) -> some View {
         content
             .keyboardShortcut(shortcut.keyboardShortcut)
+            .enableInjection()
     }
 }
 
@@ -17,9 +22,14 @@ private struct OraShortcutHelpModifier: ViewModifier {
     let shortcut: KeyboardShortcutDefinition
     @EnvironmentObject private var shortcutManager: CustomKeyboardShortcutManager
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     func body(content: Content) -> some View {
         content
             .help("\(helpText) (\(shortcut.currentChord.display))")
+            .enableInjection()
     }
 }
 

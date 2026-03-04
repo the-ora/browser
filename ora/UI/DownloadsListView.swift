@@ -74,6 +74,10 @@ struct DownloadListItem: View {
     @EnvironmentObject var downloadManager: DownloadManager
     @Environment(\.theme) private var theme
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         HStack(spacing: 12) {
             // File icon
@@ -153,6 +157,7 @@ struct DownloadListItem: View {
                 downloadManager.openDownloadInFinder(download)
             }
         }
+        .enableInjection()
     }
 
     private var fileIcon: String {
@@ -220,6 +225,10 @@ struct DownloadContextMenu: View {
     let download: Download
     @EnvironmentObject var downloadManager: DownloadManager
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         Group {
             if download.status == .completed {
@@ -247,5 +256,6 @@ struct DownloadContextMenu: View {
                 downloadManager.deleteDownload(download)
             }
         }
+        .enableInjection()
     }
 }

@@ -47,6 +47,10 @@ struct FavIcon: View {
     let textColor: Color
     var isPlayingMedia: Bool = false
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         HStack(spacing: 4) {
             if let favicon, isWebViewReady {
@@ -79,6 +83,7 @@ struct FavIcon: View {
             }
         }
         .frame(width: isPlayingMedia ? 28 : 16, height: 16)
+        .enableInjection()
     }
 }
 
@@ -101,6 +106,10 @@ struct TabItem: View {
 
     @Environment(\.theme) private var theme
     @State private var isHovering = false
+
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
 
     var body: some View {
         HStack {
@@ -171,6 +180,7 @@ struct TabItem: View {
         .contextMenu { contextMenuItems }
         .animation(.spring(response: 0.2, dampingFraction: 0.8), value: isDragging)
         .geometryGroup()
+        .enableInjection()
     }
 
     private var tabTitle: some View {
@@ -259,6 +269,10 @@ struct ActionButton: View {
     let action: () -> Void
     @State private var isHovering = false
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         Button(action: action) {
             Image(systemName: icon)
@@ -268,5 +282,6 @@ struct ActionButton: View {
         }
         .buttonStyle(.plain)
         .onHover { isHovering = $0 }
+        .enableInjection()
     }
 }

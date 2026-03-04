@@ -5,6 +5,10 @@ struct SettingsContainer<Content: View>: View {
     var usesScrollView: Bool = true
     @ViewBuilder var content: () -> Content
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         ZStack {
             if usesScrollView {
@@ -13,6 +17,7 @@ struct SettingsContainer<Content: View>: View {
                 inner
             }
         }
+        .enableInjection()
     }
 
     private var inner: some View {

@@ -27,6 +27,10 @@ struct SidebarURLDisplay: View {
         )
     }
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         HStack(spacing: 8) {
             ZStack {
@@ -132,6 +136,7 @@ struct SidebarURLDisplay: View {
         .onReceive(NotificationCenter.default.publisher(for: .copyAddressURL)) { _ in
             triggerCopy(tab.url.absoluteString)
         }
+        .enableInjection()
     }
 
     private func getDisplayURL() -> String {

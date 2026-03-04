@@ -9,6 +9,10 @@ struct StatusPageView: View {
     let onGoBack: (() -> Void)?
     @Environment(\.theme) var theme
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         VStack(spacing: 24) {
             Spacer()
@@ -63,6 +67,7 @@ struct StatusPageView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(theme.background)
+        .enableInjection()
     }
 
     private var errorIcon: String {

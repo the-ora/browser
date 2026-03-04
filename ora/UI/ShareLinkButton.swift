@@ -8,6 +8,10 @@ struct ShareLinkButton: View {
 
     @State private var shareSourceView: NSView?
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         URLBarButton(
             systemName: "square.and.arrow.up",
@@ -25,6 +29,7 @@ struct ShareLinkButton: View {
                 shareSourceView = nsView
             }
         )
+        .enableInjection()
     }
 }
 

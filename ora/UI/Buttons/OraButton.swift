@@ -113,6 +113,10 @@ struct OraButton: View {
 
     // MARK: - Body
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: iconSpacing) {
@@ -163,6 +167,7 @@ struct OraButton: View {
         .buttonStyle(.plain)
         .disabled(isDisabled)
         .onHover { isHovering = $0 }
+        .enableInjection()
     }
 }
 

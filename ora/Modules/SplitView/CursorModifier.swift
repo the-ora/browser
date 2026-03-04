@@ -9,6 +9,10 @@ extension View {
 struct CursorModifier: ViewModifier {
     let cursor: NSCursor
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     func body(content: Content) -> some View {
         content.overlay(
             GeometryReader { proxy in
@@ -18,6 +22,7 @@ struct CursorModifier: ViewModifier {
                 )
             }
         )
+        .enableInjection()
     }
 
     private class CustomCursorView: NSView {

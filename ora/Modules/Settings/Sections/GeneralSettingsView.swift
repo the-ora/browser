@@ -8,6 +8,10 @@ struct GeneralSettingsView: View {
     @StateObject private var defaultBrowserManager = DefaultBrowserManager.shared
     @Environment(\.theme) var theme
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         SettingsContainer(maxContentWidth: 760) {
             Form {
@@ -149,6 +153,7 @@ struct GeneralSettingsView: View {
                 }
             }
         }
+        .enableInjection()
     }
 
     private func getAppVersion() -> String {

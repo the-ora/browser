@@ -8,6 +8,10 @@ struct FloatingURLBar: View {
         showFloatingURLBar ? 50 : 16
     }
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         ZStack(alignment: .top) {
             if showFloatingURLBar {
@@ -37,6 +41,7 @@ struct FloatingURLBar: View {
             .frame(height: triggerAreaPadding)
         }
         .animation(.easeInOut(duration: 0.1), value: showFloatingURLBar)
+        .enableInjection()
     }
 
     private func hoverStrip(width: CGFloat) -> some View {

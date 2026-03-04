@@ -6,6 +6,10 @@ struct EmptyFavTabItem: View {
 
     let cornerRadius: CGFloat = 8
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         VStack(spacing: 8) {
             Image(systemName: "star")
@@ -29,5 +33,6 @@ struct EmptyFavTabItem: View {
                 )
         )
         .onHover { isTargeted = $0 }
+        .enableInjection()
     }
 }

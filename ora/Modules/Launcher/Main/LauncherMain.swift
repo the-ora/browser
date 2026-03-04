@@ -280,6 +280,10 @@ struct LauncherMain: View {
         focusedElement = suggestions[newIndex].id
     }
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .center, spacing: 8) {
@@ -362,6 +366,7 @@ struct LauncherMain: View {
             color: Color.black.opacity(0.1),
             radius: 40, x: 0, y: 24
         )
+        .enableInjection()
     }
 
     private func getPlaceholder(match: Match?) -> String {

@@ -4,6 +4,10 @@ struct HomeView: View {
     @Environment(\.theme) var theme
     @EnvironmentObject private var sidebarManager: SidebarManager
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         ZStack(alignment: .top) {
             Color.clear
@@ -45,5 +49,6 @@ struct HomeView: View {
 
             LauncherView(clearOverlay: true)
         }
+        .enableInjection()
     }
 }

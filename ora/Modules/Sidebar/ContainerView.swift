@@ -14,6 +14,10 @@ struct ContainerView: View {
     @State private var draggedItem: UUID?
     @State private var editingURLString: String = ""
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             if toolbarManager.isToolbarHidden, let tab = tabManager.activeTab {
@@ -91,6 +95,7 @@ struct ContainerView: View {
             }
         }
         .modifier(OraWindowDragGesture(isDragging: $isDragging))
+        .enableInjection()
     }
 
     private var favoriteTabs: [Tab] {
@@ -165,6 +170,10 @@ struct ContainerView: View {
 private struct OraWindowDragGesture: ViewModifier {
     @Binding var isDragging: Bool
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     func body(content: Content) -> some View {
         Group {
             if isDragging {
@@ -177,6 +186,7 @@ private struct OraWindowDragGesture: ViewModifier {
                 }
             }
         }
+        .enableInjection()
     }
 }
 

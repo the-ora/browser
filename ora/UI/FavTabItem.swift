@@ -21,6 +21,10 @@ struct FavTabItem: View {
 
     @State private var isHovering = false
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         ZStack {
             if let favicon = tab.favicon, tab.isWebViewReady {
@@ -148,6 +152,7 @@ struct FavTabItem: View {
                 Label("Close Tab", systemImage: "xmark")
             }
         }
+        .enableInjection()
     }
 
     private var backgroundColor: Color {

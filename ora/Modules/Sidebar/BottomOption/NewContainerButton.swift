@@ -8,6 +8,10 @@ struct NewContainerButton: View {
     @EnvironmentObject var dialogManager: DialogManager
     @EnvironmentObject var tabManager: TabManager
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         Button(action: {
             dialogManager.show { id in
@@ -26,6 +30,7 @@ struct NewContainerButton: View {
         }
         .buttonStyle(.plain)
         .onHover { isHovering = $0 }
+        .enableInjection()
     }
 }
 
@@ -38,6 +43,10 @@ private struct NewContainerDialog: View {
 
     @Environment(\.theme) private var theme
     @EnvironmentObject var tabManager: TabManager
+
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
 
     var body: some View {
         // Outer frame
@@ -106,6 +115,7 @@ private struct NewContainerDialog: View {
         .background(theme.popoverBackground)
         .cornerRadius(14)
         .shadow(color: .black.opacity(0.25), radius: 20, y: 8)
+        .enableInjection()
     }
 
     private func createContainer() {

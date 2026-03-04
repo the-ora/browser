@@ -19,6 +19,10 @@ struct AppearanceSelector: View {
         ]
     }
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Appearance").foregroundStyle(.secondary)
@@ -48,5 +52,6 @@ struct AppearanceSelector: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .enableInjection()
     }
 }

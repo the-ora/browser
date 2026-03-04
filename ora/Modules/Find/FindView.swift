@@ -23,6 +23,10 @@ struct FindView: View {
         self.controller = FindController(webView: webView)
     }
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         HStack(spacing: 12) {
             // searchIcon
@@ -50,6 +54,7 @@ struct FindView: View {
             }
         }
         .zIndex(1000)
+        .enableInjection()
     }
 
     private var searchIcon: some View {

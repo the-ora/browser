@@ -12,12 +12,17 @@ struct ContainerForm: View {
     @State private var isEmojiPickerHovering = false
     @FocusState private var isNameFocused: Bool
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         HStack(spacing: 8) {
             emojiPickerButton
             nameTextField
         }
         .onAppear { isNameFocused = true }
+        .enableInjection()
     }
 
     private var emojiPickerButton: some View {

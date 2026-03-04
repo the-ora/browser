@@ -95,6 +95,10 @@ struct OraInput: View {
 
     // MARK: - Body
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
             if let label {
@@ -152,6 +156,7 @@ struct OraInput: View {
             }
         }
         .animation(.easeInOut(duration: 0.15), value: error != nil)
+        .enableInjection()
     }
 }
 

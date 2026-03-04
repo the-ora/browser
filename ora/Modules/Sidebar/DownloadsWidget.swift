@@ -5,6 +5,10 @@ struct DownloadsWidget: View {
     @Environment(\.theme) private var theme
     @State private var isHovered = false
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         VStack(spacing: 0) {
             // Active downloads
@@ -63,6 +67,7 @@ struct DownloadsWidget: View {
                     .environmentObject(downloadManager)
             }
         }
+        .enableInjection()
     }
 
     private var downloadButtonColor: Color {

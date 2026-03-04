@@ -5,6 +5,10 @@ struct CopiedURLOverlay: View {
     @Binding var showCopiedAnimation: Bool
     @Binding var startWheelAnimation: Bool
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         HStack {
             Image(systemName: "link")
@@ -16,5 +20,6 @@ struct CopiedURLOverlay: View {
         .offset(y: showCopiedAnimation ? 0 : (startWheelAnimation ? -12 : 12))
         .animation(.easeOut(duration: 0.3), value: showCopiedAnimation)
         .animation(.easeOut(duration: 0.3), value: startWheelAnimation)
+        .enableInjection()
     }
 }

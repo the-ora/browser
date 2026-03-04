@@ -63,10 +63,15 @@ struct OraIcons: View {
 
     @Environment(\.theme) private var theme
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         icon.shape
             .fill(color ?? theme.foreground)
             .frame(width: size.dimension, height: size.dimension)
+            .enableInjection()
     }
 }
 

@@ -62,6 +62,10 @@ struct LauncherView: View {
         appState.showLauncher = false
     }
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         ZStack(alignment: .top) {
             Color.black.opacity(clearOverlay! ? 0 : 0.3)
@@ -112,5 +116,6 @@ struct LauncherView: View {
                 }
             }
         }
+        .enableInjection()
     }
 }

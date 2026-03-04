@@ -24,6 +24,10 @@ struct FavTabsGrid: View {
         return Array(repeating: GridItem(spacing: 10), count: columnCount)
     }
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         LazyVGrid(columns: adaptiveColumns, spacing: 10) {
             if tabs.isEmpty {
@@ -71,5 +75,6 @@ struct FavTabsGrid: View {
                 tabManager: tabManager
             )
         )
+        .enableInjection()
     }
 }

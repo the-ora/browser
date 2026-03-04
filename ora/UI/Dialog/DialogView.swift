@@ -15,6 +15,10 @@ struct ConfirmDialogView: View {
 
     @Environment(\.theme) private var theme
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         // Outer frame
         VStack(alignment: .leading, spacing: 0) {
@@ -72,6 +76,7 @@ struct ConfirmDialogView: View {
         .background(theme.popoverBackground)
         .cornerRadius(14)
         .shadow(color: .black.opacity(0.25), radius: 20, y: 8)
+        .enableInjection()
     }
 }
 
@@ -97,6 +102,10 @@ private struct DialogsOverlay: View {
         removal: .offset(y: -16).combined(with: .scale(scale: 0.96)).combined(with: .opacity)
     )
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         ZStack {
             if let dialog = dialogs.last {
@@ -113,12 +122,18 @@ private struct DialogsOverlay: View {
             }
         }
         .animation(.spring(response: 0.3, dampingFraction: 0.82), value: dialogs.map(\.id))
+        .enableInjection()
     }
 }
 
 private struct DialogContentView: View {
     let content: AnyView
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         content
+            .enableInjection()
     }
 }

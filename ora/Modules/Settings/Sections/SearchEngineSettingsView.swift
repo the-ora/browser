@@ -19,6 +19,10 @@ struct SearchEngineSettingsView: View {
             && URL(string: newEngineURL.replacingOccurrences(of: "{query}", with: "test")) != nil
     }
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         SettingsContainer(maxContentWidth: 760) {
             Form {
@@ -219,6 +223,7 @@ struct SearchEngineSettingsView: View {
         .onAppear {
             searchEngineService.setTheme(theme)
         }
+        .enableInjection()
     }
 
     private func clearForm() {
@@ -267,6 +272,10 @@ struct BuiltInSearchEngineRow: View {
     let isDefault: Bool
     let onSetAsDefault: () -> Void
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         HStack {
             // Favicon or icon
@@ -314,6 +323,7 @@ struct BuiltInSearchEngineRow: View {
             }
         }
         .padding(.vertical, 4)
+        .enableInjection()
     }
 }
 
@@ -335,6 +345,10 @@ struct CustomSearchEngineRow: View {
         editURL.contains("{query}")
             && URL(string: editURL.replacingOccurrences(of: "{query}", with: "test")) != nil
     }
+
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
 
     var body: some View {
         VStack(spacing: 0) {
@@ -482,6 +496,7 @@ struct CustomSearchEngineRow: View {
         .onAppear {
             populateEditFields()
         }
+        .enableInjection()
     }
 
     private func startEdit() {

@@ -18,9 +18,14 @@ public struct SplitModifier<S: View>: ViewModifier {
     let layout: LayoutHolder
     let secondary: () -> S
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     public func body(content: Content) -> some View {
         Split(primary: { content }, secondary: secondary)
             .layout(layout)
+            .enableInjection()
     }
 
     public init(_ layout: LayoutHolder, @ViewBuilder secondary: @escaping (() -> S)) {
@@ -39,8 +44,13 @@ public struct SplitModifier<S: View>: ViewModifier {
 public struct HSplitModifier<S: View>: ViewModifier {
     let secondary: () -> S
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     public func body(content: Content) -> some View {
         HSplit(left: { content }, right: secondary)
+            .enableInjection()
     }
 
     public init(@ViewBuilder secondary: @escaping (() -> S)) {
@@ -58,8 +68,13 @@ public struct HSplitModifier<S: View>: ViewModifier {
 public struct VSplitModifier<S: View>: ViewModifier {
     let secondary: () -> S
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     public func body(content: Content) -> some View {
         VSplit(top: { content }, bottom: secondary)
+            .enableInjection()
     }
 
     public init(@ViewBuilder secondary: @escaping (() -> S)) {

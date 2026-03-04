@@ -19,6 +19,10 @@ struct GlobalMediaPlayer: View {
         return Array(visible.prefix(1))
     }
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Show older session first so the most recent appears at the bottom
@@ -33,6 +37,7 @@ struct GlobalMediaPlayer: View {
         }
         .onHover { isHovered = $0 }
         .animation(.easeOut(duration: 0.15), value: isHovered)
+        .enableInjection()
     }
 }
 
@@ -64,6 +69,10 @@ private struct MediaPlayerCard: View {
             )
         }
     }
+
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -156,5 +165,6 @@ private struct MediaPlayerCard: View {
         )
         .onHover { hovered = $0 }
         .frame(maxWidth: .infinity)
+        .enableInjection()
     }
 }

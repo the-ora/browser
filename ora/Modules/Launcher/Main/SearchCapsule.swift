@@ -9,6 +9,10 @@ struct SearchEngineCapsule: View {
     let favicon: NSImage?
     let faviconBackgroundColor: Color?
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         HStack(alignment: .center, spacing: 8) {
             if let favicon {
@@ -36,5 +40,6 @@ struct SearchEngineCapsule: View {
         .frame(alignment: .leading)
         .background(faviconBackgroundColor ?? color)
         .cornerRadius(99)
+        .enableInjection()
     }
 }

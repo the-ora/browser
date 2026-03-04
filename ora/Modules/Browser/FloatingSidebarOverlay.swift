@@ -11,6 +11,10 @@ struct FloatingSidebarOverlay: View {
 
     @State private var dragFraction: CGFloat?
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         GeometryReader { geo in
             let totalWidth = geo.size.width
@@ -51,6 +55,7 @@ struct FloatingSidebarOverlay: View {
                 .zIndex(2)
             }
         }
+        .enableInjection()
     }
 
     private func hoverStrip(width: CGFloat) -> some View {
@@ -85,6 +90,10 @@ private struct ResizeHandle: View {
     let minFraction: CGFloat
     let maxFraction: CGFloat
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         Rectangle()
             .fill(Color.clear)
@@ -112,5 +121,6 @@ private struct ResizeHandle: View {
                         dragFraction = nil
                     }
             )
+            .enableInjection()
     }
 }

@@ -11,6 +11,10 @@ struct ContainerSwitcher: View {
 
     @State private var hoveredContainer: UUID?
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         GeometryReader { geometry in
             let availableWidth = geometry.size.width
@@ -32,6 +36,7 @@ struct ContainerSwitcher: View {
         }
         .padding(0)
         .frame(height: 28)
+        .enableInjection()
     }
 
     @ViewBuilder

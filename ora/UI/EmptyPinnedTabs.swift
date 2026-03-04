@@ -4,6 +4,10 @@ struct EmptyPinnedTabs: View {
     @Environment(\.theme) var theme
     @State private var isTargeted = false
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: "pin")
@@ -26,5 +30,6 @@ struct EmptyPinnedTabs: View {
                 )
         )
         .onHover { isTargeted = $0 }
+        .enableInjection()
     }
 }

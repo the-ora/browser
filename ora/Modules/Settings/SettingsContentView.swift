@@ -27,6 +27,10 @@ enum SettingsTab: Hashable {
 struct SettingsContentView: View {
     @State private var selection: SettingsTab = .general
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         TabView(selection: $selection) {
             GeneralSettingsView()
@@ -55,5 +59,6 @@ struct SettingsContentView: View {
         .frame(width: 600, height: 350)
         .padding(0)
         .controlSize(.regular)
+        .enableInjection()
     }
 }

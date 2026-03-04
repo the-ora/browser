@@ -5,6 +5,10 @@ struct DownloadProgressView: View {
     let onCancel: () -> Void
     @Environment(\.theme) private var theme
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         HStack(spacing: 8) {
             // File icon
@@ -67,6 +71,7 @@ struct DownloadProgressView: View {
         .padding(8)
         .background(theme.background.opacity(0.3))
         .cornerRadius(6)
+        .enableInjection()
     }
 
     private var fileIcon: String {

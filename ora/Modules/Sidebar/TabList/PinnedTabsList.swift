@@ -15,6 +15,10 @@ struct PinnedTabsList: View {
     @EnvironmentObject var tabManager: TabManager
     @Environment(\.theme) var theme
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         VStack(spacing: 8) {
             Text("Pinned")
@@ -60,5 +64,6 @@ struct PinnedTabsList: View {
                 tabManager: tabManager
             )
         )
+        .enableInjection()
     }
 }

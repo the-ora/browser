@@ -27,6 +27,10 @@ struct FloatingTabSwitcher: View {
         static let containerCornerRadius: CGFloat = 32
     }
 
+    #if DEBUG
+        @ObserveInjection var forceRedraw
+    #endif
+
     var body: some View {
         ZStack {
             backgroundOverlay
@@ -54,6 +58,7 @@ struct FloatingTabSwitcher: View {
         .onChange(of: keyModifierListener.modifierFlags) { _, newFlags in
             handleModifierChange(newFlags)
         }
+        .enableInjection()
     }
 
     // MARK: - View Components
