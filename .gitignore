@@ -97,3 +97,4 @@ codesign*
 
 # Others
 dev-prompts/
+.cache_ggshield
