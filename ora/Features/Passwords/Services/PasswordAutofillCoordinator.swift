@@ -175,31 +175,20 @@ final class PasswordAutofillCoordinator {
             return
         }
 
-        Task { [weak self] in
-            guard let self else { return }
-
-            let authenticated = await self.passwordManager.authenticate(
-                reason: "Fill the suggested password for \(overlay.focus.hostname)"
-            )
-            guard authenticated else {
-                return
-            }
-
-            await MainActor.run {
-                guard let webView = self.tab?.webView else { return }
-
-                let request = PasswordFillRequest(
-                    usernameFieldID: nil,
-                    passwordFieldIDs: overlay.focus.passwordFieldIDs,
-                    username: nil,
-                    password: generatedPassword,
-                    highlightColor: "#FFF4CC"
-                )
-
-                self.evaluate(scriptMethod: "fillCredentials", payload: request, in: webView)
-                self.dismissOverlay()
-            }
+        guard let webView = tab?.webView else {
+            return
         }
+
+        let request = PasswordFillRequest(
+            usernameFieldID: nil,
+            passwordFieldIDs: overlay.focus.passwordFieldIDs,
+            username: nil,
+            password: generatedPassword,
+            highlightColor: "#FFF4CC"
+        )
+
+        evaluate(scriptMethod: "fillCredentials", payload: request, in: webView)
+        dismissOverlay()
     }
 
     func fillEmailSuggestion(_ suggestion: PasswordEmailSuggestion, for overlay: PasswordAutofillOverlayState) {

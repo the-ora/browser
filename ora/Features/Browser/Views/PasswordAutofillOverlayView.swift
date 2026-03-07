@@ -205,7 +205,9 @@ private enum OverlaySuggestion: Identifiable {
 
     var accessorySymbolName: String {
         switch self {
-        case .generatedPassword, .savedCredential:
+        case .generatedPassword:
+            return "key.horizontal.fill"
+        case .savedCredential:
             return "touchid"
         case .email:
             return "at"
