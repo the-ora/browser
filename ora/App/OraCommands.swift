@@ -31,14 +31,14 @@ struct OraCommands: Commands {
             }.keyboardShortcut(KeyboardShortcuts.Tabs.close.keyboardShortcut)
 
             Button("Close Window") {
-                if let keyWindow = NSApp.keyWindow, keyWindow.title == "Settings" {
+                if let keyWindow = NSApp.keyWindow, ["Settings", "Passwords"].contains(keyWindow.title) {
                     keyWindow.performClose(nil)
                 }
             }
             .keyboardShortcut("w", modifiers: .command)
             .disabled({
                 guard let keyWindow = NSApp.keyWindow else { return true }
-                return keyWindow.title != "Settings"
+                return !["Settings", "Passwords"].contains(keyWindow.title)
             }())
         }
 
@@ -170,11 +170,7 @@ struct OraCommands: Commands {
 
         CommandMenu("Passwords") {
             Button("Manage Passwords") {
-                UserDefaults.standard.set(
-                    SettingsTab.passwords.rawValue,
-                    forKey: SettingsContentView.selectedTabDefaultsKey
-                )
-                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+                openPasswordsWindow()
             }
         }
 

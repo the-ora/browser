@@ -7,6 +7,7 @@ struct PasswordAutofillOverlayView: View {
 
     private let overlayWidth: CGFloat = 320
     private let cornerRadius: CGFloat = 18
+    @State private var isManagePasswordsHovered = false
 
     var body: some View {
         content
@@ -57,12 +58,21 @@ struct PasswordAutofillOverlayView: View {
             Divider()
 
             Button("Manage Passwords") {
-                tab.passwordCoordinator?.openPasswordsSettings()
+                tab.passwordCoordinator?.openPasswordsManager()
             }
             .buttonStyle(.plain)
             .font(.caption.weight(.medium))
             .foregroundStyle(Color(nsColor: .secondaryLabelColor))
-            .padding(.vertical, 4)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(Color(nsColor: .labelColor).opacity(isManagePasswordsHovered ? 0.06 : 0))
+            )
+            .onHover { isHovering in
+                isManagePasswordsHovered = isHovering
+            }
         }
         .padding(8)
     }

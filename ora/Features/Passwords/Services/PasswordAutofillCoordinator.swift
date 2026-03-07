@@ -274,9 +274,9 @@ final class PasswordAutofillCoordinator {
         applySelectionIndex(boundedIndex, forFieldID: overlay.focus.fieldID)
     }
 
-    func openPasswordsSettings() {
-        UserDefaults.standard.set(SettingsTab.passwords.rawValue, forKey: SettingsContentView.selectedTabDefaultsKey)
-        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+    @MainActor
+    func openPasswordsManager() {
+        openPasswordsWindow()
         dismissOverlay()
     }
 
