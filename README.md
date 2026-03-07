@@ -1,4 +1,7 @@
 <div align="center">
+  <a href="https://vercel.com/oss">
+    <img alt="Vercel OSS Program" src="https://vercel.com/oss/program-badge.svg" />
+  </a>
   <img width="250" height="250" src="/assets/icon.png" alt="Ora Browser logo">
   <h1>Ora Browser</h1>
   <p>Fast, native WebKit browser for macOS.</p>
