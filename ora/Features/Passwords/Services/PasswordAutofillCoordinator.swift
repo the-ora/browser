@@ -13,6 +13,13 @@ enum PasswordAutofillFieldKind: String, Codable {
     case username
 }
 
+enum PasswordAutofillKeyCommand: String, Codable {
+    case moveUp
+    case moveDown
+    case activate
+    case dismiss
+}
+
 struct PasswordBridgeRect: Codable, Equatable {
     let originX: Double
     let originY: Double
@@ -52,6 +59,7 @@ struct PasswordBridgeEvent: Codable, Equatable {
     let type: String
     let focus: PasswordBridgeFocusPayload?
     let submit: PasswordBridgeSubmitPayload?
+    let keyCommand: PasswordAutofillKeyCommand?
     let fieldID: String?
     let rect: PasswordBridgeRect?
 }
@@ -64,11 +72,53 @@ struct PasswordFillRequest: Codable {
     let highlightColor: String
 }
 
+enum PasswordAutofillSuggestion: Identifiable, Equatable {
+    case generatedPassword(host: String, password: String)
+    case savedCredential(SavedPasswordSummary)
+    case email(PasswordEmailSuggestion)
+
+    var id: String {
+        switch self {
+        case let .generatedPassword(_, password):
+            return "generated-\(password)"
+        case let .savedCredential(entry):
+            return "saved-\(entry.id)"
+        case let .email(suggestion):
+            return "email-\(suggestion.id)"
+        }
+    }
+
+    var host: String {
+        switch self {
+        case let .generatedPassword(host, _):
+            return host
+        case let .savedCredential(entry):
+            return entry.host
+        case let .email(suggestion):
+            return suggestion.host
+        }
+    }
+}
+
 struct PasswordAutofillOverlayState: Equatable {
     let focus: PasswordBridgeFocusPayload
     let savedPasswordEntries: [SavedPasswordSummary]
     let emailSuggestions: [PasswordEmailSuggestion]
     let generatedPassword: String?
+    let selectedSuggestionIndex: Int
+
+    var suggestions: [PasswordAutofillSuggestion] {
+        var items: [PasswordAutofillSuggestion] = []
+
+        if let generatedPassword {
+            items.append(.generatedPassword(host: focus.hostname, password: generatedPassword))
+        }
+
+        items.append(contentsOf: savedPasswordEntries.prefix(4).map(PasswordAutofillSuggestion.savedCredential))
+        items.append(contentsOf: emailSuggestions.prefix(4).map(PasswordAutofillSuggestion.email))
+
+        return items
+    }
 }
 
 struct PasswordSavePromptDetails: Equatable {
@@ -112,6 +162,10 @@ final class PasswordAutofillCoordinator {
             if let fieldID = message.fieldID, let rect = message.rect {
                 updateOverlayRect(for: fieldID, rect: rect)
             }
+        case "keyCommand":
+            if let command = message.keyCommand {
+                handleKeyCommand(command)
+            }
         case "submit":
             clearAutofillState()
             if let submit = message.submit {
@@ -125,18 +179,21 @@ final class PasswordAutofillCoordinator {
     func dismissOverlay() {
         dismissWorkItem?.cancel()
         tab?.passwordOverlayState = nil
+        setOverlayKeyboardActive(false)
     }
 
     func clearAutofillState() {
         dismissWorkItem?.cancel()
         tab?.passwordOverlayState = nil
         tab?.passwordTriggerOverlayState = nil
+        setOverlayKeyboardActive(false)
     }
 
     func presentTriggerOverlay() {
         dismissWorkItem?.cancel()
         guard let overlay = tab?.passwordTriggerOverlayState else { return }
         tab?.passwordOverlayState = overlay
+        setOverlayKeyboardActive(true)
     }
 
     func autofill(_ entry: SavedPasswordSummary, for overlay: PasswordAutofillOverlayState) {
@@ -212,6 +269,11 @@ final class PasswordAutofillCoordinator {
         dismissOverlay()
     }
 
+    func updateSelection(to index: Int, for overlay: PasswordAutofillOverlayState) {
+        let boundedIndex = boundedSelectionIndex(index, for: overlay)
+        applySelectionIndex(boundedIndex, forFieldID: overlay.focus.fieldID)
+    }
+
     func openPasswordsSettings() {
         UserDefaults.standard.set(SettingsTab.passwords.rawValue, forKey: SettingsContentView.selectedTabDefaultsKey)
         NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
@@ -258,11 +320,13 @@ final class PasswordAutofillCoordinator {
             ),
             savedPasswordEntries: suggestions.savedPasswordEntries,
             emailSuggestions: suggestions.emailSuggestions,
-            generatedPassword: suggestions.generatedPassword
+            generatedPassword: suggestions.generatedPassword,
+            selectedSuggestionIndex: suggestions.selectedSuggestionIndex
         )
 
         tab?.passwordTriggerOverlayState = overlayState
         tab?.passwordOverlayState = overlayState
+        setOverlayKeyboardActive(true)
     }
 
     private func updateOverlayRect(for fieldID: String, rect: PasswordBridgeRect) {
@@ -394,7 +458,21 @@ final class PasswordAutofillCoordinator {
             ),
             savedPasswordEntries: overlay.savedPasswordEntries,
             emailSuggestions: overlay.emailSuggestions,
-            generatedPassword: overlay.generatedPassword
+            generatedPassword: overlay.generatedPassword,
+            selectedSuggestionIndex: overlay.selectedSuggestionIndex
+        )
+    }
+
+    private func overlayState(
+        _ overlay: PasswordAutofillOverlayState,
+        updatingSelectionIndexTo selectionIndex: Int
+    ) -> PasswordAutofillOverlayState {
+        PasswordAutofillOverlayState(
+            focus: overlay.focus,
+            savedPasswordEntries: overlay.savedPasswordEntries,
+            emailSuggestions: overlay.emailSuggestions,
+            generatedPassword: overlay.generatedPassword,
+            selectedSuggestionIndex: selectionIndex
         )
     }
 
@@ -411,6 +489,70 @@ final class PasswordAutofillCoordinator {
         }
         """
         webView.evaluateJavaScript(script)
+    }
+
+    private func setOverlayKeyboardActive(_ isActive: Bool) {
+        guard let webView = tab?.webView else { return }
+        evaluate(scriptMethod: "setOverlayKeyboardActive", payload: isActive, in: webView)
+    }
+
+    private func handleKeyCommand(_ command: PasswordAutofillKeyCommand) {
+        switch command {
+        case .moveUp:
+            moveSelection(by: -1)
+        case .moveDown:
+            moveSelection(by: 1)
+        case .activate:
+            activateCurrentSelection()
+        case .dismiss:
+            dismissOverlay()
+        }
+    }
+
+    func moveSelection(by delta: Int) {
+        guard let overlay = tab?.passwordOverlayState else { return }
+        let suggestionCount = overlay.suggestions.count
+        guard suggestionCount > 0 else { return }
+
+        let nextIndex = min(max(overlay.selectedSuggestionIndex + delta, 0), suggestionCount - 1)
+        applySelectionIndex(nextIndex, forFieldID: overlay.focus.fieldID)
+    }
+
+    func activateCurrentSelection() {
+        guard let overlay = tab?.passwordOverlayState,
+              overlay.suggestions.indices.contains(overlay.selectedSuggestionIndex)
+        else {
+            return
+        }
+
+        switch overlay.suggestions[overlay.selectedSuggestionIndex] {
+        case .generatedPassword:
+            fillGeneratedPassword(for: overlay)
+        case let .savedCredential(entry):
+            autofill(entry, for: overlay)
+        case let .email(suggestion):
+            fillEmailSuggestion(suggestion, for: overlay)
+        }
+    }
+
+    private func applySelectionIndex(_ selectionIndex: Int, forFieldID fieldID: String) {
+        if let overlay = tab?.passwordOverlayState,
+           overlay.focus.fieldID == fieldID
+        {
+            tab?.passwordOverlayState = overlayState(overlay, updatingSelectionIndexTo: selectionIndex)
+        }
+
+        if let triggerOverlay = tab?.passwordTriggerOverlayState,
+           triggerOverlay.focus.fieldID == fieldID
+        {
+            tab?.passwordTriggerOverlayState = overlayState(triggerOverlay, updatingSelectionIndexTo: selectionIndex)
+        }
+    }
+
+    private func boundedSelectionIndex(_ selectionIndex: Int, for overlay: PasswordAutofillOverlayState) -> Int {
+        let suggestionCount = overlay.suggestions.count
+        guard suggestionCount > 0 else { return -1 }
+        return min(max(selectionIndex, 0), suggestionCount - 1)
     }
 
     static func savePromptDetails(
@@ -482,7 +624,9 @@ final class PasswordAutofillCoordinator {
             focus: focus,
             savedPasswordEntries: savedPasswordEntries,
             emailSuggestions: filteredEmailSuggestions,
-            generatedPassword: filteredGeneratedPassword
+            generatedPassword: filteredGeneratedPassword,
+            selectedSuggestionIndex: (savedPasswordEntries.isEmpty && filteredEmailSuggestions
+                .isEmpty && filteredGeneratedPassword == nil) ? -1 : 0
         )
     }
 }

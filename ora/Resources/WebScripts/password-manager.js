@@ -11,6 +11,9 @@
 
     let activeField = null;
     let blurTimeout = null;
+    let overlayKeyboardNavigationState = {
+        active: false
+    };
 
     function send(payload) {
         try {
@@ -264,6 +267,44 @@
         });
     }
 
+    function sendKeyCommand(command) {
+        send({
+            type: "keyCommand",
+            keyCommand: command
+        });
+    }
+
+    function handleKeyDown(event) {
+        if (!overlayKeyboardNavigationState.active || !activeField || event.target !== activeField) {
+            return;
+        }
+
+        switch (event.key) {
+        case "ArrowDown":
+            event.preventDefault();
+            event.stopPropagation();
+            sendKeyCommand("moveDown");
+            break;
+        case "ArrowUp":
+            event.preventDefault();
+            event.stopPropagation();
+            sendKeyCommand("moveUp");
+            break;
+        case "Enter":
+            event.preventDefault();
+            event.stopPropagation();
+            sendKeyCommand("activate");
+            break;
+        case "Escape":
+            event.preventDefault();
+            event.stopPropagation();
+            sendKeyCommand("dismiss");
+            break;
+        default:
+            break;
+        }
+    }
+
     function fillField(element, value, highlightColor) {
         if (!element || typeof value !== "string") {
             return;
@@ -322,11 +363,17 @@
             (request.passwordFieldIDs || []).forEach((fieldID) => {
                 fillField(fieldByID(fieldID), request.password, highlightColor);
             });
+        },
+        setOverlayKeyboardActive(payload) {
+            overlayKeyboardNavigationState.active = typeof payload === "string"
+                ? JSON.parse(payload)
+                : Boolean(payload);
         }
     };
 
     document.addEventListener("focusin", handleFocus, true);
     document.addEventListener("focusout", handleBlur, true);
+    document.addEventListener("keydown", handleKeyDown, true);
     document.addEventListener("submit", handleSubmit, true);
     window.addEventListener("scroll", scheduleRectUpdate, true);
     window.addEventListener("resize", scheduleRectUpdate, true);

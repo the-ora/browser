@@ -8,8 +8,6 @@ struct PasswordAutofillOverlayView: View {
     private let overlayWidth: CGFloat = 320
     private let cornerRadius: CGFloat = 18
 
-    @State private var selectedSuggestionIndex = 0
-
     var body: some View {
         content
             .frame(width: overlayWidth)
@@ -30,33 +28,25 @@ struct PasswordAutofillOverlayView: View {
                 y: overlay.focus.rect.cgRect.maxY + 10
             )
             .allowsHitTesting(true)
-            .background {
-                KeyCaptureView(onKeyDownResult: handleKeyDown)
-                    .allowsHitTesting(false)
-            }
-            .onAppear(perform: resetSelection)
-            .onChange(of: overlay) { _, _ in
-                resetSelection()
-            }
     }
 
     private var content: some View {
         VStack(alignment: .leading, spacing: 4) {
-            if suggestions.isEmpty {
+            if overlay.suggestions.isEmpty {
                 Text("No autofill suggestions available.")
                     .font(.caption)
                     .foregroundStyle(Color(nsColor: .secondaryLabelColor))
             } else {
-                ForEach(Array(suggestions.enumerated()), id: \.element.id) { index, suggestion in
+                ForEach(Array(overlay.suggestions.enumerated()), id: \.element.id) { index, suggestion in
                     PasswordSuggestionButton(
                         host: suggestion.host,
-                        isSelected: selectedSuggestionIndex == index,
+                        isSelected: overlay.selectedSuggestionIndex == index,
                         accessorySymbolName: suggestion.accessorySymbolName
                     ) {
                         activate(suggestion)
                     } onHoverChanged: { isHovering in
                         if isHovering {
-                            selectedSuggestionIndex = index
+                            tab.passwordCoordinator?.updateSelection(to: index, for: overlay)
                         }
                     } content: {
                         suggestionContent(for: suggestion)
@@ -77,61 +67,8 @@ struct PasswordAutofillOverlayView: View {
         .padding(8)
     }
 
-    private var suggestions: [OverlaySuggestion] {
-        var items: [OverlaySuggestion] = []
-
-        if let generatedPassword = overlay.generatedPassword {
-            items.append(.generatedPassword(host: overlay.focus.hostname, password: generatedPassword))
-        }
-
-        items.append(contentsOf: overlay.savedPasswordEntries.prefix(4).map(OverlaySuggestion.savedCredential))
-        items.append(contentsOf: overlay.emailSuggestions.prefix(4).map(OverlaySuggestion.email))
-
-        return items
-    }
-
-    private var suggestionCount: Int {
-        suggestions.count
-    }
-
-    private func resetSelection() {
-        selectedSuggestionIndex = suggestionCount > 0 ? 0 : -1
-    }
-
-    private func moveSelection(by delta: Int) {
-        guard suggestionCount > 0 else { return }
-
-        let nextIndex = selectedSuggestionIndex + delta
-        selectedSuggestionIndex = min(max(nextIndex, 0), suggestionCount - 1)
-    }
-
-    private func activateSelection() {
-        guard suggestionCount > 0 else { return }
-        guard suggestions.indices.contains(selectedSuggestionIndex) else { return }
-        activate(suggestions[selectedSuggestionIndex])
-    }
-
-    private func handleKeyDown(_ event: NSEvent) -> NSEvent? {
-        switch event.keyCode {
-        case 125:
-            moveSelection(by: 1)
-            return nil
-        case 126:
-            moveSelection(by: -1)
-            return nil
-        case 36, 76:
-            activateSelection()
-            return nil
-        case 53:
-            tab.passwordCoordinator?.dismissOverlay()
-            return nil
-        default:
-            return event
-        }
-    }
-
     @ViewBuilder
-    private func suggestionContent(for suggestion: OverlaySuggestion) -> some View {
+    private func suggestionContent(for suggestion: PasswordAutofillSuggestion) -> some View {
         switch suggestion {
         case let .generatedPassword(_, password):
             VStack(alignment: .leading, spacing: 3) {
@@ -164,7 +101,7 @@ struct PasswordAutofillOverlayView: View {
         }
     }
 
-    private func activate(_ suggestion: OverlaySuggestion) {
+    private func activate(_ suggestion: PasswordAutofillSuggestion) {
         switch suggestion {
         case .generatedPassword:
             tab.passwordCoordinator?.fillGeneratedPassword(for: overlay)
@@ -176,33 +113,7 @@ struct PasswordAutofillOverlayView: View {
     }
 }
 
-private enum OverlaySuggestion: Identifiable {
-    case generatedPassword(host: String, password: String)
-    case savedCredential(SavedPasswordSummary)
-    case email(PasswordEmailSuggestion)
-
-    var id: String {
-        switch self {
-        case let .generatedPassword(_, password):
-            return "generated-\(password)"
-        case let .savedCredential(entry):
-            return "saved-\(entry.id)"
-        case let .email(suggestion):
-            return "email-\(suggestion.id)"
-        }
-    }
-
-    var host: String {
-        switch self {
-        case let .generatedPassword(host, _):
-            return host
-        case let .savedCredential(entry):
-            return entry.host
-        case let .email(suggestion):
-            return suggestion.host
-        }
-    }
-
+private extension PasswordAutofillSuggestion {
     var accessorySymbolName: String {
         switch self {
         case .generatedPassword:
