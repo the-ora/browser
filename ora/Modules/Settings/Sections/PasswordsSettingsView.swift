@@ -287,7 +287,7 @@ struct PasswordsSettingsView: View {
 
     private func copyPassword(_ entry: SavedPasswordSummary) {
         if let password = try? passwordManager.revealPassword(for: entry) {
-            passwordManager.copyToPasteboard(password)
+            passwordManager.copySensitiveToPasteboard(password)
         }
     }
 }

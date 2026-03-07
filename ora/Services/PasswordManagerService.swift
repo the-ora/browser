@@ -5,6 +5,7 @@ import Security
 
 struct SavedPasswordMetadata: Codable, Hashable {
     var id: String
+    var origin: String?
     var host: String
     var username: String
     var createdAt: Date
@@ -22,6 +23,10 @@ struct SavedPasswordSummary: Identifiable, Hashable {
 
     var host: String {
         metadata.host
+    }
+
+    var origin: String? {
+        metadata.origin
     }
 
     var username: String {
@@ -69,16 +74,30 @@ final class PasswordManagerService: ObservableObject {
         }
     }
 
-    func matchingEntries(forHost host: String) -> [SavedPasswordSummary] {
-        let normalizedHost = Self.normalizeHost(host)
-        let alternateHost = normalizedHost.hasPrefix("www.")
-            ? String(normalizedHost.dropFirst(4))
-            : "www.\(normalizedHost)"
+    func matchingEntries(for url: URL) -> [SavedPasswordSummary] {
+        guard let origin = Self.normalizedOrigin(from: url),
+              let host = Self.normalizedHost(from: url)
+        else {
+            return []
+        }
+
+        let shouldAllowLegacyHostMatch = Self.isSecureDefaultPort(url)
+        let alternateHost = host.hasPrefix("www.")
+            ? String(host.dropFirst(4))
+            : "www.\(host)"
 
         return entries
             .filter { entry in
+                if entry.origin == origin {
+                    return true
+                }
+
+                guard shouldAllowLegacyHostMatch, entry.origin == nil else {
+                    return false
+                }
+
                 let entryHost = Self.normalizeHost(entry.host)
-                return entryHost == normalizedHost || entryHost == alternateHost
+                return entryHost == host || entryHost == alternateHost
             }
             .sorted {
                 let lhsDate = $0.lastUsedAt ?? $0.updatedAt
@@ -114,16 +133,23 @@ final class PasswordManagerService: ObservableObject {
         return password
     }
 
-    func upsertCredential(host: String, username: String, password: String) throws {
-        let normalizedHost = Self.normalizeHost(host)
+    func upsertCredential(for url: URL, username: String, password: String) throws {
+        guard let normalizedOrigin = Self.normalizedOrigin(from: url),
+              let normalizedHost = Self.normalizedHost(from: url)
+        else {
+            throw PasswordManagerError.invalidCredentialOrigin
+        }
         let trimmedUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
         let now = Date()
 
         if let existing = entries.first(where: {
-            Self.normalizeHost($0.host) == normalizedHost && $0.username == trimmedUsername
+            let originMatches = $0.origin == normalizedOrigin
+            let legacyHostMatches = $0.origin == nil && Self.normalizeHost($0.host) == normalizedHost
+            return (originMatches || legacyHostMatches) && $0.username == trimmedUsername
         }) {
             let metadata = SavedPasswordMetadata(
                 id: existing.id,
+                origin: normalizedOrigin,
                 host: normalizedHost,
                 username: trimmedUsername,
                 createdAt: existing.createdAt,
@@ -150,6 +176,7 @@ final class PasswordManagerService: ObservableObject {
         } else {
             let metadata = SavedPasswordMetadata(
                 id: UUID().uuidString,
+                origin: normalizedOrigin,
                 host: normalizedHost,
                 username: trimmedUsername,
                 createdAt: now,
@@ -182,6 +209,7 @@ final class PasswordManagerService: ObservableObject {
         do {
             let metadata = SavedPasswordMetadata(
                 id: entry.id,
+                origin: entry.origin,
                 host: entry.host,
                 username: entry.username,
                 createdAt: entry.createdAt,
@@ -272,8 +300,11 @@ final class PasswordManagerService: ObservableObject {
     }
 
     func copyToPasteboard(_ value: String) {
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(value, forType: .string)
+        copyToPasteboard(value, clearingAfter: nil)
+    }
+
+    func copySensitiveToPasteboard(_ value: String) {
+        copyToPasteboard(value, clearingAfter: 90)
     }
 
     static func normalizeHost(_ host: String) -> String {
@@ -281,6 +312,32 @@ final class PasswordManagerService: ObservableObject {
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .lowercased()
             .trimmingCharacters(in: CharacterSet(charactersIn: "."))
+    }
+
+    static func normalizedHost(from url: URL) -> String? {
+        guard let host = url.host, !host.isEmpty else {
+            return nil
+        }
+        return normalizeHost(host)
+    }
+
+    static func normalizedOrigin(from url: URL) -> String? {
+        guard let scheme = url.scheme?.lowercased(),
+              ["http", "https"].contains(scheme),
+              let host = normalizedHost(from: url)
+        else {
+            return nil
+        }
+
+        var components = URLComponents()
+        components.scheme = scheme
+        components.host = host
+
+        if let port = url.port, port != defaultPort(for: scheme) {
+            components.port = port
+        }
+
+        return components.url?.absoluteString.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
     }
 
     private func loadEntries() throws -> [SavedPasswordSummary] {
@@ -304,7 +361,7 @@ final class PasswordManagerService: ObservableObject {
             return []
         }
 
-        return try records.compactMap { record -> SavedPasswordSummary? in
+        return records.compactMap { record -> SavedPasswordSummary? in
             guard let persistentReference = record[kSecValuePersistentRef as String] as? Data else {
                 return nil
             }
@@ -323,6 +380,7 @@ final class PasswordManagerService: ObservableObject {
 
             let fallbackMetadata = SavedPasswordMetadata(
                 id: account,
+                origin: nil,
                 host: host,
                 username: record[kSecAttrComment as String] as? String ?? "",
                 createdAt: Date.distantPast,
@@ -342,16 +400,60 @@ final class PasswordManagerService: ObservableObject {
     private func encode(metadata: SavedPasswordMetadata) throws -> Data {
         try encoder.encode(metadata)
     }
+
+    private func copyToPasteboard(_ value: String, clearingAfter timeout: TimeInterval?) {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(value, forType: .string)
+
+        guard let timeout else {
+            return
+        }
+
+        let expectedChangeCount = pasteboard.changeCount
+        DispatchQueue.main.asyncAfter(deadline: .now() + timeout) {
+            let currentPasteboard = NSPasteboard.general
+            guard currentPasteboard.changeCount == expectedChangeCount,
+                  currentPasteboard.string(forType: .string) == value
+            else {
+                return
+            }
+
+            currentPasteboard.clearContents()
+        }
+    }
+
+    private static func isSecureDefaultPort(_ url: URL) -> Bool {
+        guard url.scheme?.lowercased() == "https" else {
+            return false
+        }
+
+        return url.port == nil || url.port == defaultPort(for: "https")
+    }
+
+    private static func defaultPort(for scheme: String) -> Int {
+        switch scheme {
+        case "http":
+            return 80
+        case "https":
+            return 443
+        default:
+            return -1
+        }
+    }
 }
 
 enum PasswordManagerError: LocalizedError {
     case invalidStoredPassword
+    case invalidCredentialOrigin
     case keychainStatus(OSStatus)
 
     var errorDescription: String? {
         switch self {
         case .invalidStoredPassword:
             return "Ora couldn't decode the stored password."
+        case .invalidCredentialOrigin:
+            return "Ora can only save passwords for web origins."
         case let .keychainStatus(status):
             if let message = SecCopyErrorMessageString(status, nil) as String? {
                 return message

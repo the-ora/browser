@@ -70,7 +70,7 @@ final class PasswordAutofillCoordinator {
         self.tab = tab
     }
 
-    func handleMessage(_ messageBody: String) {
+    func handleMessage(_ messageBody: String, pageURL: URL?) {
         guard let data = messageBody.data(using: .utf8),
               let message = try? decoder.decode(PasswordBridgeEvent.self, from: data)
         else {
@@ -81,7 +81,7 @@ final class PasswordAutofillCoordinator {
         case "focus":
             dismissWorkItem?.cancel()
             if let focus = message.focus {
-                presentOverlay(for: focus)
+                presentOverlay(for: focus, pageURL: pageURL)
             }
         case "blur":
             scheduleDismissOverlay()
@@ -92,7 +92,7 @@ final class PasswordAutofillCoordinator {
         case "submit":
             dismissOverlay()
             if let submit = message.submit {
-                handleSubmit(submit)
+                handleSubmit(submit, pageURL: pageURL)
             }
         default:
             break
@@ -149,19 +149,20 @@ final class PasswordAutofillCoordinator {
         dismissOverlay()
     }
 
-    private func presentOverlay(for focus: PasswordBridgeFocusPayload) {
+    private func presentOverlay(for focus: PasswordBridgeFocusPayload, pageURL: URL?) {
         let provider = providers.descriptor(for: settings.passwordManagerProvider)
         guard settings.passwordsEnabled,
               settings.passwordAutofillEnabled,
               provider.usesBuiltInOverlay,
-              tab?.isPrivate == false
+              tab?.isPrivate == false,
+              let pageURL,
+              let normalizedHost = PasswordManagerService.normalizedHost(from: pageURL)
         else {
             dismissOverlay()
             return
         }
 
-        let normalizedHost = PasswordManagerService.normalizeHost(focus.hostname)
-        let entries = passwordManager.matchingEntries(forHost: normalizedHost)
+        let entries = passwordManager.matchingEntries(for: pageURL)
         let generatedPassword = focus.action == .createAccount ? passwordManager.generateStrongPassword() : nil
 
         guard !entries.isEmpty || generatedPassword != nil else {
@@ -204,17 +205,18 @@ final class PasswordAutofillCoordinator {
         )
     }
 
-    private func handleSubmit(_ payload: PasswordBridgeSubmitPayload) {
+    private func handleSubmit(_ payload: PasswordBridgeSubmitPayload, pageURL: URL?) {
         let provider = providers.descriptor(for: settings.passwordManagerProvider)
         guard settings.passwordsEnabled,
               settings.passwordSavePromptsEnabled,
               provider.usesBuiltInVault,
-              tab?.isPrivate == false
+              tab?.isPrivate == false,
+              let pageURL,
+              let normalizedHost = PasswordManagerService.normalizedHost(from: pageURL)
         else {
             return
         }
 
-        let normalizedHost = PasswordManagerService.normalizeHost(payload.hostname)
         let trimmedUsername = payload.username.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedPassword = payload.password.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -224,9 +226,9 @@ final class PasswordAutofillCoordinator {
             return
         }
 
-        let matchingEntry = passwordManager.entries.first {
-            PasswordManagerService.normalizeHost($0.host) == normalizedHost && $0.username == trimmedUsername
-        }
+        let matchingEntry = passwordManager
+            .matchingEntries(for: pageURL)
+            .first { $0.username == trimmedUsername }
 
         if let matchingEntry,
            let storedPassword = try? passwordManager.revealPassword(for: matchingEntry),
@@ -249,7 +251,7 @@ final class PasswordAutofillCoordinator {
             alert.beginSheetModal(for: window) { [weak self] response in
                 guard response == .alertFirstButtonReturn else { return }
                 try? self?.passwordManager.upsertCredential(
-                    host: normalizedHost,
+                    for: pageURL,
                     username: trimmedUsername,
                     password: trimmedPassword
                 )
@@ -258,7 +260,7 @@ final class PasswordAutofillCoordinator {
         }
 
         try? passwordManager.upsertCredential(
-            host: normalizedHost,
+            for: pageURL,
             username: trimmedUsername,
             password: trimmedPassword
         )

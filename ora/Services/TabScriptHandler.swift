@@ -63,7 +63,7 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         } else if message.name == "passwordManager" {
             guard let body = message.body as? String else { return }
             DispatchQueue.main.async { [weak self] in
-                self?.passwordCoordinator?.handleMessage(body)
+                self?.passwordCoordinator?.handleMessage(body, pageURL: self?.tab?.webView.url)
             }
         }
     }
