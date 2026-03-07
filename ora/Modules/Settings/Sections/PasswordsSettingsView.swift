@@ -4,12 +4,17 @@ struct PasswordsSettingsView: View {
     @Environment(\.theme) private var theme
     @StateObject private var settings = SettingsStore.shared
     @StateObject private var passwordManager = PasswordManagerService.shared
+    private let providers = PasswordManagerProviderRegistry.shared
 
     @State private var searchText = ""
     @State private var isUnlocked = false
     @State private var isAuthenticating = false
     @State private var revealedPasswordIDs: [String: String] = [:]
     @State private var pendingDelete: SavedPasswordSummary?
+
+    private var selectedProvider: PasswordManagerProviderDescriptor {
+        providers.descriptor(for: settings.passwordManagerProvider)
+    }
 
     private var filteredEntries: [SavedPasswordSummary] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -57,17 +62,36 @@ struct PasswordsSettingsView: View {
                 .font(.title2.weight(.semibold))
 
             Text(
-                "Ora stores saved credentials as encrypted, synchronizable Keychain items. They follow your Mac's Keychain and iCloud Keychain availability."
+                "Choose which password manager Ora should integrate with. Ora Passwords stores encrypted credentials in synchronizable Keychain items; external providers will bring their own vault and autofill surfaces."
             )
             .font(.subheadline)
             .foregroundStyle(.secondary)
 
             VStack(alignment: .leading, spacing: 12) {
+                Picker("Password manager", selection: $settings.passwordManagerProvider) {
+                    ForEach(providers.providers) { provider in
+                        Text(provider.title).tag(provider.kind)
+                    }
+                }
+                .pickerStyle(.menu)
+
+                Text(selectedProvider.summary)
+                    .font(.caption)
+                    .foregroundStyle(selectedProvider.isAvailable ? Color.secondary : .orange)
+
                 Toggle("Enable password manager", isOn: $settings.passwordsEnabled)
                 Toggle("Show autofill suggestions on login forms", isOn: $settings.passwordAutofillEnabled)
                     .disabled(!settings.passwordsEnabled)
                 Toggle("Ask to save or update passwords after sign in", isOn: $settings.passwordSavePromptsEnabled)
-                    .disabled(!settings.passwordsEnabled)
+                    .disabled(!settings.passwordsEnabled || !selectedProvider.usesBuiltInVault)
+            }
+
+            if !selectedProvider.isAvailable {
+                Text(
+                    "\(selectedProvider.title) is not integrated yet. Selecting it reserves the provider slot, but Ora will not show its built-in vault or save prompts for that provider."
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
         }
         .padding(18)
@@ -80,36 +104,48 @@ struct PasswordsSettingsView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Saved Credentials")
+                    Text(selectedProvider.usesBuiltInVault ? "Saved Credentials" : selectedProvider.title)
                         .font(.headline)
-                    Text("\(passwordManager.entries.count) item\(passwordManager.entries.count == 1 ? "" : "s")")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    if selectedProvider.usesBuiltInVault {
+                        Text("\(passwordManager.entries.count) item\(passwordManager.entries.count == 1 ? "" : "s")")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Text("This provider will manage its own vault and autofill UI once integrated.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
 
                 Spacer()
 
-                if isUnlocked {
-                    Button("Lock") {
-                        lockVault()
-                    }
-                } else {
-                    Button {
-                        unlockVault()
-                    } label: {
-                        if isAuthenticating {
-                            ProgressView()
-                                .controlSize(.small)
-                                .frame(width: 72)
-                        } else {
-                            Text("Unlock")
+                if selectedProvider.usesBuiltInVault {
+                    if isUnlocked {
+                        Button("Lock") {
+                            lockVault()
                         }
+                    } else {
+                        Button {
+                            unlockVault()
+                        } label: {
+                            if isAuthenticating {
+                                ProgressView()
+                                    .controlSize(.small)
+                                    .frame(width: 72)
+                            } else {
+                                Text("Unlock")
+                            }
+                        }
+                        .disabled(isAuthenticating)
                     }
-                    .disabled(isAuthenticating)
                 }
             }
 
-            if isUnlocked {
+            if !selectedProvider.usesBuiltInVault {
+                emptyState(
+                    message: "\(selectedProvider.title) will expose its own account picker, vault controls, and autofill overlay when the native integration is added."
+                )
+            } else if isUnlocked {
                 TextField("Search saved passwords", text: $searchText)
                     .textFieldStyle(.roundedBorder)
 

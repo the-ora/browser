@@ -156,6 +156,7 @@ class SettingsStore: ObservableObject {
     private let maxRecentTabsKey = "settings.maxRecentTabs"
     private let autoPiPEnabledKey = "settings.autoPiPEnabled"
     private let passwordsEnabledKey = "settings.passwords.enabled"
+    private let passwordManagerProviderKey = "settings.passwords.provider"
     private let passwordAutofillEnabledKey = "settings.passwords.autofillEnabled"
     private let passwordSavePromptsEnabledKey = "settings.passwords.savePromptsEnabled"
 
@@ -229,6 +230,10 @@ class SettingsStore: ObservableObject {
         didSet { defaults.set(passwordsEnabled, forKey: passwordsEnabledKey) }
     }
 
+    @Published var passwordManagerProvider: PasswordManagerProviderKind {
+        didSet { defaults.set(passwordManagerProvider.rawValue, forKey: passwordManagerProviderKey) }
+    }
+
     @Published var passwordAutofillEnabled: Bool {
         didSet { defaults.set(passwordAutofillEnabled, forKey: passwordAutofillEnabledKey) }
     }
@@ -292,6 +297,13 @@ class SettingsStore: ObservableObject {
 
         autoPiPEnabled = defaults.object(forKey: autoPiPEnabledKey) as? Bool ?? true
         passwordsEnabled = defaults.object(forKey: passwordsEnabledKey) as? Bool ?? true
+        if let raw = defaults.string(forKey: passwordManagerProviderKey),
+           let provider = PasswordManagerProviderKind(rawValue: raw)
+        {
+            passwordManagerProvider = provider
+        } else {
+            passwordManagerProvider = .ora
+        }
         passwordAutofillEnabled = defaults.object(forKey: passwordAutofillEnabledKey) as? Bool ?? true
         passwordSavePromptsEnabled = defaults.object(forKey: passwordSavePromptsEnabledKey) as? Bool ?? true
     }

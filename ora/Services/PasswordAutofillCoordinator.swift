@@ -60,6 +60,7 @@ final class PasswordAutofillCoordinator {
     weak var tab: Tab?
 
     private let passwordManager = PasswordManagerService.shared
+    private let providers = PasswordManagerProviderRegistry.shared
     private let settings = SettingsStore.shared
     private let decoder = JSONDecoder()
 
@@ -149,8 +150,10 @@ final class PasswordAutofillCoordinator {
     }
 
     private func presentOverlay(for focus: PasswordBridgeFocusPayload) {
+        let provider = providers.descriptor(for: settings.passwordManagerProvider)
         guard settings.passwordsEnabled,
               settings.passwordAutofillEnabled,
+              provider.usesBuiltInOverlay,
               tab?.isPrivate == false
         else {
             dismissOverlay()
@@ -202,8 +205,10 @@ final class PasswordAutofillCoordinator {
     }
 
     private func handleSubmit(_ payload: PasswordBridgeSubmitPayload) {
+        let provider = providers.descriptor(for: settings.passwordManagerProvider)
         guard settings.passwordsEnabled,
               settings.passwordSavePromptsEnabled,
+              provider.usesBuiltInVault,
               tab?.isPrivate == false
         else {
             return
