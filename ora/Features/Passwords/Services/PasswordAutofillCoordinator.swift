@@ -7,6 +7,12 @@ enum PasswordFormAction: String, Codable {
     case createAccount
 }
 
+enum PasswordAutofillFieldKind: String, Codable {
+    case email
+    case password
+    case username
+}
+
 struct PasswordBridgeRect: Codable, Equatable {
     let originX: Double
     let originY: Double
@@ -29,6 +35,7 @@ struct PasswordBridgeFocusPayload: Codable, Equatable {
     let fieldID: String
     let hostname: String
     let action: PasswordFormAction
+    let fieldKind: PasswordAutofillFieldKind
     let usernameFieldID: String?
     let passwordFieldIDs: [String]
     let rect: PasswordBridgeRect
@@ -59,7 +66,8 @@ struct PasswordFillRequest: Codable {
 
 struct PasswordAutofillOverlayState: Equatable {
     let focus: PasswordBridgeFocusPayload
-    let matchingEntries: [SavedPasswordSummary]
+    let savedPasswordEntries: [SavedPasswordSummary]
+    let emailSuggestions: [PasswordEmailSuggestion]
     let generatedPassword: String?
 }
 
@@ -194,6 +202,27 @@ final class PasswordAutofillCoordinator {
         }
     }
 
+    func fillEmailSuggestion(_ suggestion: PasswordEmailSuggestion, for overlay: PasswordAutofillOverlayState) {
+        guard overlay.focus.fieldKind == .email else {
+            return
+        }
+
+        guard let webView = tab?.webView else {
+            return
+        }
+
+        let request = PasswordFillRequest(
+            usernameFieldID: overlay.focus.fieldID,
+            passwordFieldIDs: [],
+            username: suggestion.email,
+            password: "",
+            highlightColor: "#E8F1FF"
+        )
+
+        evaluate(scriptMethod: "fillCredentials", payload: request, in: webView)
+        dismissOverlay()
+    }
+
     func openPasswordsSettings() {
         UserDefaults.standard.set(SettingsTab.passwords.rawValue, forKey: SettingsContentView.selectedTabDefaultsKey)
         NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
@@ -213,10 +242,17 @@ final class PasswordAutofillCoordinator {
             return
         }
 
-        let entries = passwordManager.matchingEntries(for: pageURL)
-        let generatedPassword = focus.action == .createAccount ? passwordManager.generateStrongPassword() : nil
+        let suggestions = Self.resolveSuggestions(
+            for: focus,
+            matchingEntries: passwordManager.matchingEntries(for: pageURL),
+            emailSuggestions: passwordManager.emailSuggestions(),
+            generatedPassword: focus.action == .createAccount ? passwordManager.generateStrongPassword() : nil
+        )
 
-        guard !entries.isEmpty || generatedPassword != nil else {
+        guard !suggestions.savedPasswordEntries.isEmpty
+            || !suggestions.emailSuggestions.isEmpty
+            || suggestions.generatedPassword != nil
+        else {
             clearAutofillState()
             return
         }
@@ -226,12 +262,14 @@ final class PasswordAutofillCoordinator {
                 fieldID: focus.fieldID,
                 hostname: normalizedHost,
                 action: focus.action,
+                fieldKind: focus.fieldKind,
                 usernameFieldID: focus.usernameFieldID,
                 passwordFieldIDs: focus.passwordFieldIDs,
                 rect: focus.rect
             ),
-            matchingEntries: entries,
-            generatedPassword: generatedPassword
+            savedPasswordEntries: suggestions.savedPasswordEntries,
+            emailSuggestions: suggestions.emailSuggestions,
+            generatedPassword: suggestions.generatedPassword
         )
 
         tab?.passwordTriggerOverlayState = overlayState
@@ -360,11 +398,13 @@ final class PasswordAutofillCoordinator {
                 fieldID: overlay.focus.fieldID,
                 hostname: overlay.focus.hostname,
                 action: overlay.focus.action,
+                fieldKind: overlay.focus.fieldKind,
                 usernameFieldID: overlay.focus.usernameFieldID,
                 passwordFieldIDs: overlay.focus.passwordFieldIDs,
                 rect: rect
             ),
-            matchingEntries: overlay.matchingEntries,
+            savedPasswordEntries: overlay.savedPasswordEntries,
+            emailSuggestions: overlay.emailSuggestions,
             generatedPassword: overlay.generatedPassword
         )
     }
@@ -417,6 +457,43 @@ final class PasswordAutofillCoordinator {
             confirmButtonTitle: title,
             neverButtonTitle: "Never on This Site",
             showsSecurityWarning: false
+        )
+    }
+
+    static func resolveSuggestions(
+        for focus: PasswordBridgeFocusPayload,
+        matchingEntries: [SavedPasswordSummary],
+        emailSuggestions: [PasswordEmailSuggestion],
+        generatedPassword: String?
+    ) -> PasswordAutofillOverlayState {
+        let savedPasswordEntries: [SavedPasswordSummary]
+        let filteredEmailSuggestions: [PasswordEmailSuggestion]
+        let filteredGeneratedPassword: String?
+
+        switch (focus.action, focus.fieldKind) {
+        case (.createAccount, .password):
+            savedPasswordEntries = []
+            filteredEmailSuggestions = []
+            filteredGeneratedPassword = generatedPassword
+        case (.createAccount, .email):
+            savedPasswordEntries = []
+            filteredEmailSuggestions = emailSuggestions
+            filteredGeneratedPassword = nil
+        case (.createAccount, .username):
+            savedPasswordEntries = []
+            filteredEmailSuggestions = []
+            filteredGeneratedPassword = nil
+        case (.login, _):
+            savedPasswordEntries = matchingEntries
+            filteredEmailSuggestions = []
+            filteredGeneratedPassword = nil
+        }
+
+        return PasswordAutofillOverlayState(
+            focus: focus,
+            savedPasswordEntries: savedPasswordEntries,
+            emailSuggestions: filteredEmailSuggestions,
+            generatedPassword: filteredGeneratedPassword
         )
     }
 }

@@ -68,4 +68,72 @@ struct OraTests {
         #expect(prompt.neverButtonTitle == "Never on This Site")
         #expect(prompt.message == "Update the saved password for example.com?")
     }
+
+    @Test func recognizesEmailUsernamesForSignupSuggestions() {
+        #expect(PasswordManagerService.looksLikeEmail("alice@example.com"))
+        #expect(PasswordManagerService.looksLikeEmail(" alice@example.com "))
+        #expect(PasswordManagerService.looksLikeEmail("alice") == false)
+        #expect(PasswordManagerService.looksLikeEmail("alice@localhost") == false)
+    }
+
+    @Test func limitsSignupSuggestionsByFocusedFieldKind() {
+        let entry = SavedPasswordSummary(
+            metadata: SavedPasswordMetadata(
+                id: "entry-1",
+                origin: "https://example.com",
+                host: "example.com",
+                username: "saved@example.com",
+                createdAt: .distantPast,
+                updatedAt: .distantPast,
+                lastUsedAt: nil
+            ),
+            persistentReference: Data()
+        )
+        let emailSuggestion = PasswordEmailSuggestion(
+            email: "person@example.com",
+            host: "another.com",
+            lastUsedAt: nil,
+            updatedAt: .distantPast
+        )
+
+        let passwordFocus = PasswordBridgeFocusPayload(
+            fieldID: "password-field",
+            hostname: "example.com",
+            action: .createAccount,
+            fieldKind: .password,
+            usernameFieldID: "email-field",
+            passwordFieldIDs: ["password-field"],
+            rect: PasswordBridgeRect(originX: 0, originY: 0, width: 100, height: 20)
+        )
+        let passwordSuggestions = PasswordAutofillCoordinator.resolveSuggestions(
+            for: passwordFocus,
+            matchingEntries: [entry],
+            emailSuggestions: [emailSuggestion],
+            generatedPassword: "StrongPass123!"
+        )
+
+        #expect(passwordSuggestions.generatedPassword == "StrongPass123!")
+        #expect(passwordSuggestions.savedPasswordEntries.isEmpty)
+        #expect(passwordSuggestions.emailSuggestions.isEmpty)
+
+        let emailFocus = PasswordBridgeFocusPayload(
+            fieldID: "email-field",
+            hostname: "example.com",
+            action: .createAccount,
+            fieldKind: .email,
+            usernameFieldID: "email-field",
+            passwordFieldIDs: ["password-field"],
+            rect: PasswordBridgeRect(originX: 0, originY: 0, width: 100, height: 20)
+        )
+        let emailSuggestions = PasswordAutofillCoordinator.resolveSuggestions(
+            for: emailFocus,
+            matchingEntries: [entry],
+            emailSuggestions: [emailSuggestion],
+            generatedPassword: "StrongPass123!"
+        )
+
+        #expect(emailSuggestions.generatedPassword == nil)
+        #expect(emailSuggestions.savedPasswordEntries.isEmpty)
+        #expect(emailSuggestions.emailSuggestions == [emailSuggestion])
+    }
 }

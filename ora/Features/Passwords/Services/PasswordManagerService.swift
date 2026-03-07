@@ -50,6 +50,17 @@ struct SavedPasswordSummary: Identifiable, Hashable {
     }
 }
 
+struct PasswordEmailSuggestion: Identifiable, Hashable {
+    let email: String
+    let host: String
+    let lastUsedAt: Date?
+    let updatedAt: Date
+
+    var id: String {
+        email.lowercased()
+    }
+}
+
 final class PasswordManagerService: ObservableObject {
     static let shared = PasswordManagerService()
 
@@ -107,6 +118,40 @@ final class PasswordManagerService: ObservableObject {
                 }
                 return $0.displayUsername.localizedCaseInsensitiveCompare($1.displayUsername) == .orderedAscending
             }
+    }
+
+    func emailSuggestions(limit: Int = 4) -> [PasswordEmailSuggestion] {
+        var seenEmails = Set<String>()
+
+        return entries
+            .sorted {
+                let lhsDate = $0.lastUsedAt ?? $0.updatedAt
+                let rhsDate = $1.lastUsedAt ?? $1.updatedAt
+                if lhsDate != rhsDate {
+                    return lhsDate > rhsDate
+                }
+                return $0.displayUsername.localizedCaseInsensitiveCompare($1.displayUsername) == .orderedAscending
+            }
+            .compactMap { entry -> PasswordEmailSuggestion? in
+                let trimmedEmail = entry.username.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard Self.looksLikeEmail(trimmedEmail) else {
+                    return nil
+                }
+
+                let normalizedEmail = trimmedEmail.lowercased()
+                guard seenEmails.insert(normalizedEmail).inserted else {
+                    return nil
+                }
+
+                return PasswordEmailSuggestion(
+                    email: trimmedEmail,
+                    host: entry.host,
+                    lastUsedAt: entry.lastUsedAt,
+                    updatedAt: entry.updatedAt
+                )
+            }
+            .prefix(limit)
+            .map(\.self)
     }
 
     func revealPassword(for entry: SavedPasswordSummary) throws -> String {
@@ -348,6 +393,27 @@ final class PasswordManagerService: ObservableObject {
         }
 
         return components.url?.absoluteString.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    }
+
+    static func looksLikeEmail(_ value: String) -> Bool {
+        let trimmedValue = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedValue.isEmpty,
+              let atIndex = trimmedValue.firstIndex(of: "@")
+        else {
+            return false
+        }
+
+        let localPart = trimmedValue[..<atIndex]
+        let domainStart = trimmedValue.index(after: atIndex)
+        guard domainStart < trimmedValue.endIndex else {
+            return false
+        }
+
+        let domainPart = trimmedValue[domainStart...]
+        return !localPart.isEmpty
+            && domainPart.contains(".")
+            && !domainPart.hasPrefix(".")
+            && !domainPart.hasSuffix(".")
     }
 
     private func loadEntries() throws -> [SavedPasswordSummary] {

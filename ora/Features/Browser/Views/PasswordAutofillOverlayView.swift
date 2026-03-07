@@ -42,53 +42,24 @@ struct PasswordAutofillOverlayView: View {
 
     private var content: some View {
         VStack(alignment: .leading, spacing: 4) {
-            if let generatedPassword = overlay.generatedPassword {
-                PasswordSuggestionButton(
-                    host: overlay.focus.hostname,
-                    isSelected: selectedSuggestionIndex == 0
-                ) {
-                    tab.passwordCoordinator?.fillGeneratedPassword(for: overlay)
-                } onHoverChanged: { isHovering in
-                    if isHovering {
-                        selectedSuggestionIndex = 0
-                    }
-                } content: {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("Use Strong Password")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(Color(nsColor: .labelColor))
-                        Text(generatedPassword)
-                            .font(.system(.caption, design: .monospaced))
-                            .foregroundStyle(Color(nsColor: .secondaryLabelColor))
-                            .lineLimit(1)
-                    }
-                }
-            }
-
-            if overlay.matchingEntries.isEmpty {
-                Text("No saved credentials for this site.")
+            if suggestions.isEmpty {
+                Text("No autofill suggestions available.")
                     .font(.caption)
                     .foregroundStyle(Color(nsColor: .secondaryLabelColor))
             } else {
-                ForEach(Array(visibleEntries.enumerated()), id: \.element.id) { index, entry in
+                ForEach(Array(suggestions.enumerated()), id: \.element.id) { index, suggestion in
                     PasswordSuggestionButton(
-                        host: entry.host,
-                        isSelected: selectedSuggestionIndex == savedEntrySelectionIndex(for: index)
+                        host: suggestion.host,
+                        isSelected: selectedSuggestionIndex == index,
+                        accessorySymbolName: suggestion.accessorySymbolName
                     ) {
-                        tab.passwordCoordinator?.autofill(entry, for: overlay)
+                        activate(suggestion)
                     } onHoverChanged: { isHovering in
                         if isHovering {
-                            selectedSuggestionIndex = savedEntrySelectionIndex(for: index)
+                            selectedSuggestionIndex = index
                         }
                     } content: {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(entry.displayUsername)
-                                .font(.subheadline.weight(.medium))
-                                .foregroundStyle(Color(nsColor: .labelColor))
-                            Text(entry.host)
-                                .font(.caption)
-                                .foregroundStyle(Color(nsColor: .secondaryLabelColor))
-                        }
+                        suggestionContent(for: suggestion)
                     }
                 }
             }
@@ -106,16 +77,21 @@ struct PasswordAutofillOverlayView: View {
         .padding(8)
     }
 
-    private var visibleEntries: [SavedPasswordSummary] {
-        Array(overlay.matchingEntries.prefix(4))
+    private var suggestions: [OverlaySuggestion] {
+        var items: [OverlaySuggestion] = []
+
+        if let generatedPassword = overlay.generatedPassword {
+            items.append(.generatedPassword(host: overlay.focus.hostname, password: generatedPassword))
+        }
+
+        items.append(contentsOf: overlay.savedPasswordEntries.prefix(4).map(OverlaySuggestion.savedCredential))
+        items.append(contentsOf: overlay.emailSuggestions.prefix(4).map(OverlaySuggestion.email))
+
+        return items
     }
 
     private var suggestionCount: Int {
-        visibleEntries.count + (overlay.generatedPassword == nil ? 0 : 1)
-    }
-
-    private func savedEntrySelectionIndex(for entryIndex: Int) -> Int {
-        entryIndex + (overlay.generatedPassword == nil ? 0 : 1)
+        suggestions.count
     }
 
     private func resetSelection() {
@@ -131,15 +107,8 @@ struct PasswordAutofillOverlayView: View {
 
     private func activateSelection() {
         guard suggestionCount > 0 else { return }
-
-        if overlay.generatedPassword != nil, selectedSuggestionIndex == 0 {
-            tab.passwordCoordinator?.fillGeneratedPassword(for: overlay)
-            return
-        }
-
-        let entryIndex = selectedSuggestionIndex - (overlay.generatedPassword == nil ? 0 : 1)
-        guard visibleEntries.indices.contains(entryIndex) else { return }
-        tab.passwordCoordinator?.autofill(visibleEntries[entryIndex], for: overlay)
+        guard suggestions.indices.contains(selectedSuggestionIndex) else { return }
+        activate(suggestions[selectedSuggestionIndex])
     }
 
     private func handleKeyDown(_ event: NSEvent) -> NSEvent? {
@@ -158,6 +127,88 @@ struct PasswordAutofillOverlayView: View {
             return nil
         default:
             return event
+        }
+    }
+
+    @ViewBuilder
+    private func suggestionContent(for suggestion: OverlaySuggestion) -> some View {
+        switch suggestion {
+        case let .generatedPassword(_, password):
+            VStack(alignment: .leading, spacing: 3) {
+                Text("Use Strong Password")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color(nsColor: .labelColor))
+                Text(password)
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(Color(nsColor: .secondaryLabelColor))
+                    .lineLimit(1)
+            }
+        case let .savedCredential(entry):
+            VStack(alignment: .leading, spacing: 2) {
+                Text(entry.displayUsername)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Color(nsColor: .labelColor))
+                Text(entry.host)
+                    .font(.caption)
+                    .foregroundStyle(Color(nsColor: .secondaryLabelColor))
+            }
+        case let .email(suggestion):
+            VStack(alignment: .leading, spacing: 2) {
+                Text(suggestion.email)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Color(nsColor: .labelColor))
+                Text("Use email from \(suggestion.host)")
+                    .font(.caption)
+                    .foregroundStyle(Color(nsColor: .secondaryLabelColor))
+            }
+        }
+    }
+
+    private func activate(_ suggestion: OverlaySuggestion) {
+        switch suggestion {
+        case .generatedPassword:
+            tab.passwordCoordinator?.fillGeneratedPassword(for: overlay)
+        case let .savedCredential(entry):
+            tab.passwordCoordinator?.autofill(entry, for: overlay)
+        case let .email(emailSuggestion):
+            tab.passwordCoordinator?.fillEmailSuggestion(emailSuggestion, for: overlay)
+        }
+    }
+}
+
+private enum OverlaySuggestion: Identifiable {
+    case generatedPassword(host: String, password: String)
+    case savedCredential(SavedPasswordSummary)
+    case email(PasswordEmailSuggestion)
+
+    var id: String {
+        switch self {
+        case let .generatedPassword(_, password):
+            return "generated-\(password)"
+        case let .savedCredential(entry):
+            return "saved-\(entry.id)"
+        case let .email(suggestion):
+            return "email-\(suggestion.id)"
+        }
+    }
+
+    var host: String {
+        switch self {
+        case let .generatedPassword(host, _):
+            return host
+        case let .savedCredential(entry):
+            return entry.host
+        case let .email(suggestion):
+            return suggestion.host
+        }
+    }
+
+    var accessorySymbolName: String {
+        switch self {
+        case .generatedPassword, .savedCredential:
+            return "touchid"
+        case .email:
+            return "at"
         }
     }
 }
@@ -220,6 +271,7 @@ struct PasswordAutofillTriggerView: View {
 private struct PasswordSuggestionButton<Content: View>: View {
     let host: String
     let isSelected: Bool
+    let accessorySymbolName: String
     let action: () -> Void
     let onHoverChanged: (Bool) -> Void
     @ViewBuilder let content: () -> Content
@@ -232,7 +284,7 @@ private struct PasswordSuggestionButton<Content: View>: View {
                 SiteFaviconView(host: host, size: 18)
                 content()
                 Spacer(minLength: 0)
-                Image(systemName: "touchid")
+                Image(systemName: accessorySymbolName)
                     .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(Color(nsColor: .secondaryLabelColor))
                     .opacity(isHovering || isSelected ? 1 : 0.3)

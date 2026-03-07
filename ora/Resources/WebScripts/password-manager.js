@@ -80,6 +80,26 @@
             || element.autocomplete === "username";
     }
 
+    function fieldKindFor(element) {
+        if (!(element instanceof HTMLInputElement)) {
+            return null;
+        }
+
+        if (element.type === "password") {
+            return "password";
+        }
+
+        if (element.type === "email" || element.autocomplete === "email") {
+            return "email";
+        }
+
+        if (isUsernameField(element)) {
+            return "username";
+        }
+
+        return null;
+    }
+
     function isNewPasswordField(element) {
         const joined = [
             element.name,
@@ -142,10 +162,16 @@
             return null;
         }
 
+        const fieldKind = fieldKindFor(element);
+        if (!fieldKind) {
+            return null;
+        }
+
         return {
             fieldID: ensureFieldID(element),
             hostname: window.location.hostname,
             action: group.action,
+            fieldKind,
             usernameFieldID: ensureFieldID(group.usernameField),
             passwordFieldIDs: group.passwordFields.map(ensureFieldID).filter(Boolean),
             rect: rectPayload(element)
