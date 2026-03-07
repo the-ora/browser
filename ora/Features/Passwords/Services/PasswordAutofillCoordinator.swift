@@ -63,6 +63,14 @@ struct PasswordAutofillOverlayState: Equatable {
     let generatedPassword: String?
 }
 
+struct PasswordSavePromptDetails: Equatable {
+    let title: String
+    let message: String
+    let confirmButtonTitle: String
+    let neverButtonTitle: String
+    let showsSecurityWarning: Bool
+}
+
 final class PasswordAutofillCoordinator {
     weak var tab: Tab?
 
@@ -256,6 +264,10 @@ final class PasswordAutofillCoordinator {
             return
         }
 
+        guard settings.allowsPasswordSavePrompts(for: normalizedHost) else {
+            return
+        }
+
         let trimmedUsername = payload.username.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedPassword = payload.password.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -276,33 +288,58 @@ final class PasswordAutofillCoordinator {
             return
         }
 
-        let saveTitle = matchingEntry == nil ? "Save Password" : "Update Password"
-        let saveMessage = matchingEntry == nil
-            ? "Save the password for \(trimmedUsername.isEmpty ? normalizedHost : trimmedUsername)?"
-            : "Update the saved password for \(trimmedUsername.isEmpty ? normalizedHost : trimmedUsername)?"
+        let prompt = Self.savePromptDetails(
+            for: pageURL,
+            username: trimmedUsername,
+            normalizedHost: normalizedHost,
+            isUpdate: matchingEntry != nil
+        )
+
+        let saveAction = {
+            try? self.passwordManager.upsertCredential(
+                for: pageURL,
+                username: trimmedUsername,
+                password: trimmedPassword
+            )
+        }
 
         if let window = tab?.webView.window {
             let alert = NSAlert()
-            alert.messageText = saveTitle
-            alert.informativeText = saveMessage
-            alert.addButton(withTitle: saveTitle)
+            alert.alertStyle = prompt.showsSecurityWarning ? .warning : .informational
+            alert.messageText = prompt.title
+            alert.informativeText = prompt.message
+            alert.addButton(withTitle: prompt.confirmButtonTitle)
             alert.addButton(withTitle: "Not Now")
-            alert.beginSheetModal(for: window) { [weak self] response in
-                guard response == .alertFirstButtonReturn else { return }
-                try? self?.passwordManager.upsertCredential(
-                    for: pageURL,
-                    username: trimmedUsername,
-                    password: trimmedPassword
-                )
+            alert.addButton(withTitle: prompt.neverButtonTitle)
+            alert.beginSheetModal(for: window) { response in
+                switch response {
+                case .alertFirstButtonReturn:
+                    saveAction()
+                case .alertThirdButtonReturn:
+                    self.settings.suppressPasswordSavePrompts(for: normalizedHost)
+                default:
+                    break
+                }
             }
             return
         }
 
-        try? passwordManager.upsertCredential(
-            for: pageURL,
-            username: trimmedUsername,
-            password: trimmedPassword
-        )
+        let alert = NSAlert()
+        alert.alertStyle = prompt.showsSecurityWarning ? .warning : .informational
+        alert.messageText = prompt.title
+        alert.informativeText = prompt.message
+        alert.addButton(withTitle: prompt.confirmButtonTitle)
+        alert.addButton(withTitle: "Not Now")
+        alert.addButton(withTitle: prompt.neverButtonTitle)
+
+        switch alert.runModal() {
+        case .alertFirstButtonReturn:
+            saveAction()
+        case .alertThirdButtonReturn:
+            settings.suppressPasswordSavePrompts(for: normalizedHost)
+        default:
+            break
+        }
     }
 
     private func scheduleDismissOverlay() {
@@ -345,5 +382,41 @@ final class PasswordAutofillCoordinator {
         }
         """
         webView.evaluateJavaScript(script)
+    }
+
+    static func savePromptDetails(
+        for pageURL: URL,
+        username: String,
+        normalizedHost: String,
+        isUpdate: Bool
+    ) -> PasswordSavePromptDetails {
+        let accountLabel = username.isEmpty ? normalizedHost : username
+        let isInsecurePage = pageURL.scheme?.localizedCaseInsensitiveCompare("http") == .orderedSame
+
+        if isInsecurePage {
+            let actionTitle = isUpdate ? "Update Password on Insecure Page" : "Save Password on Insecure Page"
+            let buttonTitle = isUpdate ? "Update Anyway" : "Save Anyway"
+            let actionVerb = isUpdate ? "update" : "save"
+            return PasswordSavePromptDetails(
+                title: actionTitle,
+                message: "This page uses an insecure connection (http://), so other people on the network may be able to read the password. Do you still want to \(actionVerb) the password for \(accountLabel)?",
+                confirmButtonTitle: buttonTitle,
+                neverButtonTitle: "Never on This Site",
+                showsSecurityWarning: true
+            )
+        }
+
+        let title = isUpdate ? "Update Password" : "Save Password"
+        let message = isUpdate
+            ? "Update the saved password for \(accountLabel)?"
+            : "Save the password for \(accountLabel)?"
+
+        return PasswordSavePromptDetails(
+            title: title,
+            message: message,
+            confirmButtonTitle: title,
+            neverButtonTitle: "Never on This Site",
+            showsSecurityWarning: false
+        )
     }
 }

@@ -257,10 +257,11 @@
             element.value = value;
         }
 
+        const isPassword = element.type === "password";
         element.dispatchEvent(new InputEvent("input", {
             bubbles: true,
             composed: true,
-            data: value,
+            data: isPassword ? null : value,
             inputType: "insertReplacementText"
         }));
         element.dispatchEvent(new Event("change", { bubbles: true, composed: true }));

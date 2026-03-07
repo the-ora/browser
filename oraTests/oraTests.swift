@@ -34,4 +34,38 @@ struct OraTests {
         #expect(password.count >= 12)
         #expect(password.contains("-") || password.rangeOfCharacter(from: .decimalDigits) != nil)
     }
+
+    @Test func warnsBeforeSavingPasswordsOnInsecurePages() throws {
+        let insecureURL = try #require(URL(string: "http://example.com/login"))
+
+        let prompt = PasswordAutofillCoordinator.savePromptDetails(
+            for: insecureURL,
+            username: "alice@example.com",
+            normalizedHost: "example.com",
+            isUpdate: false
+        )
+
+        #expect(prompt.showsSecurityWarning)
+        #expect(prompt.title == "Save Password on Insecure Page")
+        #expect(prompt.confirmButtonTitle == "Save Anyway")
+        #expect(prompt.neverButtonTitle == "Never on This Site")
+        #expect(prompt.message.contains("insecure connection (http://)"))
+    }
+
+    @Test func keepsStandardPromptOnSecurePages() throws {
+        let secureURL = try #require(URL(string: "https://example.com/login"))
+
+        let prompt = PasswordAutofillCoordinator.savePromptDetails(
+            for: secureURL,
+            username: "",
+            normalizedHost: "example.com",
+            isUpdate: true
+        )
+
+        #expect(prompt.showsSecurityWarning == false)
+        #expect(prompt.title == "Update Password")
+        #expect(prompt.confirmButtonTitle == "Update Password")
+        #expect(prompt.neverButtonTitle == "Never on This Site")
+        #expect(prompt.message == "Update the saved password for example.com?")
+    }
 }

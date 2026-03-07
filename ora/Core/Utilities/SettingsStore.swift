@@ -159,6 +159,7 @@ class SettingsStore: ObservableObject {
     private let passwordManagerProviderKey = "settings.passwords.provider"
     private let passwordAutofillEnabledKey = "settings.passwords.autofillEnabled"
     private let passwordSavePromptsEnabledKey = "settings.passwords.savePromptsEnabled"
+    private let suppressedPasswordSavePromptHostsKey = "settings.passwords.suppressedSavePromptHosts"
 
     // MARK: - Per-Container
 
@@ -242,6 +243,13 @@ class SettingsStore: ObservableObject {
         didSet { defaults.set(passwordSavePromptsEnabled, forKey: passwordSavePromptsEnabledKey) }
     }
 
+    @Published private(set) var suppressedPasswordSavePromptHosts: Set<String> {
+        didSet { defaults.set(
+            Array(suppressedPasswordSavePromptHosts).sorted(),
+            forKey: suppressedPasswordSavePromptHostsKey
+        ) }
+    }
+
     init() {
         autoUpdateEnabled = defaults.bool(forKey: autoUpdateKey)
         blockThirdPartyTrackers = defaults.bool(forKey: trackingThirdPartyKey)
@@ -306,6 +314,8 @@ class SettingsStore: ObservableObject {
         }
         passwordAutofillEnabled = defaults.object(forKey: passwordAutofillEnabledKey) as? Bool ?? true
         passwordSavePromptsEnabled = defaults.object(forKey: passwordSavePromptsEnabledKey) as? Bool ?? true
+        suppressedPasswordSavePromptHosts = Set(defaults
+            .stringArray(forKey: suppressedPasswordSavePromptHostsKey) ?? [])
     }
 
     // MARK: - Per-container helpers
@@ -388,6 +398,20 @@ class SettingsStore: ObservableObject {
         var shortcuts = customKeyboardShortcuts
         shortcuts.removeValue(forKey: id)
         customKeyboardShortcuts = shortcuts
+    }
+
+    // MARK: - Password prompts
+
+    func suppressPasswordSavePrompts(for host: String) {
+        let normalizedHost = PasswordManagerService.normalizeHost(host)
+        guard !normalizedHost.isEmpty else { return }
+        suppressedPasswordSavePromptHosts.insert(normalizedHost)
+    }
+
+    func allowsPasswordSavePrompts(for host: String) -> Bool {
+        let normalizedHost = PasswordManagerService.normalizeHost(host)
+        guard !normalizedHost.isEmpty else { return true }
+        return !suppressedPasswordSavePromptHosts.contains(normalizedHost)
     }
 
     // MARK: - Codable helpers
