@@ -2,8 +2,11 @@
   <img width="150" height="150" src="/assets/icon.png" alt="Ora Browser logo">
   <h1>Ora Browser</h1>
   <p>Fast, native WebKit browser for macOS.</p>
+  <a href="https://vercel.com/oss">
+  <img alt="Vercel OSS Program" src="https://vercel.com/oss/program-badge.svg" />
+</a>
 </div>
-
+<br/>
 <p align="center">
   <a href="https://www.apple.com/macos/"><img src="https://badgen.net/badge/macOS/15+/blue" alt="macOS 15+"></a>
   <a href="https://developer.apple.com/xcode/"><img src="https://badgen.net/badge/Xcode/15+/blue" alt="Xcode 15+"></a>
@@ -14,10 +17,6 @@
 
 > [!NOTE]
 > Ora is still in active development and is not ready for daily use yet.
-
-<a href="https://vercel.com/oss">
-  <img alt="Vercel OSS Program" src="https://vercel.com/oss/program-badge.svg" />
-</a>
 
 ## Overview
 
