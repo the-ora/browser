@@ -155,6 +155,10 @@ class SettingsStore: ObservableObject {
     private let tabRemovalTimeoutKey = "settings.tabRemovalTimeout"
     private let maxRecentTabsKey = "settings.maxRecentTabs"
     private let autoPiPEnabledKey = "settings.autoPiPEnabled"
+    private let passwordsEnabledKey = "settings.passwords.enabled"
+    private let passwordManagerProviderKey = "settings.passwords.provider"
+    private let passwordAutofillEnabledKey = "settings.passwords.autofillEnabled"
+    private let passwordSavePromptsEnabledKey = "settings.passwords.savePromptsEnabled"
 
     // MARK: - Per-Container
 
@@ -222,6 +226,22 @@ class SettingsStore: ObservableObject {
         didSet { defaults.set(autoPiPEnabled, forKey: autoPiPEnabledKey) }
     }
 
+    @Published var passwordsEnabled: Bool {
+        didSet { defaults.set(passwordsEnabled, forKey: passwordsEnabledKey) }
+    }
+
+    @Published var passwordManagerProvider: PasswordManagerProviderKind {
+        didSet { defaults.set(passwordManagerProvider.rawValue, forKey: passwordManagerProviderKey) }
+    }
+
+    @Published var passwordAutofillEnabled: Bool {
+        didSet { defaults.set(passwordAutofillEnabled, forKey: passwordAutofillEnabledKey) }
+    }
+
+    @Published var passwordSavePromptsEnabled: Bool {
+        didSet { defaults.set(passwordSavePromptsEnabled, forKey: passwordSavePromptsEnabledKey) }
+    }
+
     init() {
         autoUpdateEnabled = defaults.bool(forKey: autoUpdateKey)
         blockThirdPartyTrackers = defaults.bool(forKey: trackingThirdPartyKey)
@@ -276,6 +296,16 @@ class SettingsStore: ObservableObject {
         maxRecentTabs = maxRecentTabsValue == 0 ? 5 : maxRecentTabsValue
 
         autoPiPEnabled = defaults.object(forKey: autoPiPEnabledKey) as? Bool ?? true
+        passwordsEnabled = defaults.object(forKey: passwordsEnabledKey) as? Bool ?? true
+        if let raw = defaults.string(forKey: passwordManagerProviderKey),
+           let provider = PasswordManagerProviderKind(rawValue: raw)
+        {
+            passwordManagerProvider = provider
+        } else {
+            passwordManagerProvider = .ora
+        }
+        passwordAutofillEnabled = defaults.object(forKey: passwordAutofillEnabledKey) as? Bool ?? true
+        passwordSavePromptsEnabled = defaults.object(forKey: passwordSavePromptsEnabledKey) as? Bool ?? true
     }
 
     // MARK: - Per-container helpers

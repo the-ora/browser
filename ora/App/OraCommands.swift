@@ -168,6 +168,16 @@ struct OraCommands: Commands {
             }
         }
 
+        CommandMenu("Passwords") {
+            Button("Manage Passwords") {
+                UserDefaults.standard.set(
+                    SettingsTab.passwords.rawValue,
+                    forKey: SettingsContentView.selectedTabDefaultsKey
+                )
+                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+            }
+        }
+
         CommandGroup(replacing: .appInfo) {
             Button("About Ora") { showAboutWindow() }
             Button("Check for Updates") {

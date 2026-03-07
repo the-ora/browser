@@ -13,6 +13,7 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
     var onChange: ((String) -> Void)?
     var tab: Tab?
     weak var mediaController: MediaController?
+    weak var passwordCoordinator: PasswordAutofillCoordinator?
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         if message.name == "listener" {
@@ -59,6 +60,11 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
                     self?.mediaController?.receive(event: payload, from: tab)
                 }
             }
+        } else if message.name == "passwordManager" {
+            guard let body = message.body as? String else { return }
+            DispatchQueue.main.async { [weak self] in
+                self?.passwordCoordinator?.handleMessage(body, pageURL: self?.tab?.webView.url)
+            }
         }
     }
 
@@ -69,7 +75,7 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0.1 Safari/605.1.15"
         configuration.applicationNameForUserAgent = userAgent
 
-        // Enable JavaScript
+        // Enable JavaScript and related web platform features needed by the browser.
         configuration.preferences.setValue(true, forKey: "developerExtrasEnabled")
         configuration.preferences.setValue(true, forKey: "allowsPictureInPictureMediaPlayback")
         configuration.preferences.setValue(true, forKey: "javaScriptEnabled")
@@ -86,7 +92,7 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         configuration.allowsAirPlayForMediaPlayback = true
         configuration.preferences.javaScriptCanOpenWindowsAutomatically = false
 
-        // Enable process pool for better memory management
+        // Process pool for web content process management
         let processPool = WKProcessPool()
         configuration.processPool = processPool
         // video shit
@@ -110,9 +116,28 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         contentController.add(self, name: "listener")
         contentController.add(self, name: "linkHover")
         contentController.add(self, name: "mediaEvent")
+        contentController.add(self, name: "passwordManager")
+        if let script = loadPasswordManagerScript() {
+            let userScript = WKUserScript(
+                source: script,
+                injectionTime: .atDocumentEnd,
+                forMainFrameOnly: true
+            )
+            contentController.addUserScript(userScript)
+        }
         configuration.userContentController = contentController
 
         return configuration
+    }
+
+    private func loadPasswordManagerScript() -> String? {
+        guard let scriptURL = Bundle.main.url(forResource: "password-manager", withExtension: "js"),
+              let script = try? String(contentsOf: scriptURL)
+        else {
+            logger.error("Failed to load password manager bridge script")
+            return nil
+        }
+        return script
     }
 
     deinit {
