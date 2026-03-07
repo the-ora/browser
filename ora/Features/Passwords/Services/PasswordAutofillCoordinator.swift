@@ -386,32 +386,30 @@ final class PasswordAutofillCoordinator {
             isUpdate: matchingEntry != nil
         )
 
-        let saveAction = {
-            try? self.passwordManager.upsertCredential(
+        let saveAction: () -> Void = {
+            _ = try? self.passwordManager.upsertCredential(
                 for: pageURL,
                 username: trimmedUsername,
                 password: trimmedPassword
             )
         }
 
-        if let window = tab?.webView.window {
-            let alert = NSAlert()
-            alert.alertStyle = prompt.showsSecurityWarning ? .warning : .informational
-            alert.messageText = prompt.title
-            alert.informativeText = prompt.message
-            alert.addButton(withTitle: prompt.confirmButtonTitle)
-            alert.addButton(withTitle: "Not Now")
-            alert.addButton(withTitle: prompt.neverButtonTitle)
-            alert.beginSheetModal(for: window) { response in
-                switch response {
-                case .alertFirstButtonReturn:
-                    saveAction()
-                case .alertThirdButtonReturn:
-                    self.settings.suppressPasswordSavePrompts(for: normalizedHost)
-                default:
-                    break
-                }
-            }
+        Task { @MainActor [weak self] in
+            self?.presentSavePrompt(
+                prompt,
+                normalizedHost: normalizedHost,
+                saveAction: saveAction
+            )
+        }
+    }
+
+    @MainActor
+    private func presentSavePrompt(
+        _ prompt: PasswordSavePromptDetails,
+        normalizedHost: String,
+        saveAction: @escaping () -> Void
+    ) {
+        guard let window = presentationWindow() else {
             return
         }
 
@@ -422,15 +420,31 @@ final class PasswordAutofillCoordinator {
         alert.addButton(withTitle: prompt.confirmButtonTitle)
         alert.addButton(withTitle: "Not Now")
         alert.addButton(withTitle: prompt.neverButtonTitle)
-
-        switch alert.runModal() {
-        case .alertFirstButtonReturn:
-            saveAction()
-        case .alertThirdButtonReturn:
-            settings.suppressPasswordSavePrompts(for: normalizedHost)
-        default:
-            break
+        alert.beginSheetModal(for: window) { response in
+            switch response {
+            case .alertFirstButtonReturn:
+                saveAction()
+            case .alertThirdButtonReturn:
+                self.settings.suppressPasswordSavePrompts(for: normalizedHost)
+            default:
+                break
+            }
         }
+    }
+
+    @MainActor
+    private func presentationWindow() -> NSWindow? {
+        if let window = tab?.webView.window {
+            return window
+        }
+
+        if let appDelegate = NSApp.delegate as? AppDelegate {
+            return appDelegate.getWindow()
+        }
+
+        return NSApp.keyWindow
+            ?? NSApp.windows.first(where: { $0.isVisible })
+            ?? NSApp.windows.first
     }
 
     private func scheduleDismissOverlay() {
