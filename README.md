@@ -15,6 +15,7 @@
   <a href="LICENSE"><img src="https://badgen.net/badge/License/GPL-2.0/green" alt="GPL-2.0"></a>
 </p>
 
+> [!NOTE]
 > Ora is still in active development and is not ready for daily use yet.
 
 ## Overview
