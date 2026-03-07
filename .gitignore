@@ -94,3 +94,6 @@ codesign*
 # !build/*.dmg
 # !build/appcast.xml
 # !build/dsa_pub.pem
+
+# Others
+# dev-prompts/

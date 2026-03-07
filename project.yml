@@ -99,6 +99,8 @@ targets:
         com.apple.security.files.user-selected.read-write: true
         com.apple.security.network.client: true
         com.apple.security.print: true
+        com.apple.developer.web-browser: true
+        com.apple.developer.web-browser.public-key-credential: true
 
     settings:
       base:

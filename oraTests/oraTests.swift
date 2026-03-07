@@ -9,7 +9,15 @@
 import Testing
 
 struct OraTests {
-    @Test func example() {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
+    @Test func normalizesHostsForPasswordMatching() {
+        #expect(PasswordManagerService.normalizeHost("WWW.Example.COM.") == "www.example.com")
+        #expect(PasswordManagerService.normalizeHost(" login.example.com ") == "login.example.com")
+    }
+
+    @Test func generatesStrongPasswords() {
+        let password = PasswordManagerService.generateStrongPassword()
+
+        #expect(password.count >= 12)
+        #expect(password.contains("-") || password.rangeOfCharacter(from: .decimalDigits) != nil)
     }
 }
