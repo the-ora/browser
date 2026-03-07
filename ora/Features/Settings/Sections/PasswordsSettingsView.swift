@@ -175,12 +175,16 @@ struct PasswordsSettingsView: View {
     private func credentialRow(_ entry: SavedPasswordSummary) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(entry.host)
-                        .font(.headline)
-                    Text(entry.displayUsername)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                HStack(alignment: .top, spacing: 12) {
+                    SiteFaviconView(host: entry.host, size: 22, cornerRadius: 5)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(entry.host)
+                            .font(.headline)
+                        Text(entry.displayUsername)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
                 }
 
                 Spacer()

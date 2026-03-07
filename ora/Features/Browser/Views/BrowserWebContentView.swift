@@ -41,6 +41,11 @@ struct BrowserWebContentView: View {
                 } else {
                     WebView(webView: tab.webView).id(tab.id)
                         .overlay(alignment: .topLeading) {
+                            if let triggerState = tab.passwordTriggerOverlayState {
+                                PasswordAutofillTriggerView(overlay: triggerState, tab: tab)
+                            }
+                        }
+                        .overlay(alignment: .topLeading) {
                             if let passwordOverlayState = tab.passwordOverlayState {
                                 PasswordAutofillOverlayView(overlay: passwordOverlayState, tab: tab)
                             }

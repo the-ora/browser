@@ -56,6 +56,7 @@ class Tab: ObservableObject, Identifiable {
     @Transient var isPrivate: Bool = false
     @Transient var passwordCoordinator: PasswordAutofillCoordinator?
     @Transient @Published var passwordOverlayState: PasswordAutofillOverlayState?
+    @Transient @Published var passwordTriggerOverlayState: PasswordAutofillOverlayState?
 
     @Relationship(inverse: \TabContainer.tabs) var container: TabContainer
 
@@ -220,7 +221,7 @@ class Tab: ObservableObject, Identifiable {
         delegate.onStart = { [weak self] in
             self?.clearNavigationError()
             self?.maintainSnapShots()
-            self?.passwordCoordinator?.dismissOverlay()
+            self?.passwordCoordinator?.clearAutofillState()
         }
         delegate.onTitleChange = { [weak self] title in
             DispatchQueue.main.async {

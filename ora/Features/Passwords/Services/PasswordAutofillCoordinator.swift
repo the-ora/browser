@@ -97,7 +97,7 @@ final class PasswordAutofillCoordinator {
                 updateOverlayRect(for: fieldID, rect: rect)
             }
         case "submit":
-            dismissOverlay()
+            clearAutofillState()
             if let submit = message.submit {
                 handleSubmit(submit, pageURL: pageURL)
             }
@@ -111,43 +111,79 @@ final class PasswordAutofillCoordinator {
         tab?.passwordOverlayState = nil
     }
 
+    func clearAutofillState() {
+        dismissWorkItem?.cancel()
+        tab?.passwordOverlayState = nil
+        tab?.passwordTriggerOverlayState = nil
+    }
+
+    func presentTriggerOverlay() {
+        dismissWorkItem?.cancel()
+        guard let overlay = tab?.passwordTriggerOverlayState else { return }
+        tab?.passwordOverlayState = overlay
+    }
+
     func autofill(_ entry: SavedPasswordSummary, for overlay: PasswordAutofillOverlayState) {
-        guard let webView = tab?.webView,
-              let password = try? passwordManager.revealPassword(for: entry)
-        else {
-            return
+        Task { [weak self] in
+            guard let self else { return }
+
+            let authenticated = await self.passwordManager.authenticate(
+                reason: "Autofill the saved password for \(entry.displayUsername) on \(entry.host)"
+            )
+            guard authenticated,
+                  let password = try? self.passwordManager.revealPassword(for: entry)
+            else {
+                return
+            }
+
+            await MainActor.run {
+                guard let webView = self.tab?.webView else { return }
+
+                let request = PasswordFillRequest(
+                    usernameFieldID: overlay.focus.usernameFieldID,
+                    passwordFieldIDs: overlay.focus.passwordFieldIDs,
+                    username: entry.username.isEmpty ? nil : entry.username,
+                    password: password,
+                    highlightColor: "#E8F5E9"
+                )
+
+                self.evaluate(scriptMethod: "fillCredentials", payload: request, in: webView)
+                self.passwordManager.markUsed(entry)
+                self.dismissOverlay()
+            }
         }
-
-        let request = PasswordFillRequest(
-            usernameFieldID: overlay.focus.usernameFieldID,
-            passwordFieldIDs: overlay.focus.passwordFieldIDs,
-            username: entry.username.isEmpty ? nil : entry.username,
-            password: password,
-            highlightColor: "#E8F5E9"
-        )
-
-        evaluate(scriptMethod: "fillCredentials", payload: request, in: webView)
-        passwordManager.markUsed(entry)
-        dismissOverlay()
     }
 
     func fillGeneratedPassword(for overlay: PasswordAutofillOverlayState) {
-        guard let webView = tab?.webView,
-              let generatedPassword = overlay.generatedPassword
-        else {
+        guard let generatedPassword = overlay.generatedPassword else {
             return
         }
 
-        let request = PasswordFillRequest(
-            usernameFieldID: nil,
-            passwordFieldIDs: overlay.focus.passwordFieldIDs,
-            username: nil,
-            password: generatedPassword,
-            highlightColor: "#FFF4CC"
-        )
+        Task { [weak self] in
+            guard let self else { return }
 
-        evaluate(scriptMethod: "fillCredentials", payload: request, in: webView)
-        dismissOverlay()
+            let authenticated = await self.passwordManager.authenticate(
+                reason: "Fill the suggested password for \(overlay.focus.hostname)"
+            )
+            guard authenticated else {
+                return
+            }
+
+            await MainActor.run {
+                guard let webView = self.tab?.webView else { return }
+
+                let request = PasswordFillRequest(
+                    usernameFieldID: nil,
+                    passwordFieldIDs: overlay.focus.passwordFieldIDs,
+                    username: nil,
+                    password: generatedPassword,
+                    highlightColor: "#FFF4CC"
+                )
+
+                self.evaluate(scriptMethod: "fillCredentials", payload: request, in: webView)
+                self.dismissOverlay()
+            }
+        }
     }
 
     func openPasswordsSettings() {
@@ -165,7 +201,7 @@ final class PasswordAutofillCoordinator {
               let pageURL,
               let normalizedHost = PasswordManagerService.normalizedHost(from: pageURL)
         else {
-            dismissOverlay()
+            clearAutofillState()
             return
         }
 
@@ -173,11 +209,11 @@ final class PasswordAutofillCoordinator {
         let generatedPassword = focus.action == .createAccount ? passwordManager.generateStrongPassword() : nil
 
         guard !entries.isEmpty || generatedPassword != nil else {
-            dismissOverlay()
+            clearAutofillState()
             return
         }
 
-        tab?.passwordOverlayState = PasswordAutofillOverlayState(
+        let overlayState = PasswordAutofillOverlayState(
             focus: PasswordBridgeFocusPayload(
                 fieldID: focus.fieldID,
                 hostname: normalizedHost,
@@ -189,27 +225,23 @@ final class PasswordAutofillCoordinator {
             matchingEntries: entries,
             generatedPassword: generatedPassword
         )
+
+        tab?.passwordTriggerOverlayState = overlayState
+        tab?.passwordOverlayState = overlayState
     }
 
     private func updateOverlayRect(for fieldID: String, rect: PasswordBridgeRect) {
-        guard let overlay = tab?.passwordOverlayState,
-              overlay.focus.fieldID == fieldID
-        else {
-            return
+        if let triggerOverlay = tab?.passwordTriggerOverlayState,
+           triggerOverlay.focus.fieldID == fieldID
+        {
+            tab?.passwordTriggerOverlayState = overlayState(triggerOverlay, updatingRectTo: rect)
         }
 
-        tab?.passwordOverlayState = PasswordAutofillOverlayState(
-            focus: PasswordBridgeFocusPayload(
-                fieldID: overlay.focus.fieldID,
-                hostname: overlay.focus.hostname,
-                action: overlay.focus.action,
-                usernameFieldID: overlay.focus.usernameFieldID,
-                passwordFieldIDs: overlay.focus.passwordFieldIDs,
-                rect: rect
-            ),
-            matchingEntries: overlay.matchingEntries,
-            generatedPassword: overlay.generatedPassword
-        )
+        if let overlay = tab?.passwordOverlayState,
+           overlay.focus.fieldID == fieldID
+        {
+            tab?.passwordOverlayState = overlayState(overlay, updatingRectTo: rect)
+        }
     }
 
     private func handleSubmit(_ payload: PasswordBridgeSubmitPayload, pageURL: URL?) {
@@ -276,10 +308,28 @@ final class PasswordAutofillCoordinator {
     private func scheduleDismissOverlay() {
         dismissWorkItem?.cancel()
         let workItem = DispatchWorkItem { [weak self] in
-            self?.tab?.passwordOverlayState = nil
+            self?.clearAutofillState()
         }
         dismissWorkItem = workItem
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: workItem)
+    }
+
+    private func overlayState(
+        _ overlay: PasswordAutofillOverlayState,
+        updatingRectTo rect: PasswordBridgeRect
+    ) -> PasswordAutofillOverlayState {
+        PasswordAutofillOverlayState(
+            focus: PasswordBridgeFocusPayload(
+                fieldID: overlay.focus.fieldID,
+                hostname: overlay.focus.hostname,
+                action: overlay.focus.action,
+                usernameFieldID: overlay.focus.usernameFieldID,
+                passwordFieldIDs: overlay.focus.passwordFieldIDs,
+                rect: rect
+            ),
+            matchingEntries: overlay.matchingEntries,
+            generatedPassword: overlay.generatedPassword
+        )
     }
 
     private func evaluate(scriptMethod: String, payload: some Encodable, in webView: WKWebView) {

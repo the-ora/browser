@@ -156,6 +156,7 @@
         if (!activeField || !isVisible(activeField)) {
             return;
         }
+
         send({
             type: "rect",
             fieldID: ensureFieldID(activeField),
@@ -198,6 +199,7 @@
 
         blurTimeout = window.setTimeout(() => {
             if (document.activeElement !== target) {
+                activeField = null;
                 send({
                     type: "blur",
                     fieldID: ensureFieldID(target)
