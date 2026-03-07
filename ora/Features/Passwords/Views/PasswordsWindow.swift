@@ -15,7 +15,7 @@ private final class PasswordsWindowController: NSObject, NSWindowDelegate {
     func show() {
         if let window = windowController?.window {
             window.makeKeyAndOrderFront(nil)
-            NSApp.activate(ignoringOtherApps: true)
+            NSApp.activate()
             return
         }
 
@@ -39,7 +39,7 @@ private final class PasswordsWindowController: NSObject, NSWindowDelegate {
         let controller = NSWindowController(window: window)
         windowController = controller
         controller.showWindow(nil)
-        NSApp.activate(ignoringOtherApps: true)
+        NSApp.activate()
     }
 
     func windowWillClose(_ notification: Notification) {
