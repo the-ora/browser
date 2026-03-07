@@ -15,12 +15,12 @@ struct KeyCaptureView: NSViewRepresentable {
     }
 
     func makeNSView(context: Context) -> NSView {
-        context.coordinator.installMonitor(onKeyDown: onKeyDown)
+        context.coordinator.updateOnKeyDown(onKeyDown)
         return NSView()
     }
 
     func updateNSView(_ nsView: NSView, context: Context) {
-        context.coordinator.installMonitor(onKeyDown: onKeyDown)
+        context.coordinator.updateOnKeyDown(onKeyDown)
     }
 
     static func dismantleNSView(_ nsView: NSView, coordinator: Coordinator) {
@@ -35,11 +35,15 @@ struct KeyCaptureView: NSViewRepresentable {
 extension KeyCaptureView {
     final class Coordinator {
         private var monitor: Any?
+        private var onKeyDown: ((NSEvent) -> NSEvent?)?
 
-        func installMonitor(onKeyDown: @escaping (NSEvent) -> NSEvent?) {
-            removeMonitor()
-            monitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { event in
-                onKeyDown(event)
+        func updateOnKeyDown(_ onKeyDown: @escaping (NSEvent) -> NSEvent?) {
+            self.onKeyDown = onKeyDown
+
+            guard monitor == nil else { return }
+
+            monitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
+                self?.onKeyDown?(event) ?? event
             }
         }
 
