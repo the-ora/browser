@@ -299,6 +299,16 @@ final class PasswordManagerService: ObservableObject {
         }
     }
 
+    func canUseBiometricAuthentication() -> Bool {
+        let context = LAContext()
+        var error: NSError?
+        return context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error)
+    }
+
+    func currentAccountDisplayName() -> String {
+        NSFullUserName()
+    }
+
     func copyToPasteboard(_ value: String) {
         copyToPasteboard(value, clearingAfter: nil)
     }

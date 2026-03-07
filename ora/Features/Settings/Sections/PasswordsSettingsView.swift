@@ -124,19 +124,6 @@ struct PasswordsSettingsView: View {
                         Button("Lock") {
                             lockVault()
                         }
-                    } else {
-                        Button {
-                            unlockVault()
-                        } label: {
-                            if isAuthenticating {
-                                ProgressView()
-                                    .controlSize(.small)
-                                    .frame(width: 72)
-                            } else {
-                                Text("Unlock")
-                            }
-                        }
-                        .disabled(isAuthenticating)
                     }
                 }
             }
@@ -163,13 +150,64 @@ struct PasswordsSettingsView: View {
                     }
                 }
             } else {
-                emptyState(message: "Unlock to view, reveal, copy, and delete saved passwords.")
+                lockedVaultState
             }
         }
         .padding(18)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(theme.solidWindowBackgroundColor)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    private var lockedVaultState: some View {
+        VStack(spacing: 18) {
+            ZStack(alignment: .bottomTrailing) {
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 60, weight: .regular))
+                    .foregroundStyle(theme.mutedForeground.opacity(0.75))
+
+                if passwordManager.canUseBiometricAuthentication() {
+                    Button {
+                        unlockVault()
+                    } label: {
+                        Image(systemName: "touchid")
+                            .font(.system(size: 24, weight: .semibold))
+                            .foregroundStyle(theme.accent)
+                            .frame(width: 38, height: 38)
+                            .background(theme.background.opacity(0.92))
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .help("Use Touch ID to unlock")
+                    .disabled(isAuthenticating)
+                }
+            }
+
+            VStack(spacing: 8) {
+                Text("Passwords Are Locked")
+                    .font(.title3.weight(.semibold))
+
+                Text(
+                    "Use Touch ID or your Mac password to unlock passwords for \"\(passwordManager.currentAccountDisplayName())\"."
+                )
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 360)
+            }
+
+            VStack(spacing: 10) {
+                OraButton(
+                    label: isAuthenticating ? "Unlocking..." : "Unlock Passwords",
+                    variant: .outline,
+                    isDisabled: isAuthenticating,
+                    leadingIcon: passwordManager.canUseBiometricAuthentication() ? "touchid" : "lock.open"
+                ) {
+                    unlockVault()
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, minHeight: 260, alignment: .center)
     }
 
     private func credentialRow(_ entry: SavedPasswordSummary) -> some View {
