@@ -8,13 +8,20 @@ enum PasswordFormAction: String, Codable {
 }
 
 struct PasswordBridgeRect: Codable, Equatable {
-    let x: Double
-    let y: Double
+    let originX: Double
+    let originY: Double
     let width: Double
     let height: Double
 
+    enum CodingKeys: String, CodingKey {
+        case originX = "x"
+        case originY = "y"
+        case width
+        case height
+    }
+
     var cgRect: CGRect {
-        CGRect(x: x, y: y, width: width, height: height)
+        CGRect(x: originX, y: originY, width: width, height: height)
     }
 }
 
