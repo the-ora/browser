@@ -140,14 +140,7 @@ struct PasswordsSettingsView: View {
                     emptyState(message: searchText
                         .isEmpty ? "No saved passwords yet." : "No saved passwords match that search.")
                 } else {
-                    ScrollView {
-                        LazyVStack(spacing: 12) {
-                            ForEach(filteredEntries, id: \.id) { entry in
-                                credentialRow(entry)
-                            }
-                        }
-                        .padding(.vertical, 4)
-                    }
+                    passwordsTable
                 }
             } else {
                 lockedVaultState
@@ -210,76 +203,137 @@ struct PasswordsSettingsView: View {
         .frame(maxWidth: .infinity, minHeight: 260, alignment: .center)
     }
 
-    private func credentialRow(_ entry: SavedPasswordSummary) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top) {
-                HStack(alignment: .top, spacing: 12) {
-                    SiteFaviconView(host: entry.host, size: 22, cornerRadius: 5)
+    private var passwordsTable: some View {
+        VStack(spacing: 0) {
+            passwordTableHeader
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(entry.host)
-                            .font(.headline)
-                        Text(entry.displayUsername)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+            Divider()
+                .overlay(theme.border.opacity(0.7))
+
+            ScrollView {
+                LazyVStack(spacing: 0) {
+                    ForEach(filteredEntries, id: \.id) { entry in
+                        passwordTableRow(entry)
+
+                        if entry.id != filteredEntries.last?.id {
+                            Divider()
+                                .overlay(theme.border.opacity(0.45))
+                                .padding(.leading, 12)
+                        }
                     }
                 }
-
-                Spacer()
-
-                Button("Copy Username") {
-                    passwordManager.copyToPasteboard(entry.username)
-                }
-                .buttonStyle(.borderless)
-
-                Button(revealedPasswordIDs[entry.id] == nil ? "Reveal" : "Hide") {
-                    toggleReveal(entry)
-                }
-                .buttonStyle(.borderless)
-
-                Button("Copy Password") {
-                    copyPassword(entry)
-                }
-                .buttonStyle(.borderless)
-
-                Button("Delete", role: .destructive) {
-                    pendingDelete = entry
-                }
-                .buttonStyle(.borderless)
-            }
-
-            HStack(spacing: 10) {
-                Text("Password")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                Text(revealedPasswordIDs[entry.id] ?? "••••••••••••")
-                    .font(.system(.body, design: .monospaced))
-                    .textSelection(.enabled)
-                    .lineLimit(1)
-            }
-
-            HStack(spacing: 14) {
-                metadataLabel("Updated", value: entry.updatedAt.formatted(date: .abbreviated, time: .shortened))
-                if let lastUsedAt = entry.lastUsedAt {
-                    metadataLabel("Last Used", value: lastUsedAt.formatted(date: .abbreviated, time: .shortened))
-                }
             }
         }
-        .padding(14)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(theme.background.opacity(0.45))
+        .background(theme.background.opacity(0.38))
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(theme.border.opacity(0.55), lineWidth: 1)
+        }
     }
 
-    private func metadataLabel(_ title: String, value: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(title)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-            Text(value)
-                .font(.caption)
+    private var passwordTableHeader: some View {
+        HStack(spacing: 12) {
+            tableHeaderCell("Site", width: 260, alignment: .leading)
+            tableHeaderCell("Username", width: 220, alignment: .leading)
+            tableHeaderCell("Password", width: 240, alignment: .leading)
+            tableHeaderCell("Actions", width: 52, alignment: .center)
         }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(theme.background.opacity(0.16))
+    }
+
+    private func passwordTableRow(_ entry: SavedPasswordSummary) -> some View {
+        HStack(spacing: 12) {
+            HStack(spacing: 10) {
+                SiteFaviconView(host: entry.host, size: 20, cornerRadius: 5)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(entry.host)
+                        .font(.subheadline.weight(.medium))
+                        .lineLimit(1)
+                    if let origin = entry.origin {
+                        Text(origin)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                }
+            }
+            .frame(width: 260, alignment: .leading)
+
+            HStack(spacing: 8) {
+                Text(entry.displayUsername)
+                    .font(.subheadline)
+                    .foregroundStyle(entry.username.isEmpty ? .secondary : .primary)
+                    .lineLimit(1)
+
+                Spacer(minLength: 0)
+
+                Button {
+                    passwordManager.copyToPasteboard(entry.username)
+                } label: {
+                    Image(systemName: "doc.on.doc")
+                        .font(.system(size: 13, weight: .medium))
+                }
+                .buttonStyle(.plain)
+                .help("Copy username")
+            }
+            .frame(width: 220, alignment: .leading)
+
+            HStack(spacing: 8) {
+                Text(revealedPasswordIDs[entry.id] ?? "••••••••••••")
+                    .font(.system(.subheadline, design: .monospaced))
+                    .lineLimit(1)
+
+                Spacer(minLength: 0)
+
+                Button {
+                    toggleReveal(entry)
+                } label: {
+                    Image(systemName: revealedPasswordIDs[entry.id] == nil ? "eye" : "eye.slash")
+                        .font(.system(size: 13, weight: .medium))
+                }
+                .buttonStyle(.plain)
+                .help(revealedPasswordIDs[entry.id] == nil ? "Reveal password" : "Hide password")
+
+                Button {
+                    copyPassword(entry)
+                } label: {
+                    Image(systemName: "doc.on.doc")
+                        .font(.system(size: 13, weight: .medium))
+                }
+                .buttonStyle(.plain)
+                .help("Copy password")
+            }
+            .frame(width: 240, alignment: .leading)
+
+            HStack {
+                Spacer()
+
+                Button(role: .destructive) {
+                    pendingDelete = entry
+                } label: {
+                    Image(systemName: "trash")
+                        .font(.system(size: 13, weight: .medium))
+                }
+                .buttonStyle(.plain)
+                .help("Delete saved password")
+
+                Spacer()
+            }
+            .frame(width: 52)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+    }
+
+    private func tableHeaderCell(_ title: String, width: CGFloat, alignment: Alignment) -> some View {
+        Text(title)
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.secondary)
+            .frame(width: width, alignment: alignment)
     }
 
     private func emptyState(message: String) -> some View {
