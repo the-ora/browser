@@ -47,6 +47,7 @@ Temporary Items
 .vscode/
 .idea/
 .zed/
+browser.wiki/
 
 # Build directory (allow directory but ignore contents)
 build/*
