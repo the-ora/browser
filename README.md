@@ -1,5 +1,5 @@
 <div align="center">
-  <img width="250" height="250" src="/assets/icon.png" alt="Ora Browser logo">
+  <img width="150" height="150" src="/assets/icon.png" alt="Ora Browser logo">
   <h1>Ora Browser</h1>
   <p>Fast, native WebKit browser for macOS.</p>
 </div>
