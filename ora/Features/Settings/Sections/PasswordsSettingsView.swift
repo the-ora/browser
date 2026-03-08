@@ -9,6 +9,7 @@ struct PasswordsSettingsView: View {
     @State private var searchText = ""
     @State private var isUnlocked = false
     @State private var isAuthenticating = false
+    @State private var unlockedEntries: [SavedPasswordSummary] = []
     @State private var revealedPasswordIDs: [String: String] = [:]
     @State private var pendingDelete: SavedPasswordSummary?
 
@@ -18,9 +19,9 @@ struct PasswordsSettingsView: View {
 
     private var filteredEntries: [SavedPasswordSummary] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return passwordManager.entries }
+        guard !query.isEmpty else { return unlockedEntries }
 
-        return passwordManager.entries.filter { entry in
+        return unlockedEntries.filter { entry in
             entry.host.localizedCaseInsensitiveContains(query)
                 || entry.username.localizedCaseInsensitiveContains(query)
         }
@@ -43,6 +44,7 @@ struct PasswordsSettingsView: View {
             Button("Delete", role: .destructive) {
                 if let pendingDelete {
                     try? passwordManager.delete(pendingDelete)
+                    syncUnlockedEntries()
                 }
                 pendingDelete = nil
             }
@@ -116,9 +118,15 @@ struct PasswordsSettingsView: View {
                     Text(selectedProvider.usesBuiltInVault ? "Saved Credentials" : selectedProvider.title)
                         .font(.headline)
                     if selectedProvider.usesBuiltInVault {
-                        Text("\(passwordManager.entries.count) item\(passwordManager.entries.count == 1 ? "" : "s")")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        if isUnlocked {
+                            Text("\(unlockedEntries.count) item\(unlockedEntries.count == 1 ? "" : "s")")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            Text("Unlock to view saved passwords.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     } else {
                         Text("This provider will manage its own vault and autofill UI once integrated.")
                             .font(.caption)
@@ -367,6 +375,7 @@ struct PasswordsSettingsView: View {
                 isAuthenticating = false
                 if authenticated {
                     passwordManager.refresh()
+                    syncUnlockedEntries()
                 }
             }
         }
@@ -376,7 +385,12 @@ struct PasswordsSettingsView: View {
         isUnlocked = false
         isAuthenticating = false
         searchText = ""
+        unlockedEntries.removeAll()
         revealedPasswordIDs.removeAll()
+    }
+
+    private func syncUnlockedEntries() {
+        unlockedEntries = passwordManager.entries
     }
 
     private func toggleReveal(_ entry: SavedPasswordSummary) {
