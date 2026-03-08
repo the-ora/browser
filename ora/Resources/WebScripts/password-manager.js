@@ -351,6 +351,31 @@
             .find((element) => element.dataset.oraPasswordFieldId === fieldID) || null;
     }
 
+    function submitFilledForm(request) {
+        const submitSource = fieldByID(request.usernameFieldID)
+            || (request.passwordFieldIDs || []).map(fieldByID).find(Boolean);
+        const form = submitSource && submitSource.form;
+
+        if (!form) {
+            return;
+        }
+
+        window.setTimeout(() => {
+            if (typeof form.requestSubmit === "function") {
+                form.requestSubmit();
+                return;
+            }
+
+            const submitControl = form.querySelector("button[type=\"submit\"], input[type=\"submit\"]");
+            if (submitControl && typeof submitControl.click === "function") {
+                submitControl.click();
+                return;
+            }
+
+            form.submit();
+        }, 0);
+    }
+
     window.__oraPasswordManager = {
         fillCredentials(payload) {
             const request = typeof payload === "string" ? JSON.parse(payload) : payload;
@@ -363,6 +388,10 @@
             (request.passwordFieldIDs || []).forEach((fieldID) => {
                 fillField(fieldByID(fieldID), request.password, highlightColor);
             });
+
+            if (request.submitAfterFill) {
+                submitFilledForm(request);
+            }
         },
         setOverlayKeyboardActive(payload) {
             overlayKeyboardNavigationState.active = typeof payload === "string"

@@ -70,6 +70,7 @@ struct PasswordFillRequest: Codable {
     let username: String?
     let password: String
     let highlightColor: String
+    let submitAfterFill: Bool
 }
 
 enum PasswordAutofillSuggestion: Identifiable, Equatable {
@@ -217,7 +218,8 @@ final class PasswordAutofillCoordinator {
                     passwordFieldIDs: overlay.focus.passwordFieldIDs,
                     username: entry.username.isEmpty ? nil : entry.username,
                     password: password,
-                    highlightColor: "#E8F5E9"
+                    highlightColor: "#E8F5E9",
+                    submitAfterFill: overlay.focus.action == .login
                 )
 
                 self.evaluate(scriptMethod: "fillCredentials", payload: request, in: webView)
@@ -241,7 +243,8 @@ final class PasswordAutofillCoordinator {
             passwordFieldIDs: overlay.focus.passwordFieldIDs,
             username: nil,
             password: generatedPassword,
-            highlightColor: "#FFF4CC"
+            highlightColor: "#FFF4CC",
+            submitAfterFill: false
         )
 
         evaluate(scriptMethod: "fillCredentials", payload: request, in: webView)
@@ -262,7 +265,8 @@ final class PasswordAutofillCoordinator {
             passwordFieldIDs: [],
             username: suggestion.email,
             password: "",
-            highlightColor: "#E8F1FF"
+            highlightColor: "#E8F1FF",
+            submitAfterFill: false
         )
 
         evaluate(scriptMethod: "fillCredentials", payload: request, in: webView)
