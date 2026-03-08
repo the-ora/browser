@@ -54,6 +54,9 @@ class Tab: ObservableObject, Identifiable {
     @Transient @Published var failedURL: URL?
     @Transient @Published var hoveredLinkURL: String?
     @Transient var isPrivate: Bool = false
+    @Transient var passwordCoordinator: PasswordAutofillCoordinator?
+    @Transient @Published var passwordOverlayState: PasswordAutofillOverlayState?
+    @Transient @Published var passwordTriggerOverlayState: PasswordAutofillOverlayState?
 
     @Relationship(inverse: \TabContainer.tabs) var container: TabContainer
 
@@ -111,6 +114,9 @@ class Tab: ObservableObject, Identifiable {
 
         config.tab = self
         config.mediaController = tabManager.mediaController
+        let passwordCoordinator = PasswordAutofillCoordinator(tab: self)
+        self.passwordCoordinator = passwordCoordinator
+        config.passwordCoordinator = passwordCoordinator
         // Configure WebView for performance
         webView.allowsMagnification = true
         webView.allowsBackForwardNavigationGestures = true
@@ -215,6 +221,7 @@ class Tab: ObservableObject, Identifiable {
         delegate.onStart = { [weak self] in
             self?.clearNavigationError()
             self?.maintainSnapShots()
+            self?.passwordCoordinator?.clearAutofillState()
         }
         delegate.onTitleChange = { [weak self] title in
             DispatchQueue.main.async {
@@ -279,6 +286,9 @@ class Tab: ObservableObject, Identifiable {
 
         config.tab = self
         config.mediaController = tabManager.mediaController
+        let passwordCoordinator = PasswordAutofillCoordinator(tab: self)
+        self.passwordCoordinator = passwordCoordinator
+        config.passwordCoordinator = passwordCoordinator
         self.webView = WKWebView(
             frame: .zero,
             configuration: config

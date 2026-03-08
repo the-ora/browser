@@ -40,6 +40,7 @@ enum OraIconType {
     case spaceCards
     case spaceCardsDelete
     case spaceCardsEdit
+    case autofill
     case custom(AnyOraShape)
 
     var shape: AnyOraShape {
@@ -49,6 +50,7 @@ enum OraIconType {
         case .spaceCards:       AnyOraShape(SpaceCardsIcon())
         case .spaceCardsDelete: AnyOraShape(SpaceCardsDeleteIcon())
         case .spaceCardsEdit:   AnyOraShape(SpaceCardsEditIcon())
+        case .autofill:         AnyOraShape(AutofillIcon())
         case let .custom(shape): shape
         }
     }

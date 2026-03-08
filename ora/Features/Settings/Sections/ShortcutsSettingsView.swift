@@ -25,9 +25,9 @@ struct ShortcutsSettingsView: View {
                             )
                             .overlay {
                                 if editingShortcut == item {
-                                    KeyCaptureView { event in
+                                    KeyCaptureView(onKeyDown: { event in
                                         handleKeyCapture(event)
-                                    }
+                                    })
                                     .allowsHitTesting(false)
                                 }
                             }

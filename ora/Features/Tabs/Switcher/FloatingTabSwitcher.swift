@@ -197,14 +197,14 @@ struct FloatingTabSwitcher: View {
     }
 
     private var keyboardHandler: some View {
-        KeyCaptureView { event in
+        KeyCaptureView(onKeyDown: { event in
             if event.modifierFlags.contains([.control, .shift]) {
                 focusPreviousTab()
             } else if event.modifierFlags.contains(.control) {
                 focusNextTab()
                 preWarmSnapshotsIfNeeded()
             }
-        }
+        })
     }
 
     private var containerBorder: some View {

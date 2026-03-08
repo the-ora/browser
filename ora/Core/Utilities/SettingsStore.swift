@@ -155,6 +155,12 @@ class SettingsStore: ObservableObject {
     private let tabRemovalTimeoutKey = "settings.tabRemovalTimeout"
     private let maxRecentTabsKey = "settings.maxRecentTabs"
     private let autoPiPEnabledKey = "settings.autoPiPEnabled"
+    private let passwordsEnabledKey = "settings.passwords.enabled"
+    private let passwordManagerProviderKey = "settings.passwords.provider"
+    private let passwordAutofillEnabledKey = "settings.passwords.autofillEnabled"
+    private let passwordAutofillSubmitEnabledKey = "settings.passwords.autofillSubmitEnabled"
+    private let passwordSavePromptsEnabledKey = "settings.passwords.savePromptsEnabled"
+    private let suppressedPasswordSavePromptHostsKey = "settings.passwords.suppressedSavePromptHosts"
 
     // MARK: - Per-Container
 
@@ -222,6 +228,33 @@ class SettingsStore: ObservableObject {
         didSet { defaults.set(autoPiPEnabled, forKey: autoPiPEnabledKey) }
     }
 
+    @Published var passwordsEnabled: Bool {
+        didSet { defaults.set(passwordsEnabled, forKey: passwordsEnabledKey) }
+    }
+
+    @Published var passwordManagerProvider: PasswordManagerProviderKind {
+        didSet { defaults.set(passwordManagerProvider.rawValue, forKey: passwordManagerProviderKey) }
+    }
+
+    @Published var passwordAutofillEnabled: Bool {
+        didSet { defaults.set(passwordAutofillEnabled, forKey: passwordAutofillEnabledKey) }
+    }
+
+    @Published var passwordAutofillSubmitEnabled: Bool {
+        didSet { defaults.set(passwordAutofillSubmitEnabled, forKey: passwordAutofillSubmitEnabledKey) }
+    }
+
+    @Published var passwordSavePromptsEnabled: Bool {
+        didSet { defaults.set(passwordSavePromptsEnabled, forKey: passwordSavePromptsEnabledKey) }
+    }
+
+    @Published private(set) var suppressedPasswordSavePromptHosts: Set<String> {
+        didSet { defaults.set(
+            Array(suppressedPasswordSavePromptHosts).sorted(),
+            forKey: suppressedPasswordSavePromptHostsKey
+        ) }
+    }
+
     init() {
         autoUpdateEnabled = defaults.bool(forKey: autoUpdateKey)
         blockThirdPartyTrackers = defaults.bool(forKey: trackingThirdPartyKey)
@@ -276,6 +309,19 @@ class SettingsStore: ObservableObject {
         maxRecentTabs = maxRecentTabsValue == 0 ? 5 : maxRecentTabsValue
 
         autoPiPEnabled = defaults.object(forKey: autoPiPEnabledKey) as? Bool ?? true
+        passwordsEnabled = defaults.object(forKey: passwordsEnabledKey) as? Bool ?? true
+        if let raw = defaults.string(forKey: passwordManagerProviderKey),
+           let provider = PasswordManagerProviderKind(rawValue: raw)
+        {
+            passwordManagerProvider = provider
+        } else {
+            passwordManagerProvider = .ora
+        }
+        passwordAutofillEnabled = defaults.object(forKey: passwordAutofillEnabledKey) as? Bool ?? true
+        passwordAutofillSubmitEnabled = defaults.object(forKey: passwordAutofillSubmitEnabledKey) as? Bool ?? true
+        passwordSavePromptsEnabled = defaults.object(forKey: passwordSavePromptsEnabledKey) as? Bool ?? true
+        suppressedPasswordSavePromptHosts = Set(defaults
+            .stringArray(forKey: suppressedPasswordSavePromptHostsKey) ?? [])
     }
 
     // MARK: - Per-container helpers
@@ -358,6 +404,20 @@ class SettingsStore: ObservableObject {
         var shortcuts = customKeyboardShortcuts
         shortcuts.removeValue(forKey: id)
         customKeyboardShortcuts = shortcuts
+    }
+
+    // MARK: - Password prompts
+
+    func suppressPasswordSavePrompts(for host: String) {
+        let normalizedHost = PasswordManagerService.normalizeHost(host)
+        guard !normalizedHost.isEmpty else { return }
+        suppressedPasswordSavePromptHosts.insert(normalizedHost)
+    }
+
+    func allowsPasswordSavePrompts(for host: String) -> Bool {
+        let normalizedHost = PasswordManagerService.normalizeHost(host)
+        guard !normalizedHost.isEmpty else { return true }
+        return !suppressedPasswordSavePromptHosts.contains(normalizedHost)
     }
 
     // MARK: - Codable helpers

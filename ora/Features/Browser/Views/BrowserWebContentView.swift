@@ -39,20 +39,29 @@ struct BrowserWebContentView: View {
                     )
                     .id(tab.id)
                 } else {
-                    ZStack(alignment: .topTrailing) {
-                        WebView(webView: tab.webView).id(tab.id)
-
-                        if appState.showFinderIn == tab.id {
-                            FindView(webView: tab.webView)
-                                .padding(.top, 16)
-                                .padding(.trailing, 16)
-                                .zIndex(1000)
+                    WebView(webView: tab.webView).id(tab.id)
+                        .overlay(alignment: .topLeading) {
+                            if let triggerState = tab.passwordTriggerOverlayState {
+                                PasswordAutofillTriggerView(overlay: triggerState, tab: tab)
+                            }
                         }
-
-                        if let hovered = tab.hoveredLinkURL, !hovered.isEmpty {
-                            LinkPreview(text: hovered)
+                        .overlay(alignment: .topLeading) {
+                            if let passwordOverlayState = tab.passwordOverlayState {
+                                PasswordAutofillOverlayView(overlay: passwordOverlayState, tab: tab)
+                            }
                         }
-                    }
+                        .overlay(alignment: .topTrailing) {
+                            if appState.showFinderIn == tab.id {
+                                FindView(webView: tab.webView)
+                                    .padding(.top, 16)
+                                    .padding(.trailing, 16)
+                            }
+                        }
+                        .overlay(alignment: .bottomLeading) {
+                            if let hovered = tab.hoveredLinkURL, !hovered.isEmpty {
+                                LinkPreview(text: hovered)
+                            }
+                        }
                 }
             } else {
                 ZStack {
