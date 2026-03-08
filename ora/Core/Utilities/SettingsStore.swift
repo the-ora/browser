@@ -158,6 +158,7 @@ class SettingsStore: ObservableObject {
     private let passwordsEnabledKey = "settings.passwords.enabled"
     private let passwordManagerProviderKey = "settings.passwords.provider"
     private let passwordAutofillEnabledKey = "settings.passwords.autofillEnabled"
+    private let passwordAutofillSubmitEnabledKey = "settings.passwords.autofillSubmitEnabled"
     private let passwordSavePromptsEnabledKey = "settings.passwords.savePromptsEnabled"
     private let suppressedPasswordSavePromptHostsKey = "settings.passwords.suppressedSavePromptHosts"
 
@@ -239,6 +240,10 @@ class SettingsStore: ObservableObject {
         didSet { defaults.set(passwordAutofillEnabled, forKey: passwordAutofillEnabledKey) }
     }
 
+    @Published var passwordAutofillSubmitEnabled: Bool {
+        didSet { defaults.set(passwordAutofillSubmitEnabled, forKey: passwordAutofillSubmitEnabledKey) }
+    }
+
     @Published var passwordSavePromptsEnabled: Bool {
         didSet { defaults.set(passwordSavePromptsEnabled, forKey: passwordSavePromptsEnabledKey) }
     }
@@ -313,6 +318,7 @@ class SettingsStore: ObservableObject {
             passwordManagerProvider = .ora
         }
         passwordAutofillEnabled = defaults.object(forKey: passwordAutofillEnabledKey) as? Bool ?? true
+        passwordAutofillSubmitEnabled = defaults.object(forKey: passwordAutofillSubmitEnabledKey) as? Bool ?? true
         passwordSavePromptsEnabled = defaults.object(forKey: passwordSavePromptsEnabledKey) as? Bool ?? true
         suppressedPasswordSavePromptHosts = Set(defaults
             .stringArray(forKey: suppressedPasswordSavePromptHostsKey) ?? [])

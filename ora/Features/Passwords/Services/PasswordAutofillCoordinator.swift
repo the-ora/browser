@@ -219,7 +219,7 @@ final class PasswordAutofillCoordinator {
                     username: entry.username.isEmpty ? nil : entry.username,
                     password: password,
                     highlightColor: "#E8F5E9",
-                    submitAfterFill: overlay.focus.action == .login
+                    submitAfterFill: overlay.focus.action == .login && self.settings.passwordAutofillSubmitEnabled
                 )
 
                 self.evaluate(scriptMethod: "fillCredentials", payload: request, in: webView)

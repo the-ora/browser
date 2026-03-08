@@ -82,6 +82,15 @@ struct PasswordsSettingsView: View {
                 Toggle("Enable password manager", isOn: $settings.passwordsEnabled)
                 Toggle("Show autofill suggestions on login forms", isOn: $settings.passwordAutofillEnabled)
                     .disabled(!settings.passwordsEnabled)
+                Toggle(
+                    "Submit login forms after selecting a saved password",
+                    isOn: $settings.passwordAutofillSubmitEnabled
+                )
+                .disabled(
+                    !settings.passwordsEnabled
+                        || !settings.passwordAutofillEnabled
+                        || !selectedProvider.usesBuiltInOverlay
+                )
                 Toggle("Ask to save or update passwords after sign in", isOn: $settings.passwordSavePromptsEnabled)
                     .disabled(!settings.passwordsEnabled || !selectedProvider.usesBuiltInVault)
             }
