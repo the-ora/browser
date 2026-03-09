@@ -9,7 +9,7 @@ struct ContainerView: View {
     @EnvironmentObject var toolbarManager: ToolbarManager
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var privacyMode: PrivacyMode
-    
+
     @StateObject private var settings = SettingsStore.shared
 
     @State var isDragging = false

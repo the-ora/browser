@@ -19,12 +19,13 @@ struct ClickDetector: NSViewRepresentable {
     var onClick: () -> Void
 
     func makeNSView(context: Context) -> NSView {
-        let view = NSView()
-        /// uncomment to see border around the click area
+        // Uncomment to visualize the click area bounds when debugging.
+//        let view = NSView()
 //        view.wantsLayer = true
 //        view.layer?.borderColor = NSColor.red.cgColor
 //        view.layer?.borderWidth = 2
-        return view
+//        return view
+        return NSView()
     }
 
     func updateNSView(_ nsView: NSView, context: Context) {
