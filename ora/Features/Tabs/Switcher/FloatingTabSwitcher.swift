@@ -1,6 +1,5 @@
 import Combine
 import SwiftUI
-import WebKit
 
 struct TabSnapshot {
     let image: NSImage
@@ -285,7 +284,7 @@ struct FloatingTabSwitcher: View {
         for tab in recentTabs {
             guard tab.isWebViewReady else { continue }
 
-            let currentURL = tab.webView.url?.absoluteString ?? ""
+            let currentURL = tab.currentPageURL?.absoluteString ?? ""
 
             if let existingSnapshot = tabSnapshots[tab],
                existingSnapshot.url == currentURL
@@ -307,7 +306,7 @@ struct FloatingTabSwitcher: View {
             let config = self.createSnapshotConfiguration(for: tab)
 
             DispatchQueue.main.async {
-                tab.webView.takeSnapshot(with: config) { image, _ in
+                tab.takeSnapshot(configuration: config) { image, _ in
                     defer { group.leave() }
 
                     guard let cgImage = image?.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
@@ -324,11 +323,8 @@ struct FloatingTabSwitcher: View {
         }
     }
 
-    private func createSnapshotConfiguration(for tab: Tab) -> WKSnapshotConfiguration {
-        let config = WKSnapshotConfiguration()
-        config.afterScreenUpdates = false
-        // Don't force a specific width - let the webview determine natural size
-        return config
+    private func createSnapshotConfiguration(for tab: Tab) -> BrowserSnapshotConfiguration {
+        BrowserSnapshotConfiguration(rect: nil, afterScreenUpdates: false)
     }
 
     private func closeFloatingTabSwitch() {

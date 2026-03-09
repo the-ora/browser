@@ -1,77 +1,57 @@
 import AppKit
 import SwiftUI
-@preconcurrency import WebKit
 
-struct WebView: NSViewRepresentable {
-    let webView: WKWebView
+struct BrowserPageView: NSViewRepresentable {
+    let page: BrowserPage
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var historyManager: HistoryManager
     @EnvironmentObject var downloadManager: DownloadManager
     @EnvironmentObject var privacyMode: PrivacyMode
 
     func makeCoordinator() -> Coordinator {
-        return Coordinator(
+        Coordinator(
+            page: page,
             tabManager: tabManager,
             historyManager: historyManager,
-            downloadManager: downloadManager,
             privacyMode: privacyMode
         )
     }
 
     func makeNSView(context: Context) -> NSView {
-        // Create a wrapper view to avoid AutoLayout constraints on WKWebView
-        // This fixes the Web Inspector flashing issue
         let wrapperView = NSView()
         wrapperView.wantsLayer = true
         wrapperView.autoresizesSubviews = true
 
-        // Configure WebView
-        webView.uiDelegate = context.coordinator
-        webView.autoresizingMask = [.width, .height]
-        webView.layer?.isOpaque = true
-        webView.layer?.drawsAsynchronously = true
-
-        // Add mouse event handling for back/forward buttons
-        setupMouseEventHandling(for: webView, coordinator: context.coordinator)
-
-        // Add WebView to wrapper without constraints
-        wrapperView.addSubview(webView)
-        // Seed the initial frame; afterwards rely on autoresizing so Web Inspector can manage its own layout
-        webView.frame = wrapperView.bounds
+        let contentView = page.contentView
+        contentView.autoresizingMask = [.width, .height]
+        contentView.layer?.isOpaque = true
+        contentView.layer?.drawsAsynchronously = true
+        context.coordinator.setupMouseEventMonitoring(for: contentView)
+        wrapperView.addSubview(contentView)
+        contentView.frame = wrapperView.bounds
 
         return wrapperView
     }
 
-    func updateNSView(_ nsView: NSView, context: Context) {
-        // No update logic needed
-    }
+    func updateNSView(_ nsView: NSView, context: Context) {}
 
-    // MARK: - Mouse Event Handling
-
-    private func setupMouseEventHandling(for webView: WKWebView, coordinator: Coordinator) {
-        // Store the coordinator reference for mouse event handling
-        coordinator.setupMouseEventMonitoring(for: webView)
-    }
-
-    // MARK: - Coordinator for WKUIDelegate
-
-    class Coordinator: NSObject, WKUIDelegate {
+    final class Coordinator: NSObject {
+        private let page: BrowserPage
         weak var tabManager: TabManager?
         weak var historyManager: HistoryManager?
-        weak var downloadManager: DownloadManager?
         weak var privacyMode: PrivacyMode?
         private var mouseEventMonitor: Any?
-        private weak var webView: WKWebView?
+        private weak var contentView: NSView?
 
         init(
+            page: BrowserPage,
             tabManager: TabManager?,
             historyManager: HistoryManager?,
-            downloadManager: DownloadManager?,
             privacyMode: PrivacyMode
         ) {
+            self.page = page
             self.tabManager = tabManager
             self.historyManager = historyManager
-            self.downloadManager = downloadManager
             self.privacyMode = privacyMode
         }
 
@@ -81,210 +61,87 @@ struct WebView: NSViewRepresentable {
             }
         }
 
-        // MARK: - Mouse Event Handling
+        func setupMouseEventMonitoring(for contentView: NSView) {
+            self.contentView = contentView
 
-        func setupMouseEventMonitoring(for webView: WKWebView) {
-            self.webView = webView
-
-            // Monitor for other mouse button events (buttons 3, 4 and 5)
             mouseEventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.otherMouseDown]) { [weak self] event in
                 guard let self,
-                      let webView = self.webView,
-                      self.isEventInWebView(event, webView: webView)
+                      let contentView = self.contentView,
+                      self.isEventInContentView(event, contentView: contentView)
                 else {
                     return event
                 }
 
-                // Handle mouse button events for back/forward navigation and middle-click to open link in new tab
                 switch event.buttonNumber {
-                case 2: // Mouse button 3 (middle click to open link in new tab)
-                    handleMiddleClick(at: event.locationInWindow, webView: webView)
+                case 2:
+                    self.handleMiddleClick(at: event.locationInWindow, contentView: contentView)
                     return nil
-                case 3: // Mouse button 4 (back)
-                    if webView.canGoBack {
+                case 3:
+                    if self.page.canGoBack {
                         DispatchQueue.main.async {
-                            webView.goBack()
+                            self.page.goBack()
                         }
                     }
-                    return nil // Consume the event
-                case 4: // Mouse button 5 (forward)
-                    if webView.canGoForward {
+                    return nil
+                case 4:
+                    if self.page.canGoForward {
                         DispatchQueue.main.async {
-                            webView.goForward()
+                            self.page.goForward()
                         }
                     }
-                    return nil // Consume the event
+                    return nil
                 default:
-                    return event // Let other events pass through
+                    return event
                 }
             }
         }
 
-        private func handleMiddleClick(at location: NSPoint, webView: WKWebView) {
-            let locationInWebView = webView.convert(location, from: nil)
-
-            // Ensure the coordinates are within the web view bounds
-            guard locationInWebView.x.isFinite, locationInWebView.y.isFinite,
-                  locationInWebView.x >= 0, locationInWebView.y >= 0
+        private func handleMiddleClick(at location: NSPoint, contentView: NSView) {
+            let locationInContentView = contentView.convert(location, from: nil)
+            guard locationInContentView.x.isFinite,
+                  locationInContentView.y.isFinite,
+                  locationInContentView.x >= 0,
+                  locationInContentView.y >= 0
             else {
                 return
             }
 
-            let jsCode = """
-                (function() {
-                    var element = document.elementFromPoint(\(locationInWebView.x), \(locationInWebView.y));
-                    while (element && element.tagName !== 'A') {
-                        element = element.parentElement;
-                    }
-                    return element ? element.href : null;
-                })();
+            let script = """
+            (function() {
+                var element = document.elementFromPoint(\(locationInContentView.x), \(locationInContentView.y));
+                while (element && element.tagName !== 'A') {
+                    element = element.parentElement;
+                }
+                return element ? element.href : null;
+            })();
             """
 
-            webView.evaluateJavaScript(jsCode) { [weak self] result, error in
-                guard error == nil else {
-                    print("Error evaluating JavaScript for middle-click link detection: \(error!.localizedDescription)")
+            self.page.evaluateJavaScript(script) { [weak self] result, error in
+                guard error == nil,
+                      let urlString = result as? String,
+                      let url = URL(string: urlString),
+                      let tabManager = self?.tabManager,
+                      let historyManager = self?.historyManager,
+                      ["http", "https"].contains(url.scheme?.lowercased() ?? "")
+                else {
                     return
                 }
 
-                if let urlString = result as? String, let url = URL(string: urlString),
-                   let tabManager = self?.tabManager, let historyManager = self?.historyManager,
-                   ["http", "https"].contains(url.scheme?.lowercased() ?? "")
-                {
-                    DispatchQueue.main.async {
-                        tabManager.openTab(
-                            url: url,
-                            historyManager: historyManager,
-                            focusAfterOpening: false,
-                            isPrivate: self?.privacyMode?.isPrivate ?? false
-                        )
-                    }
+                DispatchQueue.main.async {
+                    _ = tabManager.openTab(
+                        url: url,
+                        historyManager: historyManager,
+                        focusAfterOpening: false,
+                        isPrivate: self?.privacyMode?.isPrivate ?? false
+                    )
                 }
             }
         }
 
-        private func isEventInWebView(_ event: NSEvent, webView: WKWebView) -> Bool {
-            // Convert the event location to the web view's coordinate system
+        private func isEventInContentView(_ event: NSEvent, contentView: NSView) -> Bool {
             let locationInWindow = event.locationInWindow
-            let locationInWebView = webView.convert(locationInWindow, from: nil)
-
-            // Check if the event occurred within the web view's bounds
-            return webView.bounds.contains(locationInWebView)
-        }
-
-        func webView(
-            _ webView: WKWebView,
-            requestMediaCapturePermissionFor origin: WKSecurityOrigin,
-            initiatedByFrame frame: WKFrameInfo,
-            decisionHandler: @escaping (WKPermissionDecision) -> Void
-        ) {
-            decisionHandler(.grant)
-        }
-
-        func webView(
-            _ webView: WKWebView, runOpenPanelWith parameters: WKOpenPanelParameters,
-            initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping ([URL]?) -> Void
-        ) {
-            let openPanel = NSOpenPanel()
-            openPanel.canChooseFiles = true
-            openPanel.canChooseDirectories = parameters.allowsDirectories
-            openPanel.allowsMultipleSelection = parameters.allowsMultipleSelection
-
-            openPanel.begin { result in
-                if result == .OK {
-                    completionHandler(openPanel.urls)
-                } else {
-                    completionHandler(nil)
-                }
-            }
-        }
-
-        // MARK: - Handle target="_blank" and new window requests
-
-        func webView(
-            _ webView: WKWebView,
-            createWebViewWith configuration: WKWebViewConfiguration,
-            for navigationAction: WKNavigationAction,
-            windowFeatures: WKWindowFeatures
-        ) -> WKWebView? {
-            // Handle target="_blank" links and other new window requests
-            guard let url = navigationAction.request.url,
-                  let tabManager = self.tabManager,
-                  let historyManager = self.historyManager
-            else {
-                return nil
-            }
-
-            // Create a new tab in the background for the target URL
-            DispatchQueue.main.async {
-                tabManager.openTab(
-                    url: url,
-                    historyManager: historyManager,
-                    downloadManager: self.downloadManager,
-                    isPrivate: self.privacyMode?.isPrivate ?? false
-                )
-            }
-
-            // Return nil to prevent creating a new WebView instance
-            // The new tab will handle the navigation
-            return nil
-        }
-
-        func webView(
-            _ webView: WKWebView,
-            runJavaScriptAlertPanelWithMessage message: String,
-            initiatedByFrame frame: WKFrameInfo,
-            completionHandler: @escaping () -> Void
-        ) {
-            let alert = NSAlert()
-            alert.messageText = "Alert"
-            alert.informativeText = message
-            alert.alertStyle = .informational
-            alert.addButton(withTitle: "OK")
-            alert.runModal()
-            completionHandler()
-        }
-
-        func webView(
-            _ webView: WKWebView,
-            runJavaScriptConfirmPanelWithMessage message: String,
-            initiatedByFrame frame: WKFrameInfo,
-            completionHandler: @escaping (Bool) -> Void
-        ) {
-            let alert = NSAlert()
-            alert.messageText = "Confirm"
-            alert.informativeText = message
-            alert.alertStyle = .informational
-            alert.addButton(withTitle: "OK")
-            alert.addButton(withTitle: "Cancel")
-            let response = alert.runModal()
-            completionHandler(response == .alertFirstButtonReturn)
-        }
-
-        func webView(
-            _ webView: WKWebView,
-            runJavaScriptTextInputPanelWithPrompt prompt: String,
-            defaultText: String?,
-            initiatedByFrame frame: WKFrameInfo,
-            completionHandler: @escaping (String?) -> Void
-        ) {
-            let alert = NSAlert()
-            alert.messageText = "Prompt"
-            alert.informativeText = prompt
-            alert.alertStyle = .informational
-            alert.addButton(withTitle: "OK")
-            alert.addButton(withTitle: "Cancel")
-
-            let textField = NSTextField(frame: NSRect(x: 0, y: 0, width: 300, height: 24))
-            textField.stringValue = defaultText ?? ""
-
-            alert.accessoryView = textField
-
-            let response = alert.runModal()
-            if response == .alertFirstButtonReturn {
-                completionHandler(textField.stringValue)
-            } else {
-                completionHandler(nil)
-            }
+            let locationInContentView = contentView.convert(locationInWindow, from: nil)
+            return contentView.bounds.contains(locationInContentView)
         }
     }
 }

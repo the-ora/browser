@@ -191,15 +191,15 @@ struct OraRoot: View {
                 }
                 NotificationCenter.default.addObserver(forName: .reloadPage, object: nil, queue: .main) { note in
                     guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
-                    tabManager.activeTab?.webView.reload()
+                    tabManager.activeTab?.reload()
                 }
                 NotificationCenter.default.addObserver(forName: .goBack, object: nil, queue: .main) { note in
                     guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
-                    tabManager.activeTab?.webView.goBack()
+                    tabManager.activeTab?.goBack()
                 }
                 NotificationCenter.default.addObserver(forName: .goForward, object: nil, queue: .main) { note in
                     guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
-                    tabManager.activeTab?.webView.goForward()
+                    tabManager.activeTab?.goForward()
                 }
                 NotificationCenter.default.addObserver(forName: .togglePinTab, object: nil, queue: .main) { note in
                     guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
@@ -257,7 +257,7 @@ struct OraRoot: View {
                             let domain = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
                             PrivacyService.clearCacheForHost(for: domain, container: activeTab.container) {
                                 DispatchQueue.main.async {
-                                    activeTab.webView.reload()
+                                    activeTab.reload()
                                 }
                             }
                         }
@@ -273,7 +273,7 @@ struct OraRoot: View {
                             let domain = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
                             PrivacyService.clearCookiesForHost(for: host, container: activeTab.container) {
                                 DispatchQueue.main.async {
-                                    activeTab.webView.reload()
+                                    activeTab.reload()
                                 }
                             }
                         }

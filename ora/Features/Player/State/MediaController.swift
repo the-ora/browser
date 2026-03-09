@@ -1,6 +1,5 @@
 import Foundation
 import SwiftUI
-import WebKit
 
 @MainActor
 final class MediaController: ObservableObject {
@@ -207,8 +206,7 @@ final class MediaController: ObservableObject {
     }
 
     private func eval(_ tabID: UUID, _ javaScript: String) {
-        guard let webView = tabRefs[tabID]?.value?.webView else { return }
-        webView.evaluateJavaScript(javaScript, completionHandler: nil)
+        tabRefs[tabID]?.value?.evaluateJavaScript(javaScript)
     }
 
     private func clamp(_ value: Double) -> Double {

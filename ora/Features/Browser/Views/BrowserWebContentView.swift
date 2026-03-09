@@ -31,15 +31,15 @@ struct BrowserWebContentView: View {
                         error: error,
                         failedURL: tab.failedURL,
                         onRetry: { tab.retryNavigation() },
-                        onGoBack: tab.webView.canGoBack
+                        onGoBack: tab.canGoBack
                             ? {
-                                tab.webView.goBack()
+                                tab.goBack()
                                 tab.clearNavigationError()
                             } : nil
                     )
                     .id(tab.id)
-                } else {
-                    WebView(webView: tab.webView).id(tab.id)
+                } else if let page = tab.browserPage {
+                    BrowserPageView(page: page).id(tab.id)
                         .overlay(alignment: .topLeading) {
                             if let triggerState = tab.passwordTriggerOverlayState {
                                 PasswordAutofillTriggerView(overlay: triggerState, tab: tab)
@@ -52,7 +52,7 @@ struct BrowserWebContentView: View {
                         }
                         .overlay(alignment: .topTrailing) {
                             if appState.showFinderIn == tab.id {
-                                FindView(webView: tab.webView)
+                                FindView(page: page)
                                     .padding(.top, 16)
                                     .padding(.trailing, 16)
                             }
@@ -62,6 +62,12 @@ struct BrowserWebContentView: View {
                                 LinkPreview(text: hovered)
                             }
                         }
+                } else {
+                    ZStack {
+                        Rectangle().fill(theme.background)
+                        ProgressView().frame(width: 32, height: 32)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             } else {
                 ZStack {

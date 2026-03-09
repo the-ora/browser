@@ -4,8 +4,8 @@
     }
     window.__oraPasswordManagerInstalled = true;
 
-    const handler = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.passwordManager;
-    if (!handler) {
+    const bridge = window.__oraBridge;
+    if (!bridge || typeof bridge.postMessage !== "function") {
         return;
     }
 
@@ -17,7 +17,7 @@
 
     function send(payload) {
         try {
-            handler.postMessage(JSON.stringify(payload));
+            bridge.postMessage("passwordManager", JSON.stringify(payload));
         } catch (error) {}
     }
 
