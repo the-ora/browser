@@ -81,7 +81,7 @@ fi
 ditto "build/DerivedData/Build/Products/Release/Ora.app" "build/Ora.app"
 
 echo "Signing app bundle..."
-codesign --force --deep --options runtime --timestamp --sign "$SIGNING_IDENTITY" "build/Ora.app"
+codesign --force --options runtime --timestamp --sign "$SIGNING_IDENTITY" "build/Ora.app"
 
 if ! command -v create-dmg >/dev/null 2>&1; then
     echo "error: create-dmg not found. Install it with: brew install create-dmg" >&2
