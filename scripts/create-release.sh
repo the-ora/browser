@@ -132,7 +132,7 @@ generate_changelog() {
     fi
 
     local -a feat_list=() fix_list=() perf_list=() docs_list=() chore_list=() other_list=()
-    local -a contributors=()  # "name%x1Fusername" pairs
+    local -a contributors=()
 
     while IFS=$'\x1F' read -r subject author email; do
         [ -z "$subject" ] || [ "$subject" = "-" ] && continue
@@ -148,9 +148,9 @@ generate_changelog() {
         # Collect unique contributors
         local already_listed=false
         for c in "${contributors[@]+${contributors[@]}}"; do
-            [ "${c##*|}" = "$gh_user" ] && already_listed=true && break
+            [ "$c" = "$gh_user" ] && already_listed=true && break
         done
-        $already_listed || contributors+=("$author|$gh_user")
+        $already_listed || contributors+=("$gh_user")
 
         local entry_md entry_html
         entry_md="$subject — $author"
@@ -189,21 +189,15 @@ EOF_COMMITS
         fi
     done
 
-    # Contributors (horizontal avatar list)
+    # Contributors
     if [ ${#contributors[@]} -gt 0 ]; then
         md_out+=$'\n'"### Contributors"$'\n'
-        html_out+=$'\n'"  <h3>Contributors</h3>"$'\n'
-        html_out+='  <div style="display:flex;gap:8px;flex-wrap:wrap;">'$'\n'
-        for contributor in "${contributors[@]}"; do
-            local name="${contributor%%|*}"
-            local username="${contributor##*|}"
-            md_out+='<a href="https://github.com/'"$username"'"><img src="https://github.com/'"$username"'.png?size=40" width="40" height="40" style="border-radius:50%;" alt="@'"$username"'" title="'"$name"'" /></a> '
-            html_out+='    <a href="https://github.com/'"$username"'" style="text-decoration:none;text-align:center;">'
-            html_out+='<img src="https://github.com/'"$username"'.png?size=40" width="40" height="40" style="border-radius:50%;" alt="'"$(html_escape "$name")"'" />'
-            html_out+='<br/><span style="font-size:11px;">'"$(html_escape "$name")"'</span></a>'$'\n'
+        html_out+=$'\n'"  <h3>Contributors</h3>"$'\n'"  <ul>"$'\n'
+        for username in "${contributors[@]}"; do
+            md_out+="- @$username"$'\n'
+            html_out+="    <li>$(html_escape "$username")</li>"$'\n'
         done
-        md_out+=$'\n'
-        html_out+='  </div>'$'\n'
+        html_out+="  </ul>"$'\n'
     fi
 
     html_out+='</div>'
