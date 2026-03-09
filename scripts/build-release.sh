@@ -38,26 +38,8 @@ DMG_NAME="Ora-Browser-${VERSION}.dmg"
 
 echo "Building Ora Browser v${VERSION} (Release)..."
 
-# Preserve files that must survive a clean build
-preserve() { [ -f "$1" ] && mv "$1" "$2"; }
-restore()   { [ -f "$2" ] && mv "$2" "$1"; }
-
-preserve build/dsa_priv.pem  /tmp/ora_build_dsa_priv.pem
-preserve build/dsa_pub.pem   /tmp/ora_build_dsa_pub.pem
-preserve build/appcast.xml   /tmp/ora_build_appcast.xml
-preserve appcast.xml         /tmp/ora_root_appcast.xml
-preserve build/.gitkeep      /tmp/ora_build_gitkeep
-
 rm -rf build/
 mkdir -p build
-
-restore build/dsa_priv.pem   /tmp/ora_build_dsa_priv.pem
-restore build/dsa_pub.pem    /tmp/ora_build_dsa_pub.pem
-restore build/appcast.xml    /tmp/ora_build_appcast.xml
-restore appcast.xml          /tmp/ora_root_appcast.xml
-restore build/.gitkeep       /tmp/ora_build_gitkeep
-
-rm -f ./*.dmg
 
 cat > build/exportOptions.plist << EOF
 <?xml version="1.0" encoding="UTF-8"?>
