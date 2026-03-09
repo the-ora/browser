@@ -37,7 +37,8 @@ struct ContainerForm: View {
                         value: emoji.isEmpty
                     )
                     .background(isEmojiPickerHovering ? theme.mutedBackground.opacity(0.8)
-                        : theme.mutedBackground)
+                        : theme.mutedBackground
+                    )
                     .cornerRadius(ContainerConstants.UI.cornerRadius)
 
                 if emoji.isEmpty {

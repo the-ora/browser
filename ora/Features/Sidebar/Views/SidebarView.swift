@@ -14,7 +14,7 @@ struct SidebarView: View {
     @EnvironmentObject var media: MediaController
     @EnvironmentObject var sidebarManager: SidebarManager
     @EnvironmentObject var toolbarManager: ToolbarManager
-    
+
     @StateObject private var settings = SettingsStore.shared
 
     @Query var containers: [TabContainer]

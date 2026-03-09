@@ -644,7 +644,8 @@ final class PasswordAutofillCoordinator {
             emailSuggestions: filteredEmailSuggestions,
             generatedPassword: filteredGeneratedPassword,
             selectedSuggestionIndex: (savedPasswordEntries.isEmpty && filteredEmailSuggestions
-                .isEmpty && filteredGeneratedPassword == nil) ? -1 : 0
+                .isEmpty && filteredGeneratedPassword == nil
+            ) ? -1 : 0
         )
     }
 }

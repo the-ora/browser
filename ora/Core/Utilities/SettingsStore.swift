@@ -224,7 +224,7 @@ class SettingsStore: ObservableObject {
     @Published var maxRecentTabs: Int {
         didSet { defaults.set(maxRecentTabs, forKey: maxRecentTabsKey) }
     }
-    
+
     @Published var clickConfig: ClickConfig {
         didSet { defaults.set(clickConfig.rawValue, forKey: clickConfigKey) }
     }
@@ -326,7 +326,8 @@ class SettingsStore: ObservableObject {
         passwordAutofillSubmitEnabled = defaults.object(forKey: passwordAutofillSubmitEnabledKey) as? Bool ?? true
         passwordSavePromptsEnabled = defaults.object(forKey: passwordSavePromptsEnabledKey) as? Bool ?? true
         suppressedPasswordSavePromptHosts = Set(defaults
-            .stringArray(forKey: suppressedPasswordSavePromptHostsKey) ?? [])
+            .stringArray(forKey: suppressedPasswordSavePromptHostsKey) ?? []
+        )
         if let raw = defaults.string(forKey: clickConfigKey),
            let config = ClickConfig(rawValue: raw)
         {
