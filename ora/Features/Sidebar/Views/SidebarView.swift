@@ -14,6 +14,8 @@ struct SidebarView: View {
     @EnvironmentObject var media: MediaController
     @EnvironmentObject var sidebarManager: SidebarManager
     @EnvironmentObject var toolbarManager: ToolbarManager
+    
+    @StateObject private var settings = SettingsStore.shared
 
     @Query var containers: [TabContainer]
     @Query(filter: nil, sort: [.init(\History.lastAccessedAt, order: .reverse)])
@@ -102,6 +104,11 @@ struct SidebarView: View {
             toggleMaximizeWindow()
         }
         .enableInjection()
+        .background(
+            ClickDetector(config: settings.clickConfig) {
+                tabManager.closeActiveTab()
+            }
+        )
     }
 
     private func onContainerSelected(container: TabContainer) {
