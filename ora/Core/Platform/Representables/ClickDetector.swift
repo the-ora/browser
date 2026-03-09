@@ -63,14 +63,14 @@ struct ClickDetector: NSViewRepresentable {
                     guard event.buttonNumber == 2 else { return event }
                     guard self?.isOverView(event) == true else { return event }
                     self?.fire(onClick)
-                    return event
+                    return nil
                 }
             case .optionClick:
                 monitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { [weak self] event in
                     guard event.modifierFlags.contains(.option) else { return event }
                     guard self?.isOverView(event) == true else { return event }
                     self?.fire(onClick)
-                    return event
+                    return nil
                 }
             }
         }
