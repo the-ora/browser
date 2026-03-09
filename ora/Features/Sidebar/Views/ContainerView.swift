@@ -91,6 +91,12 @@ struct ContainerView: View {
             }
         }
         .modifier(OraWindowDragGesture(isDragging: $isDragging))
+        .onChange(of: draggedItem) { _, new in
+            print("Dragging Item: \(new)")
+        }
+        .onChange(of: isDragging) { _, new in
+            print("isDragging: \(new)")
+        }
     }
 
     private var favoriteTabs: [Tab] {
@@ -147,7 +153,9 @@ struct ContainerView: View {
         draggedItem = tabId
         let provider = TabItemProvider(object: tabId.uuidString as NSString)
         provider.didEnd = {
-            draggedItem = nil
+            DispatchQueue.main.async {
+                draggedItem = nil
+            }
         }
         return provider
     }

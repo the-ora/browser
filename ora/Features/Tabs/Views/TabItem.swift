@@ -141,8 +141,9 @@ struct TabItem: View {
             }
         }
         .padding(8)
-        .opacity(isDragging ? 0.0 : 1.0)
-        .background(backgroundColor, in: .rect(cornerRadius: 10))
+//        .opacity(isDragging ? 0.0 : 1.0)
+//        .background(backgroundColor, in: .rect(cornerRadius: 10))
+        .background(isDragging ? .red : backgroundColor, in: .rect(cornerRadius: 10))
         .overlay(
             isDragging ?
                 ConditionallyConcentricRectangle(cornerRadius: 10)
