@@ -29,7 +29,6 @@ struct ClickDetector: NSViewRepresentable {
 
     func updateNSView(_ nsView: NSView, context: Context) {
         context.coordinator.view = nsView
-        guard context.coordinator.currentConfig != config else { return }
         context.coordinator.update(config: config, onClick: onClick, view: nsView)
     }
 
@@ -42,6 +41,7 @@ struct ClickDetector: NSViewRepresentable {
         var lastFired: Date = .distantPast
         let throttleInterval: TimeInterval = 0.5
         var currentConfig: ClickConfig = .none
+        var onClick: (() -> Void)?
         weak var view: NSView?
 
         init(config: ClickConfig, onClick: @escaping () -> Void) {
@@ -51,6 +51,8 @@ struct ClickDetector: NSViewRepresentable {
 
         func update(config: ClickConfig, onClick: @escaping () -> Void, view: NSView?) {
             self.view = view
+            self.onClick = onClick
+            guard currentConfig != config else { return }
             currentConfig = config
             if let monitor { NSEvent.removeMonitor(monitor) }
             monitor = nil
@@ -62,14 +64,14 @@ struct ClickDetector: NSViewRepresentable {
                 monitor = NSEvent.addLocalMonitorForEvents(matching: .otherMouseDown) { [weak self] event in
                     guard event.buttonNumber == 2 else { return event }
                     guard self?.isOverView(event) == true else { return event }
-                    self?.fire(onClick)
+                    self?.fire()
                     return nil
                 }
             case .optionClick:
                 monitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { [weak self] event in
                     guard event.modifierFlags.contains(.option) else { return event }
                     guard self?.isOverView(event) == true else { return event }
-                    self?.fire(onClick)
+                    self?.fire()
                     return nil
                 }
             }
@@ -82,11 +84,11 @@ struct ClickDetector: NSViewRepresentable {
             return view.bounds.contains(locationInView)
         }
 
-        private func fire(_ onClick: @escaping () -> Void) {
+        private func fire() {
             let now = Date()
             guard now.timeIntervalSince(lastFired) >= throttleInterval else { return }
             lastFired = now
-            onClick()
+            onClick?()
         }
 
         deinit {

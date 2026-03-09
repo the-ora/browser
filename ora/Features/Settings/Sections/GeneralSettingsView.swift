@@ -97,22 +97,16 @@ struct GeneralSettingsView: View {
                                 .foregroundColor(.secondary)
                         }
 
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack {
-                                Text("Close active tab with:")
-                                Spacer()
-                                Picker("Sidebar hover close trigger", selection: $settings.clickConfig) {
-                                    Text("Disabled").tag(ClickConfig.none)
-                                    Text("Middle mouse click").tag(ClickConfig.middleMouse)
-                                    Text("Option + click").tag(ClickConfig.optionClick)
-                                }
-                                .labelsHidden()
-                                .frame(width: 180)
+                        HStack {
+                            Text("Close tab with:")
+                            Spacer()
+                            Picker("", selection: $settings.clickConfig) {
+                                Text("Disabled").tag(ClickConfig.none)
+                                Text("Middle mouse click").tag(ClickConfig.middleMouse)
+                                Text("Option + click").tag(ClickConfig.optionClick)
                             }
-
-                            Text("Note: This only works when your pointer is over the sidebar.")
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
+                            .labelsHidden()
+                            .frame(width: 180)
                         }
 
                         Toggle("Auto Picture-in-Picture on tab switch", isOn: $settings.autoPiPEnabled)
