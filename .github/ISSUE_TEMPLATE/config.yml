@@ -1,5 +1,9 @@
 blank_issues_enabled: false
 contact_links:
+  - name: 🛡️ Report a Security Vulnerability
+    url: https://github.com/the-ora/browser/blob/main/SECURITY.md
+    about: Do NOT open a public issue for security vulnerabilities. Email security@orabrowser.com instead.
+
   - name: 📖 Contribution Guide
     url: https://github.com/the-ora/browser/blob/main/CONTRIBUTING.md
     about: Read this before opening a new issue or PR.

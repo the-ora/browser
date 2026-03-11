@@ -136,6 +136,7 @@ This project uses **XcodeGen**. If you need to modify project settings:
 - **Never commit private keys or sensitive data** - see [SECURITY.md](SECURITY.md) for details
 - Be mindful of user privacy and data handling
 - Follow secure coding practices for web content handling
+- **Found a security vulnerability?** Email [security@orabrowser.com](mailto:security@orabrowser.com) — do **not** open a public issue, PR, or discussion
 
 ## 📋 Pull Request Process
 

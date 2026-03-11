@@ -1,5 +1,23 @@
 # Ora Browser Security Guide
 
+## 🛡️ Reporting Security Vulnerabilities
+
+If you discover a security vulnerability in Ora Browser, **please report it responsibly**.
+
+**Email: [security@orabrowser.com](mailto:security@orabrowser.com)**
+
+> **⚠️ Do NOT create a public issue, pull request, or discussion about security vulnerabilities.** Public disclosure gives attackers a window to exploit the issue before a fix is available. Always report security concerns privately via the email above.
+
+When reporting, please include:
+- A description of the vulnerability
+- Steps to reproduce the issue
+- Any relevant screenshots or logs
+- The potential impact of the vulnerability
+
+We will acknowledge your report promptly and work with you to understand and address the issue.
+
+---
+
 ## 🔐 Update Key Management
 
 Ora Browser uses Ed25519 cryptographic keys to sign and verify app updates for security.
