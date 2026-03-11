@@ -120,9 +120,11 @@ targets:
           CODE_SIGN_ENTITLEMENTS: ora/Info/ora.entitlements
           EMIT_FRONTEND_COMMAND_LINES: YES
           OTHER_LDFLAGS: "-Xlinker -interposable"
+          ENABLE_HARDENED_RUNTIME: NO
         Release:
           ASSETCATALOG_COMPILER_APPICON_NAME: OraIcon
           CODE_SIGN_ENTITLEMENTS: ora/Info/ora.entitlements
+          ENABLE_HARDENED_RUNTIME: YES
 
 schemes:
   ora:
