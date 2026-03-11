@@ -1,3 +1,10 @@
+# Updates the Homebrew cask in the-ora/homebrew-ora when a new release is published.
+#
+# Required secrets:
+#   HOMEBREW_PAT — A GitHub Personal Access Token (classic) with `repo` scope,
+#                  authorized to push to the-ora/homebrew-ora.
+#                  Generate at: https://github.com/settings/tokens
+#
 name: Update Homebrew Cask
 
 on:
@@ -6,12 +13,12 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version for testing (e.g., 0.2.5; omit "v" prefix)'
+        description: 'Version (e.g., 0.2.12; omit "v" prefix)'
         required: false
         type: string
         default: ''
       dmg_url:
-        description: 'Full DMG download URL for testing (e.g., https://github.com/the-ora/browser/releases/download/v0.2.5/Ora-Browser-0.2.5.dmg)'
+        description: 'Full DMG download URL (e.g., https://github.com/the-ora/browser/releases/download/v0.2.12/Ora-Browser-0.2.12.dmg)'
         required: false
         type: string
         default: ''
@@ -20,55 +27,79 @@ jobs:
   update-cask:
     runs-on: ubuntu-latest
     steps:
+      - name: Validate token
+        env:
+          TOKEN: ${{ secrets.HOMEBREW_PAT }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::error::HOMEBREW_PAT secret is not set. A GitHub PAT with 'repo' scope is required to push to the-ora/homebrew-ora."
+            exit 1
+          fi
+
       - name: Checkout homebrew-ora repo
         uses: actions/checkout@v4
         with:
           repository: the-ora/homebrew-ora
-          token: ${{ secrets.HOMEBREW_SECRET }}  
+          token: ${{ secrets.HOMEBREW_PAT }}
           ref: main
 
-      - name: Download Ora.dmg and set version
+      - name: Resolve version and download URL
         run: |
-          EVENT_NAME="${{ github.event_name }}"
-          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
-            if [ -n "${{ github.event.inputs.dmg_url }}" ]; then
-              DOWNLOAD_URL="${{ github.event.inputs.dmg_url }}"
-            else
-              echo "DMG URL is required for manual dispatch"
-              exit 1
-            fi
-            if [ -n "${{ github.event.inputs.version }}" ]; then
-              STRIPPED_VERSION="${{ github.event.inputs.version }}"
-            else
-              echo "Version is required for manual dispatch"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+            DOWNLOAD_URL="${{ github.event.inputs.dmg_url }}"
+            if [ -z "$VERSION" ] || [ -z "$DOWNLOAD_URL" ]; then
+              echo "::error::Both 'version' and 'dmg_url' are required for manual dispatch."
               exit 1
             fi
           else
-            VERSION="${{ github.event.release.tag_name }}"
-            STRIPPED_VERSION=$(echo "$VERSION" | sed 's/^v//')
-            DOWNLOAD_URL="https://github.com/the-ora/browser/releases/download/${VERSION}/Ora-Browser-${STRIPPED_VERSION}.dmg"
+            TAG="${{ github.event.release.tag_name }}"
+            VERSION="${TAG#v}"
+            DOWNLOAD_URL="https://github.com/the-ora/browser/releases/download/${TAG}/Ora-Browser-${VERSION}.dmg"
           fi
-          echo "STRIPPED_VERSION=$STRIPPED_VERSION" >> $GITHUB_ENV
-          curl -L --fail -o Ora.dmg "$DOWNLOAD_URL"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "DOWNLOAD_URL=$DOWNLOAD_URL" >> "$GITHUB_ENV"
+          echo "Resolved version: $VERSION"
+          echo "Download URL: $DOWNLOAD_URL"
+
+      - name: Download DMG
+        run: |
+          echo "Downloading DMG from $DOWNLOAD_URL ..."
+          for attempt in 1 2 3; do
+            if curl -L --fail --retry 3 --retry-delay 5 -o Ora.dmg "$DOWNLOAD_URL"; then
+              echo "Download succeeded (attempt $attempt)."
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::Failed to download DMG after 3 attempts. URL: $DOWNLOAD_URL"
+              exit 1
+            fi
+            echo "Download failed (attempt $attempt), retrying in 15s..."
+            sleep 15
+          done
 
       - name: Compute SHA256
         run: |
           SHA256=$(shasum -a 256 Ora.dmg | awk '{print $1}')
-          echo "SHA256=$SHA256" >> $GITHUB_ENV
+          echo "SHA256=$SHA256" >> "$GITHUB_ENV"
+          echo "SHA256: $SHA256"
 
       - name: Update ora.rb
         run: |
-          sed -i 's/version ".*"/version "${{ env.STRIPPED_VERSION }}"/g' Casks/ora.rb
-          sed -i 's/sha256 ".*"/sha256 "${{ env.SHA256 }}"/g' Casks/ora.rb
+          sed -i "s/version \".*\"/version \"${{ env.VERSION }}\"/g" Casks/ora.rb
+          sed -i "s/sha256 \".*\"/sha256 \"${{ env.SHA256 }}\"/g" Casks/ora.rb
+          echo "Updated Casks/ora.rb:"
+          cat Casks/ora.rb
 
       - name: Commit and push changes
         run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add Casks/ora.rb
           if git diff --staged --quiet; then
-            echo "No changes to commit"
+            echo "No changes to commit — cask already at v${{ env.VERSION }}."
           else
-            git commit -m "Update Ora cask to ${{ env.STRIPPED_VERSION }} (SHA256: ${{ env.SHA256 }})"
+            git commit -m "Update Ora cask to v${{ env.VERSION }}"
             git push
+            echo "Pushed update to homebrew-ora."
           fi
