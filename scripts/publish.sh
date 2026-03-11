@@ -116,7 +116,7 @@ APPCAST_EOF
 step "Committing & pushing"
 
 git add project.yml appcast.xml ora_public_key.pem
-git commit -m "Update to v$VERSION"
+git commit -m "release: v$VERSION"
 git push origin main
 
 # --- GitHub Release ---

@@ -92,10 +92,10 @@ LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
 echo ""
 if [[ -n "$LAST_TAG" ]]; then
     echo "Changes since $LAST_TAG:"
-    git log --pretty=format:"  %s" --no-merges "$LAST_TAG"..HEAD | grep -v "^  Update to v" || true
+    git log --pretty=format:"  %s" --no-merges "$LAST_TAG"..HEAD | grep -v "^  release: v" || true
 else
     echo "Recent changes:"
-    git log --pretty=format:"  %s" --no-merges --max-count=20 | grep -v "^  Update to v" || true
+    git log --pretty=format:"  %s" --no-merges --max-count=20 | grep -v "^  release: v" || true
 fi
 
 if [[ "$SKIP_CONFIRM" != true ]]; then
