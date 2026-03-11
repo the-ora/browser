@@ -41,7 +41,7 @@ step "Preflight checks"
 [[ -f "project.yml" ]] || die "project.yml not found. Run from the project root."
 [[ -d "ora" ]]         || die "ora/ directory not found. Run from the project root."
 
-load_env APPLE_ID TEAM_ID SIGNING_IDENTITY APP_SPECIFIC_PASSWORD_KEYCHAIN ORA_PRIVATE_KEY
+load_env APPLE_ID TEAM_ID SIGNING_IDENTITY DEVELOPER_ID_PROFILE APP_SPECIFIC_PASSWORD_KEYCHAIN ORA_PRIVATE_KEY
 
 MISSING_TOOLS=()
 command -v xcodegen   >/dev/null || MISSING_TOOLS+=(xcodegen)
@@ -50,7 +50,7 @@ command -v gh         >/dev/null || MISSING_TOOLS+=(gh)
 
 SPARKLE_BIN=$(/bin/ls -d /opt/homebrew/Caskroom/sparkle/*/bin 2>/dev/null | sort -V | tail -1 || true)
 [[ -n "$SPARKLE_BIN" ]] && export PATH="$SPARKLE_BIN:$PATH"
-command -v sign_update >/dev/null || MISSING_TOOLS+=(sparkle)
+command -v generate_appcast >/dev/null || MISSING_TOOLS+=(sparkle)
 
 if [[ ${#MISSING_TOOLS[@]} -gt 0 ]]; then
     echo "Installing missing tools: ${MISSING_TOOLS[*]}"
@@ -92,10 +92,10 @@ LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
 echo ""
 if [[ -n "$LAST_TAG" ]]; then
     echo "Changes since $LAST_TAG:"
-    git log --pretty=format:"  %s" --no-merges "$LAST_TAG"..HEAD | grep -v "^  release: v" || true
+    git log --pretty=format:"  %s" --no-merges "$LAST_TAG"..HEAD | grep -Ev "^  (release: v|chore\\(release\\): v)" || true
 else
     echo "Recent changes:"
-    git log --pretty=format:"  %s" --no-merges --max-count=20 | grep -v "^  release: v" || true
+    git log --pretty=format:"  %s" --no-merges --max-count=20 | grep -Ev "^  (release: v|chore\\(release\\): v)" || true
 fi
 
 if [[ "$SKIP_CONFIRM" != true ]]; then

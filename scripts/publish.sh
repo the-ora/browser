@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# publish.sh — Sign with Sparkle, commit, create GitHub release, deploy appcast.
+# publish.sh — Generate the Sparkle appcast, create a GitHub release, and deploy the feed.
 #
 # Usage: ./scripts/publish.sh
 #
@@ -16,31 +16,22 @@ REPO="the-ora/browser"
 load_env ORA_PRIVATE_KEY
 
 VERSION=$(grep "MARKETING_VERSION:" project.yml | sed 's/.*MARKETING_VERSION: //' | tr -d ' ')
-BUILD_VERSION=$(grep "CURRENT_PROJECT_VERSION:" project.yml | sed 's/.*CURRENT_PROJECT_VERSION: //' | tr -d ' ')
 DMG_NAME="Ora-Browser-${VERSION}.dmg"
 DMG_FILE="build/${DMG_NAME}"
+SPARKLE_ARCHIVES_DIR="build/sparkle"
+RELEASE_NOTES_FILE="${SPARKLE_ARCHIVES_DIR}/Ora-Browser-${VERSION}.html"
+APPCAST_FILE="${SPARKLE_ARCHIVES_DIR}/appcast.xml"
 
 [[ -f "$DMG_FILE" ]] || die "DMG not found at $DMG_FILE. Run ./scripts/build.sh first."
 
-# --- Sparkle signing & appcast ---
+# --- Sparkle appcast ---
 
-step "Sparkle signing & appcast"
+step "Sparkle appcast"
 
 # Locate Sparkle tools
 SPARKLE_BIN=$(/bin/ls -d /opt/homebrew/Caskroom/sparkle/*/bin 2>/dev/null | sort -V | tail -1 || true)
 [[ -n "$SPARKLE_BIN" ]] && export PATH="$SPARKLE_BIN:$PATH"
-command -v sign_update >/dev/null || die "sign_update not found. Install sparkle: brew install sparkle"
-
-echo "$ORA_PRIVATE_KEY" > build/temp_private_key.pem
-SIGNATURE_OUTPUT=$(sign_update --ed-key-file build/temp_private_key.pem "$DMG_FILE" 2>&1)
-rm -f build/temp_private_key.pem
-
-SIGNATURE=$(echo "$SIGNATURE_OUTPUT" | sed -n 's/.*edSignature="\([^"]*\)".*/\1/p')
-[[ -n "$SIGNATURE" ]] || die "Sparkle signing failed: $SIGNATURE_OUTPUT"
-echo "Signature: ${SIGNATURE:0:30}..."
-
-FILE_SIZE=$(stat -f%z "$DMG_FILE")
-PUB_DATE=$(date -u +"%a, %d %b %Y %H:%M:%S %z")
+command -v generate_appcast >/dev/null || die "generate_appcast not found. Install sparkle: brew install --cask sparkle"
 
 # Generate changelog from commits since last tag
 LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
@@ -59,6 +50,7 @@ html_escape() {
 declare -a FEAT=() FIX=() PERF=() DOCS=() CHORE=() OTHER=()
 while IFS=$'\x1F' read -r subject author; do
     [[ -z "$subject" || "$subject" == "-" ]] && continue
+    [[ "$subject" =~ ^chore\(release\):\ v[0-9] ]] && continue
     [[ "$subject" =~ ^[Uu]pdate\ to\ v[0-9] ]] && continue
     entry="$(html_escape "$subject") — $(html_escape "$author")"
     case "$subject" in
@@ -85,38 +77,34 @@ for section in "Features:FEAT" "Fixes:FIX" "Performance:PERF" "Docs:DOCS" "Chore
 done
 CHANGELOG+=$'\n'"</div>"
 
-cat > appcast.xml << APPCAST_EOF
-<?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
-  <channel>
-    <title>Ora Browser Changelog</title>
-    <description>Most recent changes with links to updates.</description>
-    <language>en</language>
-    <item>
-      <title>Version $VERSION</title>
-      <description><![CDATA[
-        <h2>Ora Browser v$VERSION</h2>
-        <p>Changes since last release:</p>
+rm -rf "$SPARKLE_ARCHIVES_DIR"
+mkdir -p "$SPARKLE_ARCHIVES_DIR"
+cp "$DMG_FILE" "$SPARKLE_ARCHIVES_DIR/"
+[[ -f appcast.xml ]] && cp appcast.xml "$APPCAST_FILE"
+
+cat > "$RELEASE_NOTES_FILE" <<RELEASE_NOTES_EOF
+<h2>Ora Browser v$VERSION</h2>
+<p>Changes since last release:</p>
 $CHANGELOG
-      ]]></description>
-      <pubDate>$PUB_DATE</pubDate>
-      <enclosure url="https://github.com/$REPO/releases/download/v$VERSION/$DMG_NAME"
-                 sparkle:version="$BUILD_VERSION"
-                 sparkle:shortVersionString="$VERSION"
-                 length="$FILE_SIZE"
-                 type="application/octet-stream"
-                 sparkle:edSignature="$SIGNATURE"/>
-    </item>
-  </channel>
-</rss>
-APPCAST_EOF
+RELEASE_NOTES_EOF
+
+printf '%s' "$ORA_PRIVATE_KEY" | generate_appcast \
+    --ed-key-file - \
+    --download-url-prefix "https://github.com/$REPO/releases/download/v$VERSION/" \
+    --full-release-notes-url "https://github.com/$REPO/releases/tag/v$VERSION" \
+    --link "https://github.com/$REPO" \
+    --embed-release-notes \
+    "$SPARKLE_ARCHIVES_DIR"
+
+[[ -f "$APPCAST_FILE" ]] || die "Appcast generation failed."
+cp "$APPCAST_FILE" appcast.xml
 
 # --- Commit & push ---
 
 step "Committing & pushing"
 
-git add project.yml appcast.xml ora_public_key.pem
-git commit -m "release: v$VERSION"
+git add project.yml appcast.xml
+git commit -m "chore(release): v$VERSION"
 git push origin main
 
 # --- GitHub Release ---
@@ -151,13 +139,13 @@ else
     git rm -rf .
     echo "# Ora Browser Updates" > README.md
     git add README.md
-    git commit -m "Initialize gh-pages branch"
+    git commit -m "chore(appcast): initialize gh-pages"
 fi
 
 cp /tmp/ora_appcast_deploy.xml appcast.xml
 rm -f /tmp/ora_appcast_deploy.xml
 git add -f appcast.xml
-git diff --staged --quiet || git commit -m "Deploy appcast v$VERSION"
+git diff --staged --quiet || git commit -m "chore(appcast): deploy v$VERSION"
 git push origin gh-pages
 
 git checkout "$CURRENT_BRANCH"
