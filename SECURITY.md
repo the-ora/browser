@@ -1,68 +1,62 @@
-# Ora Browser Security Guide
+# Security
 
-## 🛡️ Reporting Security Vulnerabilities
+This document covers the repository-specific security expectations for Ora Browser contributors and maintainers.
 
-If you discover a security vulnerability in Ora Browser, **please report it responsibly**.
+## Reporting Security Vulnerabilities
 
-**Email: [security@orabrowser.com](mailto:security@orabrowser.com)**
+If you discover a security vulnerability, report it privately by email at [security@orabrowser.com](mailto:security@orabrowser.com).
 
-> **⚠️ Do NOT create a public issue, pull request, or discussion about security vulnerabilities.** Public disclosure gives attackers a window to exploit the issue before a fix is available. Always report security concerns privately via the email above.
+Do not open a public issue, pull request, or discussion for security vulnerabilities.
 
-When reporting, please include:
-- A description of the vulnerability
-- Steps to reproduce the issue
-- Any relevant screenshots or logs
-- The potential impact of the vulnerability
+When reporting, include:
 
-We will acknowledge your report promptly and work with you to understand and address the issue.
+- a description of the issue
+- steps to reproduce it
+- relevant logs or screenshots when safe to share
+- the potential impact
 
----
+## Secrets and Sensitive Data
 
-## 🔐 Update Key Management
+- Never commit `.env`, signing credentials, private keys, notarization credentials, or any other secret material.
+- Do not paste secrets into issues, pull requests, screenshots, or logs shared publicly.
+- Keep local release credentials in `.env` and use `.env.example` as the template for required variables.
+- Treat generated logs and exported artifacts as potentially sensitive until reviewed.
 
-Ora Browser uses Ed25519 cryptographic keys to sign and verify app updates for security.
+## Update Signing
 
-### Public Key (Committed to Git)
-- **File**: `ora_public_key.pem`
-- **Purpose**: Verifies update signatures in the app
-- **Status**: Committed to git repository
-- **Safety**: Public keys are safe to share
+Ora uses Sparkle update signing.
 
-### Private Key (Never Commit!)
-- **File**: `.env` (contains `ORA_PRIVATE_KEY`)
-- **Purpose**: Signs app updates during release
-- **Status**: Never committed to git
-- **Safety**: Keep secure and private
+- `ora_public_key.pem` is the public verification key and is safe to keep in the repository.
+- `ORA_PRIVATE_KEY` is the private signing key used when generating the Sparkle appcast and must never be committed or shared.
+- If the private signing key is lost or replaced after releases have shipped, the existing update trust chain is broken.
 
-### Setup Process
-1. **First machine**: Keys auto-generated and saved appropriately
-2. **Additional machines**: Copy `.env` file from first machine
-3. **Release process**: `./scripts/create-release.sh` handles key management automatically
+## Release Credentials
 
-### Security Notes
-- `.env` is in `.gitignore` - it will never be committed
-- Public key is committed - this is safe and required
-- Never share your private key with anyone
-- If private key is lost, you'll need to regenerate keys (breaks update chain)
+The release scripts expect credentials in a local `.env` file. Depending on the workflow, this includes:
 
-## 🔍 Security Checks
+- `ORA_PRIVATE_KEY`
+- `APPLE_ID`
+- `TEAM_ID`
+- `DEVELOPMENT_TEAM`
+- `APP_SPECIFIC_PASSWORD_KEYCHAIN`
+- `SIGNING_IDENTITY`
+- `DEVELOPER_ID_PROFILE`
 
-Run `./scripts/check-security.sh` to verify:
-- Private key exists but is not tracked by git
-- Public key is available for app integration
-- `.gitignore` properly excludes sensitive files
+For the current release flow, see:
 
-## 🚨 Security Best Practices
+- `./scripts/build.sh`
+- `./scripts/publish.sh`
+- `./scripts/release.sh`
 
-- **NEVER** commit private keys to version control
-- **NEVER** share private keys with anyone
-- **NEVER** delete private keys once you've published releases (breaks update chain)
-- Use secure methods to transfer keys between machines
-- Regularly audit what's in your git staging area before committing
+Contributors working on regular code or documentation changes should not need access to release credentials.
 
-## 🚨 Security Violations
+## Safe Working Practices
 
-If you see any of these, stop immediately:
-- Private key files appear in `git status`
-- Private keys are committed to repository
-- Private keys are shared or transmitted insecurely
+- Review `git status` and `git diff --cached` before every commit.
+- Do not add private keys, provisioning profiles, or notarization credentials to the repository, even temporarily.
+- Be careful when sharing crash logs, build logs, and environment output if they may include local paths, account identifiers, or signing details.
+- Follow least-privilege access for Apple Developer and release infrastructure credentials.
+
+## Reporting Security Issues
+
+If you discover accidental secret exposure or any other security issue, do not share credential contents or exploit details publicly. Use [security@orabrowser.com](mailto:security@orabrowser.com) for private reporting.

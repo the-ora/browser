@@ -2,14 +2,12 @@
 
 ## Our Commitment
 
-We are committed to providing a welcoming and inclusive environment for all contributors to Ora, regardless of experience level, background, or identity.
-
-Ora is built by volunteers who contribute their time and expertise out of passion for creating great software. We appreciate everyone who takes time to contribute to making Ora better.
+We are committed to providing a welcoming, respectful, and inclusive environment for everyone participating in the Ora community, regardless of experience level, background, or identity.
 
 ## Expected Behavior
 
 - Be respectful, welcoming, and considerate in all interactions
-- Discuss ideas, give/receive constructive criticism gracefully
+- Discuss ideas and give constructive feedback professionally
 - Focus on what's best for the community and project
 - Show empathy toward other community members
 - Help create a positive environment for learning and collaboration
@@ -26,6 +24,7 @@ Ora is built by volunteers who contribute their time and expertise out of passio
 ## Scope
 
 This Code of Conduct applies to all project spaces, including:
+
 - GitHub repository (issues, PRs, discussions)
 - Discord community
 - Any other official Ora communication channels
@@ -33,15 +32,16 @@ This Code of Conduct applies to all project spaces, including:
 ## Enforcement
 
 Project maintainers are responsible for clarifying standards and will take appropriate action in response to violations. This may include:
+
 - Warning the individual
-- Temporary or permanent ban from project spaces  (GitHub, Discord, etc.)
-- Reporting to appropriate platforms (GitHub, Discord, etc.)
+- Temporary or permanent removal from project spaces
+- Reporting to the relevant platform when necessary
 
 ## Reporting
 
 If you experience or witness unacceptable behavior, please report it by:
-- Opening a GitHub issue (for public matters)
-- Contacting maintainers directly on Discord
+
+- Contacting the maintainers privately through Discord
 
 All reports will be handled confidentially and reviewed promptly.
 
