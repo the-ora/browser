@@ -44,18 +44,22 @@ jobs:
           ref: main
 
       - name: Resolve version and download URL
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          INPUT_DMG_URL: ${{ github.event.inputs.dmg_url }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            VERSION="${{ github.event.inputs.version }}"
-            DOWNLOAD_URL="${{ github.event.inputs.dmg_url }}"
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            VERSION="$INPUT_VERSION"
+            DOWNLOAD_URL="$INPUT_DMG_URL"
             if [ -z "$VERSION" ] || [ -z "$DOWNLOAD_URL" ]; then
               echo "::error::Both 'version' and 'dmg_url' are required for manual dispatch."
               exit 1
             fi
           else
-            TAG="${{ github.event.release.tag_name }}"
-            VERSION="${TAG#v}"
-            DOWNLOAD_URL="https://github.com/the-ora/browser/releases/download/${TAG}/Ora-Browser-${VERSION}.dmg"
+            VERSION="${RELEASE_TAG#v}"
+            DOWNLOAD_URL="https://github.com/the-ora/browser/releases/download/${RELEASE_TAG}/Ora-Browser-${VERSION}.dmg"
           fi
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           echo "DOWNLOAD_URL=$DOWNLOAD_URL" >> "$GITHUB_ENV"
@@ -66,7 +70,7 @@ jobs:
         run: |
           echo "Downloading DMG from $DOWNLOAD_URL ..."
           for attempt in 1 2 3; do
-            if curl -L --fail --retry 3 --retry-delay 5 -o Ora.dmg "$DOWNLOAD_URL"; then
+            if curl -L --fail -o Ora.dmg "$DOWNLOAD_URL"; then
               echo "Download succeeded (attempt $attempt)."
               break
             fi
@@ -86,8 +90,8 @@ jobs:
 
       - name: Update ora.rb
         run: |
-          sed -i "s/version \".*\"/version \"${{ env.VERSION }}\"/g" Casks/ora.rb
-          sed -i "s/sha256 \".*\"/sha256 \"${{ env.SHA256 }}\"/g" Casks/ora.rb
+          sed -i "s|version \".*\"|version \"${VERSION}\"|g" Casks/ora.rb
+          sed -i "s|sha256 \".*\"|sha256 \"${SHA256}\"|g" Casks/ora.rb
           echo "Updated Casks/ora.rb:"
           cat Casks/ora.rb
 
@@ -97,9 +101,9 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add Casks/ora.rb
           if git diff --staged --quiet; then
-            echo "No changes to commit — cask already at v${{ env.VERSION }}."
+            echo "No changes to commit — cask already at v${VERSION}."
           else
-            git commit -m "Update Ora cask to v${{ env.VERSION }}"
+            git commit -m "Update Ora cask to v${VERSION}"
             git push
             echo "Pushed update to homebrew-ora."
           fi
