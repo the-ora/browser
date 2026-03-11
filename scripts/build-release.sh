@@ -39,8 +39,8 @@ DMG_NAME="Ora-Browser-${VERSION}.dmg"
 echo "Building Ora Browser v${VERSION} (Release)..."
 
 # Preserve files that must survive a clean build
-preserve() { [ -f "$1" ] && mv "$1" "$2"; }
-restore()   { [ -f "$2" ] && mv "$2" "$1"; }
+preserve() { [ -f "$1" ] && mv "$1" "$2" || true; }
+restore()   { [ -f "$2" ] && mv "$2" "$1" || true; }
 
 preserve build/dsa_priv.pem  /tmp/ora_build_dsa_priv.pem
 preserve build/dsa_pub.pem   /tmp/ora_build_dsa_pub.pem
@@ -89,7 +89,7 @@ xcodebuild build \
     -configuration Release \
     -destination "platform=macOS" \
     -derivedDataPath "build/DerivedData" \
-    > /dev/null 2>&1
+    DEVELOPMENT_TEAM="$TEAM_ID"
 
 echo "Copying app bundle..."
 if [ ! -d "build/DerivedData/Build/Products/Release/Ora.app" ]; then
@@ -131,9 +131,7 @@ codesign -f --timestamp -s "$SIGNING_IDENTITY" "build/${DMG_NAME}"
 
 echo "Notarizing..."
 xcrun notarytool submit "build/${DMG_NAME}" \
-    --apple-id "$APPLE_ID" \
-    --team-id "$TEAM_ID" \
-    --password "${APP_SPECIFIC_PASSWORD_KEYCHAIN}" \
+    --keychain-profile "${APP_SPECIFIC_PASSWORD_KEYCHAIN}" \
     --wait
 
 echo "Stapling notarization ticket..."
