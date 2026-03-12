@@ -87,7 +87,8 @@ private struct PasswordsWindowView: View {
 
                     if filteredEntries.isEmpty {
                         emptyState(message: searchText
-                            .isEmpty ? "No saved passwords yet." : "No saved passwords match that search.")
+                            .isEmpty ? "No saved passwords yet." : "No saved passwords match that search."
+                        )
                     } else {
                         passwordsTable
                     }

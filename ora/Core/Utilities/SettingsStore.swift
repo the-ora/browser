@@ -155,6 +155,7 @@ class SettingsStore: ObservableObject {
     private let tabRemovalTimeoutKey = "settings.tabRemovalTimeout"
     private let maxRecentTabsKey = "settings.maxRecentTabs"
     private let autoPiPEnabledKey = "settings.autoPiPEnabled"
+    private let clickConfigKey = "settings.clickConfig"
     private let passwordsEnabledKey = "settings.passwords.enabled"
     private let passwordManagerProviderKey = "settings.passwords.provider"
     private let passwordAutofillEnabledKey = "settings.passwords.autofillEnabled"
@@ -222,6 +223,10 @@ class SettingsStore: ObservableObject {
 
     @Published var maxRecentTabs: Int {
         didSet { defaults.set(maxRecentTabs, forKey: maxRecentTabsKey) }
+    }
+
+    @Published var clickConfig: ClickConfig {
+        didSet { defaults.set(clickConfig.rawValue, forKey: clickConfigKey) }
     }
 
     @Published var autoPiPEnabled: Bool {
@@ -321,7 +326,15 @@ class SettingsStore: ObservableObject {
         passwordAutofillSubmitEnabled = defaults.object(forKey: passwordAutofillSubmitEnabledKey) as? Bool ?? true
         passwordSavePromptsEnabled = defaults.object(forKey: passwordSavePromptsEnabledKey) as? Bool ?? true
         suppressedPasswordSavePromptHosts = Set(defaults
-            .stringArray(forKey: suppressedPasswordSavePromptHostsKey) ?? [])
+            .stringArray(forKey: suppressedPasswordSavePromptHostsKey) ?? []
+        )
+        if let raw = defaults.string(forKey: clickConfigKey),
+           let config = ClickConfig(rawValue: raw)
+        {
+            clickConfig = config
+        } else {
+            clickConfig = .none
+        }
     }
 
     // MARK: - Per-container helpers

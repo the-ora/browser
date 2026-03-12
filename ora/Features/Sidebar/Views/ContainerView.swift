@@ -10,8 +10,11 @@ struct ContainerView: View {
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var privacyMode: PrivacyMode
 
+    @StateObject private var settings = SettingsStore.shared
+
     @State var isDragging = false
     @State private var draggedItem: UUID?
+    @State private var hoverTab: UUID?
     @State private var editingURLString: String = ""
 
     var body: some View {
@@ -78,6 +81,7 @@ struct ContainerView: View {
                     NormalTabsList(
                         tabs: normalTabs,
                         draggedItem: $draggedItem,
+                        hoverTab: $hoverTab,
                         onDrag: dragTab,
                         onSelect: selectTab,
                         onPinToggle: togglePin,
@@ -91,6 +95,15 @@ struct ContainerView: View {
             }
         }
         .modifier(OraWindowDragGesture(isDragging: $isDragging))
+        .background(
+            ClickDetector(config: settings.clickConfig) {
+                if let hoverTab {
+                    if let tab = normalTabs.first(where: { $0.id == hoverTab }) {
+                        tabManager.closeTab(tab: tab)
+                    }
+                }
+            }
+        )
     }
 
     private var favoriteTabs: [Tab] {

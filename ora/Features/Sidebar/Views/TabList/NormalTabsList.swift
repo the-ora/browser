@@ -4,6 +4,7 @@ import SwiftUI
 struct NormalTabsList: View {
     let tabs: [Tab]
     @Binding var draggedItem: UUID?
+    @Binding var hoverTab: UUID?
     let onDrag: (UUID) -> NSItemProvider
     let onSelect: (Tab) -> Void
     let onPinToggle: (Tab) -> Void
@@ -45,6 +46,13 @@ struct NormalTabsList: View {
                         targetSection: .normal
                     )
                 )
+                .onHover { hovering in
+                    if hovering {
+                        hoverTab = tab.id
+                    } else {
+                        hoverTab = nil
+                    }
+                }
                 .transition(.asymmetric(
                     insertion: .opacity.combined(with: .move(edge: .bottom)),
                     removal: .opacity.combined(with: .move(edge: .top))
