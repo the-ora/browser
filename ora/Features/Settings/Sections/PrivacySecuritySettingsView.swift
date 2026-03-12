@@ -22,13 +22,23 @@ struct PrivacySecuritySettingsView: View {
             .disabled(true)
 
             SettingsCard(header: "Cookies") {
-                Picker("", selection: $settings.cookiesPolicy) {
+                HStack {
+                    Text("Soon")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Color(.controlColor), in: Capsule())
+                }
+
+                Picker("", selection: .constant(CookiesPolicy.allowAll)) {
                     ForEach(CookiesPolicy.allCases) { policy in
                         Text(policy.rawValue).tag(policy)
                     }
                 }
                 .pickerStyle(.radioGroup)
             }
+            .disabled(true)
         }
     }
 }
