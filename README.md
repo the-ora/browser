@@ -12,7 +12,7 @@
   <a href="https://developer.apple.com/xcode/"><img src="https://badgen.net/badge/Xcode/15+/blue" alt="Xcode 15+"></a>
   <a href="https://swift.org"><img src="https://badgen.net/badge/Swift/5.9/orange" alt="Swift 5.9"></a>
   <a href="https://brew.sh"><img src="https://badgen.net/badge/Homebrew/used/yellow" alt="Homebrew"></a>
-  <a href="LICENSE"><img src="https://badgen.net/badge/License/GPL-2.0/green" alt="GPL-2.0"></a>
+  <a href="LICENSE"><img src="https://badgen.net/badge/License/GPL-3.0/green" alt="GPL-3.0"></a>
 </p>
 
 > [!NOTE]
@@ -67,4 +67,4 @@ The setup script installs required tooling, installs git hooks, and regenerates 
 
 ## License
 
-Ora Browser is licensed under [GPL-2.0](LICENSE).
+Ora Browser is licensed under [GPL-3.0](LICENSE).
