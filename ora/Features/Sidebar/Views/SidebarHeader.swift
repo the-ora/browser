@@ -1,12 +1,11 @@
 //
-//  SidebarToolbar.swift
+//  SidebarHeader.swift
 //  ora
 //
-//  Created by Yonathan Dejene on 13/10/2025.
-//
+
 import SwiftUI
 
-struct SidebarToolbar: View {
+struct SidebarHeader: View {
     @Environment(\.theme) private var theme
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var tabManager: TabManager
@@ -20,23 +19,23 @@ struct SidebarToolbar: View {
     var body: some View {
         HStack(spacing: 0) {
             if sidebarManager.sidebarPosition != .secondary {
-                WindowControls(isFullscreen: appState.isFullscreen).frame(height: 30)
+                WindowControls(isFullscreen: appState.isFullscreen)
+                    .frame(height: 30)
             }
 
             if toolbarManager.isToolbarHidden {
                 HStack(spacing: 0) {
                     if sidebarManager.sidebarPosition == .primary {
-                        HStack {
-                            URLBarButton(
-                                systemName: sidebarIcon,
-                                isEnabled: true,
-                                foregroundColor: theme.foreground.opacity(0.7),
-                                action: { sidebarManager.toggleSidebar() }
-                            )
-                            .oraShortcutHelp("Toggle Sidebar", for: KeyboardShortcuts.App.toggleSidebar)
-                            Spacer()
-                        }
+                        URLBarButton(
+                            systemName: sidebarIcon,
+                            isEnabled: true,
+                            foregroundColor: theme.foreground.opacity(0.7),
+                            action: { sidebarManager.toggleSidebar() }
+                        )
+                        .oraShortcutHelp("Toggle Sidebar", for: KeyboardShortcuts.App.toggleSidebar)
+                        Spacer()
                     }
+
                     URLBarButton(
                         systemName: "chevron.left",
                         isEnabled: tabManager.activeTab?.webView.canGoBack ?? false,
@@ -74,23 +73,20 @@ struct SidebarToolbar: View {
                     .oraShortcutHelp("Reload This Page", for: KeyboardShortcuts.Navigation.reload)
 
                     if sidebarManager.sidebarPosition == .secondary {
-                        HStack {
-                            Spacer()
-                            URLBarButton(
-                                systemName: sidebarIcon,
-                                isEnabled: true,
-                                foregroundColor: theme.foreground.opacity(0.7),
-                                action: { sidebarManager.toggleSidebar() }
-                            )
-                            .oraShortcutHelp("Toggle Sidebar", for: KeyboardShortcuts.App.toggleSidebar)
-                        }
+                        Spacer()
+                        URLBarButton(
+                            systemName: sidebarIcon,
+                            isEnabled: true,
+                            foregroundColor: theme.foreground.opacity(0.7),
+                            action: { sidebarManager.toggleSidebar() }
+                        )
+                        .oraShortcutHelp("Toggle Sidebar", for: KeyboardShortcuts.App.toggleSidebar)
                     }
                 }
                 .padding(.trailing, 6)
                 .padding(.leading, sidebarManager.sidebarPosition == .primary ? 0 : 6)
-                .padding(.vertical, 0)
             }
         }
-        .padding(0)
+        .frame(height: 38)
     }
 }

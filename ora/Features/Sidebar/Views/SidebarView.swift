@@ -50,8 +50,12 @@ struct SidebarView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            SidebarToolbar()
+        VStack(alignment: .leading, spacing: 0) {
+            if sidebarManager.sidebarPosition == .secondary, !toolbarManager.isToolbarHidden {
+                Spacer().frame(height: 8)
+            } else {
+                SidebarHeader()
+            }
             NSPageView(
                 selection: selectedContainerIndex,
                 pageObjects: containers,
@@ -92,7 +96,7 @@ struct SidebarView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(
             EdgeInsets(
-                top: toolbarManager.isToolbarHidden ? 10 : 0,
+                top: 0,
                 leading: 0,
                 bottom: 10,
                 trailing: 0
