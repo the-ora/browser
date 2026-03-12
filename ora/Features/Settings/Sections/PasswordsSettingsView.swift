@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct PasswordsSettingsView: View {
-    @Environment(\.theme) private var theme
     @StateObject private var settings = SettingsStore.shared
     @StateObject private var passwordManager = PasswordManagerService.shared
     private let providers = PasswordManagerProviderRegistry.shared
@@ -28,11 +27,9 @@ struct PasswordsSettingsView: View {
     }
 
     var body: some View {
-        SettingsContainer(maxContentWidth: 860) {
-            VStack(alignment: .leading, spacing: 20) {
-                passwordsOverview
-                vaultSection
-            }
+        SettingsSection {
+            passwordsOverview
+            vaultSection
         }
         .onDisappear {
             lockVault()
@@ -59,43 +56,40 @@ struct PasswordsSettingsView: View {
     }
 
     private var passwordsOverview: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Passwords")
-                .font(.title2.weight(.semibold))
-
-            Text(
-                "Choose which password manager Ora should integrate with. Ora Passwords stores encrypted credentials in synchronizable Keychain items; external providers will bring their own vault and autofill surfaces."
-            )
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
-
-            VStack(alignment: .leading, spacing: 12) {
-                Picker("Password manager", selection: $settings.passwordManagerProvider) {
-                    ForEach(providers.providers) { provider in
-                        Text(provider.title).tag(provider.kind)
+        SettingsCard {
+            HStack(alignment: .top) {
+                Text("Password manager")
+                Spacer()
+                VStack(alignment: .trailing, spacing: 4) {
+                    Picker("", selection: $settings.passwordManagerProvider) {
+                        ForEach(providers.providers) { provider in
+                            Text(provider.title).tag(provider.kind)
+                        }
                     }
+                    .pickerStyle(.menu)
+                    .labelsHidden()
+                    .fixedSize()
+
+                    Text(selectedProvider.summary)
+                        .font(.caption)
+                        .foregroundStyle(selectedProvider.isAvailable ? Color.secondary : .orange)
                 }
-                .pickerStyle(.menu)
-
-                Text(selectedProvider.summary)
-                    .font(.caption)
-                    .foregroundStyle(selectedProvider.isAvailable ? Color.secondary : .orange)
-
-                Toggle("Enable password manager", isOn: $settings.passwordsEnabled)
-                Toggle("Show autofill suggestions on login forms", isOn: $settings.passwordAutofillEnabled)
-                    .disabled(!settings.passwordsEnabled)
-                Toggle(
-                    "Submit login forms after selecting a saved password",
-                    isOn: $settings.passwordAutofillSubmitEnabled
-                )
-                .disabled(
-                    !settings.passwordsEnabled
-                        || !settings.passwordAutofillEnabled
-                        || !selectedProvider.usesBuiltInOverlay
-                )
-                Toggle("Ask to save or update passwords after sign in", isOn: $settings.passwordSavePromptsEnabled)
-                    .disabled(!settings.passwordsEnabled || !selectedProvider.usesBuiltInVault)
             }
+
+            Toggle("Enable password manager", isOn: $settings.passwordsEnabled)
+            Toggle("Show autofill suggestions on login forms", isOn: $settings.passwordAutofillEnabled)
+                .disabled(!settings.passwordsEnabled)
+            Toggle(
+                "Submit login forms after selecting a saved password",
+                isOn: $settings.passwordAutofillSubmitEnabled
+            )
+            .disabled(
+                !settings.passwordsEnabled
+                    || !settings.passwordAutofillEnabled
+                    || !selectedProvider.usesBuiltInOverlay
+            )
+            Toggle("Ask to save or update passwords after sign in", isOn: $settings.passwordSavePromptsEnabled)
+                .disabled(!settings.passwordsEnabled || !selectedProvider.usesBuiltInVault)
 
             if !selectedProvider.isAvailable {
                 Text(
@@ -105,14 +99,10 @@ struct PasswordsSettingsView: View {
                 .foregroundStyle(.secondary)
             }
         }
-        .padding(18)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(theme.solidWindowBackgroundColor)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
     private var vaultSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        SettingsCard {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(selectedProvider.usesBuiltInVault ? "Saved Credentials" : selectedProvider.title)
@@ -163,10 +153,6 @@ struct PasswordsSettingsView: View {
                 lockedVaultState
             }
         }
-        .padding(18)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(theme.solidWindowBackgroundColor)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
     private var lockedVaultState: some View {
@@ -174,7 +160,7 @@ struct PasswordsSettingsView: View {
             ZStack(alignment: .bottomTrailing) {
                 Image(systemName: "lock.fill")
                     .font(.system(size: 60, weight: .regular))
-                    .foregroundStyle(theme.mutedForeground.opacity(0.75))
+                    .foregroundStyle(Color.secondary.opacity(0.75))
 
                 if passwordManager.canUseBiometricAuthentication() {
                     Button {
@@ -182,9 +168,9 @@ struct PasswordsSettingsView: View {
                     } label: {
                         Image(systemName: "touchid")
                             .font(.system(size: 24, weight: .semibold))
-                            .foregroundStyle(theme.accent)
+                            .foregroundStyle(Color.accentColor)
                             .frame(width: 38, height: 38)
-                            .background(theme.background.opacity(0.92))
+                            .background(Color(.windowBackgroundColor).opacity(0.92))
                             .clipShape(Circle())
                     }
                     .buttonStyle(.plain)
@@ -206,46 +192,48 @@ struct PasswordsSettingsView: View {
                 .frame(maxWidth: 360)
             }
 
-            VStack(spacing: 10) {
-                OraButton(
-                    label: isAuthenticating ? "Unlocking..." : "Unlock Passwords",
-                    variant: .outline,
-                    isDisabled: isAuthenticating,
-                    leadingIcon: passwordManager.canUseBiometricAuthentication() ? "touchid" : "lock.open"
-                ) {
-                    unlockVault()
+            Button {
+                unlockVault()
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: passwordManager.canUseBiometricAuthentication() ? "touchid" : "lock.open")
+                    Text(isAuthenticating ? "Unlocking..." : "Unlock Passwords")
                 }
             }
+            .disabled(isAuthenticating)
         }
         .frame(maxWidth: .infinity, minHeight: 260, alignment: .center)
     }
 
     private var passwordsTable: some View {
-        VStack(spacing: 0) {
-            passwordTableHeader
+        ScrollView(.horizontal, showsIndicators: true) {
+            VStack(spacing: 0) {
+                passwordTableHeader
 
-            Divider()
-                .overlay(theme.border.opacity(0.7))
+                Divider()
+                    .overlay(Color(.separatorColor).opacity(0.7))
 
-            ScrollView {
-                LazyVStack(spacing: 0) {
-                    ForEach(filteredEntries, id: \.id) { entry in
-                        passwordTableRow(entry)
+                ScrollView(.vertical) {
+                    LazyVStack(spacing: 0) {
+                        ForEach(filteredEntries, id: \.id) { entry in
+                            passwordTableRow(entry)
 
-                        if entry.id != filteredEntries.last?.id {
-                            Divider()
-                                .overlay(theme.border.opacity(0.45))
-                                .padding(.leading, 12)
+                            if entry.id != filteredEntries.last?.id {
+                                Divider()
+                                    .overlay(Color(.separatorColor).opacity(0.45))
+                                    .padding(.leading, 12)
+                            }
                         }
                     }
                 }
             }
+            .frame(minWidth: 800)
         }
-        .background(theme.background.opacity(0.38))
+        .background(Color(.controlBackgroundColor).opacity(0.5))
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(theme.border.opacity(0.55), lineWidth: 1)
+                .stroke(Color(.separatorColor).opacity(0.55), lineWidth: 1)
         }
     }
 
@@ -258,7 +246,7 @@ struct PasswordsSettingsView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
-        .background(theme.background.opacity(0.16))
+        .background(Color(.controlBackgroundColor).opacity(0.3))
     }
 
     private func passwordTableRow(_ entry: SavedPasswordSummary) -> some View {

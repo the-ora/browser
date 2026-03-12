@@ -10,32 +10,31 @@ struct ShortcutsSettingsView: View {
     }
 
     var body: some View {
-        SettingsContainer(maxContentWidth: 760, usesScrollView: false) {
-            List {
-                ForEach(sections, id: \.category) { section in
-                    Section(section.category) {
-                        ForEach(section.items) { item in
-                            ShortcutRowView(
-                                item: item,
-                                isOverriden: shortcutManager.hasCustomShortcut(for: item),
-                                isEditing: editingShortcut == item,
-                                handler: { action in
-                                    handleAction(for: item, action: action)
-                                }
-                            )
-                            .overlay {
-                                if editingShortcut == item {
-                                    KeyCaptureView(onKeyDown: { event in
-                                        handleKeyCapture(event)
-                                    })
-                                    .allowsHitTesting(false)
-                                }
+        List {
+            ForEach(sections, id: \.category) { section in
+                Section(section.category) {
+                    ForEach(section.items) { item in
+                        ShortcutRowView(
+                            item: item,
+                            isOverriden: shortcutManager.hasCustomShortcut(for: item),
+                            isEditing: editingShortcut == item,
+                            handler: { action in
+                                handleAction(for: item, action: action)
+                            }
+                        )
+                        .overlay {
+                            if editingShortcut == item {
+                                KeyCaptureView(onKeyDown: { event in
+                                    handleKeyCapture(event)
+                                })
+                                .allowsHitTesting(false)
                             }
                         }
                     }
                 }
             }
         }
+        .scrollContentBackground(.hidden)
     }
 
     private func handleAction(for item: KeyboardShortcutDefinition, action: ShortcutRowView.Action) {

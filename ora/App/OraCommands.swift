@@ -183,6 +183,13 @@ struct OraCommands: Commands {
                 )
             }
         }
+
+        CommandGroup(replacing: .appSettings) {
+            Button("Settings...") {
+                openWindow(id: "settings")
+            }
+            .keyboardShortcut(",", modifiers: .command)
+        }
     }
 
     // MARK: - Utility Helpers
