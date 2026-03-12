@@ -93,13 +93,12 @@ struct OraApp: App {
         .windowResizability(.contentMinSize)
         .handlesExternalEvents(matching: [])
 
-        Settings {
+        WindowGroup("Settings", id: "settings") {
             if let sharedModelContainer {
                 SettingsContentView()
                     .environmentObject(AppearanceManager.shared)
                     .environmentObject(UpdateService.shared)
                     .environmentObject(DefaultBrowserManager.shared)
-                    .withTheme()
                     .modelContainer(sharedModelContainer)
             } else {
                 // Fallback UI when SwiftData is completely broken
@@ -111,6 +110,9 @@ struct OraApp: App {
                 .frame(width: 400, height: 300)
             }
         }
+        .windowToolbarStyle(UnifiedCompactWindowToolbarStyle())
+        .windowResizability(.contentSize)
+        .defaultSize(width: 980, height: 640)
         .commands { OraCommands() }
     }
 }

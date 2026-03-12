@@ -4,31 +4,41 @@ struct PrivacySecuritySettingsView: View {
     @StateObject private var settings = SettingsStore.shared
 
     var body: some View {
-        SettingsContainer(maxContentWidth: 760) {
-            Form {
-                VStack(alignment: .leading, spacing: 32) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Section {
-                            Text("Tracking Prevention").foregroundStyle(.secondary)
-                            Toggle("Block third-party trackers", isOn: $settings.blockThirdPartyTrackers)
-                            Toggle("Block fingerprinting", isOn: $settings.blockFingerprinting)
-                            Toggle("Ad Blocking", isOn: $settings.adBlocking)
-                        }
-                    }
+        SettingsSection {
+            SettingsCard(header: "Tracking Prevention") {
+                HStack {
+                    Text("Soon")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Color(.controlColor), in: Capsule())
+                }
 
-                    VStack(alignment: .leading, spacing: 8) {
-                        Section {
-                            Text("Cookies").foregroundStyle(.secondary)
-                            Picker("", selection: $settings.cookiesPolicy) {
-                                ForEach(CookiesPolicy.allCases) { policy in
-                                    Text(policy.rawValue).tag(policy)
-                                }
-                            }
-                            .pickerStyle(.radioGroup)
-                        }
+                Toggle("Block third-party trackers", isOn: .constant(false))
+                Toggle("Block fingerprinting", isOn: .constant(false))
+                Toggle("Ad Blocking", isOn: .constant(false))
+            }
+            .disabled(true)
+
+            SettingsCard(header: "Cookies") {
+                HStack {
+                    Text("Soon")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Color(.controlColor), in: Capsule())
+                }
+
+                Picker("", selection: .constant(CookiesPolicy.allowAll)) {
+                    ForEach(CookiesPolicy.allCases) { policy in
+                        Text(policy.rawValue).tag(policy)
                     }
                 }
+                .pickerStyle(.radioGroup)
             }
+            .disabled(true)
         }
     }
 }

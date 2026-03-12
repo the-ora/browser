@@ -1,6 +1,7 @@
+import AppKit
 import SwiftUI
 
-enum SettingsTab: String, Hashable {
+enum SettingsTab: String, Hashable, CaseIterable {
     case general
     case spaces
     case privacySecurity
@@ -29,6 +30,23 @@ enum SettingsTab: String, Hashable {
         case .searchEngines: return "magnifyingglass"
         }
     }
+
+    var subtitle: String {
+        switch self {
+        case .general:
+            return "Browser defaults, app behavior, and software updates."
+        case .spaces:
+            return "Space-specific defaults and per-space data controls."
+        case .privacySecurity:
+            return "Tracking prevention, cookies, and privacy protections."
+        case .passwords:
+            return "Password manager integration, vault access, and autofill behavior."
+        case .shortcuts:
+            return "Keyboard shortcuts and command mappings."
+        case .searchEngines:
+            return "Default search providers, AI engines, and custom shortcuts."
+        }
+    }
 }
 
 struct SettingsContentView: View {
@@ -43,37 +61,39 @@ struct SettingsContentView: View {
         )
     }
 
+    private var selectedTab: SettingsTab {
+        SettingsTab(rawValue: selectionRawValue) ?? .general
+    }
+
     var body: some View {
-        TabView(selection: selection) {
-            GeneralSettingsView()
-                .tabItem { Label(SettingsTab.general.title, systemImage: SettingsTab.general.symbol) }
-                .tag(SettingsTab.general)
-
-            SpacesSettingsView()
-                .tabItem { Label(SettingsTab.spaces.title, systemImage: SettingsTab.spaces.symbol) }
-                .tag(SettingsTab.spaces)
-
-            PrivacySecuritySettingsView()
-                .tabItem {
-                    Label(SettingsTab.privacySecurity.title, systemImage: SettingsTab.privacySecurity.symbol)
-                }
-                .tag(SettingsTab.privacySecurity)
-
-            PasswordsSettingsView()
-                .tabItem { Label(SettingsTab.passwords.title, systemImage: SettingsTab.passwords.symbol) }
-                .tag(SettingsTab.passwords)
-
-            ShortcutsSettingsView()
-                .tabItem { Label(SettingsTab.shortcuts.title, systemImage: SettingsTab.shortcuts.symbol) }
-                .tag(SettingsTab.shortcuts)
-
-            SearchEngineSettingsView()
-                .tabItem { Label(SettingsTab.searchEngines.title, systemImage: SettingsTab.searchEngines.symbol) }
-                .tag(SettingsTab.searchEngines)
+        NavigationSplitView {
+            List(SettingsTab.allCases, id: \.self, selection: selection) { tab in
+                Label(tab.title, systemImage: tab.symbol)
+            }
+            .navigationSplitViewColumnWidth(200)
+        } detail: {
+            detailView
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .navigationTitle(selectedTab.title)
+                .navigationSubtitle(selectedTab.subtitle)
         }
-        .tabViewStyle(.automatic)
-        .frame(width: 860, height: 600)
-        .padding(0)
-        .controlSize(.regular)
+    }
+
+    @ViewBuilder
+    private var detailView: some View {
+        switch selectedTab {
+        case .general:
+            GeneralSettingsView()
+        case .spaces:
+            SpacesSettingsView()
+        case .privacySecurity:
+            PrivacySecuritySettingsView()
+        case .passwords:
+            PasswordsSettingsView()
+        case .shortcuts:
+            ShortcutsSettingsView()
+        case .searchEngines:
+            SearchEngineSettingsView()
+        }
     }
 }

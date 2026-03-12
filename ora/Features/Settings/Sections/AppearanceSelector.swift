@@ -2,7 +2,6 @@ import SwiftUI
 
 struct AppearanceSelector: View {
     @Binding var selection: AppAppearance
-    @Environment(\.theme) var theme
 
     private struct Option: Identifiable {
         let id = UUID()
@@ -40,7 +39,7 @@ struct AppearanceSelector: View {
                         .padding(6)
                         .background(
                             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .fill(isSelected ? theme.foreground.opacity(0.12) : Color.clear)
+                                .fill(isSelected ? Color(.controlColor) : Color.clear)
                         )
                     }
                     .buttonStyle(.plain)
