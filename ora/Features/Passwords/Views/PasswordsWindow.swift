@@ -143,59 +143,79 @@ private struct PasswordsWindowView: View {
 
     private var lockedVaultState: some View {
         VStack(spacing: 18) {
-            Image(systemName: "lock.fill")
-                .font(.system(size: 56, weight: .regular))
-                .foregroundStyle(theme.mutedForeground.opacity(0.75))
+            ZStack(alignment: .bottomTrailing) {
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 60, weight: .regular))
+                    .foregroundStyle(Color.secondary.opacity(0.75))
+
+                if passwordManager.canUseBiometricAuthentication() {
+                    Button {
+                        unlockVault()
+                    } label: {
+                        Image(systemName: "touchid")
+                            .font(.system(size: 24, weight: .semibold))
+                            .foregroundStyle(Color.accentColor)
+                            .frame(width: 38, height: 38)
+                            .background(Color(.windowBackgroundColor).opacity(0.92))
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .help("Use Touch ID to unlock")
+                    .disabled(isAuthenticating)
+                }
+            }
 
             VStack(spacing: 8) {
                 Text("Passwords Are Locked")
                     .font(.title3.weight(.semibold))
 
-                Text("Use Touch ID or your Mac password to unlock your saved passwords.")
+                Text("Authenticate to view saved passwords.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: 360)
             }
 
-            OraButton(
-                label: isAuthenticating ? "Unlocking..." : "Unlock Passwords",
-                variant: .outline,
-                isDisabled: isAuthenticating,
-                leadingIcon: passwordManager.canUseBiometricAuthentication() ? "touchid" : "lock.open"
-            ) {
+            Button {
                 unlockVault()
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: passwordManager.canUseBiometricAuthentication() ? "touchid" : "lock.open")
+                    Text(isAuthenticating ? "Unlocking..." : "Unlock Passwords")
+                }
             }
+            .disabled(isAuthenticating)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .frame(maxWidth: .infinity, minHeight: 260, maxHeight: .infinity, alignment: .center)
     }
 
     private var passwordsTable: some View {
-        VStack(spacing: 0) {
-            passwordTableHeader
+        ScrollView(.horizontal, showsIndicators: true) {
+            VStack(spacing: 0) {
+                passwordTableHeader
 
-            Divider()
-                .overlay(theme.border.opacity(0.7))
+                Divider()
+                    .overlay(Color(.separatorColor).opacity(0.7))
 
-            ScrollView {
-                LazyVStack(spacing: 0) {
-                    ForEach(filteredEntries, id: \.id) { entry in
-                        passwordTableRow(entry)
+                ScrollView(.vertical) {
+                    LazyVStack(spacing: 0) {
+                        ForEach(filteredEntries, id: \.id) { entry in
+                            passwordTableRow(entry)
 
-                        if entry.id != filteredEntries.last?.id {
-                            Divider()
-                                .overlay(theme.border.opacity(0.45))
-                                .padding(.leading, 12)
+                            if entry.id != filteredEntries.last?.id {
+                                Divider()
+                                    .overlay(Color(.separatorColor).opacity(0.45))
+                                    .padding(.leading, 12)
+                            }
                         }
                     }
                 }
             }
+            .frame(minWidth: 800)
         }
-        .background(theme.solidWindowBackgroundColor)
+        .background(Color(.controlBackgroundColor).opacity(0.5))
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(theme.border.opacity(0.55), lineWidth: 1)
+                .stroke(Color(.separatorColor).opacity(0.55), lineWidth: 1)
         }
     }
 
@@ -208,7 +228,7 @@ private struct PasswordsWindowView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
-        .background(theme.background.opacity(0.16))
+        .background(Color(.controlBackgroundColor).opacity(0.3))
     }
 
     private func passwordTableRow(_ entry: SavedPasswordSummary) -> some View {
@@ -313,7 +333,7 @@ private struct PasswordsWindowView: View {
                     .foregroundStyle(.red)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .frame(maxWidth: .infinity, minHeight: 200, maxHeight: .infinity, alignment: .center)
     }
 
     private func unlockVault() {
