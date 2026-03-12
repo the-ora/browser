@@ -428,12 +428,36 @@ class TabManager: ObservableObject {
         }
     }
 
+    /// Remove tabs in containers that have a per-space autoClearTabsAfter setting
+    func autoClearContainerTabs() {
+        let settings = SettingsStore.shared
+        let allContainers = fetchContainers()
+
+        for container in allContainers {
+            let policy = settings.autoClearTabsAfter(for: container.id)
+            guard let timeout = policy.seconds else { continue }
+
+            let cutoffDate = Date().addingTimeInterval(-timeout)
+            for tab in container.tabs {
+                if let lastAccessed = tab.lastAccessedAt,
+                   lastAccessed < cutoffDate,
+                   tab.id != activeTab?.id,
+                   !tab.isPlayingMedia,
+                   tab.type == .normal
+                {
+                    closeTab(tab: tab)
+                }
+            }
+        }
+    }
+
     /// Start the automatic cleanup timer
     private func startCleanupTimer() {
         cleanupTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { [weak self] _ in
             DispatchQueue.main.async {
                 self?.cleanupOldTabs()
                 self?.removeOldTabs()
+                self?.autoClearContainerTabs()
             }
         }
     }
