@@ -1,4 +1,5 @@
 import AppKit
+import SwiftData
 import SwiftUI
 
 @MainActor
@@ -10,6 +11,7 @@ func openPasswordsWindow() {
 private final class PasswordsWindowController: NSObject, NSWindowDelegate {
     static let shared = PasswordsWindowController()
 
+    private let sharedModelContainer = try? ModelConfiguration.createOraContainer(isPrivate: false)
     private var windowController: NSWindowController?
 
     func show() {
@@ -19,10 +21,20 @@ private final class PasswordsWindowController: NSObject, NSWindowDelegate {
             return
         }
 
-        let hostingController = NSHostingController(
-            rootView: PasswordsWindowView()
-                .withTheme()
-        )
+        let rootView = if let sharedModelContainer {
+            AnyView(
+                PasswordsWindowView()
+                    .modelContainer(sharedModelContainer)
+                    .withTheme()
+            )
+        } else {
+            AnyView(
+                PasswordsWindowUnavailableView()
+                    .withTheme()
+            )
+        }
+
+        let hostingController = NSHostingController(rootView: rootView)
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 1040, height: 620),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
@@ -53,21 +65,49 @@ private final class PasswordsWindowController: NSObject, NSWindowDelegate {
     }
 }
 
+private struct PasswordsWindowUnavailableView: View {
+    @Environment(\.theme) private var theme
+
+    var body: some View {
+        ZStack {
+            theme.background
+                .ignoresSafeArea()
+
+            Text("Passwords are unavailable because the shared data store could not be opened.")
+                .foregroundStyle(.secondary)
+                .padding(24)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        }
+        .frame(minWidth: 960, minHeight: 480)
+    }
+}
+
 private struct PasswordsWindowView: View {
+    @Query(sort: \TabContainer.lastAccessedAt, order: .reverse) var containers: [TabContainer]
+
     @Environment(\.theme) private var theme
     @StateObject private var passwordManager = PasswordManagerService.shared
 
     @State private var searchText = ""
     @State private var isUnlocked = false
     @State private var isAuthenticating = false
+    @State private var selectedContainerId: UUID?
     @State private var revealedPasswordIDs: [String: String] = [:]
     @State private var pendingDelete: SavedPasswordSummary?
 
+    private var selectedContainer: TabContainer? {
+        containers.first { $0.id == selectedContainerId } ?? containers.first
+    }
+
+    private var visibleEntries: [SavedPasswordSummary] {
+        passwordManager.entries(for: selectedContainer?.id)
+    }
+
     private var filteredEntries: [SavedPasswordSummary] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return passwordManager.entries }
+        guard !query.isEmpty else { return visibleEntries }
 
-        return passwordManager.entries.filter { entry in
+        return visibleEntries.filter { entry in
             entry.host.localizedCaseInsensitiveContains(query)
                 || entry.username.localizedCaseInsensitiveContains(query)
         }
@@ -81,7 +121,11 @@ private struct PasswordsWindowView: View {
             VStack(alignment: .leading, spacing: 18) {
                 header
 
-                if isUnlocked {
+                if containers.isEmpty {
+                    emptyState(message: "Create a space to start storing passwords.")
+                } else if isUnlocked {
+                    spacePickerRow
+
                     TextField("Search saved passwords", text: $searchText)
                         .textFieldStyle(.roundedBorder)
 
@@ -98,6 +142,21 @@ private struct PasswordsWindowView: View {
             .padding(20)
         }
         .frame(minWidth: 960, minHeight: 480)
+        .onAppear {
+            if selectedContainerId == nil {
+                selectedContainerId = containers.first?.id
+            }
+        }
+        .onChange(of: containers.map(\.id)) { _, containerIDs in
+            guard let selectedContainerId else {
+                self.selectedContainerId = containerIDs.first
+                return
+            }
+
+            if !containerIDs.contains(selectedContainerId) {
+                self.selectedContainerId = containerIDs.first
+            }
+        }
         .onDisappear {
             lockVault()
         }
@@ -126,7 +185,7 @@ private struct PasswordsWindowView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Saved Passwords")
                     .font(.title2.weight(.semibold))
-                Text("\(passwordManager.entries.count) item\(passwordManager.entries.count == 1 ? "" : "s")")
+                Text("\(visibleEntries.count) item\(visibleEntries.count == 1 ? "" : "s")")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -138,6 +197,30 @@ private struct PasswordsWindowView: View {
                     lockVault()
                 }
             }
+        }
+    }
+
+    private var spacePickerRow: some View {
+        HStack {
+            Text("Space")
+                .font(.subheadline.weight(.medium))
+
+            Spacer()
+
+            Picker(
+                "",
+                selection: Binding(
+                    get: { selectedContainerId ?? containers.first?.id },
+                    set: { selectedContainerId = $0 }
+                )
+            ) {
+                ForEach(containers) { container in
+                    Text(containerLabel(for: container)).tag(Optional(container.id))
+                }
+            }
+            .pickerStyle(.menu)
+            .labelsHidden()
+            .frame(maxWidth: 260, alignment: .trailing)
         }
     }
 
@@ -352,5 +435,9 @@ private struct PasswordsWindowView: View {
         if let password = try? passwordManager.revealPassword(for: entry) {
             passwordManager.copySensitiveToPasteboard(password)
         }
+    }
+
+    private func containerLabel(for container: TabContainer) -> String {
+        "\(container.emoji) \(container.name)"
     }
 }

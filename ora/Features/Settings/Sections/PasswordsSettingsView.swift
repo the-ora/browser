@@ -1,6 +1,9 @@
+import SwiftData
 import SwiftUI
 
 struct PasswordsSettingsView: View {
+    @Query(sort: \TabContainer.lastAccessedAt, order: .reverse) var containers: [TabContainer]
+
     @StateObject private var settings = SettingsStore.shared
     @StateObject private var passwordManager = PasswordManagerService.shared
     private let providers = PasswordManagerProviderRegistry.shared
@@ -8,7 +11,7 @@ struct PasswordsSettingsView: View {
     @State private var searchText = ""
     @State private var isUnlocked = false
     @State private var isAuthenticating = false
-    @State private var unlockedEntries: [SavedPasswordSummary] = []
+    @State private var selectedContainerId: UUID?
     @State private var revealedPasswordIDs: [String: String] = [:]
     @State private var pendingDelete: SavedPasswordSummary?
 
@@ -16,11 +19,19 @@ struct PasswordsSettingsView: View {
         providers.descriptor(for: settings.passwordManagerProvider)
     }
 
+    private var selectedContainer: TabContainer? {
+        containers.first { $0.id == selectedContainerId } ?? containers.first
+    }
+
+    private var visibleEntries: [SavedPasswordSummary] {
+        passwordManager.entries(for: selectedContainer?.id)
+    }
+
     private var filteredEntries: [SavedPasswordSummary] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return unlockedEntries }
+        guard !query.isEmpty else { return visibleEntries }
 
-        return unlockedEntries.filter { entry in
+        return visibleEntries.filter { entry in
             entry.host.localizedCaseInsensitiveContains(query)
                 || entry.username.localizedCaseInsensitiveContains(query)
         }
@@ -30,6 +41,21 @@ struct PasswordsSettingsView: View {
         SettingsSection {
             passwordsOverview
             vaultSection
+        }
+        .onAppear {
+            if selectedContainerId == nil {
+                selectedContainerId = containers.first?.id
+            }
+        }
+        .onChange(of: containers.map(\.id)) { _, containerIDs in
+            guard let selectedContainerId else {
+                self.selectedContainerId = containerIDs.first
+                return
+            }
+
+            if !containerIDs.contains(selectedContainerId) {
+                self.selectedContainerId = containerIDs.first
+            }
         }
         .onDisappear {
             lockVault()
@@ -41,7 +67,6 @@ struct PasswordsSettingsView: View {
             Button("Delete", role: .destructive) {
                 if let pendingDelete {
                     try? passwordManager.delete(pendingDelete)
-                    syncUnlockedEntries()
                 }
                 pendingDelete = nil
             }
@@ -103,7 +128,7 @@ struct PasswordsSettingsView: View {
                     Text(selectedProvider.usesBuiltInVault ? "Saved Credentials" : selectedProvider.title)
                         .font(.headline)
                     if selectedProvider.usesBuiltInVault, isUnlocked {
-                        Text("\(unlockedEntries.count) item\(unlockedEntries.count == 1 ? "" : "s")")
+                        Text("\(visibleEntries.count) item\(visibleEntries.count == 1 ? "" : "s")")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -111,18 +136,20 @@ struct PasswordsSettingsView: View {
 
                 Spacer()
 
-                if selectedProvider.usesBuiltInVault {
-                    if isUnlocked {
-                        Button("Lock") {
-                            lockVault()
-                        }
+                if selectedProvider.usesBuiltInVault, isUnlocked {
+                    Button("Lock") {
+                        lockVault()
                     }
                 }
             }
 
             if !selectedProvider.usesBuiltInVault {
                 emptyState(message: "\(selectedProvider.title) integration coming soon.")
+            } else if containers.isEmpty {
+                emptyState(message: "Create a space to start storing passwords.")
             } else if isUnlocked {
+                spacePickerRow
+
                 TextField("Search saved passwords", text: $searchText)
                     .textFieldStyle(.roundedBorder)
 
@@ -135,6 +162,27 @@ struct PasswordsSettingsView: View {
             } else {
                 lockedVaultState
             }
+        }
+    }
+
+    private var spacePickerRow: some View {
+        HStack {
+            Text("Space")
+            Spacer()
+            Picker(
+                "",
+                selection: Binding(
+                    get: { selectedContainerId ?? containers.first?.id },
+                    set: { selectedContainerId = $0 }
+                )
+            ) {
+                ForEach(containers) { container in
+                    Text(containerLabel(for: container)).tag(Optional(container.id))
+                }
+            }
+            .pickerStyle(.menu)
+            .labelsHidden()
+            .frame(maxWidth: 150, alignment: .trailing)
         }
     }
 
@@ -342,7 +390,6 @@ struct PasswordsSettingsView: View {
                 isAuthenticating = false
                 if authenticated {
                     passwordManager.refresh()
-                    syncUnlockedEntries()
                 }
             }
         }
@@ -352,12 +399,7 @@ struct PasswordsSettingsView: View {
         isUnlocked = false
         isAuthenticating = false
         searchText = ""
-        unlockedEntries.removeAll()
         revealedPasswordIDs.removeAll()
-    }
-
-    private func syncUnlockedEntries() {
-        unlockedEntries = passwordManager.entries
     }
 
     private func toggleReveal(_ entry: SavedPasswordSummary) {
@@ -375,5 +417,9 @@ struct PasswordsSettingsView: View {
         if let password = try? passwordManager.revealPassword(for: entry) {
             passwordManager.copySensitiveToPasteboard(password)
         }
+    }
+
+    private func containerLabel(for container: TabContainer) -> String {
+        "\(container.emoji) \(container.name)"
     }
 }
