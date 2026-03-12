@@ -29,7 +29,7 @@ struct GeneralSettingsView: View {
                     HStack {
                         Text("Born for your Mac. Make Ora your default browser.")
                         Spacer()
-                        Button("Set Ora as default") { DefaultBrowserManager.requestSetAsDefault() }
+                        Button("Set as Default") { DefaultBrowserManager.requestSetAsDefault() }
                     }
                 }
             }
@@ -38,12 +38,8 @@ struct GeneralSettingsView: View {
 
             SettingsCard(header: "Tab Management") {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Automatically clean up old tabs to preserve memory.")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-
                     HStack {
-                        Text("Destroy web views after:")
+                        Text("Suspend inactive tabs after:")
                         Spacer()
                         Picker("", selection: $settings.tabAliveTimeout) {
                             Text("1 hour").tag(TimeInterval(60 * 60))
@@ -57,7 +53,7 @@ struct GeneralSettingsView: View {
                     }
 
                     HStack {
-                        Text("Remove tabs completely after:")
+                        Text("Remove tabs after:")
                         Spacer()
                         Picker("", selection: $settings.tabRemovalTimeout) {
                             Text("1 hour").tag(TimeInterval(60 * 60))
@@ -71,7 +67,7 @@ struct GeneralSettingsView: View {
                     }
 
                     HStack {
-                        Text("Maximum recent tabs to keep in view:")
+                        Text("Max recent tabs:")
                         Spacer()
                         Picker("", selection: $settings.maxRecentTabs) {
                             ForEach(1 ... 10, id: \.self) { num in
@@ -80,17 +76,13 @@ struct GeneralSettingsView: View {
                         }
                         .frame(width: 80)
                     }
-
-                    Text("Note: Pinned and favorite tabs are never automatically removed.")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
                 }
 
                 Toggle("Auto Picture-in-Picture on tab switch", isOn: $settings.autoPiPEnabled)
             }
 
             SettingsCard(header: "Updates") {
-                Toggle("Automatically check for updates", isOn: $settings.autoUpdateEnabled)
+                Toggle("Auto-check for updates", isOn: $settings.autoUpdateEnabled)
 
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
@@ -115,12 +107,6 @@ struct GeneralSettingsView: View {
                         Text(result)
                             .font(.caption)
                             .foregroundColor(updateService.updateAvailable ? .green : .secondary)
-                    }
-
-                    if let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
-                        Text("Current version: \(appVersion)")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
                     }
 
                     if let lastCheck = updateService.lastCheckDate {

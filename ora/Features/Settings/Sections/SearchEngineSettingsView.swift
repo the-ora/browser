@@ -51,9 +51,6 @@ struct SearchEngineSettingsView: View {
                                     "https://example.com/search?q={query}",
                                     text: $newEngineURL
                                 )
-                                Text("Include {query} where the search term should go")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
                                 if !newEngineURL.isEmpty, !isValidURL {
                                     Text("URL must contain {query} and be a valid URL")
                                         .foregroundColor(.red)
@@ -65,25 +62,13 @@ struct SearchEngineSettingsView: View {
                         HStack {
                             Text("Aliases:")
                                 .frame(width: 80, alignment: .leading)
-                            VStack(alignment: .leading, spacing: 4) {
-                                TextField("e.g., ddg, duck", text: $newEngineAliases)
-                                Text("Comma-separated shortcuts (optional)")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
+                            TextField("e.g., ddg, duck", text: $newEngineAliases)
                         }
 
                         HStack {
                             Text("Type:")
                                 .frame(width: 80, alignment: .leading)
-                            VStack(alignment: .leading, spacing: 4) {
-                                Toggle("AI Chat Engine", isOn: $newEngineIsAI)
-                                Text(
-                                    "Check if this is an AI chat service (affects placeholder text)"
-                                )
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            }
+                            Toggle("AI Chat Engine", isOn: $newEngineIsAI)
                         }
 
                         HStack {
@@ -97,18 +82,7 @@ struct SearchEngineSettingsView: View {
                 }
             }
 
-            SettingsCard(header: "Global Default Engines") {
-                HStack {
-                    Spacer()
-                    Text("Individual spaces can override these defaults")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                Text("Choose which search engines to use by default across all spaces:")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
+            SettingsCard(header: "Default Engines") {
                 // Conventional Search Engines
                 let conventionalEngines = searchEngineService.builtInSearchEngines.filter {
                     !$0.isAIChat
@@ -359,14 +333,7 @@ struct CustomSearchEngineRow: View {
                         HStack {
                             Text("Type:")
                                 .frame(width: 80, alignment: .leading)
-                            VStack(alignment: .leading, spacing: 4) {
-                                Toggle("AI Chat Engine", isOn: $editIsAI)
-                                Text(
-                                    "Check if this is an AI chat service (affects placeholder text)"
-                                )
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            }
+                            Toggle("AI Chat Engine", isOn: $editIsAI)
                         }
 
                         HStack {

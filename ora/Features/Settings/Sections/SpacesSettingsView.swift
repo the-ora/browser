@@ -33,10 +33,7 @@ struct SpacesSettingsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     if let container = selectedContainer {
-                        SettingsCard(
-                            header: "Space-Specific Defaults",
-                            description: "Configure default settings for this space"
-                        ) {
+                        SettingsCard(header: "Defaults") {
                             Grid(alignment: .leading, verticalSpacing: 12) {
                                 GridRow {
                                     Text("Search Engine")
@@ -111,7 +108,7 @@ struct SpacesSettingsView: View {
                             }
                         }
 
-                        SettingsCard(header: "Privacy & Data", description: "Clear stored data for this space") {
+                        SettingsCard(header: "Clear Data") {
                             VStack(spacing: 8) {
                                 Button("Clear Cache") {
                                     PrivacyService.clearCache(container)
@@ -132,15 +129,9 @@ struct SpacesSettingsView: View {
                         }
 
                     } else {
-                        VStack(spacing: 12) {
-                            Text("No spaces found")
-                                .font(.headline)
-                                .foregroundStyle(.secondary)
-                            Text("Create a space to configure its settings")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        Text("No spaces found")
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                     Spacer(minLength: 0)
                 }

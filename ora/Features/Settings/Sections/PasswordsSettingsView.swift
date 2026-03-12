@@ -77,26 +77,21 @@ struct PasswordsSettingsView: View {
             }
 
             Toggle("Enable password manager", isOn: $settings.passwordsEnabled)
-            Toggle("Show autofill suggestions on login forms", isOn: $settings.passwordAutofillEnabled)
+            Toggle("Autofill on login forms", isOn: $settings.passwordAutofillEnabled)
                 .disabled(!settings.passwordsEnabled)
-            Toggle(
-                "Submit login forms after selecting a saved password",
-                isOn: $settings.passwordAutofillSubmitEnabled
-            )
-            .disabled(
-                !settings.passwordsEnabled
-                    || !settings.passwordAutofillEnabled
-                    || !selectedProvider.usesBuiltInOverlay
-            )
-            Toggle("Ask to save or update passwords after sign in", isOn: $settings.passwordSavePromptsEnabled)
+            Toggle("Auto-submit after autofill", isOn: $settings.passwordAutofillSubmitEnabled)
+                .disabled(
+                    !settings.passwordsEnabled
+                        || !settings.passwordAutofillEnabled
+                        || !selectedProvider.usesBuiltInOverlay
+                )
+            Toggle("Prompt to save passwords", isOn: $settings.passwordSavePromptsEnabled)
                 .disabled(!settings.passwordsEnabled || !selectedProvider.usesBuiltInVault)
 
             if !selectedProvider.isAvailable {
-                Text(
-                    "\(selectedProvider.title) is not integrated yet. Selecting it reserves the provider slot, but Ora will not show its built-in vault or save prompts for that provider."
-                )
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                Text("\(selectedProvider.title) is not yet integrated.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
     }
@@ -107,18 +102,8 @@ struct PasswordsSettingsView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(selectedProvider.usesBuiltInVault ? "Saved Credentials" : selectedProvider.title)
                         .font(.headline)
-                    if selectedProvider.usesBuiltInVault {
-                        if isUnlocked {
-                            Text("\(unlockedEntries.count) item\(unlockedEntries.count == 1 ? "" : "s")")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        } else {
-                            Text("Unlock to view saved passwords.")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    } else {
-                        Text("This provider will manage its own vault and autofill UI once integrated.")
+                    if selectedProvider.usesBuiltInVault, isUnlocked {
+                        Text("\(unlockedEntries.count) item\(unlockedEntries.count == 1 ? "" : "s")")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -136,9 +121,7 @@ struct PasswordsSettingsView: View {
             }
 
             if !selectedProvider.usesBuiltInVault {
-                emptyState(
-                    message: "\(selectedProvider.title) will expose its own account picker, vault controls, and autofill overlay when the native integration is added."
-                )
+                emptyState(message: "\(selectedProvider.title) integration coming soon.")
             } else if isUnlocked {
                 TextField("Search saved passwords", text: $searchText)
                     .textFieldStyle(.roundedBorder)
@@ -183,13 +166,9 @@ struct PasswordsSettingsView: View {
                 Text("Passwords Are Locked")
                     .font(.title3.weight(.semibold))
 
-                Text(
-                    "Use Touch ID or your Mac password to unlock passwords for \"\(passwordManager.currentAccountDisplayName())\"."
-                )
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 360)
+                Text("Authenticate to view saved passwords.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
 
             Button {
