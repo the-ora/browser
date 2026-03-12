@@ -8,6 +8,14 @@ struct URLBarButton: View {
     let action: () -> Void
     @State private var isHovering = false
 
+    private var cornerRadius: CGFloat {
+        if #available(macOS 26, *) {
+            return 10
+        } else {
+            return 6
+        }
+    }
+
     var body: some View {
         Button(action: action) {
             Image(systemName: systemName)
@@ -18,7 +26,7 @@ struct URLBarButton: View {
                 )
                 .frame(width: 30, height: 30)
                 .background(
-                    ConditionallyConcentricRectangle(cornerRadius: 10)
+                    ConditionallyConcentricRectangle(cornerRadius: cornerRadius)
                         .fill(isHovering && isEnabled ? foregroundColor.opacity(0.2) : Color.clear)
                 )
         }
