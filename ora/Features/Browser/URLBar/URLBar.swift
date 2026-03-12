@@ -15,8 +15,6 @@ struct URLBar: View {
     @FocusState private var isEditing: Bool
     @Environment(\.colorScheme) var colorScheme
 
-    let onSidebarToggle: () -> Void
-
     private func getForegroundColor(_ tab: Tab) -> Color {
         // Convert backgroundColor to NSColor for luminance calculation
         let nsColor = NSColor(tab.backgroundColor)
@@ -65,6 +63,8 @@ struct URLBar: View {
             picker.show(relativeTo: sourceRect, of: sourceView, preferredEdge: .minY)
         }
     }
+
+    let onSidebarToggle: () -> Void
 
     var body: some View {
         HStack {
