@@ -26,8 +26,10 @@ struct HomeView: View {
             }
             .zIndex(3)
             .frame(maxWidth: .infinity, alignment: sidebarManager.sidebarPosition == .primary ? .leading : .trailing)
-            .padding(6)
+            .padding(.vertical, 10)
+            .padding(.horizontal, 4)
             .ignoresSafeArea(.all)
+            .opacity(sidebarManager.isSidebarHidden ? 1 : 0)
 
             VStack(alignment: .center, spacing: 16) {
                 Image("ora-logo-plain")

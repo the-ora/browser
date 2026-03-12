@@ -29,7 +29,7 @@ struct SidebarToolbar: View {
                         HStack {
                             URLBarButton(
                                 systemName: sidebarIcon,
-                                isEnabled: tabManager.activeTab != nil,
+                                isEnabled: true,
                                 foregroundColor: theme.foreground.opacity(0.7),
                                 action: { sidebarManager.toggleSidebar() }
                             )
@@ -78,7 +78,7 @@ struct SidebarToolbar: View {
                             Spacer()
                             URLBarButton(
                                 systemName: sidebarIcon,
-                                isEnabled: tabManager.activeTab != nil,
+                                isEnabled: true,
                                 foregroundColor: theme.foreground.opacity(0.7),
                                 action: { sidebarManager.toggleSidebar() }
                             )

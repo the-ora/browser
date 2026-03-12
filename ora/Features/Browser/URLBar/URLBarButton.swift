@@ -12,12 +12,13 @@ struct URLBarButton: View {
         Button(action: action) {
             Image(systemName: systemName)
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(isEnabled ? (isHovering ? foregroundColor.opacity(0.8) : foregroundColor) :
+                .foregroundColor(isEnabled ?
+                    (isHovering ? foregroundColor.opacity(0.8) : foregroundColor.opacity(0.4)) :
                     foregroundColor.opacity(0.5)
                 )
                 .frame(width: 30, height: 30)
                 .background(
-                    ConditionallyConcentricRectangle(cornerRadius: 6)
+                    ConditionallyConcentricRectangle(cornerRadius: 10)
                         .fill(isHovering && isEnabled ? foregroundColor.opacity(0.2) : Color.clear)
                 )
         }
