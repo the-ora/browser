@@ -71,6 +71,7 @@ struct SettingsContentView: View {
                 Label(tab.title, systemImage: tab.symbol)
             }
             .navigationSplitViewColumnWidth(200)
+            .padding(.top, 8)
         } detail: {
             detailView
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
