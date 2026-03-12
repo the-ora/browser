@@ -77,7 +77,6 @@ struct SettingsContentView: View {
                 .navigationTitle(selectedTab.title)
                 .navigationSubtitle(selectedTab.subtitle)
         }
-        .frame(width: 860, height: 600)
     }
 
     @ViewBuilder
