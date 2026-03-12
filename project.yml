@@ -111,6 +111,7 @@ targets:
         PRODUCT_NAME: Ora
         PRODUCT_BUNDLE_IDENTIFIER: com.orabrowser.app
         GENERATE_INFOPLIST_FILE: YES
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         SUFeedURL: "https://the-ora.github.io/browser/appcast.xml"
         SUPublicEDKey: "Ozj+rezzbJAD76RfajtfQ7rFojJbpFSCl/0DcFSBCTI="
         SUEnableAutomaticChecks: YES

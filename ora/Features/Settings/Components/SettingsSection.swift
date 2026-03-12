@@ -5,10 +5,10 @@ struct SettingsSection<Content: View>: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 16) {
                 content()
             }
-            .padding(12)
+            .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }

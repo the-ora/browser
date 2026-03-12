@@ -39,7 +39,7 @@ struct AppearanceSelector: View {
                         .padding(6)
                         .background(
                             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .fill(isSelected ? Color.accentColor.opacity(0.12) : Color.clear)
+                                .fill(isSelected ? Color(.controlColor) : Color.clear)
                         )
                     }
                     .buttonStyle(.plain)
