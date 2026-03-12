@@ -350,9 +350,9 @@ class TabManager: ObservableObject {
     }
 
     func restoreLastTab() {
-        guard let undoManager = modelContext.undoManager else { return }
-        undoManager.undo() // Reverts the last deletion
-        try? modelContext.save() // Persist the undo operation
+        guard let undoManager = modelContext.undoManager, undoManager.canUndo else { return }
+        undoManager.undo()
+        try? modelContext.save()
     }
 
     func togglePiP(_ currentTab: Tab?, _ oldTab: Tab?) {

@@ -19,12 +19,6 @@ enum KeyboardShortcuts {
         )
         static let restore = KeyboardShortcutDefinition(
             id: "tabs.restore",
-            name: "Restore Tab",
-            category: "Tabs",
-            defaultChord: KeyChord(keyEquivalent: .init("z"), modifiers: [.command])
-        )
-        static let reopenClosed = KeyboardShortcutDefinition(
-            id: "tabs.reopenClosed",
             name: "Reopen Closed Tab",
             category: "Tabs",
             defaultChord: KeyChord(keyEquivalent: .init("t"), modifiers: [.command, .shift])
@@ -317,7 +311,7 @@ enum KeyboardShortcuts {
     /// All keyboard shortcut definitions
     static let allShortcuts: [KeyboardShortcutDefinition] = [
         // Tabs
-        Tabs.new, Tabs.close, Tabs.restore, Tabs.reopenClosed, Tabs.next, Tabs.previous,
+        Tabs.new, Tabs.close, Tabs.restore, Tabs.next, Tabs.previous,
         Tabs.moveRight, Tabs.moveLeft, Tabs.pin,
         Tabs.tab1, Tabs.tab2, Tabs.tab3, Tabs.tab4, Tabs.tab5,
         Tabs.tab6, Tabs.tab7, Tabs.tab8, Tabs.tab9,
