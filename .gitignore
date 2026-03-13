@@ -96,4 +96,4 @@ codesign*
 # !build/appcast.xml
 # !build/dsa_pub.pem
 
-Vendor/
+Vendor/CEF
