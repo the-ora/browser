@@ -51,10 +51,8 @@ final class ToastManager: ObservableObject {
 
     func pauseTimers() {
         isHovered = true
-        for (id, timer) in dismissTimers {
-            timer.cancel()
-            dismissTimers.removeValue(forKey: id)
-        }
+        dismissTimers.values.forEach { $0.cancel() }
+        dismissTimers.removeAll()
     }
 
     func resumeTimers() {
