@@ -358,6 +358,13 @@ class SettingsStore: ObservableObject {
         objectWillChange.send()
     }
 
+    func removeContainerSettings(for containerId: UUID) {
+        defaults.removeObject(forKey: keyForDefaultSearch(for: containerId))
+        defaults.removeObject(forKey: keyForDefaultAI(for: containerId))
+        defaults.removeObject(forKey: keyForAutoClear(for: containerId))
+        objectWillChange.send()
+    }
+
     // MARK: - Permissions
 
     func upsertSitePermission(_ permission: SitePermissionSettings) {

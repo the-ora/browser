@@ -153,12 +153,39 @@ class TabManager: ObservableObject {
     }
 
     func deleteContainer(_ container: TabContainer) {
-        do {
-            try PasswordManagerService.shared.deleteEntries(for: container.id)
-        } catch {
-            return
+        let containerId = container.id
+        Task { @MainActor in
+            try PasswordManagerService.shared.deleteEntries(for: containerId)
+
+            await PrivacyService.clearAllWebsiteData(for: containerId)
+
+            guard let persistedContainer = fetchContainer(id: containerId) else {
+                SettingsStore.shared.removeContainerSettings(for: containerId)
+                return
+            }
+
+            let wasActiveContainer = activeContainer?.id == containerId
+            prepareForContainerDeletion(isActiveContainer: wasActiveContainer)
+            deleteContainerContents(persistedContainer, containerId: containerId)
+
+            // Save child deletions before deleting the container.
+            // In practice, SwiftData can fail when the parent and children are
+            // removed in the same save pass while non-optional inverse
+            // relationships still exist.
+            try? modelContext.save()
+
+            guard let containerToDelete = fetchContainer(id: containerId) else {
+                SettingsStore.shared.removeContainerSettings(for: containerId)
+                activateFallbackContainerIfNeeded(afterDeletingActiveContainer: wasActiveContainer)
+                return
+            }
+
+            modelContext.delete(containerToDelete)
+            try? modelContext.save()
+            SettingsStore.shared.removeContainerSettings(for: containerId)
+
+            activateFallbackContainerIfNeeded(afterDeletingActiveContainer: wasActiveContainer)
         }
-        modelContext.delete(container)
     }
 
     func activateContainer(_ container: TabContainer, activateLastAccessedTab: Bool = true) {
@@ -522,6 +549,66 @@ class TabManager: ObservableObject {
             // Failed to fetch containers
         }
         return []
+    }
+
+    private func fetchContainer(id: UUID) -> TabContainer? {
+        let descriptor = FetchDescriptor<TabContainer>(
+            predicate: #Predicate { $0.id == id }
+        )
+
+        do {
+            return try modelContext.fetch(descriptor).first
+        } catch {
+            return nil
+        }
+    }
+
+    private func prepareForContainerDeletion(isActiveContainer: Bool) {
+        guard isActiveContainer else { return }
+
+        activeTab?.maybeIsActive = false
+        activeTab = nil
+        activeContainer = nil
+    }
+
+    private func deleteContainerContents(_ container: TabContainer, containerId: UUID) {
+        for tab in Array(container.tabs) {
+            if tab.isWebViewReady {
+                tab.destroyWebView()
+            }
+            mediaController.removeSession(for: tab.id)
+            modelContext.delete(tab)
+        }
+
+        for folder in Array(container.folders) {
+            modelContext.delete(folder)
+        }
+
+        for history in fetchHistory(for: containerId) {
+            modelContext.delete(history)
+        }
+    }
+
+    private func activateFallbackContainerIfNeeded(afterDeletingActiveContainer wasActiveContainer: Bool) {
+        guard wasActiveContainer else { return }
+
+        if let nextContainer = fetchContainers().first {
+            activateContainer(nextContainer)
+        } else {
+            _ = createContainer()
+        }
+    }
+
+    private func fetchHistory(for containerId: UUID) -> [History] {
+        let descriptor = FetchDescriptor<History>(
+            predicate: #Predicate { $0.container?.id == containerId }
+        )
+
+        do {
+            return try modelContext.fetch(descriptor)
+        } catch {
+            return []
+        }
     }
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
