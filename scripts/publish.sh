@@ -1,12 +1,17 @@
 #!/bin/bash
 set -euo pipefail
 
-# publish.sh — Generate the Sparkle appcast, create a GitHub release, and deploy the feed.
+# publish.sh — Generate changelogs, build the Sparkle appcast, create a GitHub
+# release, and deploy the feed.
 #
 # Usage: ./scripts/publish.sh
 #
 # Expects build/Ora-Browser-<version>.dmg to exist (run build.sh first).
 # Reads version from project.yml. Expects .env with: ORA_PRIVATE_KEY
+# Optional changelog env vars:
+#   ORA_CHANGELOG_MODEL   Override the Codex model used for changelog rewriting
+#   ORA_CHANGELOG_REVIEW  Set to 1 to open generated notes in $EDITOR
+#   ORA_CHANGELOG_NO_LLM  Set to 1 to force deterministic fallback notes
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/_common.sh"
@@ -19,10 +24,38 @@ VERSION=$(grep "MARKETING_VERSION:" project.yml | sed 's/.*MARKETING_VERSION: //
 DMG_NAME="Ora-Browser-${VERSION}.dmg"
 DMG_FILE="build/${DMG_NAME}"
 SPARKLE_ARCHIVES_DIR="build/sparkle"
+CHANGELOG_DIR="build/release-notes"
+CHANGELOG_FILE="${CHANGELOG_DIR}/Ora-Browser-${VERSION}.md"
 RELEASE_NOTES_FILE="${SPARKLE_ARCHIVES_DIR}/Ora-Browser-${VERSION}.html"
 APPCAST_FILE="${SPARKLE_ARCHIVES_DIR}/appcast.xml"
 
 [[ -f "$DMG_FILE" ]] || die "DMG not found at $DMG_FILE. Run ./scripts/build.sh first."
+
+rm -rf "$SPARKLE_ARCHIVES_DIR"
+rm -rf "$CHANGELOG_DIR"
+mkdir -p "$CHANGELOG_DIR"
+mkdir -p "$SPARKLE_ARCHIVES_DIR"
+
+# --- Changelog generation ---
+
+step "Generating changelog"
+
+LAST_TAG=$(git describe --tags --abbrev=0 --exclude "v$VERSION" 2>/dev/null || true)
+[[ -n "$LAST_TAG" ]] || die "No previous tag found. Create a release tag before publishing."
+
+CHANGELOG_ARGS=(
+    "$SCRIPT_DIR/generate-changelog.py"
+    "$LAST_TAG"
+    "v$VERSION"
+    "$REPO"
+    --output-markdown "$CHANGELOG_FILE"
+    --output-html "$RELEASE_NOTES_FILE"
+)
+
+[[ "${ORA_CHANGELOG_REVIEW:-0}" == "1" ]] && CHANGELOG_ARGS+=(--review)
+[[ "${ORA_CHANGELOG_NO_LLM:-0}" == "1" ]] && CHANGELOG_ARGS+=(--no-llm)
+
+python3 "${CHANGELOG_ARGS[@]}"
 
 # --- Sparkle appcast ---
 
@@ -33,60 +66,8 @@ SPARKLE_BIN=$(/bin/ls -d /opt/homebrew/Caskroom/sparkle/*/bin 2>/dev/null | sort
 [[ -n "$SPARKLE_BIN" ]] && export PATH="$SPARKLE_BIN:$PATH"
 command -v generate_appcast >/dev/null || die "generate_appcast not found. Install sparkle: brew install --cask sparkle"
 
-# Generate changelog from commits since last tag
-LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
-if [[ -n "$LAST_TAG" ]]; then
-    COMMITS=$(git log --pretty=format:"%s%x1F%an" --no-merges "$LAST_TAG"..HEAD)
-else
-    COMMITS=$(git log --pretty=format:"%s%x1F%an" --no-merges --max-count=50)
-fi
-
-html_escape() {
-    local s="$1"
-    s="${s//&/&amp;}"; s="${s//</&lt;}"; s="${s//>/&gt;}"; s="${s//\"/&quot;}"
-    printf '%s' "$s"
-}
-
-declare -a FEAT=() FIX=() PERF=() DOCS=() CHORE=() OTHER=()
-while IFS=$'\x1F' read -r subject author; do
-    [[ -z "$subject" || "$subject" == "-" ]] && continue
-    [[ "$subject" =~ ^chore\(release\):\ v[0-9] ]] && continue
-    [[ "$subject" =~ ^[Uu]pdate\ to\ v[0-9] ]] && continue
-    entry="$(html_escape "$subject") — $(html_escape "$author")"
-    case "$subject" in
-        feat*|Feat*)   FEAT+=("$entry")  ;;
-        fix*|Fix*)     FIX+=("$entry")   ;;
-        perf*|Perf*)   PERF+=("$entry")  ;;
-        docs*|Docs*)   DOCS+=("$entry")  ;;
-        chore*|Chore*) CHORE+=("$entry") ;;
-        *)             OTHER+=("$entry") ;;
-    esac
-done <<< "$COMMITS"
-
-CHANGELOG='<div class="changelog">'
-for section in "Features:FEAT" "Fixes:FIX" "Performance:PERF" "Docs:DOCS" "Chores:CHORE" "Other:OTHER"; do
-    title="${section%%:*}"
-    declare -n arr="${section##*:}"
-    if [[ ${#arr[@]} -gt 0 ]]; then
-        CHANGELOG+=$'\n'"  <h3>$title</h3>"$'\n'"  <ul>"
-        for item in "${arr[@]}"; do
-            [[ -n "$item" ]] && CHANGELOG+=$'\n'"    <li>$item</li>"
-        done
-        CHANGELOG+=$'\n'"  </ul>"
-    fi
-done
-CHANGELOG+=$'\n'"</div>"
-
-rm -rf "$SPARKLE_ARCHIVES_DIR"
-mkdir -p "$SPARKLE_ARCHIVES_DIR"
 cp "$DMG_FILE" "$SPARKLE_ARCHIVES_DIR/"
 [[ -f appcast.xml ]] && cp appcast.xml "$APPCAST_FILE"
-
-cat > "$RELEASE_NOTES_FILE" <<RELEASE_NOTES_EOF
-<h2>Ora Browser v$VERSION</h2>
-<p>Changes since last release:</p>
-$CHANGELOG
-RELEASE_NOTES_EOF
 
 printf '%s' "$ORA_PRIVATE_KEY" | generate_appcast \
     --ed-key-file - \
@@ -112,12 +93,16 @@ git push origin main
 step "GitHub release"
 
 if gh release view "v$VERSION" --repo "$REPO" >/dev/null 2>&1; then
+    gh release edit "v$VERSION" \
+        --repo "$REPO" \
+        --title "v$VERSION" \
+        --notes-file "$CHANGELOG_FILE"
     gh release upload "v$VERSION" "$DMG_FILE" --repo "$REPO" --clobber
 else
     gh release create "v$VERSION" "$DMG_FILE" \
         --repo "$REPO" \
         --title "v$VERSION" \
-        --generate-notes
+        --notes-file "$CHANGELOG_FILE"
 fi
 
 echo "Release: https://github.com/$REPO/releases/tag/v$VERSION"
