@@ -12,6 +12,7 @@ class DownloadManager: ObservableObject {
     let modelContainer: ModelContainer
     let modelContext: ModelContext
     private var activeDownloadTasks: [UUID: WKDownload] = [:]
+    weak var toastManager: ToastManager?
 
     init(
         modelContainer: ModelContainer,
@@ -62,6 +63,9 @@ class DownloadManager: ObservableObject {
         activeDownloadTasks[download.id] = downloadTask
         activeDownloads.append(download)
         refreshRecentDownloads()
+
+        toastManager?.show("Downloading: \(suggestedFilename)", type: .info, icon: .system("arrow.down.circle"))
+
         return download
     }
 
@@ -86,7 +90,7 @@ class DownloadManager: ObservableObject {
         activeDownloads.removeAll { $0.id == download.id }
         refreshRecentDownloads()
 
-        // Show notification or update UI
+        toastManager?.show("Downloaded: \(download.fileName)", icon: .system("checkmark.circle"))
     }
 
     func failDownload(_ download: Download, error: String) {
@@ -97,9 +101,12 @@ class DownloadManager: ObservableObject {
         activeDownloadTasks.removeValue(forKey: download.id)
         activeDownloads.removeAll { $0.id == download.id }
         refreshRecentDownloads()
+
+        toastManager?.show("Download failed: \(download.fileName)", type: .error)
     }
 
     func cancelDownload(_ download: Download) {
+        let fileName = download.fileName
         if let downloadTask = activeDownloadTasks[download.id] {
             downloadTask.cancel()
         }
@@ -111,6 +118,8 @@ class DownloadManager: ObservableObject {
         activeDownloadTasks.removeValue(forKey: download.id)
         activeDownloads.removeAll { $0.id == download.id }
         refreshRecentDownloads()
+
+        toastManager?.show("Download cancelled: \(fileName)", type: .info, icon: .system("xmark.circle"))
     }
 
     func clearCompletedDownloads() {

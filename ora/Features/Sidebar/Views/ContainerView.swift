@@ -9,6 +9,7 @@ struct ContainerView: View {
     @EnvironmentObject var toolbarManager: ToolbarManager
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var privacyMode: PrivacyMode
+    @EnvironmentObject var toastManager: ToastManager
 
     @State var isDragging = false
     @State private var draggedItem: UUID?
@@ -140,6 +141,10 @@ struct ContainerView: View {
                 tab,
                 toContainer: newContainer
             )
+        toastManager.show(
+            "Moved to \(newContainer.emoji) \(newContainer.name)",
+            icon: .system("arrow.right.arrow.left")
+        )
     }
 
     private func dragTab(_ tabId: UUID) -> NSItemProvider {

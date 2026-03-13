@@ -1,33 +1,77 @@
 import SwiftUI
 
 final class ToastManager: ObservableObject {
+    static let shared = ToastManager()
+
     @Published var toasts: [Toast] = []
 
-    @discardableResult
-    func show(message: String, systemImage: String? = "checkmark.circle.fill") -> String {
-        let toast = Toast { id in
-            ToastView(
-                id: id, message: message, systemImage: systemImage,
-                action: { [weak self] in self?.dismiss(id: id) }
-            )
-        }
+    private var dismissTimers: [String: DispatchWorkItem] = [:]
+    private var isHovered: Bool = false
 
-        withAnimation(.bouncy) {
+    var position: ToastPosition = .bottomCenter
+    var defaultDuration: TimeInterval = 4.0
+
+    @discardableResult
+    func show(
+        _ message: String,
+        type: ToastType = .success,
+        icon: ToastIcon? = nil,
+        duration: TimeInterval? = nil
+    ) -> String {
+        let toast = Toast(message: message, type: type, icon: icon)
+
+        withAnimation(.spring(duration: 0.4, bounce: 0.2)) {
             toasts.append(toast)
         }
+
+        scheduleDismiss(for: toast.id, after: duration ?? defaultDuration)
 
         return toast.id
     }
 
     func dismiss(id: String) {
-        withAnimation(.bouncy) {
-            toasts.removeAll(where: { $0.id == id })
+        dismissTimers[id]?.cancel()
+        dismissTimers.removeValue(forKey: id)
+
+        withAnimation(.spring(duration: 0.3, bounce: 0.15)) {
+            toasts.removeAll { $0.id == id }
         }
     }
 
     func dismissAll() {
-        withAnimation(.bouncy) {
+        for (_, timer) in dismissTimers {
+            timer.cancel()
+        }
+        dismissTimers.removeAll()
+
+        withAnimation(.spring(duration: 0.3, bounce: 0.15)) {
             toasts.removeAll()
         }
+    }
+
+    func pauseTimers() {
+        isHovered = true
+        dismissTimers.values.forEach { $0.cancel() }
+        dismissTimers.removeAll()
+    }
+
+    func resumeTimers() {
+        isHovered = false
+        for toast in toasts {
+            scheduleDismiss(for: toast.id, after: defaultDuration)
+        }
+    }
+
+    private func scheduleDismiss(for id: String, after duration: TimeInterval) {
+        guard !isHovered else { return }
+
+        dismissTimers[id]?.cancel()
+
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.dismiss(id: id)
+        }
+
+        dismissTimers[id] = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration, execute: workItem)
     }
 }

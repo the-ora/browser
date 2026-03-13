@@ -23,6 +23,7 @@ struct OraRoot: View {
     @StateObject private var sidebarManager = SidebarManager()
     @StateObject private var toolbarManager = ToolbarManager()
     @StateObject private var dialogManager = DialogManager()
+    private let toastManager = ToastManager.shared
 
     @ObserveInjection var inject
 
@@ -99,6 +100,7 @@ struct OraRoot: View {
             .environmentObject(sidebarManager)
             .environmentObject(toolbarManager)
             .environmentObject(dialogManager)
+            .environmentObject(toastManager)
             .dialogs(manager: dialogManager)
             .modelContext(tabContext)
             .modelContext(historyContext)
@@ -106,6 +108,7 @@ struct OraRoot: View {
             .withTheme()
             .enableInjection()
             .onAppear {
+                downloadManager.toastManager = toastManager
                 // Dialog keyboard shortcuts (highest priority — checked first)
                 keyModifierListener.registerKeyDownHandler { event in
                     // Escape: dismiss top dialog
@@ -255,11 +258,13 @@ struct OraRoot: View {
                         if let activeTab = tabManager.activeTab {
                             let host = activeTab.url.host ?? ""
                             let domain = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
-                            PrivacyService.clearCacheForHost(for: domain, container: activeTab.container) {
-                                DispatchQueue.main.async {
-                                    activeTab.webView.reload()
+                            PrivacyService
+                                .clearCacheForHost(for: domain, container: activeTab.container) { [weak toastManager] in
+                                    DispatchQueue.main.async {
+                                        activeTab.webView.reload()
+                                        toastManager?.show("Cache cleared for \(domain)", icon: .system("trash"))
+                                    }
                                 }
-                            }
                         }
                     }
 
@@ -271,11 +276,13 @@ struct OraRoot: View {
                         if let activeTab = tabManager.activeTab {
                             let host = activeTab.url.host ?? ""
                             let domain = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
-                            PrivacyService.clearCookiesForHost(for: host, container: activeTab.container) {
-                                DispatchQueue.main.async {
-                                    activeTab.webView.reload()
+                            PrivacyService
+                                .clearCookiesForHost(for: host, container: activeTab.container) { [weak toastManager] in
+                                    DispatchQueue.main.async {
+                                        activeTab.webView.reload()
+                                        toastManager?.show("Cookies cleared for \(domain)", icon: .system("trash"))
+                                    }
                                 }
-                            }
                         }
                     }
             }

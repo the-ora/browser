@@ -49,6 +49,13 @@ enum SettingsTab: String, Hashable, CaseIterable {
     }
 }
 
+struct SettingsWindowRoot: View {
+    var body: some View {
+        SettingsContentView()
+            .environmentObject(ToastManager.shared)
+    }
+}
+
 struct SettingsContentView: View {
     static let selectedTabDefaultsKey = "settings.selectedTab"
 
