@@ -79,7 +79,6 @@ If you use AI assistance for code generation, documentation, issue comments, or 
 
 - Never commit secrets, signing keys, or other sensitive data.
 - Review [SECURITY.md](SECURITY.md) for security-specific guidance.
-- Found a security vulnerability? Email [security@orabrowser.com](mailto:security@orabrowser.com) instead of opening a public issue, pull request, or discussion.
 - Follow the standards in [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 ## Questions

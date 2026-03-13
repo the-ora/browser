@@ -2,19 +2,6 @@
 
 This document covers the repository-specific security expectations for Ora Browser contributors and maintainers.
 
-## Reporting Security Vulnerabilities
-
-If you discover a security vulnerability, report it privately by email at [security@orabrowser.com](mailto:security@orabrowser.com).
-
-Do not open a public issue, pull request, or discussion for security vulnerabilities.
-
-When reporting, include:
-
-- a description of the issue
-- steps to reproduce it
-- relevant logs or screenshots when safe to share
-- the potential impact
-
 ## Secrets and Sensitive Data
 
 - Never commit `.env`, signing credentials, private keys, notarization credentials, or any other secret material.
@@ -59,4 +46,4 @@ Contributors working on regular code or documentation changes should not need ac
 
 ## Reporting Security Issues
 
-If you discover accidental secret exposure or any other security issue, do not share credential contents or exploit details publicly. Use [security@orabrowser.com](mailto:security@orabrowser.com) for private reporting.
+If you discover a security issue or accidental secret exposure, do not open a public issue with exploit details or credential contents. Contact the maintainers privately through the project Discord so the issue can be handled without further exposure.
