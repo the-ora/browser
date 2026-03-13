@@ -137,7 +137,7 @@ private struct ToastsContainerView: View {
                 manager.resumeTimers()
             }
         }
-        .animation(.spring(duration: 0.4, bounce: 0.2), value: manager.toasts.map(\.id))
+        .animation(.spring(duration: 0.3, bounce: 0.5), value: manager.toasts.map(\.id))
     }
 
     private func dragOffset(for toast: Toast) -> CGFloat {
@@ -210,7 +210,7 @@ struct ToastItemView: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
         .frame(width: 356)
-        .background(colorScheme == .dark ? theme.background.opacity(0.7) : theme.background.opacity(0.9))
+        .background(colorScheme == .dark ? theme.background.opacity(0.7) : theme.background)
         .background(
             BlurEffectView(material: .hudWindow, blendingMode: .withinWindow)
         )
