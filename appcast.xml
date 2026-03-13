@@ -27,24 +27,6 @@
             <enclosure url="https://github.com/the-ora/browser/releases/download/v0.2.13/Ora-Browser-0.2.13.dmg" length="5686859" type="application/octet-stream" sparkle:edSignature="RN+yYKvCEPF1y15Ce6L1tZs5X4AuqxuaS7jCj1nJkpkqrLQM/OigVdQMcSNjojLb+zuMOrNiYJH/14R8AhIYAg=="/>
         </item>
         <item>
-            <title>0.2.14</title>
-            <pubDate>Fri, 13 Mar 2026 21:12:33 +0300</pubDate>
-            <link>https://github.com/the-ora/browser</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/the-ora/browser/releases/tag/v0.2.14</sparkle:fullReleaseNotesLink>
-            <sparkle:version>102</sparkle:version>
-            <sparkle:shortVersionString>0.2.14</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<!doctype html>
-<html>
-<body>
-<h2>Ora 0.2.14</h2>
-<p><strong>Full Changelog:</strong> <a href="https://github.com/the-ora/browser/compare/v0.2.13...v0.2.14">https://github.com/the-ora/browser/compare/v0.2.13...v0.2.14</a></p>
-</body>
-</html>
-]]></description>
-            <enclosure url="https://github.com/the-ora/browser/releases/download/v0.2.14/Ora-Browser-0.2.14.dmg" length="5686966" type="application/octet-stream" sparkle:edSignature="MFD7NqVk11QOf6ITMnKrFB28WiPioiDqz3sOoXFbXOoU4UA0TKPsGbO2F9p46yxJoyDbhewKjIwq6paPOeKoBQ=="/>
-        </item>
-        <item>
             <title>0.2.13</title>
             <pubDate>Fri, 13 Mar 2026 20:09:25 +0300</pubDate>
             <link>https://github.com/the-ora/browser</link>
