@@ -48,7 +48,7 @@ enum ToastType {
 
     func iconColor(theme: Theme) -> Color {
         switch self {
-        case .success: return .green
+        case .success: return theme.foreground
         case .error: return theme.destructive
         case .info: return theme.foreground
         case .custom: return theme.foreground
