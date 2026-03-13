@@ -27,28 +27,6 @@
             <enclosure url="https://github.com/the-ora/browser/releases/download/v0.2.13/Ora-Browser-0.2.13.dmg" length="5686859" type="application/octet-stream" sparkle:edSignature="RN+yYKvCEPF1y15Ce6L1tZs5X4AuqxuaS7jCj1nJkpkqrLQM/OigVdQMcSNjojLb+zuMOrNiYJH/14R8AhIYAg=="/>
         </item>
         <item>
-            <title>0.2.13</title>
-            <pubDate>Fri, 13 Mar 2026 20:09:25 +0300</pubDate>
-            <link>https://github.com/the-ora/browser</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/the-ora/browser/releases/tag/v0.2.13</sparkle:fullReleaseNotesLink>
-            <sparkle:version>101</sparkle:version>
-            <sparkle:shortVersionString>0.2.13</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<h2>Ora 0.2.13</h2>
-<h3>Highlights</h3>
-<ul>
-  <li>Redesigned Settings with a new sidebar for faster, clearer navigation; polished the sidebar toggle icon and macOS window controls. <em>(by <a href="https://github.com/yonaries">@yonaries</a> in <a href="https://github.com/the-ora/browser/pull/225">#225</a>; <a href="https://github.com/atpugvaraa">@atpugvaraa</a> in <a href="https://github.com/the-ora/browser/pull/224">#224</a>)</em></li>
-</ul>
-<h3>Improvements</h3>
-<ul>
-  <li>Password settings: cleaner layout and spacing for easier reading. <em>(by <a href="https://github.com/yonaries">@yonaries</a> in <a href="https://github.com/the-ora/browser/pull/228">#228</a>)</em></li>
-  <li>macOS: Command+Z now performs native Undo again. <em>(by <a href="https://github.com/enzocarpentier">@enzocarpentier</a> in <a href="https://github.com/the-ora/browser/pull/227">#227</a>)</em></li>
-</ul>
-<p><a href="https://github.com/the-ora/browser/compare/v0.2.12...v0.2.13">Full Changelog</a></p>
-]]></description>
-            <enclosure url="https://github.com/the-ora/browser/releases/download/v0.2.13/Ora-Browser-0.2.13.dmg" length="5682931" type="application/octet-stream" sparkle:edSignature="MWOKxJMpyJt4Bl4aa2yma33lOAfelMB/2hCekylk+/x21wf1t5GXsazCWYQA+Y/5smbW/upJAsmoNvsxP3M0BQ=="/>
-        </item>
-        <item>
             <title>Version 0.2.12</title>
             <description><![CDATA[
         <h2>Ora Browser v0.2.12</h2>
