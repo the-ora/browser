@@ -97,12 +97,10 @@ struct OraButton: View {
     private var labelColor: Color {
         guard !isDisabled else { return theme.disabledForeground }
         switch variant {
-        case .default:
-            return theme.background
+        case .default, .destructive:
+            return .white
         case .secondary, .outline, .ghost:
             return theme.foreground
-        case .destructive:
-            return .white
         }
     }
 
@@ -123,10 +121,12 @@ struct OraButton: View {
 
                 Text(label)
                     .font(.system(size: fontSize, weight: .medium))
+                    .foregroundColor(labelColor)
 
                 if let icon = trailingIcon {
                     Image(systemName: icon)
                         .font(.system(size: fontSize - 1, weight: .medium))
+                        .foregroundColor(labelColor)
                 }
 
                 if let shortcut = keyboardShortcut {
@@ -147,6 +147,7 @@ struct OraButton: View {
                     .padding(.horizontal, isSystemIcon || shortcut.count == 1 ? 0 : 4)
                     .background(labelColor.opacity(variant == .default || variant == .destructive ? 0.15 : 0.07))
                     .cornerRadius(4)
+                    .foregroundColor(labelColor)
                 }
             }
             .padding(.horizontal, hPadding)
