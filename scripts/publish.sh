@@ -40,7 +40,7 @@ mkdir -p "$SPARKLE_ARCHIVES_DIR"
 
 step "Generating changelog"
 
-LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
+LAST_TAG=$(git describe --tags --abbrev=0 --exclude "v$VERSION" 2>/dev/null || true)
 [[ -n "$LAST_TAG" ]] || die "No previous tag found. Create a release tag before publishing."
 
 CHANGELOG_ARGS=(

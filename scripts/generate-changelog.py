@@ -407,7 +407,7 @@ def build_prompt(
     compare_link: str,
     prs: list[dict[str, Any]],
 ) -> str:
-    return template.substitute(
+    return template.safe_substitute(
         previous_tag=previous_tag,
         new_tag=new_tag,
         repository=repository,
