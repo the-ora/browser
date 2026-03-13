@@ -6,6 +6,29 @@
         <language>en</language>
         <item>
             <title>0.2.13</title>
+            <pubDate>Fri, 13 Mar 2026 22:28:08 +0300</pubDate>
+            <link>https://github.com/the-ora/browser</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/the-ora/browser/releases/tag/v0.2.13</sparkle:fullReleaseNotesLink>
+            <sparkle:version>104</sparkle:version>
+            <sparkle:shortVersionString>0.2.13</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<h2>Highlights</h2>
+<ul>
+<li>Redesigned Settings with a sidebar for quicker navigation between sections. <em>(by <a href="https://github.com/yonaries">@yonaries</a> in <a href="https://github.com/the-ora/browser/pull/225">#225</a>)</em></li>
+<li>Refined password UI layout and styles for clarity. <em>(by <a href="https://github.com/yonaries">@yonaries</a> in <a href="https://github.com/the-ora/browser/pull/228">#228</a>)</em></li>
+</ul>
+<h3>Improvements</h3>
+<ul>
+<li>Updated window traffic lights and the sidebar toggle icon for a cleaner, more consistent look on macOS. <em>(by <a href="https://github.com/atpugvaraa">@atpugvaraa</a> in <a href="https://github.com/the-ora/browser/pull/224">#224</a>)</em></li>
+<li>Restored Cmd+Z to use native macOS Undo. <em>(by <a href="https://github.com/enzocarpentier">@enzocarpentier</a> in <a href="https://github.com/the-ora/browser/pull/227">#227</a>)</em></li>
+<li>Updated project license to GPL-3.0. <em>(by <a href="https://github.com/yonaries">@yonaries</a> in <a href="https://github.com/the-ora/browser/pull/223">#223</a>)</em></li>
+</ul>
+<p><a href="https://github.com/the-ora/browser/compare/v0.2.12...v0.2.13">Full Changelog</a></p>
+]]></description>
+            <enclosure url="https://github.com/the-ora/browser/releases/download/v0.2.13/Ora-Browser-0.2.13.dmg" length="5683856" type="application/octet-stream" sparkle:edSignature="oO7FqKrrkrT/CKHVnbo2K9z/QoiRrOTAK43AyIEsfpZRo8VBJajIYmsKkP2w6V3Z0Qa+X750Ssp8UxERXfRvDg=="/>
+        </item>
+        <item>
+            <title>0.2.13</title>
             <pubDate>Fri, 13 Mar 2026 21:39:57 +0300</pubDate>
             <link>https://github.com/the-ora/browser</link>
             <sparkle:fullReleaseNotesLink>https://github.com/the-ora/browser/releases/tag/v0.2.13</sparkle:fullReleaseNotesLink>
