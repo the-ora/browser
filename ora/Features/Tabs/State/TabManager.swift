@@ -4,6 +4,38 @@ import WebKit
 
 // MARK: - Tab Manager
 
+private struct ClosedTabSnapshot {
+    let id: UUID
+    let containerID: UUID
+    let url: URL
+    let savedURL: URL?
+    let title: String
+    let favicon: URL?
+    let faviconLocalFile: URL?
+    let createdAt: Date
+    let lastAccessedAt: Date?
+    let type: TabType
+    let order: Int
+    let backgroundColorHex: String
+    let isPrivate: Bool
+
+    init(tab: Tab) {
+        id = tab.id
+        containerID = tab.container.id
+        url = tab.url
+        savedURL = tab.savedURL
+        title = tab.title
+        favicon = tab.favicon
+        faviconLocalFile = tab.faviconLocalFile
+        createdAt = tab.createdAt
+        lastAccessedAt = tab.lastAccessedAt
+        type = tab.type
+        order = tab.order
+        backgroundColorHex = tab.backgroundColorHex
+        isPrivate = tab.isPrivate
+    }
+}
+
 @MainActor
 class TabManager: ObservableObject {
     @Published var activeContainer: TabContainer?
@@ -33,6 +65,8 @@ class TabManager: ObservableObject {
     @Query(sort: \TabContainer.lastAccessedAt, order: .reverse) var containers: [TabContainer]
 
     private var cleanupTimer: Timer?
+    private var recentlyClosedTabs: [ClosedTabSnapshot] = []
+    private let maxRecentlyClosedTabs = 5
 
     init(
         modelContainer: ModelContainer,
@@ -295,7 +329,7 @@ class TabManager: ObservableObject {
         try? modelContext.save()
     }
 
-    func closeTab(tab: Tab) {
+    func closeTab(tab: Tab, shouldTrackForRestore: Bool = true) {
         // If the closed tab was active, select another tab
         if self.activeTab?.id == tab.id {
             if let nextTab = tab.container.tabs
@@ -325,6 +359,9 @@ class TabManager: ObservableObject {
                     isPrivate: tab.isPrivate
                 )
         }
+        if shouldTrackForRestore, tab.type == .normal {
+            trackRecentlyClosedTab(tab)
+        }
         tab.stopMedia { [weak self] in
             DispatchQueue.main.async {
                 guard let self else { return }
@@ -350,8 +387,32 @@ class TabManager: ObservableObject {
     }
 
     func restoreLastTab() {
-        guard let undoManager = modelContext.undoManager, undoManager.canUndo else { return }
-        undoManager.undo()
+        guard let snapshot = recentlyClosedTabs.popLast() else { return }
+        let container = fetchContainers()
+            .first(where: { $0.id == snapshot.containerID }) ?? activeContainer ?? createContainer()
+
+        shiftRestoredTabOrders(in: container, restoring: snapshot)
+
+        let restoredTab = Tab(
+            id: snapshot.id,
+            url: snapshot.url,
+            title: snapshot.title,
+            favicon: snapshot.favicon,
+            container: container,
+            type: snapshot.type,
+            order: snapshot.order,
+            tabManager: self,
+            isPrivate: snapshot.isPrivate
+        )
+        restoredTab.savedURL = snapshot.savedURL
+        restoredTab.faviconLocalFile = snapshot.faviconLocalFile
+        restoredTab.createdAt = snapshot.createdAt
+        restoredTab.lastAccessedAt = snapshot.lastAccessedAt
+        restoredTab.backgroundColorHex = snapshot.backgroundColorHex
+
+        modelContext.insert(restoredTab)
+        container.tabs.append(restoredTab)
+        activateTab(restoredTab)
         try? modelContext.save()
     }
 
@@ -422,7 +483,7 @@ class TabManager: ObservableObject {
                    !tab.isPlayingMedia,
                    tab.type == .normal
                 {
-                    closeTab(tab: tab)
+                    closeTab(tab: tab, shouldTrackForRestore: false)
                 }
             }
         }
@@ -524,6 +585,19 @@ class TabManager: ObservableObject {
             loadSilently: true
         ) else { return }
         self.reorderTabs(from: tab, toTab: newTab)
+    }
+
+    private func trackRecentlyClosedTab(_ tab: Tab) {
+        recentlyClosedTabs.append(ClosedTabSnapshot(tab: tab))
+        if recentlyClosedTabs.count > maxRecentlyClosedTabs {
+            recentlyClosedTabs.removeFirst(recentlyClosedTabs.count - maxRecentlyClosedTabs)
+        }
+    }
+
+    private func shiftRestoredTabOrders(in container: TabContainer, restoring snapshot: ClosedTabSnapshot) {
+        for tab in container.tabs where tab.type == snapshot.type && tab.order >= snapshot.order {
+            tab.order += 1
+        }
     }
 }
 
