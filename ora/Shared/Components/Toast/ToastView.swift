@@ -24,33 +24,33 @@ private struct GenieEffect: GeometryEffect {
     }
 
     func effectValue(size: CGSize) -> ProjectionTransform {
-        let p = progress
+        let amount = progress
 
         // Anchor at the edge the toast enters/exits from
         let anchorY: CGFloat = isTop ? 0 : size.height
 
-        var t = CATransform3DIdentity
+        var transform = CATransform3DIdentity
 
         // Subtle perspective
-        t.m34 = -1.0 / 1200 * p
+        transform.m34 = -1.0 / 1200 * amount
 
         // Move anchor to edge, apply scale, move back
-        t = CATransform3DTranslate(t, size.width / 2, anchorY, 0)
-        let sx = 1.0 - 0.15 * p  // pinch width slightly
-        let sy = 1.0 - 0.25 * p  // compress height more
-        t = CATransform3DScale(t, sx, sy, 1)
+        transform = CATransform3DTranslate(transform, size.width / 2, anchorY, 0)
+        let scaleX = 1.0 - 0.15 * amount  // pinch width slightly
+        let scaleY = 1.0 - 0.25 * amount  // compress height more
+        transform = CATransform3DScale(transform, scaleX, scaleY, 1)
 
         // Tiny X-axis tilt toward the edge (genie warp feel)
-        let tiltAngle = (isTop ? -1.0 : 1.0) * 0.06 * p // ~3.4° max
-        t = CATransform3DRotate(t, tiltAngle, 1, 0, 0)
+        let tiltAngle = (isTop ? -1.0 : 1.0) * 0.06 * amount // ~3.4° max
+        transform = CATransform3DRotate(transform, tiltAngle, 1, 0, 0)
 
-        t = CATransform3DTranslate(t, -size.width / 2, -anchorY, 0)
+        transform = CATransform3DTranslate(transform, -size.width / 2, -anchorY, 0)
 
         // Slide toward the edge
-        let slideY = (isTop ? -1.0 : 1.0) * 16 * p
-        t = CATransform3DTranslate(t, 0, slideY, 0)
+        let slideY = (isTop ? -1.0 : 1.0) * 16 * amount
+        transform = CATransform3DTranslate(transform, 0, slideY, 0)
 
-        return ProjectionTransform(t)
+        return ProjectionTransform(transform)
     }
 }
 
