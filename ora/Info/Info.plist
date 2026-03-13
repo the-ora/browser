@@ -83,6 +83,8 @@
 	</array>
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
+	<key>SUEnableInstallerLauncherService</key>
+	<true/>
 	<key>SUFeedURL</key>
 	<string>https://the-ora.github.io/browser/appcast.xml</string>
 	<key>SUPublicEDKey</key>

@@ -97,6 +97,12 @@ APP_PATH="$EXPORT_PATH/Ora.app"
 echo "Copying exported app bundle..."
 ditto "$APP_PATH" "build/Ora.app"
 
+echo "Re-signing exported app bundle..."
+codesign --force --deep --options runtime --entitlements "ora/Info/ora.entitlements" -s "$SIGNING_IDENTITY" "build/Ora.app"
+
+echo "Verifying app signature..."
+codesign --verify --deep --strict --verbose=4 "build/Ora.app" >/dev/null || die "App signature verification failed after re-signing."
+
 # --- Sign ---
 
 step "Signing & packaging"
