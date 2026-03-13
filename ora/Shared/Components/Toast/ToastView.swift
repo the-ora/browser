@@ -83,7 +83,7 @@ private struct ToastsContainerView: View {
     private let maxVisible = 3
     private let collapsedOffset: CGFloat = 8
     private let collapsedScale: CGFloat = 0.05
-    private let expandedGap: CGFloat = 8
+    private let expandedGap: CGFloat = 4
     private let estimatedToastHeight: CGFloat = 44
 
     private var position: ToastPosition {
