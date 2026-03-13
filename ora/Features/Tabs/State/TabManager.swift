@@ -551,66 +551,6 @@ class TabManager: ObservableObject {
         return []
     }
 
-    private func fetchContainer(id: UUID) -> TabContainer? {
-        let descriptor = FetchDescriptor<TabContainer>(
-            predicate: #Predicate { $0.id == id }
-        )
-
-        do {
-            return try modelContext.fetch(descriptor).first
-        } catch {
-            return nil
-        }
-    }
-
-    private func prepareForContainerDeletion(isActiveContainer: Bool) {
-        guard isActiveContainer else { return }
-
-        activeTab?.maybeIsActive = false
-        activeTab = nil
-        activeContainer = nil
-    }
-
-    private func deleteContainerContents(_ container: TabContainer, containerId: UUID) {
-        for tab in Array(container.tabs) {
-            if tab.isWebViewReady {
-                tab.destroyWebView()
-            }
-            mediaController.removeSession(for: tab.id)
-            modelContext.delete(tab)
-        }
-
-        for folder in Array(container.folders) {
-            modelContext.delete(folder)
-        }
-
-        for history in fetchHistory(for: containerId) {
-            modelContext.delete(history)
-        }
-    }
-
-    private func activateFallbackContainerIfNeeded(afterDeletingActiveContainer wasActiveContainer: Bool) {
-        guard wasActiveContainer else { return }
-
-        if let nextContainer = fetchContainers().first {
-            activateContainer(nextContainer)
-        } else {
-            _ = createContainer()
-        }
-    }
-
-    private func fetchHistory(for containerId: UUID) -> [History] {
-        let descriptor = FetchDescriptor<History>(
-            predicate: #Predicate { $0.container?.id == containerId }
-        )
-
-        do {
-            return try modelContext.fetch(descriptor)
-        } catch {
-            return []
-        }
-    }
-
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         if message.name == "listener",
            let url = message.body as? String
@@ -640,6 +580,68 @@ class TabManager: ObservableObject {
             loadSilently: true
         ) else { return }
         self.reorderTabs(from: tab, toTab: newTab)
+    }
+}
+
+private extension TabManager {
+    func fetchContainer(id: UUID) -> TabContainer? {
+        let descriptor = FetchDescriptor<TabContainer>(
+            predicate: #Predicate { $0.id == id }
+        )
+
+        do {
+            return try modelContext.fetch(descriptor).first
+        } catch {
+            return nil
+        }
+    }
+
+    func prepareForContainerDeletion(isActiveContainer: Bool) {
+        guard isActiveContainer else { return }
+
+        activeTab?.maybeIsActive = false
+        activeTab = nil
+        activeContainer = nil
+    }
+
+    func deleteContainerContents(_ container: TabContainer, containerId: UUID) {
+        for tab in Array(container.tabs) {
+            if tab.isWebViewReady {
+                tab.destroyWebView()
+            }
+            mediaController.removeSession(for: tab.id)
+            modelContext.delete(tab)
+        }
+
+        for folder in Array(container.folders) {
+            modelContext.delete(folder)
+        }
+
+        for history in fetchHistory(for: containerId) {
+            modelContext.delete(history)
+        }
+    }
+
+    func activateFallbackContainerIfNeeded(afterDeletingActiveContainer wasActiveContainer: Bool) {
+        guard wasActiveContainer else { return }
+
+        if let nextContainer = fetchContainers().first {
+            activateContainer(nextContainer)
+        } else {
+            _ = createContainer()
+        }
+    }
+
+    func fetchHistory(for containerId: UUID) -> [History] {
+        let descriptor = FetchDescriptor<History>(
+            predicate: #Predicate { $0.container?.id == containerId }
+        )
+
+        do {
+            return try modelContext.fetch(descriptor)
+        } catch {
+            return []
+        }
     }
 }
 
