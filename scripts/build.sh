@@ -20,9 +20,10 @@ DMG_NAME="Ora-Browser-${VERSION}.dmg"
 ARCHIVE_PATH="build/Ora.xcarchive"
 EXPORT_PATH="build/export"
 EXPORT_OPTIONS_PLIST="/tmp/ora-export-options.plist"
+RESIGN_ENTITLEMENTS_PLIST="/tmp/ora-resign-entitlements.plist"
 NOTARY_RESULT_PLIST="/tmp/ora-notary-result.plist"
 NOTARY_LOG_FILE="build/notary-log.json"
-trap 'rm -f "$EXPORT_OPTIONS_PLIST"' EXIT
+trap 'rm -f "$EXPORT_OPTIONS_PLIST" "$RESIGN_ENTITLEMENTS_PLIST"' EXIT
 
 step "Building Ora Browser v${VERSION}"
 
@@ -98,7 +99,9 @@ echo "Copying exported app bundle..."
 ditto "$APP_PATH" "build/Ora.app"
 
 echo "Re-signing exported app bundle..."
-codesign --force --deep --options runtime --entitlements "ora/Info/ora.entitlements" -s "$SIGNING_IDENTITY" "build/Ora.app"
+APP_BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "build/Ora.app/Contents/Info.plist")
+sed "s/\$(PRODUCT_BUNDLE_IDENTIFIER)/${APP_BUNDLE_ID}/g" "ora/Info/ora.entitlements" > "$RESIGN_ENTITLEMENTS_PLIST"
+codesign --force --deep --options runtime --entitlements "$RESIGN_ENTITLEMENTS_PLIST" -s "$SIGNING_IDENTITY" "build/Ora.app"
 
 echo "Verifying app signature..."
 codesign --verify --deep --strict --verbose=4 "build/Ora.app" >/dev/null || die "App signature verification failed after re-signing."
