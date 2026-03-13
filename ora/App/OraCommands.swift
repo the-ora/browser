@@ -42,14 +42,7 @@ struct OraCommands: Commands {
             }())
         }
 
-        CommandMenu("Edit") {
-            Button("Restore Last Tab") {
-                NotificationCenter.default.post(name: .restoreLastTab, object: NSApp.keyWindow)
-            }
-            .keyboardShortcut(KeyboardShortcuts.Tabs.restore.keyboardShortcut)
-
-            Divider()
-
+        CommandGroup(after: .undoRedo) {
             Button("Find in Page") {
                 NotificationCenter.default.post(name: .findInPage, object: NSApp.keyWindow)
             }
@@ -137,6 +130,13 @@ struct OraCommands: Commands {
         }
 
         CommandMenu("Tabs") {
+            Button("Reopen Closed Tab") {
+                NotificationCenter.default.post(name: .restoreLastTab, object: NSApp.keyWindow)
+            }
+            .keyboardShortcut(KeyboardShortcuts.Tabs.restore.keyboardShortcut)
+
+            Divider()
+
             Button("Pin Tab") {
                 NotificationCenter.default.post(name: .togglePinTab, object: NSApp.keyWindow)
             }.keyboardShortcut(KeyboardShortcuts.Tabs.pin.keyboardShortcut)
