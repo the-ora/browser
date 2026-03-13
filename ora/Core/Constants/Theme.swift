@@ -14,7 +14,7 @@ struct Theme: Equatable {
     }
 
     var accent: Color {
-        Color(hex: "#FF5F57")
+        colorScheme == .dark ? Color(hex: "#FF9B51") : Color(hex: "#F16D34")
     }
 
     var background: Color {

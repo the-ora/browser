@@ -1,6 +1,9 @@
+import SwiftData
 import SwiftUI
 
 struct PasswordsSettingsView: View {
+    @Query(sort: \TabContainer.lastAccessedAt, order: .reverse) var containers: [TabContainer]
+
     @StateObject private var settings = SettingsStore.shared
     @StateObject private var passwordManager = PasswordManagerService.shared
     private let providers = PasswordManagerProviderRegistry.shared
@@ -8,7 +11,7 @@ struct PasswordsSettingsView: View {
     @State private var searchText = ""
     @State private var isUnlocked = false
     @State private var isAuthenticating = false
-    @State private var unlockedEntries: [SavedPasswordSummary] = []
+    @State private var selectedContainerId: UUID?
     @State private var revealedPasswordIDs: [String: String] = [:]
     @State private var pendingDelete: SavedPasswordSummary?
 
@@ -16,20 +19,45 @@ struct PasswordsSettingsView: View {
         providers.descriptor(for: settings.passwordManagerProvider)
     }
 
+    private var selectedContainer: TabContainer? {
+        containers.first { $0.id == selectedContainerId } ?? containers.first
+    }
+
+    private var visibleEntries: [SavedPasswordSummary] {
+        passwordManager.entries(for: selectedContainer?.id)
+    }
+
     private var filteredEntries: [SavedPasswordSummary] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return unlockedEntries }
+        guard !query.isEmpty else { return visibleEntries }
 
-        return unlockedEntries.filter { entry in
+        return visibleEntries.filter { entry in
             entry.host.localizedCaseInsensitiveContains(query)
                 || entry.username.localizedCaseInsensitiveContains(query)
         }
     }
 
     var body: some View {
-        SettingsSection {
+        VStack(alignment: .leading, spacing: 16) {
             passwordsOverview
             vaultSection
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .onAppear {
+            if selectedContainerId == nil {
+                selectedContainerId = containers.first?.id
+            }
+        }
+        .onChange(of: containers.map(\.id)) { _, containerIDs in
+            guard let selectedContainerId else {
+                self.selectedContainerId = containerIDs.first
+                return
+            }
+
+            if !containerIDs.contains(selectedContainerId) {
+                self.selectedContainerId = containerIDs.first
+            }
         }
         .onDisappear {
             lockVault()
@@ -41,7 +69,6 @@ struct PasswordsSettingsView: View {
             Button("Delete", role: .destructive) {
                 if let pendingDelete {
                     try? passwordManager.delete(pendingDelete)
-                    syncUnlockedEntries()
                 }
                 pendingDelete = nil
             }
@@ -98,43 +125,69 @@ struct PasswordsSettingsView: View {
 
     private var vaultSection: some View {
         SettingsCard {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(selectedProvider.usesBuiltInVault ? "Saved Credentials" : selectedProvider.title)
-                        .font(.headline)
-                    if selectedProvider.usesBuiltInVault, isUnlocked {
-                        Text("\(unlockedEntries.count) item\(unlockedEntries.count == 1 ? "" : "s")")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(selectedProvider.usesBuiltInVault ? "Saved Credentials" : selectedProvider.title)
+                            .font(.headline)
+                        if selectedProvider.usesBuiltInVault, isUnlocked {
+                            Text("\(visibleEntries.count) item\(visibleEntries.count == 1 ? "" : "s")")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
-                }
 
-                Spacer()
+                    Spacer()
 
-                if selectedProvider.usesBuiltInVault {
-                    if isUnlocked {
+                    if selectedProvider.usesBuiltInVault, isUnlocked {
                         Button("Lock") {
                             lockVault()
                         }
                     }
                 }
-            }
 
-            if !selectedProvider.usesBuiltInVault {
-                emptyState(message: "\(selectedProvider.title) integration coming soon.")
-            } else if isUnlocked {
-                TextField("Search saved passwords", text: $searchText)
-                    .textFieldStyle(.roundedBorder)
+                if !selectedProvider.usesBuiltInVault {
+                    emptyState(message: "\(selectedProvider.title) integration coming soon.")
+                } else if containers.isEmpty {
+                    emptyState(message: "Create a space to start storing passwords.")
+                } else if isUnlocked {
+                    spacePickerRow
 
-                if filteredEntries.isEmpty {
-                    emptyState(message: searchText
-                        .isEmpty ? "No saved passwords yet." : "No saved passwords match that search.")
+                    TextField("Search saved passwords", text: $searchText)
+                        .textFieldStyle(.roundedBorder)
+
+                    if filteredEntries.isEmpty {
+                        emptyState(message: searchText
+                            .isEmpty ? "No saved passwords yet." : "No saved passwords match that search.")
+                    } else {
+                        passwordsTable
+                    }
                 } else {
-                    passwordsTable
+                    lockedVaultState
                 }
-            } else {
-                lockedVaultState
             }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    private var spacePickerRow: some View {
+        HStack {
+            Text("Space")
+            Spacer()
+            Picker(
+                "",
+                selection: Binding(
+                    get: { selectedContainerId ?? containers.first?.id },
+                    set: { selectedContainerId = $0 }
+                )
+            ) {
+                ForEach(containers) { container in
+                    Text(containerLabel(for: container)).tag(Optional(container.id))
+                }
+            }
+            .pickerStyle(.menu)
+            .labelsHidden()
+            .frame(maxWidth: 150, alignment: .trailing)
         }
     }
 
@@ -146,19 +199,12 @@ struct PasswordsSettingsView: View {
                     .foregroundStyle(Color.secondary.opacity(0.75))
 
                 if passwordManager.canUseBiometricAuthentication() {
-                    Button {
-                        unlockVault()
-                    } label: {
-                        Image(systemName: "touchid")
-                            .font(.system(size: 24, weight: .semibold))
-                            .foregroundStyle(Color.accentColor)
-                            .frame(width: 38, height: 38)
-                            .background(Color(.windowBackgroundColor).opacity(0.92))
-                            .clipShape(Circle())
-                    }
-                    .buttonStyle(.plain)
-                    .help("Use Touch ID to unlock")
-                    .disabled(isAuthenticating)
+                    Image(systemName: "touchid")
+                        .font(.system(size: 24, weight: .semibold))
+                        .foregroundStyle(Color.accentColor)
+                        .frame(width: 38, height: 38)
+                        .background(Color(.windowBackgroundColor).opacity(0.92))
+                        .clipShape(Circle())
                 }
             }
 
@@ -171,64 +217,82 @@ struct PasswordsSettingsView: View {
                     .foregroundStyle(.secondary)
             }
 
-            Button {
+            OraButton(
+                label: isAuthenticating ? "Unlocking..." : "Unlock Passwords",
+                variant: .outline,
+                isDisabled: isAuthenticating,
+                leadingIcon: passwordManager.canUseBiometricAuthentication() ? "touchid" : "lock.open"
+            ) {
                 unlockVault()
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: passwordManager.canUseBiometricAuthentication() ? "touchid" : "lock.open")
-                    Text(isAuthenticating ? "Unlocking..." : "Unlock Passwords")
-                }
             }
-            .disabled(isAuthenticating)
         }
         .frame(maxWidth: .infinity, minHeight: 260, alignment: .center)
     }
 
     private var passwordsTable: some View {
-        ScrollView(.horizontal, showsIndicators: true) {
-            VStack(spacing: 0) {
-                passwordTableHeader
+        GeometryReader { geometry in
+            let contentWidth = max(minimumTableContentWidth, geometry.size.width)
+            let actionsColumnWidth = max(52, contentWidth - 784)
 
-                Divider()
-                    .overlay(Color(.separatorColor).opacity(0.7))
+            ScrollView(.horizontal, showsIndicators: true) {
+                VStack(spacing: 0) {
+                    passwordTableHeader(actionsColumnWidth: actionsColumnWidth)
 
-                ScrollView(.vertical) {
-                    LazyVStack(spacing: 0) {
-                        ForEach(filteredEntries, id: \.id) { entry in
-                            passwordTableRow(entry)
+                    Divider()
+                        .overlay(Color(.separatorColor).opacity(0.7))
 
-                            if entry.id != filteredEntries.last?.id {
-                                Divider()
-                                    .overlay(Color(.separatorColor).opacity(0.45))
-                                    .padding(.leading, 12)
+                    ScrollView(.vertical) {
+                        LazyVStack(spacing: 0) {
+                            ForEach(filteredEntries, id: \.id) { entry in
+                                passwordTableRow(entry, actionsColumnWidth: actionsColumnWidth)
+
+                                if entry.id != filteredEntries.last?.id {
+                                    Divider()
+                                        .overlay(Color(.separatorColor).opacity(0.45))
+                                        .padding(.leading, 12)
+                                }
                             }
                         }
                     }
                 }
+                .frame(width: contentWidth, alignment: .leading)
             }
-            .frame(minWidth: 800)
+            .background(Color(.controlBackgroundColor).opacity(0.5))
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(Color(.separatorColor).opacity(0.55), lineWidth: 1)
+            }
         }
-        .background(Color(.controlBackgroundColor).opacity(0.5))
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(Color(.separatorColor).opacity(0.55), lineWidth: 1)
-        }
+        .frame(maxWidth: .infinity, minHeight: 320, maxHeight: .infinity)
     }
 
-    private var passwordTableHeader: some View {
+    private var minimumTableContentWidth: CGFloat {
+        836
+    }
+
+    private var tableLeadingInset: CGFloat {
+        10
+    }
+
+    private var tableTrailingInset: CGFloat {
+        14
+    }
+
+    private func passwordTableHeader(actionsColumnWidth: CGFloat) -> some View {
         HStack(spacing: 12) {
             tableHeaderCell("Site", width: 260, alignment: .leading)
             tableHeaderCell("Username", width: 220, alignment: .leading)
             tableHeaderCell("Password", width: 240, alignment: .leading)
-            tableHeaderCell("Actions", width: 52, alignment: .center)
+            tableHeaderCell("Actions", width: actionsColumnWidth, alignment: .leading)
         }
-        .padding(.horizontal, 14)
+        .padding(.leading, tableLeadingInset)
+        .padding(.trailing, tableTrailingInset)
         .padding(.vertical, 12)
         .background(Color(.controlBackgroundColor).opacity(0.3))
     }
 
-    private func passwordTableRow(_ entry: SavedPasswordSummary) -> some View {
+    private func passwordTableRow(_ entry: SavedPasswordSummary, actionsColumnWidth: CGFloat) -> some View {
         HStack(spacing: 12) {
             HStack(spacing: 10) {
                 SiteFaviconView(host: entry.host, size: 20, cornerRadius: 5)
@@ -247,55 +311,40 @@ struct PasswordsSettingsView: View {
             }
             .frame(width: 260, alignment: .leading)
 
-            HStack(spacing: 8) {
+            HStack(spacing: 6) {
                 Text(entry.displayUsername)
                     .font(.subheadline)
                     .foregroundStyle(entry.username.isEmpty ? .secondary : .primary)
                     .lineLimit(1)
 
-                Spacer(minLength: 0)
-
-                Button {
+                copyActionButton(help: "Copy username") {
                     passwordManager.copyToPasteboard(entry.username)
-                } label: {
-                    Image(systemName: "doc.on.doc")
-                        .font(.system(size: 13, weight: .medium))
                 }
-                .buttonStyle(.plain)
-                .help("Copy username")
             }
             .frame(width: 220, alignment: .leading)
 
-            HStack(spacing: 8) {
+            HStack(spacing: 6) {
                 Text(revealedPasswordIDs[entry.id] ?? "••••••••••••")
                     .font(.system(.subheadline, design: .monospaced))
                     .lineLimit(1)
-
-                Spacer(minLength: 0)
 
                 Button {
                     toggleReveal(entry)
                 } label: {
                     Image(systemName: revealedPasswordIDs[entry.id] == nil ? "eye" : "eye.slash")
                         .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(Color.secondary)
                 }
                 .buttonStyle(.plain)
                 .help(revealedPasswordIDs[entry.id] == nil ? "Reveal password" : "Hide password")
 
-                Button {
+                copyActionButton(help: "Copy password") {
                     copyPassword(entry)
-                } label: {
-                    Image(systemName: "doc.on.doc")
-                        .font(.system(size: 13, weight: .medium))
                 }
-                .buttonStyle(.plain)
-                .help("Copy password")
             }
             .frame(width: 240, alignment: .leading)
 
             HStack {
-                Spacer()
-
                 Button(role: .destructive) {
                     pendingDelete = entry
                 } label: {
@@ -304,12 +353,11 @@ struct PasswordsSettingsView: View {
                 }
                 .buttonStyle(.plain)
                 .help("Delete saved password")
-
-                Spacer()
             }
-            .frame(width: 52)
+            .frame(width: actionsColumnWidth, alignment: .leading)
         }
-        .padding(.horizontal, 14)
+        .padding(.leading, tableLeadingInset)
+        .padding(.trailing, tableTrailingInset)
         .padding(.vertical, 12)
     }
 
@@ -318,6 +366,18 @@ struct PasswordsSettingsView: View {
             .font(.caption.weight(.semibold))
             .foregroundStyle(.secondary)
             .frame(width: width, alignment: alignment)
+    }
+
+    private func copyActionButton(help: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            OraIcons(
+                icon: .copy,
+                size: .custom(14),
+                color: .secondary
+            )
+        }
+        .buttonStyle(.plain)
+        .help(help)
     }
 
     private func emptyState(message: String) -> some View {
@@ -342,7 +402,6 @@ struct PasswordsSettingsView: View {
                 isAuthenticating = false
                 if authenticated {
                     passwordManager.refresh()
-                    syncUnlockedEntries()
                 }
             }
         }
@@ -352,12 +411,7 @@ struct PasswordsSettingsView: View {
         isUnlocked = false
         isAuthenticating = false
         searchText = ""
-        unlockedEntries.removeAll()
         revealedPasswordIDs.removeAll()
-    }
-
-    private func syncUnlockedEntries() {
-        unlockedEntries = passwordManager.entries
     }
 
     private func toggleReveal(_ entry: SavedPasswordSummary) {
@@ -375,5 +429,9 @@ struct PasswordsSettingsView: View {
         if let password = try? passwordManager.revealPassword(for: entry) {
             passwordManager.copySensitiveToPasteboard(password)
         }
+    }
+
+    private func containerLabel(for container: TabContainer) -> String {
+        "\(container.emoji) \(container.name)"
     }
 }

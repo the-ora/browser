@@ -2,6 +2,7 @@ import AppKit
 import Foundation
 import LocalAuthentication
 import Security
+import SwiftData
 
 struct SavedPasswordMetadata: Codable, Hashable {
     var id: String
@@ -11,6 +12,7 @@ struct SavedPasswordMetadata: Codable, Hashable {
     var createdAt: Date
     var updatedAt: Date
     var lastUsedAt: Date?
+    var containerID: UUID?
 }
 
 struct SavedPasswordSummary: Identifiable, Hashable {
@@ -45,6 +47,10 @@ struct SavedPasswordSummary: Identifiable, Hashable {
         metadata.lastUsedAt
     }
 
+    var containerID: UUID? {
+        metadata.containerID
+    }
+
     var displayUsername: String {
         username.isEmpty ? "No username" : username
     }
@@ -77,7 +83,12 @@ final class PasswordManagerService: ObservableObject {
 
     func refresh() {
         do {
-            entries = try loadEntries()
+            let loadedEntries = try loadEntries()
+            if try migrateLegacyEntriesIfNeeded(loadedEntries) {
+                entries = try loadEntries()
+            } else {
+                entries = loadedEntries
+            }
             lastErrorMessage = nil
         } catch {
             entries = []
@@ -86,6 +97,10 @@ final class PasswordManagerService: ObservableObject {
     }
 
     func matchingEntries(for url: URL) -> [SavedPasswordSummary] {
+        matchingEntries(for: url, containerID: nil)
+    }
+
+    func matchingEntries(for url: URL, containerID: UUID?) -> [SavedPasswordSummary] {
         guard let origin = Self.normalizedOrigin(from: url),
               let host = Self.normalizedHost(from: url)
         else {
@@ -97,7 +112,7 @@ final class PasswordManagerService: ObservableObject {
             ? String(host.dropFirst(4))
             : "www.\(host)"
 
-        return entries
+        return scopedEntries(for: containerID)
             .filter { entry in
                 if entry.origin == origin {
                     return true
@@ -121,9 +136,13 @@ final class PasswordManagerService: ObservableObject {
     }
 
     func emailSuggestions(limit: Int = 4) -> [PasswordEmailSuggestion] {
+        emailSuggestions(for: nil, limit: limit)
+    }
+
+    func emailSuggestions(for containerID: UUID?, limit: Int = 4) -> [PasswordEmailSuggestion] {
         var seenEmails = Set<String>()
 
-        return entries
+        return scopedEntries(for: containerID)
             .sorted {
                 let lhsDate = $0.lastUsedAt ?? $0.updatedAt
                 let rhsDate = $1.lastUsedAt ?? $1.updatedAt
@@ -154,6 +173,10 @@ final class PasswordManagerService: ObservableObject {
             .map(\.self)
     }
 
+    func entries(for containerID: UUID?) -> [SavedPasswordSummary] {
+        scopedEntries(for: containerID)
+    }
+
     func revealPassword(for entry: SavedPasswordSummary) throws -> String {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -179,6 +202,10 @@ final class PasswordManagerService: ObservableObject {
     }
 
     func upsertCredential(for url: URL, username: String, password: String) throws {
+        try upsertCredential(for: url, username: username, password: password, containerID: nil)
+    }
+
+    func upsertCredential(for url: URL, username: String, password: String, containerID: UUID?) throws {
         guard let normalizedOrigin = Self.normalizedOrigin(from: url),
               let normalizedHost = Self.normalizedHost(from: url)
         else {
@@ -187,7 +214,7 @@ final class PasswordManagerService: ObservableObject {
         let trimmedUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
         let now = Date()
 
-        if let existing = entries.first(where: {
+        if let existing = scopedEntries(for: containerID, includeLegacyFallback: true).first(where: {
             let originMatches = $0.origin == normalizedOrigin
             let legacyHostMatches = $0.origin == nil && Self.normalizeHost($0.host) == normalizedHost
             return (originMatches || legacyHostMatches) && $0.username == trimmedUsername
@@ -199,7 +226,8 @@ final class PasswordManagerService: ObservableObject {
                 username: trimmedUsername,
                 createdAt: existing.createdAt,
                 updatedAt: now,
-                lastUsedAt: existing.lastUsedAt
+                lastUsedAt: existing.lastUsedAt,
+                containerID: containerID
             )
 
             let attributes: [String: Any] = try [
@@ -226,7 +254,8 @@ final class PasswordManagerService: ObservableObject {
                 username: trimmedUsername,
                 createdAt: now,
                 updatedAt: now,
-                lastUsedAt: nil
+                lastUsedAt: nil,
+                containerID: containerID
             )
 
             let item: [String: Any] = try [
@@ -259,7 +288,8 @@ final class PasswordManagerService: ObservableObject {
                 username: entry.username,
                 createdAt: entry.createdAt,
                 updatedAt: entry.updatedAt,
-                lastUsedAt: Date()
+                lastUsedAt: Date(),
+                containerID: entry.containerID
             )
 
             let attributes: [String: Any] = try [
@@ -293,6 +323,32 @@ final class PasswordManagerService: ObservableObject {
         }
 
         refresh()
+    }
+
+    func deleteEntries(for containerID: UUID) throws {
+        let scopedEntries = entries(for: containerID)
+
+        defer {
+            refresh()
+        }
+
+        do {
+            for entry in scopedEntries {
+                let query: [String: Any] = [
+                    kSecClass as String: kSecClassGenericPassword,
+                    kSecValuePersistentRef as String: entry.persistentReference
+                ]
+
+                let status = SecItemDelete(query as CFDictionary)
+                guard status == errSecSuccess || status == errSecItemNotFound else {
+                    throw PasswordManagerError.keychainStatus(status)
+                }
+            }
+            lastErrorMessage = nil
+        } catch {
+            lastErrorMessage = error.localizedDescription
+            throw error
+        }
     }
 
     func generateStrongPassword() -> String {
@@ -461,7 +517,8 @@ final class PasswordManagerService: ObservableObject {
                 username: record[kSecAttrComment as String] as? String ?? "",
                 createdAt: Date.distantPast,
                 updatedAt: Date.distantPast,
-                lastUsedAt: nil
+                lastUsedAt: nil,
+                containerID: nil
             )
             return SavedPasswordSummary(metadata: fallbackMetadata, persistentReference: persistentReference)
         }
@@ -475,6 +532,70 @@ final class PasswordManagerService: ObservableObject {
 
     private func encode(metadata: SavedPasswordMetadata) throws -> Data {
         try encoder.encode(metadata)
+    }
+
+    private func scopedEntries(for containerID: UUID?, includeLegacyFallback: Bool = false) -> [SavedPasswordSummary] {
+        guard let containerID else {
+            return entries
+        }
+
+        return entries.filter { entry in
+            if entry.containerID == containerID {
+                return true
+            }
+
+            return includeLegacyFallback && entry.containerID == nil
+        }
+    }
+
+    private func migrateLegacyEntriesIfNeeded(_ loadedEntries: [SavedPasswordSummary]) throws -> Bool {
+        let legacyEntries = loadedEntries.filter { $0.containerID == nil }
+        guard !legacyEntries.isEmpty,
+              let destinationContainerID = legacyMigrationContainerID()
+        else {
+            return false
+        }
+
+        for entry in legacyEntries {
+            let metadata = SavedPasswordMetadata(
+                id: entry.id,
+                origin: entry.origin,
+                host: entry.host,
+                username: entry.username,
+                createdAt: entry.createdAt,
+                updatedAt: entry.updatedAt,
+                lastUsedAt: entry.lastUsedAt,
+                containerID: destinationContainerID
+            )
+
+            let attributes: [String: Any] = try [
+                kSecAttrGeneric as String: encode(metadata: metadata)
+            ]
+            let query: [String: Any] = [
+                kSecClass as String: kSecClassGenericPassword,
+                kSecValuePersistentRef as String: entry.persistentReference
+            ]
+
+            let status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
+            guard status == errSecSuccess else {
+                throw PasswordManagerError.keychainStatus(status)
+            }
+        }
+
+        return true
+    }
+
+    private func legacyMigrationContainerID() -> UUID? {
+        guard let modelContainer = try? ModelConfiguration.createOraContainer(isPrivate: false) else {
+            return nil
+        }
+
+        let context = ModelContext(modelContainer)
+        let descriptor = FetchDescriptor<TabContainer>(
+            sortBy: [SortDescriptor(\TabContainer.createdAt, order: .forward)]
+        )
+
+        return try? context.fetch(descriptor).first?.id
     }
 
     private func copyToPasteboard(_ value: String, clearingAfter timeout: TimeInterval?) {
