@@ -23,6 +23,7 @@ struct OraRoot: View {
     @StateObject private var sidebarManager = SidebarManager()
     @StateObject private var toolbarManager = ToolbarManager()
     @StateObject private var dialogManager = DialogManager()
+    @StateObject private var toastManager = ToastManager()
 
     @ObserveInjection var inject
 
@@ -99,7 +100,9 @@ struct OraRoot: View {
             .environmentObject(sidebarManager)
             .environmentObject(toolbarManager)
             .environmentObject(dialogManager)
+            .environmentObject(toastManager)
             .dialogs(manager: dialogManager)
+            .toast(manager: toastManager)
             .modelContext(tabContext)
             .modelContext(historyContext)
             .modelContext(downloadContext)
