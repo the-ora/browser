@@ -103,9 +103,9 @@ struct ToastItemView: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Image(systemName: toast.resolvedIcon)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(toast.type.iconColor(theme: theme))
+            if let icon = toast.resolvedIcon {
+                toastIconView(icon)
+            }
 
             Text(toast.message)
                 .font(.system(size: 13, weight: .medium))
@@ -131,5 +131,23 @@ struct ToastItemView: View {
                 .stroke(theme.border.opacity(0.5), lineWidth: 0.5)
         )
         .shadow(color: .black.opacity(0.06), radius: 6, y: 2)
+    }
+
+    @ViewBuilder
+    private func toastIconView(_ icon: ToastIcon) -> some View {
+        switch icon {
+        case let .system(name):
+            Image(systemName: name)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(toast.type.iconColor(theme: theme))
+        case let .asset(name):
+            Image(name)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 16, height: 16)
+        case let .view(content):
+            content
+                .frame(width: 16, height: 16)
+        }
     }
 }

@@ -12,10 +12,10 @@ final class ToastManager: ObservableObject {
     func show(
         _ message: String,
         type: ToastType = .success,
-        systemImage: String? = nil,
+        icon: ToastIcon? = nil,
         duration: TimeInterval? = nil
     ) -> String {
-        let toast = Toast(message: message, type: type, systemImage: systemImage)
+        let toast = Toast(message: message, type: type, icon: icon)
 
         withAnimation(.spring(duration: 0.4, bounce: 0.2)) {
             toasts.append(toast)
