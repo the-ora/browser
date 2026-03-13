@@ -84,7 +84,7 @@ struct OraButton: View {
         guard !isDisabled else { return theme.disabledBackground }
         switch variant {
         case .default:
-            return isHovering ? theme.foreground.opacity(0.85) : theme.foreground
+            return isHovering ? theme.accent.opacity(0.85) : theme.accent
         case .secondary:
             return isHovering ? theme.mutedBackground.opacity(0.5) : theme.mutedBackground.opacity(0.8)
         case .outline, .ghost:
@@ -149,7 +149,6 @@ struct OraButton: View {
                     .cornerRadius(4)
                 }
             }
-            .foregroundColor(labelColor)
             .padding(.horizontal, hPadding)
             .padding(.vertical, vPadding)
             .background(backgroundColor)
