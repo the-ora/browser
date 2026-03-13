@@ -101,7 +101,7 @@ fi
 if [[ "$SKIP_CONFIRM" != true ]]; then
     echo ""
     read -r -p "Release v${VERSION}? [Y/n]: " CONFIRM
-    if [[ "${CONFIRM,,}" == "n" ]]; then
+    if [[ "$CONFIRM" =~ ^[Nn]$ ]]; then
         echo "Aborted."
         exit 0
     fi
