@@ -61,10 +61,7 @@ python3 "${CHANGELOG_ARGS[@]}"
 
 step "Sparkle appcast"
 
-# Locate Sparkle tools
-SPARKLE_BIN=$(/bin/ls -d /opt/homebrew/Caskroom/sparkle/*/bin 2>/dev/null | sort -V | tail -1 || true)
-[[ -n "$SPARKLE_BIN" ]] && export PATH="$SPARKLE_BIN:$PATH"
-command -v generate_appcast >/dev/null || die "generate_appcast not found. Install sparkle: brew install --cask sparkle"
+setup_sparkle_tools || prime_sparkle_tools_from_xcode || die "generate_appcast not found. Install Sparkle with: brew install --cask sparkle or resolve package dependencies with xcodebuild."
 
 cp "$DMG_FILE" "$SPARKLE_ARCHIVES_DIR/"
 [[ -f appcast.xml ]] && cp appcast.xml "$APPCAST_FILE"

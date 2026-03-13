@@ -47,14 +47,23 @@ MISSING_TOOLS=()
 command -v xcodegen   >/dev/null || MISSING_TOOLS+=(xcodegen)
 command -v create-dmg >/dev/null || MISSING_TOOLS+=(create-dmg)
 command -v gh         >/dev/null || MISSING_TOOLS+=(gh)
+MISSING_CASKS=()
 
-SPARKLE_BIN=$(/bin/ls -d /opt/homebrew/Caskroom/sparkle/*/bin 2>/dev/null | sort -V | tail -1 || true)
-[[ -n "$SPARKLE_BIN" ]] && export PATH="$SPARKLE_BIN:$PATH"
-command -v generate_appcast >/dev/null || MISSING_TOOLS+=(sparkle)
+setup_sparkle_tools || prime_sparkle_tools_from_xcode || MISSING_CASKS+=(sparkle)
+
+if [[ ${#MISSING_TOOLS[@]} -gt 0 || ${#MISSING_CASKS[@]} -gt 0 ]]; then
+    command -v brew >/dev/null || die "Homebrew is required to install missing release tooling."
+fi
 
 if [[ ${#MISSING_TOOLS[@]} -gt 0 ]]; then
     echo "Installing missing tools: ${MISSING_TOOLS[*]}"
     HOMEBREW_NO_AUTO_UPDATE=1 brew install "${MISSING_TOOLS[@]}"
+fi
+
+if [[ ${#MISSING_CASKS[@]} -gt 0 ]]; then
+    echo "Installing missing casks: ${MISSING_CASKS[*]}"
+    HOMEBREW_NO_AUTO_UPDATE=1 brew install --cask "${MISSING_CASKS[@]}"
+    setup_sparkle_tools || prime_sparkle_tools_from_xcode || die "generate_appcast not found after installing Sparkle or resolving package dependencies."
 fi
 
 [[ -f "ora_public_key.pem" ]] || die "ora_public_key.pem not found."
