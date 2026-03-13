@@ -102,7 +102,6 @@ struct OraRoot: View {
             .environmentObject(dialogManager)
             .environmentObject(toastManager)
             .dialogs(manager: dialogManager)
-            .toast(manager: toastManager)
             .modelContext(tabContext)
             .modelContext(historyContext)
             .modelContext(downloadContext)

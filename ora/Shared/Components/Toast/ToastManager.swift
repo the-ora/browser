@@ -6,6 +6,7 @@ final class ToastManager: ObservableObject {
     private var dismissTimers: [String: DispatchWorkItem] = [:]
     private var isHovered: Bool = false
 
+    var position: ToastPosition = .bottomCenter
     var defaultDuration: TimeInterval = 4.0
 
     @discardableResult

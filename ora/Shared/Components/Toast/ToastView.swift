@@ -5,7 +5,7 @@ import SwiftUI
 extension View {
     func toast(manager: ToastManager) -> some View {
         self.frame(maxWidth: .infinity, maxHeight: .infinity)
-            .overlay(alignment: .bottom) {
+            .overlay(alignment: manager.position.alignment) {
                 ToastsContainerView(manager: manager)
             }
     }
@@ -23,38 +23,52 @@ private struct ToastsContainerView: View {
     private let expandedGap: CGFloat = 8
     private let estimatedToastHeight: CGFloat = 44
 
+    private var position: ToastPosition {
+        manager.position
+    }
+
+    private var isTop: Bool {
+        position.isTop
+    }
+
+    /// Direction multiplier: top positions stack downward (+1), bottom positions stack upward (-1)
+    private var stackDirection: CGFloat {
+        isTop ? 1 : -1
+    }
+
     var body: some View {
         let visible = Array(manager.toasts.suffix(maxVisible))
 
-        ZStack(alignment: .bottom) {
+        ZStack(alignment: isTop ? .top : .bottom) {
             ForEach(Array(visible.enumerated()), id: \.element.id) { index, toast in
                 let depth = visible.count - 1 - index // 0 = newest (front)
 
                 ToastItemView(toast: toast) {
                     manager.dismiss(id: toast.id)
                 }
-                .offset(y: max(toast.dragOffsetY, 0))
+                .offset(y: dragOffset(for: toast))
                 .scaleEffect(
                     isExpanded ? 1 : 1 - CGFloat(depth) * collapsedScale,
-                    anchor: .bottom
+                    anchor: isTop ? .top : .bottom
                 )
                 .offset(
                     y: isExpanded
-                        ? -CGFloat(depth) * (estimatedToastHeight + expandedGap)
-                        : -CGFloat(depth) * collapsedOffset
+                        ? CGFloat(depth) * (estimatedToastHeight + expandedGap) * stackDirection
+                        : CGFloat(depth) * collapsedOffset * stackDirection
                 )
                 .opacity(depth >= maxVisible ? 0 : 1)
                 .zIndex(Double(index))
                 .gesture(swipeToDismiss(toast: toast))
                 .transition(
                     .asymmetric(
-                        insertion: .move(edge: .bottom).combined(with: .opacity),
-                        removal: .move(edge: .bottom).combined(with: .opacity)
+                        insertion: .move(edge: position.edge).combined(with: .opacity),
+                        removal: .move(edge: position.edge).combined(with: .opacity)
                     )
                 )
             }
         }
-        .padding(.bottom, 20)
+        .padding(isTop ? .top : .bottom, 20)
+        .padding(.horizontal, 20)
         .onHover { hovering in
             withAnimation(.smooth(duration: 0.25)) {
                 isExpanded = hovering
@@ -68,6 +82,14 @@ private struct ToastsContainerView: View {
         .animation(.spring(duration: 0.4, bounce: 0.2), value: manager.toasts.map(\.id))
     }
 
+    private func dragOffset(for toast: Toast) -> CGFloat {
+        if isTop {
+            return min(toast.dragOffsetY, 0) // only allow dragging up for top
+        } else {
+            return max(toast.dragOffsetY, 0) // only allow dragging down for bottom
+        }
+    }
+
     private func swipeToDismiss(toast: Toast) -> some Gesture {
         DragGesture(minimumDistance: 10)
             .onChanged { value in
@@ -77,9 +99,14 @@ private struct ToastsContainerView: View {
             }
             .onEnded { value in
                 if let idx = manager.toasts.firstIndex(where: { $0.id == toast.id }) {
-                    if value.translation.height > 60 {
+                    let dismissed = isTop
+                        ? value.translation.height < -60
+                        : value.translation.height > 60
+
+                    if dismissed {
+                        let flyOut: CGFloat = isTop ? -300 : 300
                         withAnimation(.easeIn(duration: 0.15)) {
-                            manager.toasts[idx].dragOffsetY = 300
+                            manager.toasts[idx].dragOffsetY = flyOut
                         }
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
                             manager.dismiss(id: toast.id)

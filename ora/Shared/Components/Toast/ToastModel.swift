@@ -1,5 +1,36 @@
 import SwiftUI
 
+enum ToastPosition {
+    case topCenter
+    case topLeft
+    case topRight
+    case bottomCenter
+    case bottomLeft
+    case bottomRight
+
+    var alignment: Alignment {
+        switch self {
+        case .topCenter: return .top
+        case .topLeft: return .topLeading
+        case .topRight: return .topTrailing
+        case .bottomCenter: return .bottom
+        case .bottomLeft: return .bottomLeading
+        case .bottomRight: return .bottomTrailing
+        }
+    }
+
+    var isTop: Bool {
+        switch self {
+        case .topCenter, .topLeft, .topRight: return true
+        case .bottomCenter, .bottomLeft, .bottomRight: return false
+        }
+    }
+
+    var edge: Edge {
+        isTop ? .top : .bottom
+    }
+}
+
 enum ToastType {
     case success
     case error
