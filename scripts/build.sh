@@ -97,13 +97,8 @@ APP_PATH="$EXPORT_PATH/Ora.app"
 echo "Copying exported app bundle..."
 ditto "$APP_PATH" "build/Ora.app"
 
-echo "Re-signing exported app bundle for distribution..."
-# Match the signature shape of the last known-good Sparkle releases by
-# shipping the final Developer ID app bundle without embedded entitlements.
-codesign --force --deep --options runtime --timestamp -s "$SIGNING_IDENTITY" "build/Ora.app"
-
-echo "Verifying app signature..."
-codesign --verify --deep --strict --verbose=4 "build/Ora.app" >/dev/null || die "App signature verification failed after re-signing."
+echo "Verifying exported app signature..."
+codesign --verify --deep --strict --verbose=4 "build/Ora.app" >/dev/null || die "App signature verification failed after export."
 
 # --- Sign ---
 
