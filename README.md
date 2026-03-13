@@ -67,4 +67,4 @@ The setup script installs required tooling, installs git hooks, and regenerates 
 
 ## License
 
-Ora Browser is licensed under [GPL-3.0](LICENSE). Third-party libraries under `ora/ThirdParty` are licensed separately under their own open-source licenses.
+Ora Browser is licensed under [GPL-3.0](LICENSE). Third-party libraries used by this project are licensed under their own open-source licenses.
