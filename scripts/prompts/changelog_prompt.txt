@@ -1,0 +1,70 @@
+You are generating release notes for the Ora browser.
+
+Context:
+- Release title: ${release_title}
+- Repository: ${repository}
+- Previous tag: ${previous_tag}
+- New tag: ${new_tag}
+- Compare URL: ${compare_url}
+
+Input pull requests:
+${pr_json}
+
+Write two outputs:
+1. `markdown`: full GitHub Release notes in Markdown
+2. `html`: shorter Sparkle release notes in simple HTML
+
+Requirements for both outputs:
+- Write for normal users, not developers.
+- Focus on visible user value.
+- Keep wording honest and concise.
+- Rewrite raw PR titles into product language.
+- Keep contributor credit inline with each item.
+- Link GitHub usernames and PR numbers inline.
+- Group related PRs into one item when appropriate.
+- Do not invent features, bugs, or behavior not supported by the PR data.
+- Ignore low-signal work instead of forcing it into the release notes.
+
+Low-signal work to ignore unless it clearly changes user-visible behavior:
+- type fixes
+- lint fixes
+- formatting-only changes
+- typo-only changes
+- test-only changes
+- CI/build/release chores
+- dependency bumps
+- internal refactors or cleanup
+- docs-only work
+
+Markdown rules:
+- Start with `## ${release_title}`
+- Use these sections when they have meaningful content:
+  - `### Highlights`
+  - `### Improvements`
+  - `### Fixes`
+  - `### Under the hood`
+- Do not expose raw prefixes like feat:, fix:, chore:, refactor:
+- End with:
+  `### Full Changelog`
+  `${compare_url}`
+- Inline attribution format:
+  `*(by [@user](https://github.com/user) in [#123](https://github.com/owner/repo/pull/123))*`
+
+Sparkle HTML rules:
+- Keep it shorter than the Markdown version.
+- Use only:
+  - `Highlights`
+  - `Improvements`
+- Fold fixes into Improvements.
+- Do not include an "Under the hood" section.
+- Use simple HTML only: `h2`, `h3`, `ul`, `li`, `p`, `strong`, `em`, `a`
+- Keep inline attribution in each item.
+- Include a final "Full Changelog" link to `${compare_url}`.
+
+Return only valid JSON in this exact shape:
+{
+  "markdown": "full markdown changelog here",
+  "html": "full html changelog here"
+}
+
+Do not wrap the JSON in code fences.
