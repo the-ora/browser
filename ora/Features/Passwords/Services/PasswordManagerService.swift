@@ -325,9 +325,15 @@ final class PasswordManagerService: ObservableObject {
         refresh()
     }
 
-    func deleteEntries(for containerID: UUID) {
+    func deleteEntries(for containerID: UUID) throws {
+        let scopedEntries = entries(for: containerID)
+
+        defer {
+            refresh()
+        }
+
         do {
-            for entry in entries(for: containerID) {
+            for entry in scopedEntries {
                 let query: [String: Any] = [
                     kSecClass as String: kSecClassGenericPassword,
                     kSecValuePersistentRef as String: entry.persistentReference
@@ -338,10 +344,10 @@ final class PasswordManagerService: ObservableObject {
                     throw PasswordManagerError.keychainStatus(status)
                 }
             }
-
-            refresh()
+            lastErrorMessage = nil
         } catch {
             lastErrorMessage = error.localizedDescription
+            throw error
         }
     }
 

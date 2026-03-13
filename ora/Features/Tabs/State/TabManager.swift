@@ -153,7 +153,11 @@ class TabManager: ObservableObject {
     }
 
     func deleteContainer(_ container: TabContainer) {
-        PasswordManagerService.shared.deleteEntries(for: container.id)
+        do {
+            try PasswordManagerService.shared.deleteEntries(for: container.id)
+        } catch {
+            return
+        }
         modelContext.delete(container)
     }
 
