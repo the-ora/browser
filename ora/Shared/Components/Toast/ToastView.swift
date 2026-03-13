@@ -11,6 +11,69 @@ extension View {
     }
 }
 
+// MARK: - Genie Effect
+
+/// A subtle macOS Genie-style warp: pinches one edge while fading + scaling.
+private struct GenieEffect: GeometryEffect {
+    var progress: CGFloat // 0 = identity, 1 = fully warped
+    var isTop: Bool
+
+    var animatableData: CGFloat {
+        get { progress }
+        set { progress = newValue }
+    }
+
+    func effectValue(size: CGSize) -> ProjectionTransform {
+        let p = progress
+
+        // Anchor at the edge the toast enters/exits from
+        let anchorY: CGFloat = isTop ? 0 : size.height
+
+        var t = CATransform3DIdentity
+
+        // Subtle perspective
+        t.m34 = -1.0 / 1200 * p
+
+        // Move anchor to edge, apply scale, move back
+        t = CATransform3DTranslate(t, size.width / 2, anchorY, 0)
+        let sx = 1.0 - 0.15 * p  // pinch width slightly
+        let sy = 1.0 - 0.25 * p  // compress height more
+        t = CATransform3DScale(t, sx, sy, 1)
+
+        // Tiny X-axis tilt toward the edge (genie warp feel)
+        let tiltAngle = (isTop ? -1.0 : 1.0) * 0.06 * p // ~3.4° max
+        t = CATransform3DRotate(t, tiltAngle, 1, 0, 0)
+
+        t = CATransform3DTranslate(t, -size.width / 2, -anchorY, 0)
+
+        // Slide toward the edge
+        let slideY = (isTop ? -1.0 : 1.0) * 16 * p
+        t = CATransform3DTranslate(t, 0, slideY, 0)
+
+        return ProjectionTransform(t)
+    }
+}
+
+private struct GenieTransitionModifier: ViewModifier {
+    let progress: CGFloat
+    let isTop: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(Double(1 - progress))
+            .modifier(GenieEffect(progress: progress, isTop: isTop))
+    }
+}
+
+private extension AnyTransition {
+    static func genie(isTop: Bool) -> AnyTransition {
+        .modifier(
+            active: GenieTransitionModifier(progress: 1, isTop: isTop),
+            identity: GenieTransitionModifier(progress: 0, isTop: isTop)
+        )
+    }
+}
+
 // MARK: - Toast Container (Sonner-style stacking)
 
 private struct ToastsContainerView: View {
@@ -59,12 +122,7 @@ private struct ToastsContainerView: View {
                 .opacity(depth >= maxVisible ? 0 : 1)
                 .zIndex(Double(index))
                 .gesture(swipeToDismiss(toast: toast))
-                .transition(
-                    .asymmetric(
-                        insertion: .move(edge: position.edge).combined(with: .opacity),
-                        removal: .move(edge: position.edge).combined(with: .opacity)
-                    )
-                )
+                .transition(.genie(isTop: isTop))
             }
         }
         .padding(isTop ? .top : .bottom, 20)
@@ -84,9 +142,9 @@ private struct ToastsContainerView: View {
 
     private func dragOffset(for toast: Toast) -> CGFloat {
         if isTop {
-            return min(toast.dragOffsetY, 0) // only allow dragging up for top
+            return min(toast.dragOffsetY, 0)
         } else {
-            return max(toast.dragOffsetY, 0) // only allow dragging down for bottom
+            return max(toast.dragOffsetY, 0)
         }
     }
 
