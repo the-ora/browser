@@ -8,6 +8,7 @@ struct SpacesSettingsView: View {
     @State private var searchService = SearchEngineService()
     @State private var selectedContainerId: UUID?
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var toastManager: ToastManager
 
     private var selectedContainer: TabContainer? {
         containers.first { $0.id == selectedContainerId } ?? containers.first
@@ -111,17 +112,26 @@ struct SpacesSettingsView: View {
                         SettingsCard(header: "Clear Data") {
                             VStack(spacing: 8) {
                                 Button("Clear Cache") {
-                                    PrivacyService.clearCache(container)
+                                    PrivacyService.clearCache(container) {
+                                        DispatchQueue.main.async {
+                                            toastManager.show("Cache cleared", icon: .system("trash"))
+                                        }
+                                    }
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
 
                                 Button("Clear Cookies") {
-                                    PrivacyService.clearCookies(container)
+                                    PrivacyService.clearCookies(container) {
+                                        DispatchQueue.main.async {
+                                            toastManager.show("Cookies cleared", icon: .system("trash"))
+                                        }
+                                    }
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
 
                                 Button("Clear History") {
                                     clearHistory(for: container)
+                                    toastManager.show("History cleared", icon: .system("trash"))
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             }

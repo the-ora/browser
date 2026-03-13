@@ -39,7 +39,7 @@ enum ToastType {
 
     var defaultIcon: ToastIcon? {
         switch self {
-        case .success: return .system("checkmark.circle.fill")
+        case .success: return .system("checkmark.circle")
         case .error: return .system("exclamationmark.triangle.fill")
         case .info: return .system("info.circle.fill")
         case .custom: return nil

@@ -127,6 +127,7 @@ struct ToastItemView: View {
     let toast: Toast
     let onDismiss: () -> Void
     @Environment(\.theme) private var theme
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         HStack(spacing: 8) {
@@ -151,7 +152,10 @@ struct ToastItemView: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
         .frame(width: 356)
-        .background(theme.background)
+        .background(colorScheme == .dark ? theme.background.opacity(0.7) : theme.background.opacity(0.9))
+        .background(
+            BlurEffectView(material: .hudWindow, blendingMode: .withinWindow)
+        )
         .clipShape(ConditionallyConcentricRectangle(cornerRadius: 14))
         .overlay(
             ConditionallyConcentricRectangle(cornerRadius: 14)

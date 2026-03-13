@@ -1,6 +1,8 @@
 import SwiftUI
 
 final class ToastManager: ObservableObject {
+    static let shared = ToastManager()
+
     @Published var toasts: [Toast] = []
 
     private var dismissTimers: [String: DispatchWorkItem] = [:]

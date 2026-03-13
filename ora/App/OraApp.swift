@@ -95,7 +95,7 @@ struct OraApp: App {
 
         WindowGroup("Settings", id: "settings") {
             if let sharedModelContainer {
-                SettingsContentView()
+                SettingsWindowRoot()
                     .environmentObject(AppearanceManager.shared)
                     .environmentObject(UpdateService.shared)
                     .environmentObject(DefaultBrowserManager.shared)

@@ -7,6 +7,7 @@ struct SidebarURLDisplay: View {
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var toolbarManager: ToolbarManager
+    @EnvironmentObject var toastManager: ToastManager
 
     let tab: Tab
     @Binding var editingURLString: String
@@ -25,6 +26,7 @@ struct SidebarURLDisplay: View {
             showCopiedAnimation: $showCopiedAnimation,
             startWheelAnimation: $startWheelAnimation
         )
+        toastManager.show("Link copied", icon: .ora(.copy))
     }
 
     var body: some View {

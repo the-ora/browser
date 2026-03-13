@@ -8,6 +8,7 @@ struct URLBar: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var sidebarManager: SidebarManager
     @EnvironmentObject var toolbarManager: ToolbarManager
+    @EnvironmentObject var toastManager: ToastManager
 
     @State private var showCopiedAnimation = false
     @State private var startWheelAnimation = false
@@ -37,6 +38,7 @@ struct URLBar: View {
             showCopiedAnimation: $showCopiedAnimation,
             startWheelAnimation: $startWheelAnimation
         )
+        toastManager.show("Link copied", icon: .ora(.copy))
     }
 
     var buttonForegroundColor: Color {
