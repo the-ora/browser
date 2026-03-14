@@ -512,7 +512,7 @@ class DownloadDelegate: NSObject, WKDownloadDelegate {
         _ download: WKDownload,
         willPerformHTTPRedirection response: HTTPURLResponse,
         newRequest: URLRequest,
-        decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+        decisionHandler: @escaping (WKDownload.RedirectPolicy) -> Void
     ) {
         if let newURL = newRequest.url {
             self.originalURL = newURL

@@ -92,9 +92,6 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
         configuration.allowsAirPlayForMediaPlayback = true
         configuration.preferences.javaScriptCanOpenWindowsAutomatically = false
 
-        // Process pool for web content process management
-        let processPool = WKProcessPool()
-        configuration.processPool = processPool
         // video shit
         configuration.preferences.isElementFullscreenEnabled = true
         if #unavailable(macOS 10.12) {
@@ -132,7 +129,7 @@ class TabScriptHandler: NSObject, WKScriptMessageHandler {
 
     private func loadPasswordManagerScript() -> String? {
         guard let scriptURL = Bundle.main.url(forResource: "password-manager", withExtension: "js"),
-              let script = try? String(contentsOf: scriptURL)
+              let script = try? String(contentsOf: scriptURL, encoding: .utf8)
         else {
             logger.error("Failed to load password manager bridge script")
             return nil

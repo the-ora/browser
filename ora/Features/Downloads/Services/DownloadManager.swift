@@ -64,7 +64,7 @@ class DownloadManager: ObservableObject {
         activeDownloads.append(download)
         refreshRecentDownloads()
 
-        toastManager?.show("Downloading: \(suggestedFilename)", type: .info, icon: .system("arrow.down.circle"))
+        toastManager?.show("Downloading \(suggestedFilename)", type: .info, icon: .system("arrow.down.circle"))
 
         return download
     }
@@ -90,7 +90,7 @@ class DownloadManager: ObservableObject {
         activeDownloads.removeAll { $0.id == download.id }
         refreshRecentDownloads()
 
-        toastManager?.show("Downloaded: \(download.fileName)", icon: .system("checkmark.circle"))
+        toastManager?.show("Downloaded \(download.fileName)", icon: .system("checkmark.circle"))
     }
 
     func failDownload(_ download: Download, error: String) {
@@ -102,7 +102,7 @@ class DownloadManager: ObservableObject {
         activeDownloads.removeAll { $0.id == download.id }
         refreshRecentDownloads()
 
-        toastManager?.show("Download failed: \(download.fileName)", type: .error)
+        toastManager?.show("Download failed \(download.fileName)", type: .error)
     }
 
     func cancelDownload(_ download: Download) {
@@ -119,7 +119,7 @@ class DownloadManager: ObservableObject {
         activeDownloads.removeAll { $0.id == download.id }
         refreshRecentDownloads()
 
-        toastManager?.show("Download cancelled: \(fileName)", type: .info, icon: .system("xmark.circle"))
+        toastManager?.show("Download cancelled \(fileName)", type: .info, icon: .system("xmark.circle"))
     }
 
     func clearCompletedDownloads() {

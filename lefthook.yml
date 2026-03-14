@@ -1,14 +1,17 @@
 pre-commit:
-  parallel: true
+  parallel: false
   commands:
     swiftformat:
       glob: "**/*.swift"
       run: swiftformat {staged_files} --quiet
       stage_fixed: true
-    swiftlint:
+    swiftlintfix:
       glob: "**/*.swift"
       run: swiftlint lint --fix --use-alternative-excluding {staged_files}
       stage_fixed: true
+    swiftlint:
+      glob: "**/*.swift"
+      run: swiftlint lint --use-alternative-excluding {staged_files}
 
 pre-push:
   commands:

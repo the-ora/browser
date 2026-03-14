@@ -207,7 +207,7 @@ struct LauncherMain: View {
     private func requestAutoSuggestions(_ text: String, insertAt: Int) {
         let containerId = tabManager.activeContainer?.id
         debouncer.run {
-            let searchEngine = self.searchEngineService.getDefaultSearchEngine(for: containerId)
+            let searchEngine = await self.searchEngineService.getDefaultSearchEngine(for: containerId)
             if let autoSuggestions = searchEngine?.autoSuggestions {
                 let searchSuggestions = await autoSuggestions(text)
                 await MainActor.run {

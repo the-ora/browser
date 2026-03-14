@@ -165,22 +165,30 @@ struct OraRoot: View {
                     }
                 }
                 NotificationCenter.default.addObserver(forName: .showLauncher, object: nil, queue: .main) { note in
-                    guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
-                    if tabManager.activeTab != nil {
-                        appState.showLauncher.toggle()
+                    Task { @MainActor in
+                        guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
+                        if tabManager.activeTab != nil {
+                            appState.showLauncher.toggle()
+                        }
                     }
                 }
                 NotificationCenter.default.addObserver(forName: .closeActiveTab, object: nil, queue: .main) { note in
-                    guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
-                    tabManager.closeActiveTab()
+                    Task { @MainActor in
+                        guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
+                        tabManager.closeActiveTab()
+                    }
                 }
                 NotificationCenter.default.addObserver(forName: .restoreLastTab, object: nil, queue: .main) { note in
-                    guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
-                    tabManager.restoreLastTab()
+                    Task { @MainActor in
+                        guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
+                        tabManager.restoreLastTab()
+                    }
                 }
                 NotificationCenter.default.addObserver(forName: .findInPage, object: nil, queue: .main) { note in
-                    guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
-                    if let activeTab = tabManager.activeTab { appState.showFinderIn = activeTab.id }
+                    Task { @MainActor in
+                        guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
+                        if let activeTab = tabManager.activeTab { appState.showFinderIn = activeTab.id }
+                    }
                 }
                 NotificationCenter.default.addObserver(forName: .toggleFullURL, object: nil, queue: .main) { note in
                     guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
@@ -193,20 +201,28 @@ struct OraRoot: View {
                     }
                 }
                 NotificationCenter.default.addObserver(forName: .reloadPage, object: nil, queue: .main) { note in
-                    guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
-                    tabManager.activeTab?.webView.reload()
+                    Task { @MainActor in
+                        guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
+                        tabManager.activeTab?.webView.reload()
+                    }
                 }
                 NotificationCenter.default.addObserver(forName: .goBack, object: nil, queue: .main) { note in
-                    guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
-                    tabManager.activeTab?.webView.goBack()
+                    Task { @MainActor in
+                        guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
+                        tabManager.activeTab?.webView.goBack()
+                    }
                 }
                 NotificationCenter.default.addObserver(forName: .goForward, object: nil, queue: .main) { note in
-                    guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
-                    tabManager.activeTab?.webView.goForward()
+                    Task { @MainActor in
+                        guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
+                        tabManager.activeTab?.webView.goForward()
+                    }
                 }
                 NotificationCenter.default.addObserver(forName: .togglePinTab, object: nil, queue: .main) { note in
-                    guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
-                    if let tab = tabManager.activeTab { tabManager.togglePinTab(tab) }
+                    Task { @MainActor in
+                        guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
+                        if let tab = tabManager.activeTab { tabManager.togglePinTab(tab) }
+                    }
                 }
                 NotificationCenter.default.addObserver(forName: .nextTab, object: nil, queue: .main) { note in
                     guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
@@ -229,60 +245,74 @@ struct OraRoot: View {
                     updateService.checkForUpdates()
                 }
                 NotificationCenter.default.addObserver(forName: .selectTabAtIndex, object: nil, queue: .main) { note in
-                    guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
-                    if let index = note.userInfo?["index"] as? Int {
-                        tabManager.selectTabAtIndex(index)
+                    Task { @MainActor in
+                        guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
+                        if let index = note.userInfo?["index"] as? Int {
+                            tabManager.selectTabAtIndex(index)
+                        }
                     }
                 }
                 NotificationCenter.default.addObserver(forName: .openURL, object: nil, queue: .main) { note in
-                    let targetWindow = window ?? NSApp.keyWindow
-                    if let sender = note.object as? NSWindow {
-                        guard sender === targetWindow else { return }
-                    } else {
-                        guard NSApp.keyWindow === targetWindow else { return }
+                    Task { @MainActor in
+                        let targetWindow = window ?? NSApp.keyWindow
+                        if let sender = note.object as? NSWindow {
+                            guard sender === targetWindow else { return }
+                        } else {
+                            guard NSApp.keyWindow === targetWindow else { return }
+                        }
+                        guard let url = note.userInfo?["url"] as? URL else { return }
+                        tabManager.openTab(
+                            url: url,
+                            historyManager: historyManager,
+                            downloadManager: downloadManager,
+                            focusAfterOpening: true,
+                            isPrivate: privacyMode.isPrivate
+                        )
                     }
-                    guard let url = note.userInfo?["url"] as? URL else { return }
-                    tabManager.openTab(
-                        url: url,
-                        historyManager: historyManager,
-                        downloadManager: downloadManager,
-                        focusAfterOpening: true,
-                        isPrivate: privacyMode.isPrivate
-                    )
                 }
 
                 // Clear cache and reload
                 NotificationCenter.default
                     .addObserver(forName: .clearCacheAndReload, object: nil, queue: .main) { note in
-                        guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
-                        if let activeTab = tabManager.activeTab {
-                            let host = activeTab.url.host ?? ""
-                            let domain = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
-                            PrivacyService
-                                .clearCacheForHost(for: domain, container: activeTab.container) { [weak toastManager] in
-                                    DispatchQueue.main.async {
-                                        activeTab.webView.reload()
-                                        toastManager?.show("Cache cleared for \(domain)", icon: .system("trash"))
+                        Task { @MainActor in
+                            guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
+                            if let activeTab = tabManager.activeTab {
+                                let host = activeTab.url.host ?? ""
+                                let domain = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
+                                PrivacyService
+                                    .clearCacheForHost(
+                                        for: domain,
+                                        container: activeTab.container
+                                    ) { [weak toastManager] in
+                                        DispatchQueue.main.async {
+                                            activeTab.webView.reload()
+                                            toastManager?.show("Cache cleared for \(domain)", icon: .system("trash"))
+                                        }
                                     }
-                                }
+                            }
                         }
                     }
 
                 // Clear cookies and reload
                 NotificationCenter.default
                     .addObserver(forName: .clearCookiesAndReload, object: nil, queue: .main) { note in
-                        guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
+                        Task { @MainActor in
+                            guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
 
-                        if let activeTab = tabManager.activeTab {
-                            let host = activeTab.url.host ?? ""
-                            let domain = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
-                            PrivacyService
-                                .clearCookiesForHost(for: host, container: activeTab.container) { [weak toastManager] in
-                                    DispatchQueue.main.async {
-                                        activeTab.webView.reload()
-                                        toastManager?.show("Cookies cleared for \(domain)", icon: .system("trash"))
+                            if let activeTab = tabManager.activeTab {
+                                let host = activeTab.url.host ?? ""
+                                let domain = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
+                                PrivacyService
+                                    .clearCookiesForHost(
+                                        for: host,
+                                        container: activeTab.container
+                                    ) { [weak toastManager] in
+                                        DispatchQueue.main.async {
+                                            activeTab.webView.reload()
+                                            toastManager?.show("Cookies cleared for \(domain)", icon: .system("trash"))
+                                        }
                                     }
-                                }
+                            }
                         }
                     }
             }
