@@ -139,9 +139,9 @@ struct URLBar: View {
                                         .tint(buttonForegroundColor)
                                         .scaleEffect(0.5)
                                 } else {
-                                    Image(systemName: tab.url.scheme == "https" ? "lock.fill" : "globe")
+                                    Image(systemName: tab.url.scheme == "https" ? "shield.lefthalf.filled" : "globe")
                                         .font(.system(size: 12))
-                                        .foregroundColor(tab.url.scheme == "https" ? .green : buttonForegroundColor)
+                                        .foregroundColor(buttonForegroundColor)
                                 }
                             }
                             .frame(width: 16, height: 16)

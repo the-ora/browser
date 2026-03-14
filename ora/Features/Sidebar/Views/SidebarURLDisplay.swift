@@ -30,25 +30,26 @@ struct SidebarURLDisplay: View {
     }
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(alignment: .bottom, spacing: 8) {
             ZStack {
                 if tab.isLoading {
                     ProgressView()
                         .tint(theme.foreground.opacity(0.7))
                         .scaleEffect(0.5)
+                        .frame(width: 12, height: 12)
                 } else {
-                    Image(systemName: tab.url.scheme == "https" ? "lock.fill" : "globe")
+                    Image(systemName: tab.url.scheme == "https" ? "shield.lefthalf.filled" : "globe")
                         .font(.system(size: 12))
-                        .foregroundColor(tab.url.scheme == "https" ? .green : theme.foreground.opacity(0.7))
+                        .foregroundColor(theme.mutedForeground)
                 }
             }
-            .frame(width: 16, height: 16)
+            .frame(width: 16)
 
             ZStack(alignment: .leading) {
                 TextField("", text: $editingURLString)
                     .font(.system(size: 14))
                     .textFieldStyle(PlainTextFieldStyle())
-                    .foregroundColor(theme.foreground)
+                    .foregroundColor(isEditing ? theme.foreground : theme.mutedForeground)
                     .focused($isEditing)
                     .onSubmit {
                         tab.loadURL(editingURLString)
@@ -74,14 +75,14 @@ struct SidebarURLDisplay: View {
                 )
             }
             .font(.system(size: 14))
-            .foregroundColor(theme.foreground)
+            .foregroundColor(theme.mutedForeground)
             .overlay(
                 Group {
                     if !isEditing, editingURLString.isEmpty, !showCopiedAnimation {
                         HStack {
                             Text(getDisplayURL())
                                 .font(.system(size: 14))
-                                .foregroundColor(theme.foreground)
+                                .foregroundColor(theme.mutedForeground)
                                 .lineLimit(1)
                                 .truncationMode(.middle)
                             Spacer()
@@ -97,8 +98,8 @@ struct SidebarURLDisplay: View {
                 .opacity(0)
             )
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 7)
         .frame(maxWidth: .infinity)
         .contentShape(Rectangle())
         .onTapGesture {
@@ -107,7 +108,11 @@ struct SidebarURLDisplay: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(theme.mutedBackground)
+                .fill(theme.invertedSolidWindowBackgroundColor.opacity(0.07))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(theme.invertedSolidWindowBackgroundColor.opacity(0.1), lineWidth: 1)
         )
         .onAppear {
             editingURLString = ""
