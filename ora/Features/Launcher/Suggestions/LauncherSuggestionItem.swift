@@ -48,6 +48,7 @@ struct LauncherSuggestionItem: View {
 
     @State private var isHovered = false
     @Environment(\.theme) private var theme
+    @Environment(\.launcherMouseHasMoved) private var mouseHasMoved
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var toolbarManager: ToolbarManager
 
@@ -175,7 +176,7 @@ struct LauncherSuggestionItem: View {
             appState.showLauncher = false
         }
         .onHover { hover in
-            if hover {
+            if hover, mouseHasMoved {
                 focusedElement = suggestion.id
             }
         }

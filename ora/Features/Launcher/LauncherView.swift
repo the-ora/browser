@@ -1,6 +1,17 @@
 import AppKit
 import SwiftUI
 
+private struct LauncherMouseHasMovedKey: EnvironmentKey {
+    static let defaultValue: Bool = false
+}
+
+extension EnvironmentValues {
+    var launcherMouseHasMoved: Bool {
+        get { self[LauncherMouseHasMovedKey.self] }
+        set { self[LauncherMouseHasMovedKey.self] = newValue }
+    }
+}
+
 struct LauncherView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var toolbarManager: ToolbarManager
@@ -15,6 +26,8 @@ struct LauncherView: View {
     @State private var isVisible = false
     @FocusState private var isTextFieldFocused: Bool
     @State private var match: LauncherMain.Match?
+    @State private var mouseHasMoved = false
+    @State private var mouseMonitor: Any?
 
     var clearOverlay: Bool? = false
 
@@ -98,12 +111,28 @@ struct LauncherView: View {
                 isVisible = true
                 isTextFieldFocused = true
                 searchEngineService.setTheme(theme)
+                mouseHasMoved = false
+                mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { event in
+                    mouseHasMoved = true
+                    if let monitor = mouseMonitor {
+                        NSEvent.removeMonitor(monitor)
+                        mouseMonitor = nil
+                    }
+                    return event
+                }
+            }
+            .onDisappear {
+                if let monitor = mouseMonitor {
+                    NSEvent.removeMonitor(monitor)
+                    mouseMonitor = nil
+                }
             }
             .onChange(of: appState.showLauncher) { _, newValue in
                 isVisible = newValue
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .environment(\.launcherMouseHasMoved, mouseHasMoved)
         .onExitCommand {
             if tabManager.activeTab != nil {
                 isVisible = false
