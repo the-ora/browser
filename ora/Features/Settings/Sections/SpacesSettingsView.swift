@@ -2,11 +2,18 @@ import SwiftData
 import SwiftUI
 
 struct SpacesSettingsView: View {
+    private enum ClearDataAction: Hashable {
+        case cache(UUID)
+        case cookies(UUID)
+        case history(UUID)
+    }
+
     @Query var containers: [TabContainer]
 
     @StateObject private var settings = SettingsStore.shared
     @State private var searchService = SearchEngineService()
     @State private var selectedContainerId: UUID?
+    @State private var completedClearActions: Set<ClearDataAction> = []
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var toastManager: ToastManager
 
@@ -111,28 +118,53 @@ struct SpacesSettingsView: View {
 
                         SettingsCard(header: "Clear Data") {
                             VStack(spacing: 8) {
-                                Button("Clear Cache") {
+                                Button(
+                                    clearDataButtonTitle(
+                                        for: .cache(container.id),
+                                        defaultTitle: "Clear Cache",
+                                        completedTitle: "Cache Cleared"
+                                    )
+                                ) {
                                     PrivacyService.clearCache(container) {
                                         DispatchQueue.main.async {
+                                            completedClearActions.insert(.cache(container.id))
                                             toastManager.show("Cache cleared", icon: .system("trash"))
                                         }
                                     }
                                 }
+                                .disabled(completedClearActions.contains(.cache(container.id)))
                                 .frame(maxWidth: .infinity, alignment: .leading)
 
-                                Button("Clear Cookies") {
+                                Button(
+                                    clearDataButtonTitle(
+                                        for: .cookies(container.id),
+                                        defaultTitle: "Clear Cookies",
+                                        completedTitle: "Cookies Cleared"
+                                    )
+                                ) {
                                     PrivacyService.clearCookies(container) {
                                         DispatchQueue.main.async {
+                                            completedClearActions.insert(.cookies(container.id))
                                             toastManager.show("Cookies cleared", icon: .system("trash"))
                                         }
                                     }
                                 }
+                                .disabled(completedClearActions.contains(.cookies(container.id)))
                                 .frame(maxWidth: .infinity, alignment: .leading)
 
-                                Button("Clear History") {
-                                    clearHistory(for: container)
-                                    toastManager.show("History cleared", icon: .system("trash"))
+                                Button(
+                                    clearDataButtonTitle(
+                                        for: .history(container.id),
+                                        defaultTitle: "Clear History",
+                                        completedTitle: "History Cleared"
+                                    )
+                                ) {
+                                    if clearHistory(for: container) {
+                                        completedClearActions.insert(.history(container.id))
+                                        toastManager.show("History cleared", icon: .system("trash"))
+                                    }
                                 }
+                                .disabled(completedClearActions.contains(.history(container.id)))
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             }
                             .buttonStyle(.bordered)
@@ -154,7 +186,7 @@ struct SpacesSettingsView: View {
         .onAppear { if selectedContainerId == nil { selectedContainerId = containers.first?.id } }
     }
 
-    private func clearHistory(for container: TabContainer) {
+    private func clearHistory(for container: TabContainer) -> Bool {
         let containerId = container.id
         let descriptor = FetchDescriptor<History>(
             predicate: #Predicate { $0.container?.id == containerId }
@@ -166,8 +198,18 @@ struct SpacesSettingsView: View {
                 modelContext.delete(history)
             }
             try modelContext.save()
+            return true
         } catch {
             print("Failed to clear history for container \(container.id): \(error.localizedDescription)")
+            return false
         }
+    }
+
+    private func clearDataButtonTitle(
+        for action: ClearDataAction,
+        defaultTitle: String,
+        completedTitle: String
+    ) -> String {
+        completedClearActions.contains(action) ? completedTitle : defaultTitle
     }
 }
