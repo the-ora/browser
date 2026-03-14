@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import WebKit
 
 struct FindView: View {
     @State private var searchText = ""
@@ -19,8 +18,8 @@ struct FindView: View {
     @Environment(\.colorScheme) var colorScheme
     private let controller: FindController
 
-    init(webView: WKWebView) {
-        self.controller = FindController(webView: webView)
+    init(page: BrowserPage) {
+        self.controller = FindController(page: page)
     }
 
     var body: some View {

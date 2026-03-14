@@ -89,7 +89,7 @@ struct URLBar: View {
                     // Back button
                     URLBarButton(
                         systemName: "chevron.left",
-                        isEnabled: tabManager.activeTab?.webView.canGoBack ?? false,
+                        isEnabled: tabManager.activeTab?.canGoBack ?? false,
                         foregroundColor: buttonForegroundColor,
                         action: {
                             if let activeTab = tabManager.activeTab {
@@ -103,7 +103,7 @@ struct URLBar: View {
                     // Forward button
                     URLBarButton(
                         systemName: "chevron.right",
-                        isEnabled: tabManager.activeTab?.webView.canGoForward ?? false,
+                        isEnabled: tabManager.activeTab?.canGoForward ?? false,
                         foregroundColor: buttonForegroundColor,
                         action: {
                             if let activeTab = tabManager.activeTab {
@@ -121,7 +121,7 @@ struct URLBar: View {
                         foregroundColor: buttonForegroundColor,
                         action: {
                             if let activeTab = tabManager.activeTab {
-                                activeTab.webView.reload()
+                                activeTab.reload()
                             }
                         }
                     )

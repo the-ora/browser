@@ -1,13 +1,13 @@
+import Foundation
 import os.log
-import WebKit
 
 private let logger = Logger(subsystem: "com.orabrowser.ora", category: "FindController")
 
 class FindController: NSObject {
-    let webView: WKWebView
+    let page: BrowserPage
 
-    init(webView: WKWebView) {
-        self.webView = webView
+    init(page: BrowserPage) {
+        self.page = page
         super.init()
     }
 
@@ -21,7 +21,7 @@ class FindController: NSObject {
             return
         }
 
-        webView.evaluateJavaScript(jsCode) { _, error in
+        page.evaluateJavaScript(jsCode) { _, error in
             if let error {
                 logger.error("Error injecting mark.js: \(error.localizedDescription)")
             }
@@ -78,7 +78,7 @@ class FindController: NSObject {
             });
         })();
         """
-        webView.evaluateJavaScript(js)
+        page.evaluateJavaScript(js)
     }
 
     // MARK: - Next Match
@@ -96,7 +96,7 @@ class FindController: NSObject {
             }
         })();
         """
-        webView.evaluateJavaScript(js)
+        page.evaluateJavaScript(js)
     }
 
     // MARK: - Previous Match
@@ -114,7 +114,7 @@ class FindController: NSObject {
             }
         })();
         """
-        webView.evaluateJavaScript(js)
+        page.evaluateJavaScript(js)
     }
 
     // MARK: - Clear All Matches
@@ -130,7 +130,7 @@ class FindController: NSObject {
             }
         })();
         """
-        webView.evaluateJavaScript(js)
+        page.evaluateJavaScript(js)
     }
 
     // MARK: - Count Matches
@@ -143,7 +143,7 @@ class FindController: NSObject {
                 : 0;
         })();
         """
-        webView.evaluateJavaScript(js) { result, _ in
+        page.evaluateJavaScript(js) { result, _ in
             let count = result as? Int ?? 0
             completion(count)
         }
@@ -159,7 +159,7 @@ class FindController: NSObject {
                 : 0;
         })();
         """
-        webView.evaluateJavaScript(js) { result, _ in
+        page.evaluateJavaScript(js) { result, _ in
             let index = result as? Int ?? 0
             completion(index)
         }
@@ -179,7 +179,7 @@ class FindController: NSObject {
             return { total: 0, current: 0 };
         })();
         """
-        webView.evaluateJavaScript(js) { result, _ in
+        page.evaluateJavaScript(js) { result, _ in
             if let dict = result as? [String: Any],
                let total = dict["total"] as? Int,
                let current = dict["current"] as? Int

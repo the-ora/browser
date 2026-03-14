@@ -38,7 +38,7 @@ struct SidebarHeader: View {
 
                     URLBarButton(
                         systemName: "chevron.left",
-                        isEnabled: tabManager.activeTab?.webView.canGoBack ?? false,
+                        isEnabled: tabManager.activeTab?.canGoBack ?? false,
                         foregroundColor: theme.foreground.opacity(0.7),
                         action: {
                             if let activeTab = tabManager.activeTab {
@@ -50,7 +50,7 @@ struct SidebarHeader: View {
 
                     URLBarButton(
                         systemName: "chevron.right",
-                        isEnabled: tabManager.activeTab?.webView.canGoForward ?? false,
+                        isEnabled: tabManager.activeTab?.canGoForward ?? false,
                         foregroundColor: theme.foreground.opacity(0.7),
                         action: {
                             if let activeTab = tabManager.activeTab {
@@ -66,7 +66,7 @@ struct SidebarHeader: View {
                         foregroundColor: theme.foreground.opacity(0.7),
                         action: {
                             if let activeTab = tabManager.activeTab {
-                                activeTab.webView.reload()
+                                activeTab.reload()
                             }
                         }
                     )
