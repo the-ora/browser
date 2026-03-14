@@ -7,6 +7,7 @@ struct DownloadsHistoryView: View {
     @Environment(\.theme) private var theme
 
     @State private var searchText = ""
+    @State private var isClearHovered = false
 
     private var isSearching: Bool {
         !searchText.isEmpty
@@ -47,13 +48,16 @@ struct DownloadsHistoryView: View {
                     downloadManager.clearNonActiveDownloads()
                 }) {
                     HStack(spacing: 4) {
-                        OraIcons(icon: .brush1, size: .md, color: .secondary)
+                        OraIcons(icon: .brush1, size: .sm, color: isClearHovered ? theme.foreground : .secondary)
                         Text("Clear")
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.secondary)
-                    }.frame(alignment: .center)
+                            .foregroundColor(isClearHovered ? theme.foreground : .secondary)
+                    }
+                    .frame(alignment: .center)
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .onHover { isClearHovered = $0 }
             }
         }
         .padding(.trailing, 12)
