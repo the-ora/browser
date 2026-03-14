@@ -257,12 +257,14 @@ class DownloadManager: ObservableObject {
     }
 
     private func startProgressTimer(for task: BrowserDownloadTask, download: Download, expectedSize: Int64) {
-        progressTimers[task.id]?.invalidate()
-        progressTimers[task.id] = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+        let taskID = task.id
+        progressTimers[taskID]?.invalidate()
+        progressTimers[taskID] = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
             guard let self else { return }
             let completedBytes = task.progress.completedUnitCount
             let totalBytes = task.progress.totalUnitCount > 0 ? task.progress.totalUnitCount : expectedSize
             Task { @MainActor in
+                guard let download = self.taskDownloads[taskID] else { return }
                 self.updateDownloadProgress(
                     download,
                     downloadedBytes: completedBytes,
