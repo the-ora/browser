@@ -43,7 +43,7 @@ class Tab: ObservableObject, Identifiable {
     @Transient var downloadManager: DownloadManager?
     @Transient var tabManager: TabManager?
     // Not persisted: in-memory only
-    @Transient var webView: WKWebView = OraWebView(frame: .zero, configuration: WKWebViewConfiguration())
+    @Transient var webView: WKWebView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
     @Transient var navigationDelegate: WebViewNavigationDelegate?
     @Transient @Published var isWebViewReady: Bool = false
     @Transient @Published var loadingProgress: Double = 10.0
@@ -97,7 +97,7 @@ class Tab: ObservableObject, Identifiable {
 
         let config = TabScriptHandler()
 
-        self.webView = OraWebView(
+        self.webView = WKWebView(
             frame: .zero,
             configuration: config
                 .customWKConfig(
@@ -289,7 +289,7 @@ class Tab: ObservableObject, Identifiable {
         let passwordCoordinator = PasswordAutofillCoordinator(tab: self)
         self.passwordCoordinator = passwordCoordinator
         config.passwordCoordinator = passwordCoordinator
-        self.webView = OraWebView(
+        self.webView = WKWebView(
             frame: .zero,
             configuration: config
                 .customWKConfig(
@@ -337,7 +337,7 @@ class Tab: ObservableObject, Identifiable {
         webView.navigationDelegate = nil
         webView.uiDelegate = nil
         webView.stopLoading()
-        webView = OraWebView()
+        webView = WKWebView()
     }
 
     func loadURL(_ urlString: String) {
@@ -387,7 +387,7 @@ class Tab: ObservableObject, Identifiable {
         webView.uiDelegate = nil
         webView.configuration.userContentController.removeAllUserScripts()
         webView.removeFromSuperview()
-        webView = OraWebView(frame: .zero, configuration: WKWebViewConfiguration())
+        webView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
         isWebViewReady = false
     }
 

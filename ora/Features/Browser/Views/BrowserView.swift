@@ -19,13 +19,27 @@ struct BrowserView: View {
     @State private var isMouseOverSidebar = false
     @State private var showFloatingSidebar = false
 
+    // MARK: - Sidebar mouse shield
+
+    private static let removeShieldJS = "document.getElementById('ora-sb-shield')?.remove();"
+
+    private var clampedSidebarFraction: CGFloat {
+        min(
+            max(
+                sidebarManager.currentFraction.value,
+                FloatingSidebarOverlay.minFraction
+            ),
+            FloatingSidebarOverlay.maxFraction
+        )
+    }
+
     /// Injects/removes a transparent shield div in the web page to block
     /// hover effects and cursor changes behind the floating sidebar.
     private func injectSidebarMouseShield(visible: Bool) {
         guard let webView = tabManager.activeTab?.webView else { return }
         if visible {
             let side = sidebarManager.sidebarPosition == .primary ? "left" : "right"
-            let widthVW = sidebarManager.currentFraction.value * 100
+            let widthVW = clampedSidebarFraction * 100
             webView.callAsyncJavaScript(
                 """
                 var e = document.getElementById('ora-sb-shield');
@@ -48,10 +62,7 @@ struct BrowserView: View {
                 completionHandler: nil
             )
         } else {
-            webView.evaluateJavaScript(
-                "document.getElementById('ora-sb-shield')?.remove();",
-                completionHandler: nil
-            )
+            webView.evaluateJavaScript(Self.removeShieldJS, completionHandler: nil)
         }
     }
 
@@ -93,12 +104,6 @@ struct BrowserView: View {
         .enableInjection()
         .animation(.easeOut(duration: 0.1), value: showFloatingSidebar)
         .onChange(of: showFloatingSidebar) { _, visible in
-            OraWebView.floatingSidebarInfo = visible
-                ? .init(
-                    isOnLeft: sidebarManager.sidebarPosition == .primary,
-                    widthFraction: sidebarManager.currentFraction.value
-                )
-                : nil
             injectSidebarMouseShield(visible: visible)
         }
         .onReceive(NotificationCenter.default.publisher(for: .toggleSidebar)) { _ in
@@ -116,7 +121,11 @@ struct BrowserView: View {
                 }
             }
         }
-        .onChange(of: tabManager.activeTab) { _, newTab in
+        .onChange(of: tabManager.activeTab) { oldTab, newTab in
+            if showFloatingSidebar {
+                oldTab?.webView.evaluateJavaScript(Self.removeShieldJS, completionHandler: nil)
+                injectSidebarMouseShield(visible: true)
+            }
             if let tab = newTab, !tab.isWebViewReady {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
                     tab.restoreTransientState(
