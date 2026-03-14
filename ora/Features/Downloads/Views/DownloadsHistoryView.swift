@@ -44,7 +44,7 @@ struct DownloadsHistoryView: View {
 
             if hasNonActiveDownloads {
                 Button(action: {
-                    downloadManager.clearCompletedDownloads()
+                    downloadManager.clearNonActiveDownloads()
                 }) {
                     HStack(spacing: 4) {
                         OraIcons(icon: .brush1, size: .md, color: .secondary)
