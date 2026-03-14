@@ -81,7 +81,7 @@ class SearchEngineService: ObservableObject {
             SearchEngine(
                 name: "Claude",
                 color: Color(hex: "#DE7C4C"),
-                icon: "",
+                icon: "claude-capsule-logo",
                 aliases: ["claude", "cl", "cla", "anthropic"],
                 searchURL: "https://claude.ai?q={query}",
                 isAIChat: true
@@ -89,7 +89,7 @@ class SearchEngineService: ObservableObject {
             SearchEngine(
                 name: "Google",
                 color: .blue,
-                icon: "",
+                icon: "google-capsule-logo",
                 aliases: ["google", "goo", "g", "search"],
                 searchURL:
                 "https://www.google.com/search?client=safari&rls=en&ie=UTF-8&oe=UTF-8&q={query}",
@@ -99,7 +99,7 @@ class SearchEngineService: ObservableObject {
             SearchEngine(
                 name: "DuckDuckGo",
                 color: Color(hex: "#DE5833"),
-                icon: "",
+                icon: "duckduckgo-capsule-logo",
                 aliases: ["duckduckgo", "ddg", "duck"],
                 searchURL: "https://duckduckgo.com/?q={query}",
                 isAIChat: false
@@ -107,7 +107,7 @@ class SearchEngineService: ObservableObject {
             SearchEngine(
                 name: "Kagi",
                 color: Color(hex: "#FFB319"),
-                icon: "",
+                icon: "kagi-capsule-logo",
                 aliases: ["kagi", "kg"],
                 searchURL: "https://kagi.com/search?q={query}",
                 isAIChat: false
@@ -115,7 +115,7 @@ class SearchEngineService: ObservableObject {
             SearchEngine(
                 name: "Bing",
                 color: Color(hex: "#02B7E9"),
-                icon: "",
+                icon: "bing-capsule-logo",
                 aliases: ["bing", "b", "microsoft"],
                 searchURL: "https://www.bing.com/search?q={query}",
                 isAIChat: false
@@ -156,7 +156,7 @@ class SearchEngineService: ObservableObject {
             SearchEngine(
                 name: "X",
                 color: theme?.foreground ?? .white,
-                icon: "",
+                icon: "x-capsule-logo",
                 aliases: ["x", "x.com", "twitter", "tw", "twtr", "twit", "twitt", "twitte"],
                 searchURL: "https://twitter.com/search?q={query}",
                 isAIChat: false,
@@ -165,7 +165,7 @@ class SearchEngineService: ObservableObject {
             SearchEngine(
                 name: "Gemini",
                 color: Color(hex: "#4285F4"),
-                icon: "",
+                icon: "gemini-color-capsule-logo",
                 aliases: ["gemini", "gem", "bard", "google ai", "gai"],
                 searchURL: "https://gemini.google.com/app?q={query}",
                 isAIChat: true
@@ -173,7 +173,7 @@ class SearchEngineService: ObservableObject {
             SearchEngine(
                 name: "Copilot",
                 color: Color(hex: "#0078D4"),
-                icon: "",
+                icon: "copilot-color-capsule-logo",
                 aliases: ["copilot", "microsoft copilot", "bing chat", "bing", "ms copilot"],
                 searchURL: "https://copilot.microsoft.com/?q={query}",
                 isAIChat: true
@@ -181,7 +181,7 @@ class SearchEngineService: ObservableObject {
             SearchEngine(
                 name: "GitHub Copilot",
                 color: Color(hex: "#24292F"),
-                icon: "",
+                icon: "copilot-color-capsule-logo",
                 aliases: ["github copilot", "gh copilot", "github ai", "ghc"],
                 searchURL: "https://github.com/copilot?q={query}",
                 isAIChat: true,
