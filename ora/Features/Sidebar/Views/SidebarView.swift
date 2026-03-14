@@ -62,7 +62,7 @@ struct SidebarView: View {
             let progress = transitionProgress(for: width)
 
             ZStack(alignment: .leading) {
-                // Spaces content - pushes back when downloads is shown
+                // Spaces content - pushes back and blurs out when downloads is shown
                 spacesContent
                     .frame(width: width)
                     .offset(x: width * 0.12 * progress)

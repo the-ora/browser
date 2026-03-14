@@ -47,14 +47,17 @@ struct DownloadsHistoryView: View {
                 Button(action: {
                     downloadManager.clearCompletedDownloads()
                 }) {
-                    Text("Clear")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(.secondary)
+                    HStack(spacing: 4) {
+                        OraIcons(icon: .brush1, size: .md, color: .secondary)
+                        Text("Clear")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.secondary)
+                    }.frame(alignment: .center)
                 }
                 .buttonStyle(.plain)
             }
         }
-        .padding(.horizontal, 10)
+        .padding(.trailing, 12)
         .frame(height: 38)
     }
 

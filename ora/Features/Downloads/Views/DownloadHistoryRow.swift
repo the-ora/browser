@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct DownloadHistoryRow: View {
     let download: Download
@@ -23,11 +24,13 @@ struct DownloadHistoryRow: View {
                             .font(.system(size: 10))
                             .foregroundColor(.secondary)
                             .lineLimit(1)
+                            .truncationMode(.tail)
 
                         if !statusText.isEmpty {
                             Text("\u{00B7}")
                                 .font(.system(size: 10))
                                 .foregroundColor(.secondary)
+                                .layoutPriority(1)
                         }
                     }
 
@@ -35,13 +38,16 @@ struct DownloadHistoryRow: View {
                         .font(.system(size: 10))
                         .foregroundColor(statusColor)
                         .lineLimit(1)
+                        .truncationMode(.tail)
 
-                    Spacer()
+                    Spacer(minLength: 0)
 
                     if download.status == .completed {
                         Text(download.formattedFileSize)
                             .font(.system(size: 10))
                             .foregroundColor(.secondary)
+                            .lineLimit(1)
+                            .fixedSize()
                     }
                 }
 
@@ -79,15 +85,10 @@ struct DownloadHistoryRow: View {
     // MARK: - Subviews
 
     private var fileIconView: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 6)
-                .fill(iconColor.opacity(0.12))
-                .frame(width: 32, height: 32)
-
-            Image(systemName: fileIcon)
-                .font(.system(size: 14))
-                .foregroundColor(iconColor)
-        }
+        Image(nsImage: nativeFileIcon)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(width: 32, height: 32)
     }
 
     private var progressBar: some View {
@@ -98,7 +99,7 @@ struct DownloadHistoryRow: View {
                     .frame(height: 3)
 
                 Capsule()
-                    .fill(Color.blue)
+                    .fill(theme.accent)
                     .frame(width: geo.size.width * download.displayProgress, height: 3)
                     .animation(.easeOut(duration: 0.2), value: download.displayProgress)
             }
@@ -119,7 +120,7 @@ struct DownloadHistoryRow: View {
                     downloadManager.openDownloadInFinder(download)
                 }
             case .failed, .cancelled:
-                iconButton("arrow.clockwise", color: .blue) {
+                iconButton("arrow.clockwise", color: theme.accent) {
                     downloadManager.retryDownload(download)
                 }
             default:
@@ -153,36 +154,25 @@ struct DownloadHistoryRow: View {
         return url.host?.replacingOccurrences(of: "www.", with: "")
     }
 
-    private var fileIcon: String {
-        let ext = (download.fileName as NSString).pathExtension.lowercased()
-        switch ext {
-        case "pdf": return "doc.fill"
-        case "zip", "rar", "7z", "tar", "gz": return "archivebox.fill"
-        case "jpg", "jpeg", "png", "gif", "webp", "svg": return "photo.fill"
-        case "mp4", "mov", "avi", "mkv", "webm": return "video.fill"
-        case "mp3", "wav", "flac", "aac", "ogg": return "music.note"
-        case "dmg", "pkg", "app": return "app.fill"
-        case "html", "htm": return "globe"
-        case "txt", "md", "rtf": return "doc.text.fill"
-        case "json", "xml", "csv": return "tablecells.fill"
-        case "swift", "js", "py", "rb", "go": return "chevron.left.forwardslash.chevron.right"
-        default: return "doc.fill"
+    /// Returns the native macOS file icon for this download, matching what Finder shows.
+    private var nativeFileIcon: NSImage {
+        // For completed downloads with a file on disk, get the icon from the actual file
+        if let url = download.destinationURL,
+           FileManager.default.fileExists(atPath: url.path)
+        {
+            return NSWorkspace.shared.icon(forFile: url.path)
         }
-    }
-
-    private var iconColor: Color {
-        switch download.status {
-        case .downloading: return .blue
-        case .completed: return .green
-        case .failed: return .red
-        case .cancelled: return .orange
-        default: return .gray
+        // Otherwise derive from the file extension via UTType
+        let ext = (download.fileName as NSString).pathExtension
+        if !ext.isEmpty, let utType = UTType(filenameExtension: ext) {
+            return NSWorkspace.shared.icon(for: utType)
         }
+        return NSWorkspace.shared.icon(for: .data)
     }
 
     private var statusColor: Color {
         switch download.status {
-        case .downloading: return .blue
+        case .downloading: return theme.accent
         case .failed: return .red
         case .cancelled: return .orange
         default: return .secondary

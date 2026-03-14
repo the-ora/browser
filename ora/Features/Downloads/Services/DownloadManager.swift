@@ -66,6 +66,11 @@ class DownloadManager: ObservableObject {
         activeDownloads.append(download)
         refreshRecentDownloads()
 
+        // Ensure SwiftUI picks up the change when called from WKDownload callbacks
+        DispatchQueue.main.async {
+            self.objectWillChange.send()
+        }
+
         toastManager?.show("Downloading \(suggestedFilename)", type: .info, icon: .system("arrow.down.circle"))
 
         return download
