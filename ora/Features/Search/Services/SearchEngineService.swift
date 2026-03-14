@@ -280,7 +280,7 @@ class SearchEngineService: ObservableObject {
         return URL(string: urlString)
     }
 
-    func createSearchURL(for match: LauncherMain.Match, query: String) -> URL? {
+    func createSearchURL(for match: LauncherMatch, query: String) -> URL? {
         let encodedQuery =
             query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         let urlString = match.searchURL.replacingOccurrences(of: "{query}", with: encodedQuery)

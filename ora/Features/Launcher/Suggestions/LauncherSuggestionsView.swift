@@ -1,9 +1,5 @@
 import SwiftUI
 
-enum SuggestionFocus: Hashable {
-    case suggestion(id: UUID)
-}
-
 struct LauncherSuggestionsView: View {
     @Environment(\.theme) private var theme
     @Binding var text: String

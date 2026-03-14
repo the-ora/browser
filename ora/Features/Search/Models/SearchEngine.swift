@@ -35,8 +35,8 @@ extension SearchEngine {
     func toLauncherMatch(
         originalAlias: String,
         customEngine: CustomSearchEngine? = nil
-    ) -> LauncherMain.Match {
-        return LauncherMain.Match(
+    ) -> LauncherMatch {
+        return LauncherMatch(
             text: name,
             color: color,
             foregroundColor: foregroundColor ?? .white,
