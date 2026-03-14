@@ -21,7 +21,7 @@ struct NewContainerButton: View {
                     .foregroundColor(.secondary)
             }
             .padding(8)
-            .background(isHovering ? theme.invertedSolidWindowBackgroundColor.opacity(0.3) : .clear)
+            .background(isHovering ? theme.invertedSolidWindowBackgroundColor.opacity(0.1) : .clear)
             .cornerRadius(8)
         }
         .buttonStyle(.plain)

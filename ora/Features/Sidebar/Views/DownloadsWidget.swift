@@ -47,7 +47,7 @@ struct DownloadsWidget: View {
                 }
             }
             .frame(width: 32, height: 32)
-            .background(isHovered ? theme.invertedSolidWindowBackgroundColor.opacity(0.3) : .clear)
+            .background(isHovered ? theme.invertedSolidWindowBackgroundColor.opacity(0.1) : .clear)
             .cornerRadius(8)
         }
         .buttonStyle(.plain)

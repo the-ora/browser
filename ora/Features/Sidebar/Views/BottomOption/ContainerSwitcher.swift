@@ -63,9 +63,9 @@ struct ContainerSwitcher: View {
             .opacity(!isActive ? 0.5 : 1)
             .background(
                 !isCompact && isHovered
-                    ? theme.invertedSolidWindowBackgroundColor.opacity(0.3)
+                    ? theme.invertedSolidWindowBackgroundColor.opacity(0.1)
                     : isActive
-                    ? theme.invertedSolidWindowBackgroundColor.opacity(0.2)
+                    ? theme.invertedSolidWindowBackgroundColor.opacity(0.15)
                     : .clear
             )
             .cornerRadius(8)

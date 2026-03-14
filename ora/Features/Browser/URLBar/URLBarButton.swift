@@ -27,7 +27,7 @@ struct URLBarButton: View {
                 .frame(width: 30, height: 30)
                 .background(
                     ConditionallyConcentricRectangle(cornerRadius: cornerRadius)
-                        .fill(isHovering && isEnabled ? foregroundColor.opacity(0.2) : Color.clear)
+                        .fill(isHovering && isEnabled ? foregroundColor.opacity(0.1) : Color.clear)
                 )
         }
         .buttonStyle(PlainButtonStyle())
