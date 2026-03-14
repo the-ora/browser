@@ -190,6 +190,18 @@ class DownloadManager: ObservableObject {
         refreshRecentDownloads()
     }
 
+    func clearNonActiveDownloads() {
+        let nonActive = recentDownloads.filter {
+            $0.status == .completed || $0.status == .failed || $0.status == .cancelled
+        }
+        for download in nonActive {
+            modelContext.delete(download)
+        }
+
+        try? modelContext.save()
+        refreshRecentDownloads()
+    }
+
     func deleteDownload(_ download: Download) {
         // If it's an active download, cancel it first
         if download.status == .downloading {
