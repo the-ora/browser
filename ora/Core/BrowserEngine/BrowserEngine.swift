@@ -29,10 +29,31 @@ struct BrowserPageConfiguration {
 }
 
 final class BrowserEngine {
+    private struct ProfileKey: Hashable {
+        let identifier: UUID
+        let isPrivate: Bool
+    }
+
     static let shared = BrowserEngine()
+    private let profileCacheLock = NSLock()
+    private var profileCache: [ProfileKey: BrowserEngineProfile] = [:]
 
     func makeProfile(identifier: UUID, isPrivate: Bool) -> BrowserEngineProfile {
-        BrowserEngineProfile(identifier: identifier, isPrivate: isPrivate)
+        if isPrivate {
+            return BrowserEngineProfile(identifier: identifier, isPrivate: true)
+        }
+
+        let key = ProfileKey(identifier: identifier, isPrivate: false)
+        profileCacheLock.lock()
+        defer { profileCacheLock.unlock() }
+
+        if let profile = profileCache[key] {
+            return profile
+        }
+
+        let profile = BrowserEngineProfile(identifier: identifier, isPrivate: false)
+        profileCache[key] = profile
+        return profile
     }
 
     func makePage(
