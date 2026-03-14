@@ -37,6 +37,7 @@ private struct ClosedTabSnapshot {
 }
 
 @MainActor
+// swiftlint:disable:next type_body_length
 class TabManager: ObservableObject {
     @Published var activeContainer: TabContainer?
     @Published var activeTab: Tab?
@@ -297,6 +298,7 @@ class TabManager: ObservableObject {
         return newTab
     }
 
+    @discardableResult
     func openTab(
         url: URL,
         historyManager: HistoryManager,

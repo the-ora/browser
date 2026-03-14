@@ -11,7 +11,7 @@ enum CookiesPolicy: String, CaseIterable, Identifiable, Codable {
 }
 
 class PrivacyService {
-    static func clearAllWebsiteData(for containerId: UUID) async {
+    @MainActor static func clearAllWebsiteData(for containerId: UUID) async {
         let dataStore = WKWebsiteDataStore(forIdentifier: containerId)
         let types = WKWebsiteDataStore.allWebsiteDataTypes()
 
