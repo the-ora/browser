@@ -1,6 +1,5 @@
 import SwiftData
 import SwiftUI
-import WebKit
 
 // MARK: - Tab Manager
 
@@ -452,8 +451,8 @@ class TabManager: ObservableObject {
 
     func togglePiP(_ currentTab: Tab?, _ oldTab: Tab?) {
         if currentTab?.id != oldTab?.id, SettingsStore.shared.autoPiPEnabled {
-            currentTab?.webView.evaluateJavaScript("window.__oraTriggerPiP(true)")
-            oldTab?.webView.evaluateJavaScript("window.__oraTriggerPiP()")
+            currentTab?.evaluateJavaScript("window.__oraTriggerPiP(true)")
+            oldTab?.evaluateJavaScript("window.__oraTriggerPiP()")
         }
     }
 
@@ -612,23 +611,6 @@ class TabManager: ObservableObject {
             // Failed to fetch containers
         }
         return []
-    }
-
-    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        if message.name == "listener",
-           let url = message.body as? String
-        {
-            // You can update the active tab's url if needed
-            DispatchQueue.main.async {
-                if let validURL = URL(string: url) {
-                    self.activeTab?.url = validURL
-                } else if let fallbackURL = self.activeTab?.url {
-                    self.activeTab?.url = fallbackURL
-                } else if let blankURL = URL(string: "about:blank") {
-                    self.activeTab?.url = blankURL
-                }
-            }
-        }
     }
 
     func duplicateTab(_ tab: Tab) {

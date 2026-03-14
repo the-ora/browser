@@ -1,9 +1,6 @@
 import AppKit
 import SwiftData
 import SwiftUI
-import WebKit
-
-// Import for accessing settings
 
 enum TabType: String, Codable {
     case pinned
@@ -42,9 +39,8 @@ class Tab: ObservableObject, Identifiable {
     @Transient var historyManager: HistoryManager?
     @Transient var downloadManager: DownloadManager?
     @Transient var tabManager: TabManager?
-    // Not persisted: in-memory only
-    @Transient var webView: WKWebView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
-    @Transient var navigationDelegate: WebViewNavigationDelegate?
+    @Transient var browserPage: BrowserPage?
+    @Transient var pageDelegate: TabBrowserPageDelegate?
     @Transient @Published var isWebViewReady: Bool = false
     @Transient @Published var loadingProgress: Double = 10.0
     @Transient var colorUpdated = false
@@ -93,46 +89,12 @@ class Tab: ObservableObject, Identifiable {
         self.type = type
         self.isPlayingMedia = isPlayingMedia
         self.container = container
-        // Initialize webView with provided configuration or default
-
-        let config = TabScriptHandler()
-
-        self.webView = WKWebView(
-            frame: .zero,
-            configuration: config
-                .customWKConfig(
-                    containerId: container.id,
-                    temporaryStorage: isPrivate
-                ) // if private it's gonna use in-memory storage
-        )
-
         self.order = order
         self.historyManager = historyManager
         self.downloadManager = downloadManager
         self.tabManager = tabManager
         self.isPrivate = isPrivate
-
-        config.tab = self
-        config.mediaController = tabManager.mediaController
-        let passwordCoordinator = PasswordAutofillCoordinator(tab: self)
-        self.passwordCoordinator = passwordCoordinator
-        config.passwordCoordinator = passwordCoordinator
-        // Configure WebView for performance
-        webView.allowsMagnification = true
-        webView.allowsBackForwardNavigationGestures = true
-
-        // Enable layer-backed view for hardware acceleration
-        webView.wantsLayer = true
-        webView.isInspectable = true
-        if let layer = webView.layer {
-            layer.isOpaque = true
-            layer.drawsAsynchronously = true
-        }
-
-        // Set up navigation delegate
-
-        // Don't automatically load URL - let TabManager handle it
-        // This prevents all tabs from loading on app launch
+        self.passwordCoordinator = PasswordAutofillCoordinator(tab: self)
         self.isWebViewReady = false
     }
 
@@ -183,9 +145,8 @@ class Tab: ObservableObject, Identifiable {
 
     func updateHeaderColor() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
-            if let wv = self?.webView {
-                self?.navigationDelegate?
-                    .takeSnapshotAfterLoad(wv)
+            if let page = self?.browserPage {
+                self?.pageDelegate?.takeSnapshotAfterLoad(page)
             }
         }
     }
@@ -205,7 +166,7 @@ class Tab: ObservableObject, Identifiable {
     }
 
     func maintainSnapShots() {
-        if !self.colorUpdated ||  self.webView.isLoading, self.maybeIsActive {
+        if !self.colorUpdated || self.browserPage?.isLoading == true, self.maybeIsActive {
             self.updateHeaderColor()
 
             Timer.scheduledTimer(withTimeInterval: 0.25, repeats: false) { [weak self] _ in
@@ -215,62 +176,25 @@ class Tab: ObservableObject, Identifiable {
         }
     }
 
-    func setupNavigationDelegate() {
-        let delegate = WebViewNavigationDelegate()
+    func setupBrowserPageDelegate(for page: BrowserPage) {
+        let delegate = TabBrowserPageDelegate()
         delegate.tab = self
-        delegate.onStart = { [weak self] in
-            self?.clearNavigationError()
-            self?.maintainSnapShots()
-            self?.passwordCoordinator?.clearAutofillState()
-        }
-        delegate.onTitleChange = { [weak self] title in
-            DispatchQueue.main.async {
-                if let title, !title.isEmpty {
-                    self?.title = title
-                    if let self {
-                        self.tabManager?.mediaController.syncTitleForTab(self.id, newTitle: title)
-                    }
-                }
-            }
-        }
-        delegate.onURLChange = { [weak self] url in
-            DispatchQueue.main.async {
-                if let url {
-                    self?.url = url
-                    if self?.favicon == nil {
-                        self?.setFavicon()
-                    }
-                    self?.updateHistory()
-                    self?.updateHeaderColor()
-                }
-            }
-        }
-        delegate.onLoadingChange = { [weak self] isLoading in
-            DispatchQueue.main.async {
-                self?.isLoading = isLoading
-            }
-        }
-
-        delegate.onProgressChange = { [weak self] progress in
-            DispatchQueue.main.async {
-                self?.loadingProgress = progress
-            }
-        }
-
-        self.navigationDelegate = delegate
-        webView.navigationDelegate = delegate
+        delegate.mediaController = tabManager?.mediaController
+        delegate.passwordCoordinator = passwordCoordinator
+        page.delegate = delegate
+        pageDelegate = delegate
     }
 
     func goForward() {
         lastAccessedAt = Date()
-        self.webView.goForward()
-        self.updateHeaderColor()
+        browserPage?.goForward()
+        updateHeaderColor()
     }
 
     func goBack() {
         lastAccessedAt = Date()
-        self.webView.goBack()
-        self.updateHeaderColor()
+        browserPage?.goBack()
+        updateHeaderColor()
     }
 
     func restoreTransientState(
@@ -280,47 +204,41 @@ class Tab: ObservableObject, Identifiable {
         isPrivate: Bool
     ) {
         // Avoid double initialization
-        if webView.url != nil { return }
+        if browserPage != nil { return }
 
-        let config = TabScriptHandler()
-
-        config.tab = self
-        config.mediaController = tabManager.mediaController
-        let passwordCoordinator = PasswordAutofillCoordinator(tab: self)
-        self.passwordCoordinator = passwordCoordinator
-        config.passwordCoordinator = passwordCoordinator
-        self.webView = WKWebView(
-            frame: .zero,
-            configuration: config
-                .customWKConfig(
-                    containerId: self.container.id,
-                    temporaryStorage: isPrivate
-                )
-        )
-        webView.allowsMagnification = true
-        webView.allowsBackForwardNavigationGestures = true
-
-        webView.wantsLayer = true
-        if let layer = webView.layer {
-            layer.isOpaque = true
-            layer.drawsAsynchronously = true
+        if passwordCoordinator == nil {
+            passwordCoordinator = PasswordAutofillCoordinator(tab: self)
         }
+
+        let engine = BrowserEngine.shared
+        let profile = engine.makeProfile(identifier: container.id, isPrivate: isPrivate)
+        let page = engine.makePage(
+            profile: profile,
+            configuration: BrowserPageConfiguration.oraDefault(userScripts: OraBrowserScripts.userScripts()),
+            delegate: nil
+        )
+        browserPage = page
 
         self.historyManager = historyManager
         self.downloadManager = downloadManager
         self.tabManager = tabManager
         self.isWebViewReady = false
-        self.setupNavigationDelegate()
+        self.setupBrowserPageDelegate(for: page)
         self.syncBackgroundColorFromHex()
         // Load after a short delay to ensure layout
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
             let url = if self.type != .normal { self.savedURL } else { self.url }
-            self.webView.load(URLRequest(url: url ?? self.url))
+            page.load(URLRequest(url: url ?? self.url))
             self.isWebViewReady = true
         }
     }
 
     func stopMedia(completed: @escaping () -> Void) {
+        guard let page = browserPage else {
+            completed()
+            return
+        }
+
         let js = """
         document.querySelectorAll('video, audio').forEach(el => {
             try {
@@ -330,14 +248,14 @@ class Tab: ObservableObject, Identifiable {
             } catch (e) {}
         });
         """
-        webView.evaluateJavaScript(js) { _, _ in
-            self.webView.closeAllMediaPresentations(completionHandler: completed)
+        page.evaluateJavaScript(js) { _, _ in
+            page.closeMediaPresentations {
+                page.teardown()
+                completed()
+            }
         }
-        webView.removeFromSuperview()
-        webView.navigationDelegate = nil
-        webView.uiDelegate = nil
-        webView.stopLoading()
-        webView = WKWebView()
+        browserPage = nil
+        pageDelegate = nil
     }
 
     func loadURL(_ urlString: String) {
@@ -346,7 +264,7 @@ class Tab: ObservableObject, Identifiable {
 
         // 1) Try to construct a direct URL (has scheme or valid domain+TLD/IP)
         if let directURL = constructURL(from: input) {
-            webView.load(URLRequest(url: directURL))
+            browserPage?.load(URLRequest(url: directURL))
             return
         }
 
@@ -355,7 +273,7 @@ class Tab: ObservableObject, Identifiable {
         if let engine = searchEngineService.getDefaultSearchEngine(for: self.container.id),
            let searchURL = searchEngineService.createSearchURL(for: engine, query: input)
         {
-            webView.load(URLRequest(url: searchURL))
+            browserPage?.load(URLRequest(url: searchURL))
             return
         }
 
@@ -363,31 +281,14 @@ class Tab: ObservableObject, Identifiable {
         if let fallbackURL = URL(string: "https://www.google.com/search?client=safari&rls=en&ie=UTF-8&oe=UTF-8&q="
             + (input.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")
         ) {
-            webView.load(URLRequest(url: fallbackURL))
+            browserPage?.load(URLRequest(url: fallbackURL))
         }
     }
 
-    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-        // Navigation failed
-    }
-
-    func webView(
-        _ webView: WKWebView,
-        requestMediaCapturePermissionFor origin: WKSecurityOrigin,
-        initiatedByFrame frame: WKFrameInfo,
-        decisionHandler: @escaping (WKPermissionDecision) -> Void
-    ) {
-        // For now, grant all
-        decisionHandler(.grant)
-    }
-
     func destroyWebView() {
-        webView.stopLoading()
-        webView.navigationDelegate = nil
-        webView.uiDelegate = nil
-        webView.configuration.userContentController.removeAllUserScripts()
-        webView.removeFromSuperview()
-        webView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
+        browserPage?.teardown()
+        browserPage = nil
+        pageDelegate = nil
         isWebViewReady = false
     }
 
@@ -412,8 +313,39 @@ class Tab: ObservableObject, Identifiable {
         // This prevents showing white background before navigation begins
         if let url = failedURL {
             let request = URLRequest(url: url)
-            webView.load(request)
+            browserPage?.load(request)
         }
+    }
+
+    var canGoBack: Bool {
+        browserPage?.canGoBack ?? false
+    }
+
+    var canGoForward: Bool {
+        browserPage?.canGoForward ?? false
+    }
+
+    var currentPageURL: URL? {
+        browserPage?.currentURL
+    }
+
+    var pageWindow: NSWindow? {
+        browserPage?.window
+    }
+
+    func reload() {
+        browserPage?.reload()
+    }
+
+    func evaluateJavaScript(_ script: String, completion: ((Any?, Error?) -> Void)? = nil) {
+        browserPage?.evaluateJavaScript(script, completion: completion)
+    }
+
+    func takeSnapshot(
+        configuration: BrowserSnapshotConfiguration,
+        completion: @escaping (NSImage?, Error?) -> Void
+    ) {
+        browserPage?.takeSnapshot(configuration: configuration, completion: completion)
     }
 }
 

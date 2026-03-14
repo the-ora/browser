@@ -203,19 +203,19 @@ struct OraRoot: View {
                 NotificationCenter.default.addObserver(forName: .reloadPage, object: nil, queue: .main) { note in
                     Task { @MainActor in
                         guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
-                        tabManager.activeTab?.webView.reload()
+                        tabManager.activeTab?.reload()
                     }
                 }
                 NotificationCenter.default.addObserver(forName: .goBack, object: nil, queue: .main) { note in
                     Task { @MainActor in
                         guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
-                        tabManager.activeTab?.webView.goBack()
+                        tabManager.activeTab?.goBack()
                     }
                 }
                 NotificationCenter.default.addObserver(forName: .goForward, object: nil, queue: .main) { note in
                     Task { @MainActor in
                         guard note.object as? NSWindow === window ?? NSApp.keyWindow else { return }
-                        tabManager.activeTab?.webView.goForward()
+                        tabManager.activeTab?.goForward()
                     }
                 }
                 NotificationCenter.default.addObserver(forName: .togglePinTab, object: nil, queue: .main) { note in
@@ -285,7 +285,7 @@ struct OraRoot: View {
                                         container: activeTab.container
                                     ) { [weak toastManager] in
                                         DispatchQueue.main.async {
-                                            activeTab.webView.reload()
+                                            activeTab.reload()
                                             toastManager?.show("Cache cleared for \(domain)", icon: .system("trash"))
                                         }
                                     }
@@ -308,7 +308,7 @@ struct OraRoot: View {
                                         container: activeTab.container
                                     ) { [weak toastManager] in
                                         DispatchQueue.main.async {
-                                            activeTab.webView.reload()
+                                            activeTab.reload()
                                             toastManager?.show("Cookies cleared for \(domain)", icon: .system("trash"))
                                         }
                                     }

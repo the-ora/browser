@@ -1,7 +1,6 @@
 import Foundation
 import SwiftData
 import SwiftUI
-import WebKit
 
 @MainActor
 class DownloadManager: ObservableObject {
@@ -11,7 +10,10 @@ class DownloadManager: ObservableObject {
 
     let modelContainer: ModelContainer
     let modelContext: ModelContext
-    private var activeDownloadTasks: [UUID: WKDownload] = [:]
+    private var activeDownloadTasks: [UUID: BrowserDownloadTask] = [:]
+    private var taskDownloads: [UUID: Download] = [:]
+    private var taskDestinationURLs: [UUID: URL] = [:]
+    private var progressTimers: [UUID: Timer] = [:]
     weak var toastManager: ToastManager?
 
     init(
@@ -38,7 +40,7 @@ class DownloadManager: ObservableObject {
     }
 
     func startDownload(
-        from downloadTask: WKDownload,
+        from downloadTask: BrowserDownloadTask,
         originalURL: URL,
         suggestedFilename: String,
         expectedSize: Int64 = 0
@@ -109,6 +111,7 @@ class DownloadManager: ObservableObject {
         let fileName = download.fileName
         if let downloadTask = activeDownloadTasks[download.id] {
             downloadTask.cancel()
+            cleanupTask(downloadTask.id)
         }
 
         download.markCancelled()
@@ -120,6 +123,56 @@ class DownloadManager: ObservableObject {
         refreshRecentDownloads()
 
         toastManager?.show("Download cancelled \(fileName)", type: .info, icon: .system("xmark.circle"))
+    }
+
+    func handleDownload(_ task: BrowserDownloadTask) {
+        task.onDestinationRequest = { [weak self] response, suggestedFilename, completion in
+            guard let self else {
+                completion(nil)
+                return
+            }
+
+            let downloadsDir = self.getDownloadsDirectory()
+            let destinationURL = downloadsDir.appendingPathComponent(suggestedFilename)
+            let finalURL = self.createUniqueFilename(for: destinationURL)
+            let expectedSize = response.expectedContentLength
+            let download = self.startDownload(
+                from: task,
+                originalURL: task.originalURL,
+                suggestedFilename: suggestedFilename,
+                expectedSize: expectedSize
+            )
+
+            self.taskDownloads[task.id] = download
+            self.taskDestinationURLs[task.id] = finalURL
+            self.startProgressTimer(for: task, download: download, expectedSize: expectedSize)
+            completion(finalURL)
+        }
+
+        task.onRedirect = { [weak self] newURL in
+            guard let self, let download = self.taskDownloads[task.id] else { return }
+            download.originalURL = newURL
+            download.originalURLString = newURL.absoluteString
+            try? self.modelContext.save()
+        }
+
+        task.onFinish = { [weak self] in
+            guard let self,
+                  let download = self.taskDownloads[task.id],
+                  let destinationURL = self.taskDestinationURLs[task.id]
+            else {
+                return
+            }
+
+            self.completeDownload(download, destinationURL: destinationURL)
+            self.cleanupTask(task.id)
+        }
+
+        task.onFail = { [weak self] error in
+            guard let self, let download = self.taskDownloads[task.id] else { return }
+            self.failDownload(download, error: error.localizedDescription)
+            self.cleanupTask(task.id)
+        }
     }
 
     func clearCompletedDownloads() {
@@ -174,5 +227,28 @@ class DownloadManager: ObservableObject {
         }
 
         return finalURL
+    }
+
+    private func startProgressTimer(for task: BrowserDownloadTask, download: Download, expectedSize: Int64) {
+        progressTimers[task.id]?.invalidate()
+        progressTimers[task.id] = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+            guard let self else { return }
+            let completedBytes = task.progress.completedUnitCount
+            let totalBytes = task.progress.totalUnitCount > 0 ? task.progress.totalUnitCount : expectedSize
+            Task { @MainActor in
+                self.updateDownloadProgress(
+                    download,
+                    downloadedBytes: completedBytes,
+                    totalBytes: totalBytes
+                )
+            }
+        }
+    }
+
+    private func cleanupTask(_ taskID: UUID) {
+        progressTimers[taskID]?.invalidate()
+        progressTimers.removeValue(forKey: taskID)
+        taskDownloads.removeValue(forKey: taskID)
+        taskDestinationURLs.removeValue(forKey: taskID)
     }
 }

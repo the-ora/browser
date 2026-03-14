@@ -36,11 +36,11 @@ struct BrowserView: View {
     /// Injects/removes a transparent shield div in the web page to block
     /// hover effects and cursor changes behind the floating sidebar.
     private func injectSidebarMouseShield(visible: Bool) {
-        guard let webView = tabManager.activeTab?.webView else { return }
+        guard let activeTab = tabManager.activeTab else { return }
         if visible {
             let side = sidebarManager.sidebarPosition == .primary ? "left" : "right"
             let widthVW = clampedSidebarFraction * 100
-            webView.callAsyncJavaScript(
+            activeTab.evaluateJavaScript(
                 """
                 var e = document.getElementById('ora-sb-shield');
                 if (e) e.remove();
@@ -48,21 +48,17 @@ struct BrowserView: View {
                 d.id = 'ora-sb-shield';
                 d.style.position = 'fixed';
                 d.style.top = '0';
-                d.style[side] = '0';
-                d.style.width = widthVW + 'vw';
+                d.style.\(side) = '0';
+                d.style.width = '\(widthVW)vw';
                 d.style.height = '100vh';
                 d.style.zIndex = '2147483647';
                 d.style.pointerEvents = 'auto';
                 d.style.cursor = 'default';
                 document.documentElement.appendChild(d);
-                """,
-                arguments: ["side": side, "widthVW": widthVW],
-                in: nil,
-                in: .page,
-                completionHandler: nil
+                """
             )
         } else {
-            webView.evaluateJavaScript(Self.removeShieldJS, completionHandler: nil)
+            activeTab.evaluateJavaScript(Self.removeShieldJS)
         }
     }
 
@@ -123,7 +119,7 @@ struct BrowserView: View {
         }
         .onChange(of: tabManager.activeTab) { oldTab, newTab in
             if showFloatingSidebar {
-                oldTab?.webView.evaluateJavaScript(Self.removeShieldJS, completionHandler: nil)
+                oldTab?.evaluateJavaScript(Self.removeShieldJS)
                 injectSidebarMouseShield(visible: true)
             }
             if let tab = newTab, !tab.isWebViewReady {
