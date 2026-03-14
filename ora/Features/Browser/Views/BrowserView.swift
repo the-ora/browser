@@ -85,7 +85,7 @@ struct BrowserView: View {
                     showFloatingSidebar: $showFloatingSidebar,
                     isMouseOverSidebar: $isMouseOverSidebar,
                     sidebarFraction: sidebarManager.currentFraction,
-                    isDownloadsPopoverOpen: downloadManager.isDownloadsPopoverOpen
+                    isDownloadsOpen: downloadManager.isShowingDownloadsHistory
                 )
             }
 
@@ -108,7 +108,7 @@ struct BrowserView: View {
         .onReceive(NotificationCenter.default.publisher(for: .toggleSidebarPosition)) { _ in
             sidebarManager.toggleSidebarPosition()
         }
-        .onChange(of: downloadManager.isDownloadsPopoverOpen) { _, isOpen in
+        .onChange(of: downloadManager.isShowingDownloadsHistory) { _, isOpen in
             if sidebarManager.isSidebarHidden {
                 if isOpen {
                     showFloatingSidebar = true

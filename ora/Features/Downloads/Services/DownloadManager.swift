@@ -6,7 +6,7 @@ import SwiftUI
 class DownloadManager: ObservableObject {
     @Published var activeDownloads: [Download] = []
     @Published var recentDownloads: [Download] = []
-    @Published var isDownloadsPopoverOpen = false
+    @Published var isShowingDownloadsHistory = false
 
     let modelContainer: ModelContainer
     let modelContext: ModelContext
@@ -32,7 +32,7 @@ class DownloadManager: ObservableObject {
 
         do {
             let downloads = try modelContext.fetch(descriptor)
-            self.recentDownloads = Array(downloads.prefix(20)) // Show last 20 downloads
+            self.recentDownloads = Array(downloads.prefix(50))
             self.activeDownloads = downloads.filter { $0.status == .downloading }
         } catch {
             // Failed to load downloads
@@ -199,6 +199,20 @@ class DownloadManager: ObservableObject {
     func openDownloadInFinder(_ download: Download) {
         guard let destinationURL = download.destinationURL else { return }
         NSWorkspace.shared.selectFile(destinationURL.path, inFileViewerRootedAtPath: "")
+    }
+
+    func openFile(_ download: Download) {
+        guard let url = download.destinationURL else { return }
+        NSWorkspace.shared.open(url)
+    }
+
+    /// Re-opens the original URL in the browser to re-trigger the download
+    func retryDownload(_ download: Download) {
+        guard let url = URL(string: download.originalURLString) else { return }
+        deleteDownload(download)
+        if let window = NSApp.keyWindow {
+            NotificationCenter.default.post(name: .openURL, object: window, userInfo: ["url": url])
+        }
     }
 
     private func refreshRecentDownloads() {

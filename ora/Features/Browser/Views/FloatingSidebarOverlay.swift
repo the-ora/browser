@@ -10,7 +10,7 @@ struct FloatingSidebarOverlay: View {
     @Binding var isMouseOverSidebar: Bool
 
     var sidebarFraction: FractionHolder
-    let isDownloadsPopoverOpen: Bool
+    let isDownloadsOpen: Bool
 
     @State private var dragFraction: CGFloat?
 
@@ -65,7 +65,7 @@ struct FloatingSidebarOverlay: View {
                         get: { showFloatingSidebar },
                         set: { newValue in
                             isMouseOverSidebar = newValue
-                            if !newValue, isDownloadsPopoverOpen {
+                            if !newValue, isDownloadsOpen {
                                 return
                             }
                             showFloatingSidebar = newValue
