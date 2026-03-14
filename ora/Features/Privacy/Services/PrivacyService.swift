@@ -44,7 +44,7 @@ class PrivacyService {
     static func clearCache(_ container: TabContainer, completion: (() -> Void)? = nil) {
         self.clearData(
             container,
-            [.all],
+            [.cache],
             completion
         )
     }
@@ -54,6 +54,6 @@ class PrivacyService {
     }
 
     static func clearCacheForHost(for host: String, container: TabContainer, completion: (() -> Void)? = nil) {
-        self.clearData(container, [.all], host: host, completion)
+        self.clearData(container, [.cache], host: host, completion)
     }
 }

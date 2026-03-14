@@ -52,7 +52,11 @@ final class BrowserEngineProfile {
             mapped.insert(WKWebsiteDataTypeCookies)
         }
         if types.contains(.cache) {
-            mapped.formUnion(WKWebsiteDataStore.allWebsiteDataTypes())
+            mapped.formUnion([
+                WKWebsiteDataTypeDiskCache,
+                WKWebsiteDataTypeMemoryCache,
+                WKWebsiteDataTypeFetchCache
+            ])
         }
         return mapped
     }
