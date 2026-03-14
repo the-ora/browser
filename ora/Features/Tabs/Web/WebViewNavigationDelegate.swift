@@ -118,22 +118,35 @@ let navigationScript = """
         observer.observe(document.body, { childList: true, subtree: true });
     }
 
+    function isAudible(el) {
+        return !el.muted && el.volume > 0;
+    }
+
     function attach(el) {
         if (!el || el.__oraAttached) return;
         el.__oraAttached = true;
         const update = () => post(stateFrom(el));
-        el.addEventListener('play', ()=>{
+        el.addEventListener('play', () => {
+            if (isAudible(el)) {
+                el.__oraWasPlayed = true;
+            }
             update();
-            el.__oraWasPlayed = true;
         });
         el.addEventListener('pause', update);
         el.addEventListener('ended', () => post({ type: 'ended' }));
-        el.addEventListener('volumechange', () =>
-            post({ type: 'volume', volume: el.muted ? 0 : el.volume })
-        );
-        // If already playing, announce
+        el.addEventListener('volumechange', () => {
+            // Mark as played when becoming audible while playing
+            if (!el.paused && isAudible(el) && !el.__oraWasPlayed) {
+                el.__oraWasPlayed = true;
+                update();
+            }
+            post({ type: 'volume', volume: el.muted ? 0 : el.volume });
+        });
+        // If already playing, only mark as played if audible
         if (!el.paused) {
-            el.__oraWasPlayed = true;
+            if (isAudible(el)) {
+                el.__oraWasPlayed = true;
+            }
             update();
         }
         watchRemoval(el, () => post({ type: 'removed' }));
