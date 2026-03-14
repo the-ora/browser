@@ -5,73 +5,56 @@ struct DownloadsWidget: View {
     @Environment(\.theme) private var theme
     @State private var isHovered = false
 
-    var body: some View {
-        VStack(spacing: 0) {
-            // Active downloads
-            if !downloadManager.activeDownloads.isEmpty {
-                VStack(spacing: 6) {
-                    ForEach(downloadManager.activeDownloads) { download in
-                        DownloadProgressView(download: download) {
-                            downloadManager.cancelDownload(download)
-                        }
-                    }
-                }
-                .padding(.bottom, 8)
-            }
-
-            // Downloads button
-            Button(action: {
-                downloadManager.isDownloadsPopoverOpen.toggle()
-            }) {
-                HStack(spacing: 8) {
-                    Image(systemName: "arrow.down")
-                        .foregroundColor(downloadButtonColor)
-                        .frame(width: 12, height: 12)
-
-                    // Text("Downloads")
-                    //     .font(.system(size: 13, weight: .medium))
-                    //     .foregroundColor(theme.foreground)
-
-                    // Spacer()
-
-                    // if !downloadManager.recentDownloads.isEmpty {
-                    //     Text("\(downloadManager.recentDownloads.count)")
-                    //         .font(.system(size: 11, weight: .medium))
-                    //         .foregroundColor(.secondary)
-                    //         .padding(.horizontal, 6)
-                    //         .padding(.vertical, 2)
-                    //         .background(theme.background.opacity(0.6))
-                    //         .cornerRadius(8)
-                    // }
-
-                    // Image(systemName: downloadManager.isDownloadsPopoverOpen ? "chevron.up" : "chevron.down")
-                    //     .foregroundColor(.secondary)
-                    //     .frame(width: 12, height: 12)
-                }
-                .padding(8)
-                .background(isHovered ? theme.invertedSolidWindowBackgroundColor.opacity(0.3) : .clear)
-                .cornerRadius(8)
-            }
-            .buttonStyle(.plain)
-            .onHover { hovering in
-                withAnimation(.easeOut(duration: 0.15)) {
-                    isHovered = hovering
-                }
-            }
-            .popover(isPresented: $downloadManager.isDownloadsPopoverOpen, arrowEdge: .bottom) {
-                DownloadsListView()
-                    .environmentObject(downloadManager)
-            }
-        }
+    /// Aggregate progress across all active downloads (0...1)
+    private var totalProgress: Double {
+        let active = downloadManager.activeDownloads
+        guard !active.isEmpty else { return 0 }
+        let total = active.reduce(0.0) { $0 + $1.displayProgress }
+        return total / Double(active.count)
     }
 
-    private var downloadButtonColor: Color {
-        if !downloadManager.activeDownloads.isEmpty {
-            return .blue
-        } else if downloadManager.recentDownloads.contains(where: { $0.status == .completed }) {
-            return .green
-        } else {
-            return .secondary
+    private var hasActiveDownloads: Bool {
+        !downloadManager.activeDownloads.isEmpty
+    }
+
+    var body: some View {
+        Button {
+            withAnimation(.spring(response: 0.45, dampingFraction: 0.88)) {
+                downloadManager.isShowingDownloadsHistory.toggle()
+            }
+        } label: {
+            ZStack {
+                // Circular progress ring behind the icon when downloading
+                if hasActiveDownloads {
+                    Circle()
+                        .stroke(theme.accent.opacity(0.2), lineWidth: 2)
+                        .frame(width: 24, height: 24)
+
+                    Circle()
+                        .trim(from: 0, to: totalProgress)
+                        .stroke(theme.accent, style: StrokeStyle(lineWidth: 2, lineCap: .round))
+                        .frame(width: 24, height: 24)
+                        .rotationEffect(.degrees(-90))
+                        .animation(.easeOut(duration: 0.25), value: totalProgress)
+                }
+
+                if hasActiveDownloads {
+                    Image(systemName: "arrow.down")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(theme.accent)
+                } else {
+                    OraIcons(icon: .downloadBox, size: .md, color: .secondary)
+                }
+            }
+            .frame(width: 32, height: 32)
+            .background(isHovered ? theme.invertedSolidWindowBackgroundColor.opacity(0.3) : .clear)
+            .cornerRadius(8)
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            withAnimation(.easeOut(duration: 0.15)) {
+                isHovered = hovering
+            }
         }
     }
 }

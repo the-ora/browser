@@ -25,6 +25,13 @@ struct SidebarView: View {
 
     @State private var isHoveringSidebarToggle = false
 
+    /// Downloads transition state
+    @State private var dragOffset: CGFloat = 0
+
+    private var isShowingDownloads: Bool {
+        downloadManager.isShowingDownloadsHistory
+    }
+
     private var shouldShowMediaWidget: Bool {
         let activeId = tabManager.activeTab?.id
         let others = media.visibleSessions.filter { session in
@@ -50,6 +57,98 @@ struct SidebarView: View {
     }
 
     var body: some View {
+        GeometryReader { geo in
+            let width = geo.size.width
+            let progress = transitionProgress(for: width)
+
+            ZStack(alignment: .leading) {
+                // Spaces content - pushes back and blurs out when downloads is shown
+                spacesContent
+                    .frame(width: width)
+                    .offset(x: width * 0.12 * progress)
+                    .scaleEffect(CGFloat(1.0) - 0.06 * progress, anchor: .center)
+                    .opacity(CGFloat(1.0) - 0.5 * progress)
+                    .allowsHitTesting(progress < 0.5)
+
+                // Downloads history - slides in from leading edge
+                DownloadsHistoryView()
+                    .frame(width: width)
+                    .offset(x: -width + width * progress)
+                    .shadow(color: .black.opacity(0.08 * Double(progress)), radius: 8, x: 4, y: 0)
+                    .allowsHitTesting(progress >= 0.5)
+            }
+            .clipped()
+            // Swipe-to-dismiss gesture on the whole sidebar when downloads is showing
+            .simultaneousGesture(downloadsNavigationGesture(width: width))
+        }
+        .enableInjection()
+    }
+
+    /// Computes transition progress (0 = spaces visible, 1 = downloads visible)
+    /// incorporating both the boolean state and any interactive drag offset.
+    private func transitionProgress(for width: CGFloat) -> CGFloat {
+        let base: CGFloat = isShowingDownloads ? 1.0 : 0.0
+        // dragOffset > 0 means dragging right (toward spaces), < 0 means dragging left (toward downloads)
+        let dragContribution = -dragOffset / max(width, 1)
+        return min(1, max(0, base + dragContribution))
+    }
+
+    // MARK: - Gesture
+
+    /// Handles swipe-to-dismiss (right swipe when in downloads) and
+    /// swipe-to-enter (left swipe from first container).
+    private func downloadsNavigationGesture(width: CGFloat) -> some Gesture {
+        DragGesture(minimumDistance: 30)
+            .onChanged { value in
+                if isShowingDownloads {
+                    // Swipe right to dismiss downloads
+                    if value.translation.width > 0 {
+                        dragOffset = value.translation.width
+                    }
+                } else if selectedContainerIndex.wrappedValue == 0 {
+                    // Swipe left from first container to show downloads
+                    if value.translation.width < 0 {
+                        dragOffset = value.translation.width
+                    }
+                }
+            }
+            .onEnded { value in
+                let threshold = width * 0.25
+                if isShowingDownloads {
+                    if value.translation.width > threshold
+                        || value.predictedEndTranslation.width > threshold * 2
+                    {
+                        withAnimation(.spring(response: 0.45, dampingFraction: 0.88)) {
+                            downloadManager.isShowingDownloadsHistory = false
+                            dragOffset = 0
+                        }
+                    } else {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
+                            dragOffset = 0
+                        }
+                    }
+                } else if selectedContainerIndex.wrappedValue == 0 {
+                    if -value.translation.width > threshold
+                        || -value.predictedEndTranslation.width > threshold * 2
+                    {
+                        withAnimation(.spring(response: 0.45, dampingFraction: 0.88)) {
+                            downloadManager.isShowingDownloadsHistory = true
+                            dragOffset = 0
+                        }
+                    } else {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
+                            dragOffset = 0
+                        }
+                    }
+                } else {
+                    dragOffset = 0
+                }
+            }
+    }
+
+    // MARK: - Spaces Content
+
+    private var spacesContent: some View {
         VStack(alignment: .leading, spacing: 0) {
             if sidebarManager.sidebarPosition == .secondary, !toolbarManager.isToolbarHidden {
                 Spacer().frame(height: 8)
@@ -105,7 +204,6 @@ struct SidebarView: View {
         .onTapGesture(count: 2) {
             toggleMaximizeWindow()
         }
-        .enableInjection()
     }
 
     private func onContainerSelected(container: TabContainer) {

@@ -8,8 +8,8 @@ final class BrowserPage: NSObject, WKNavigationDelegate, WKUIDelegate, WKScriptM
     private let webView: WKWebView
     private let messageNames: [String]
     private var originalURL: URL?
-    private var lastCommittedURL: URL?
-    private var isDownloadNavigation = false
+    private(set) var lastCommittedURL: URL?
+    private(set) var isDownloadNavigation = false
 
     init(
         profile: BrowserEngineProfile,

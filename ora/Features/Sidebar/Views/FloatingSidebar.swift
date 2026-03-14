@@ -7,7 +7,7 @@ struct FloatingSidebar: View {
         if #available(macOS 26, *) {
             return 13
         } else {
-            return 6
+            return 5
         }
     }()
 

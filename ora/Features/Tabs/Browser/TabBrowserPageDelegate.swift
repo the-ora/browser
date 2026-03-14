@@ -195,6 +195,14 @@ final class TabBrowserPageDelegate: BrowserPageDelegate {
     func browserPage(_ page: BrowserPage, didStartDownload download: BrowserDownloadTask) {
         MainActor.assumeIsolated {
             tab?.downloadManager?.handleDownload(download)
+
+            guard page.isDownloadNavigation, let tab else { return }
+
+            if page.lastCommittedURL != nil {
+                tab.goBack()
+            } else if let tabManager = tab.tabManager {
+                tabManager.closeTab(tab: tab)
+            }
         }
     }
 
