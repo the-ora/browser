@@ -248,14 +248,16 @@ class Tab: ObservableObject, Identifiable {
             } catch (e) {}
         });
         """
-        page.evaluateJavaScript(js) { _, _ in
+        page.evaluateJavaScript(js) { [weak self] _, _ in
             page.closeMediaPresentations {
                 page.teardown()
+                if self?.browserPage === page {
+                    self?.browserPage = nil
+                    self?.pageDelegate = nil
+                }
                 completed()
             }
         }
-        browserPage = nil
-        pageDelegate = nil
     }
 
     func loadURL(_ urlString: String) {
