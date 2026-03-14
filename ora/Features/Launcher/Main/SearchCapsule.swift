@@ -1,4 +1,3 @@
-import AppKit
 import SwiftUI
 
 struct SearchEngineCapsule: View {
@@ -6,22 +5,17 @@ struct SearchEngineCapsule: View {
     let color: Color
     let foregroundColor: Color
     let icon: String
-    let favicon: NSImage?
-    let faviconBackgroundColor: Color?
 
     var body: some View {
         HStack(alignment: .center, spacing: 8) {
-            if let favicon {
-                Image(nsImage: favicon)
-                    .resizable()
-                    .frame(width: 16, height: 16)
-            } else if icon.isEmpty {
+            if icon.isEmpty {
                 Image(systemName: "magnifyingglass")
                     .resizable()
                     .frame(width: 16, height: 16)
                     .foregroundStyle(foregroundColor)
             } else {
                 Image(icon)
+                    .renderingMode(.template)
                     .resizable()
                     .frame(width: 16, height: 16)
                     .foregroundStyle(foregroundColor)
@@ -34,7 +28,7 @@ struct SearchEngineCapsule: View {
         .padding(.vertical, 6)
         .padding(.horizontal, 12)
         .frame(alignment: .leading)
-        .background(faviconBackgroundColor ?? color)
+        .background(color)
         .cornerRadius(99)
     }
 }

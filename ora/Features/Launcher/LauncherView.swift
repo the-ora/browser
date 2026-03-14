@@ -85,7 +85,7 @@ struct LauncherView: View {
                 onSubmit: onSubmit
             )
             .gradientAnimatingBorder(
-                color: match?.faviconBackgroundColor ?? match?.color ?? .clear,
+                color: match?.color ?? .clear,
                 trigger: match != nil
             )
             .padding(.horizontal, 20)  // Add horizontal margins around the search bar
