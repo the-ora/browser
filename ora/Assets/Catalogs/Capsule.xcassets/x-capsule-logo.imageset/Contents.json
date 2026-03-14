@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "grok-black-capsule-logo.svg",
+      "filename" : "x-capsule-logo.svg",
       "idiom" : "universal"
     },
     {
@@ -11,7 +11,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "grok-white-capsule-logo.svg",
+      "filename" : "x-capsule-logo 1.svg",
       "idiom" : "universal"
     }
   ],

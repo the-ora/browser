@@ -217,6 +217,7 @@ struct BuiltInSearchEngineRow: View {
                     Image(engine.icon)
                         .resizable()
                         .frame(width: 16, height: 16)
+                        .foregroundStyle(.primary)
                 } else {
                     RoundedRectangle(cornerRadius: 2)
                         .fill(engine.color.opacity(0.8))
