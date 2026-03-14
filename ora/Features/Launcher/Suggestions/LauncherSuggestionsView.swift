@@ -7,7 +7,6 @@ enum SuggestionFocus: Hashable {
 struct LauncherSuggestionsView: View {
     @Environment(\.theme) private var theme
     @Binding var text: String
-    @StateObject private var searchEngineService = SearchEngineService()
     @Binding var suggestions: [LauncherSuggestion]
     @Binding var focusedElement: UUID
 
@@ -16,7 +15,6 @@ struct LauncherSuggestionsView: View {
             ForEach(suggestions) { suggestion in
                 LauncherSuggestionItem(
                     suggestion: suggestion,
-                    defaultAI: searchEngineService.getDefaultAIChat(),
                     focusedElement: $focusedElement
                 )
             }
@@ -29,11 +27,5 @@ struct LauncherSuggestionsView: View {
                 .foregroundColor(theme.border.opacity(0.5)),
             alignment: .top
         )
-        .onAppear {
-            searchEngineService.setTheme(theme)
-        }
-        // .onChange(of: theme) { _, newValue in
-        //     searchEngineService.setTheme(newValue)
-        // }
     }
 }

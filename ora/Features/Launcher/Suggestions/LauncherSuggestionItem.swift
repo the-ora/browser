@@ -11,6 +11,8 @@ struct LauncherSuggestion: Identifiable {
     let name: String?
     let url: URL?
     let icon: String?
+    let color: Color?
+    let engineForegroundColor: Color?
     let faviconURL: URL?
     let faviconLocalFile: URL?
     let action: () -> Void
@@ -21,6 +23,8 @@ struct LauncherSuggestion: Identifiable {
         name: String? = nil,
         url: URL? = nil,
         icon: String? = nil,
+        color: Color? = nil,
+        engineForegroundColor: Color? = nil,
         faviconURL: URL? = nil,
         faviconLocalFile: URL? = nil,
         action: @escaping () -> Void
@@ -30,6 +34,8 @@ struct LauncherSuggestion: Identifiable {
         self.name = name
         self.url = url
         self.icon = icon
+        self.color = color
+        self.engineForegroundColor = engineForegroundColor
         self.faviconURL = faviconURL
         self.faviconLocalFile = faviconLocalFile
         self.action = action
@@ -38,19 +44,12 @@ struct LauncherSuggestion: Identifiable {
 
 struct LauncherSuggestionItem: View {
     let suggestion: LauncherSuggestion
-    let defaultAI: SearchEngine?
     @Binding var focusedElement: UUID
 
     @State private var isHovered = false
     @Environment(\.theme) private var theme
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var toolbarManager: ToolbarManager
-
-    init(suggestion: LauncherSuggestion, defaultAI: SearchEngine?, focusedElement: Binding<UUID>) {
-        self.suggestion = suggestion
-        self.defaultAI = defaultAI
-        self._focusedElement = focusedElement
-    }
 
     private var isAIChat: Bool {
         suggestion.type == .aiChat
@@ -60,10 +59,12 @@ struct LauncherSuggestionItem: View {
         suggestion.url != nil && !isAIChat && suggestion.type != .suggestedQuery && suggestion.type != .openedTab
     }
 
+    private var isFocusedOrHovered: Bool {
+        focusedElement == suggestion.id || isHovered
+    }
+
     private var foregroundColor: Color {
-        if focusedElement == suggestion.id || isHovered, isAIChat {
-            return defaultAI?.foregroundColor ?? .secondary
-        } else if focusedElement == suggestion.id {
+        if focusedElement == suggestion.id {
             return theme.foreground
         }
         return .secondary
@@ -71,26 +72,15 @@ struct LauncherSuggestionItem: View {
 
     private var backgroundColor: Color {
         if focusedElement != suggestion.id || isHovered { return .clear }
-        return isAIChat
-            ? defaultAI?.color ?? .clear
-            : isHovered ? theme.foreground.opacity(0.07) : theme.foreground.opacity(0.1)
-    }
-
-    private var aiIcon: String {
-        guard isAIChat && defaultAI?.icon != nil else { return "" }
-        return focusedElement == suggestion.id || isHovered
-            ? defaultAI!.icon
-            : defaultAI!.icon + "-inverted"
+        return isAIChat ? theme.background : theme.foreground.opacity(0.1)
     }
 
     @ViewBuilder
     var icon: some View {
-        if isAIChat, defaultAI?.icon != nil {
-            Image(
-                aiIcon
-            )
-            .resizable()
-            .frame(width: 14, height: 14)
+        if isAIChat, let suggestionIcon = suggestion.icon, !suggestionIcon.isEmpty {
+            Image(suggestionIcon)
+                .resizable()
+                .frame(width: 14, height: 14)
         } else if suggestion.faviconURL != nil {
             FavIcon(
                 isWebViewReady: true,
@@ -113,27 +103,22 @@ struct LauncherSuggestionItem: View {
     var actionLabel: some View {
         if isAIChat {
             HStack(alignment: .center, spacing: 10) {
-                Text("Ask \(suggestion.name ?? defaultAI?.name ?? "")  ↩")
+                Text("Ask \(suggestion.name ?? "")  ↩")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(
-                        focusedElement == suggestion.id || isHovered
-                            ? defaultAI?.foregroundColor ?? .secondary : .secondary
+                        isFocusedOrHovered ? theme.foreground : .secondary
                     )
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .background(
-                focusedElement == suggestion.id || isHovered
-                    ? defaultAI?.foregroundColor?.opacity(0.10) ?? .clear : theme.foreground.opacity(0.07)
-            )
+            .background(theme.foreground.opacity(0.07))
             .cornerRadius(6)
         } else if suggestion.type == .openedTab {
             HStack(alignment: .center, spacing: 8) {
                 Text("Switch to tab ")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(
-                        focusedElement == suggestion.id || isHovered
-                            ? theme.foreground : .secondary
+                        isFocusedOrHovered ? theme.foreground : .secondary
                     )
 
                 Image(systemName: "arrow.right")
@@ -143,13 +128,12 @@ struct LauncherSuggestionItem: View {
                     .background(
                         RoundedRectangle(cornerRadius: 6, style: .continuous)
                             .fill(
-                                focusedElement == suggestion.id || isHovered
+                                isFocusedOrHovered
                                     ? theme.foreground : theme.foreground.opacity(0.07)
                             )
                     )
                     .foregroundStyle(
-                        focusedElement == suggestion.id || isHovered
-                            ? theme.background : .secondary
+                        isFocusedOrHovered ? theme.background : .secondary
                     )
             }
             // .padding(.horizontal, 8)
