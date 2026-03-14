@@ -19,6 +19,42 @@ struct BrowserView: View {
     @State private var isMouseOverSidebar = false
     @State private var showFloatingSidebar = false
 
+    /// Injects/removes a transparent shield div in the web page to block
+    /// hover effects and cursor changes behind the floating sidebar.
+    private func injectSidebarMouseShield(visible: Bool) {
+        guard let webView = tabManager.activeTab?.webView else { return }
+        if visible {
+            let side = sidebarManager.sidebarPosition == .primary ? "left" : "right"
+            let widthVW = sidebarManager.currentFraction.value * 100
+            webView.callAsyncJavaScript(
+                """
+                var e = document.getElementById('ora-sb-shield');
+                if (e) e.remove();
+                var d = document.createElement('div');
+                d.id = 'ora-sb-shield';
+                d.style.position = 'fixed';
+                d.style.top = '0';
+                d.style[side] = '0';
+                d.style.width = widthVW + 'vw';
+                d.style.height = '100vh';
+                d.style.zIndex = '2147483647';
+                d.style.pointerEvents = 'auto';
+                d.style.cursor = 'default';
+                document.documentElement.appendChild(d);
+                """,
+                arguments: ["side": side, "widthVW": widthVW],
+                in: nil,
+                in: .page,
+                completionHandler: nil
+            )
+        } else {
+            webView.evaluateJavaScript(
+                "document.getElementById('ora-sb-shield')?.remove();",
+                completionHandler: nil
+            )
+        }
+    }
+
     var body: some View {
         ZStack(alignment: .top) {
             BrowserSplitView()
@@ -56,6 +92,15 @@ struct BrowserView: View {
         .edgesIgnoringSafeArea(.all)
         .enableInjection()
         .animation(.easeOut(duration: 0.1), value: showFloatingSidebar)
+        .onChange(of: showFloatingSidebar) { _, visible in
+            OraWebView.floatingSidebarInfo = visible
+                ? .init(
+                    isOnLeft: sidebarManager.sidebarPosition == .primary,
+                    widthFraction: sidebarManager.currentFraction.value
+                )
+                : nil
+            injectSidebarMouseShield(visible: visible)
+        }
         .onReceive(NotificationCenter.default.publisher(for: .toggleSidebar)) { _ in
             sidebarManager.toggleSidebar()
         }
