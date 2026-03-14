@@ -56,8 +56,8 @@ struct DownloadHistoryRow: View {
                 }
             }
 
-            if isHovered || download.status == .downloading {
-                actionButtons
+            if isHovered {
+                moreMenuButton
             }
         }
         .padding(.horizontal, 6)
@@ -78,7 +78,7 @@ struct DownloadHistoryRow: View {
             }
         }
         .contextMenu {
-            DownloadHistoryContextMenu(download: download)
+            downloadMenuItems
         }
     }
 
@@ -108,43 +108,82 @@ struct DownloadHistoryRow: View {
         .padding(.top, 2)
     }
 
-    private var actionButtons: some View {
-        HStack(spacing: 2) {
-            switch download.status {
-            case .downloading:
-                iconButton("xmark.circle.fill", color: .secondary) {
-                    downloadManager.cancelDownload(download)
-                }
-            case .completed:
-                iconButton("folder", color: .secondary) {
-                    downloadManager.openDownloadInFinder(download)
-                }
-            case .failed, .cancelled:
-                iconButton("arrow.clockwise", color: theme.accent) {
-                    downloadManager.retryDownload(download)
-                }
-            default:
-                EmptyView()
-            }
-
-            if download.status != .downloading {
-                iconButton("xmark", color: .secondary) {
-                    withAnimation(.easeOut(duration: 0.2)) {
-                        downloadManager.deleteDownload(download)
-                    }
-                }
-            }
-        }
-    }
-
-    private func iconButton(_ systemName: String, color: Color, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: systemName)
-                .font(.system(size: 11))
-                .foregroundColor(color)
+    private var moreMenuButton: some View {
+        Menu {
+            downloadMenuItems
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.secondary)
                 .frame(width: 20, height: 20)
         }
-        .buttonStyle(.plain)
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+    }
+
+    @ViewBuilder
+    private var downloadMenuItems: some View {
+        if download.status == .completed {
+            Button {
+                downloadManager.openFile(download)
+            } label: {
+                Label("Open", systemImage: "arrow.up.doc")
+            }
+
+            Button {
+                downloadManager.openDownloadInFinder(download)
+            } label: {
+                Label("Show in Finder", systemImage: "folder")
+            }
+
+            Button {
+                if let path = download.destinationURL?.path {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(path, forType: .string)
+                }
+            } label: {
+                Label("Copy Path", systemImage: "doc.on.doc")
+            }
+
+            Divider()
+
+            Button(role: .destructive) {
+                withAnimation(.easeOut(duration: 0.2)) {
+                    downloadManager.moveToTrash(download)
+                }
+            } label: {
+                Label("Move to Trash", systemImage: "trash")
+            }
+        }
+
+        if download.status == .downloading {
+            Button(role: .destructive) {
+                downloadManager.cancelDownload(download)
+            } label: {
+                Label("Cancel Download", systemImage: "xmark.circle")
+            }
+        }
+
+        if download.status == .failed || download.status == .cancelled {
+            Button {
+                downloadManager.retryDownload(download)
+            } label: {
+                Label("Retry Download", systemImage: "arrow.clockwise")
+            }
+        }
+
+        if download.status != .downloading {
+            Divider()
+
+            Button {
+                withAnimation(.easeOut(duration: 0.2)) {
+                    downloadManager.deleteDownload(download)
+                }
+            } label: {
+                Label("Remove from Ora", systemImage: "minus.circle")
+            }
+        }
     }
 
     // MARK: - Computed Properties
@@ -156,13 +195,11 @@ struct DownloadHistoryRow: View {
 
     /// Returns the native macOS file icon for this download, matching what Finder shows.
     private var nativeFileIcon: NSImage {
-        // For completed downloads with a file on disk, get the icon from the actual file
         if let url = download.destinationURL,
            FileManager.default.fileExists(atPath: url.path)
         {
             return NSWorkspace.shared.icon(forFile: url.path)
         }
-        // Otherwise derive from the file extension via UTType
         let ext = (download.fileName as NSString).pathExtension
         if !ext.isEmpty, let utType = UTType(filenameExtension: ext) {
             return NSWorkspace.shared.icon(for: utType)
@@ -183,7 +220,8 @@ struct DownloadHistoryRow: View {
         switch download.status {
         case .downloading:
             if download.displayFileSize > 0 {
-                return "\(download.formattedDownloadedSize) of \(download.formattedFileSize) \u{00B7} \(Int(download.displayProgress * 100))%"
+                let pct = Int(download.displayProgress * 100)
+                return "\(download.formattedDownloadedSize) of \(download.formattedFileSize) \u{00B7} \(pct)%"
             }
             return download.formattedDownloadedSize
         case .completed:
@@ -201,49 +239,5 @@ struct DownloadHistoryRow: View {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .abbreviated
         return formatter.localizedString(for: date, relativeTo: Date())
-    }
-}
-
-struct DownloadHistoryContextMenu: View {
-    let download: Download
-    @EnvironmentObject var downloadManager: DownloadManager
-
-    var body: some View {
-        Group {
-            if download.status == .completed {
-                Button("Open") {
-                    downloadManager.openFile(download)
-                }
-
-                Button("Show in Finder") {
-                    downloadManager.openDownloadInFinder(download)
-                }
-
-                Button("Copy Path") {
-                    if let path = download.destinationURL?.path {
-                        NSPasteboard.general.clearContents()
-                        NSPasteboard.general.setString(path, forType: .string)
-                    }
-                }
-            }
-
-            if download.status == .downloading {
-                Button("Cancel Download") {
-                    downloadManager.cancelDownload(download)
-                }
-            }
-
-            if download.status == .failed || download.status == .cancelled {
-                Button("Retry Download") {
-                    downloadManager.retryDownload(download)
-                }
-            }
-
-            Divider()
-
-            Button("Remove from History") {
-                downloadManager.deleteDownload(download)
-            }
-        }
     }
 }

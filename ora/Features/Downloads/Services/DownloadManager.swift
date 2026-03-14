@@ -211,6 +211,14 @@ class DownloadManager: ObservableObject {
         NSWorkspace.shared.open(url)
     }
 
+    /// Moves the downloaded file to Trash and removes the entry from history
+    func moveToTrash(_ download: Download) {
+        if let url = download.destinationURL {
+            try? FileManager.default.trashItem(at: url, resultingItemURL: nil)
+        }
+        deleteDownload(download)
+    }
+
     /// Re-opens the original URL in the browser to re-trigger the download
     func retryDownload(_ download: Download) {
         guard let url = URL(string: download.originalURLString) else { return }

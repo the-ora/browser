@@ -73,7 +73,6 @@ struct SidebarView: View {
                 // Downloads history - slides in from leading edge
                 DownloadsHistoryView()
                     .frame(width: width)
-                    .padding(EdgeInsets(top: 0, leading: 0, bottom: 10, trailing: 0))
                     .offset(x: -width + width * progress)
                     .shadow(color: .black.opacity(0.08 * Double(progress)), radius: 8, x: 4, y: 0)
                     .allowsHitTesting(progress >= 0.5)

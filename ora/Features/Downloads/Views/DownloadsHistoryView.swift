@@ -16,7 +16,6 @@ struct DownloadsHistoryView: View {
         VStack(alignment: .leading, spacing: 0) {
             header
             searchBar
-            Divider().opacity(0.5)
             content
             Spacer(minLength: 0)
             footer
@@ -67,8 +66,7 @@ struct DownloadsHistoryView: View {
         OraInput(
             text: $searchText,
             placeholder: "Search files...",
-            variant: .ghost,
-            size: .sm,
+            size: .md,
             leadingIcon: "magnifyingglass"
         )
         .padding(.horizontal, 10)
@@ -92,8 +90,8 @@ struct DownloadsHistoryView: View {
 
             Spacer()
         }
-        .padding(.horizontal, 10)
-        .padding(.bottom, 10)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 16)
     }
 
     // MARK: - Content
@@ -246,7 +244,6 @@ struct DownloadsHistoryView: View {
         Text(title)
             .font(.system(size: 11, weight: .medium))
             .foregroundColor(.secondary)
-            .textCase(.uppercase)
             .padding(.horizontal, 6)
             .padding(.top, 10)
             .padding(.bottom, 4)
