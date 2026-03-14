@@ -1,5 +1,6 @@
 # Xcode
 *.xcodeproj
+*.pbxproj
 *.xcuserstate
 *.xcuserdatad/
 *.xcworkspace
