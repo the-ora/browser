@@ -76,15 +76,15 @@ struct LauncherMain: View {
         .frame(minWidth: 320, maxWidth: 814, alignment: .leading)
         .background(theme.launcherMainBackground)
         .background(BlurEffectView(material: .popover, blendingMode: .withinWindow))
-        .cornerRadius(16)
+        .clipShape(ConditionallyConcentricRectangle(cornerRadius: 20, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .inset(by: 0.25)
+            ConditionallyConcentricRectangle(cornerRadius: 20, style: .continuous)
                 .stroke(
                     Color(match?.color ?? theme.foreground)
-                        .opacity(0.15),
-                    lineWidth: 0.5
+                        .opacity(0.05),
+                    lineWidth: 1
                 )
+                .padding(0.25)
         )
         .shadow(
             color: Color.black.opacity(0.1),

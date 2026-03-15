@@ -76,7 +76,7 @@ struct LauncherSuggestionItem: View {
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .background(theme.foreground.opacity(0.07))
-            .cornerRadius(6)
+            .clipShape(ConditionallyConcentricRectangle(cornerRadius: 8, style: .continuous))
         } else if suggestion.type == .openedTab {
             HStack(alignment: .center, spacing: 8) {
                 Text("Switch to tab ")
@@ -90,7 +90,7 @@ struct LauncherSuggestionItem: View {
                     .frame(width: 12, height: 12)
                     .padding(6)
                     .background(
-                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        ConditionallyConcentricRectangle(cornerRadius: 8, style: .continuous)
                             .fill(
                                 isFocusedOrHovered
                                     ? theme.foreground : theme.foreground.opacity(0.07)
@@ -100,7 +100,7 @@ struct LauncherSuggestionItem: View {
                         isFocusedOrHovered ? theme.background : .secondary
                     )
             }
-            .cornerRadius(6)
+            .clipShape(ConditionallyConcentricRectangle(cornerRadius: 8, style: .continuous))
         }
     }
 
@@ -130,7 +130,7 @@ struct LauncherSuggestionItem: View {
         .padding(.vertical, 10)
         .frame(width: 798, alignment: .leading)
         .background(backgroundColor)
-        .cornerRadius(8)
+        .clipShape(ConditionallyConcentricRectangle(cornerRadius: 10, style: .continuous))
         .onTapGesture {
             suggestion.action()
             appState.showLauncher = false
