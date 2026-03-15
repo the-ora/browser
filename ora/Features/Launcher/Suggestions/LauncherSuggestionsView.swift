@@ -17,11 +17,5 @@ struct LauncherSuggestionsView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 4)
-        .overlay(
-            Rectangle()
-                .frame(height: 1)
-                .foregroundColor(theme.border.opacity(0.5)),
-            alignment: .top
-        )
     }
 }
