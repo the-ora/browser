@@ -46,6 +46,8 @@ enum OraIconType {
     case brush2
     case downloadBox
     case downloadBox2
+    case shieldLock
+    case shieldBan
     case custom(AnyOraShape)
 
     var shape: AnyOraShape {
@@ -61,6 +63,8 @@ enum OraIconType {
         case .brush2:           AnyOraShape(Brush2())
         case .downloadBox:      AnyOraShape(DownloadBox())
         case .downloadBox2:     AnyOraShape(DownloadBox2())
+        case .shieldLock:       AnyOraShape(ShieldLockIcon())
+        case .shieldBan:        AnyOraShape(ShieldBanIcon())
         case let .custom(shape): shape
         }
     }
