@@ -46,11 +46,7 @@ struct URLBar: View {
     }
 
     private func getDisplayURL(_ tab: Tab) -> String {
-        if toolbarManager.showFullURL {
-            return tab.url.absoluteString
-        } else {
-            return tab.url.host ?? tab.url.absoluteString
-        }
+        URLDisplayUtils.displayString(url: tab.url, title: tab.title, showFull: toolbarManager.showFullURL)
     }
 
     private func shareCurrentPage(tab: Tab, sourceView: NSView, sourceRect: NSRect) {
@@ -155,7 +151,7 @@ struct URLBar: View {
                                     tab.loadURL(editingURLString)
                                     isEditing = false
                                 }
-                                .opacity(showCopiedAnimation ? 0 : 1)
+                                .opacity(isEditing ? (showCopiedAnimation ? 0 : 1) : 0)
                                 .offset(y: showCopiedAnimation ? (startWheelAnimation ? -12 : 12) : 0)
                                 .animation(.easeOut(duration: 0.3), value: showCopiedAnimation)
                                 .animation(.easeOut(duration: 0.3), value: startWheelAnimation)
@@ -181,15 +177,25 @@ struct URLBar: View {
                         // Overlay the URL/host when not editing
                         .overlay(
                             Group {
-                                if !isEditing, editingURLString.isEmpty {
-                                    HStack {
-                                        Text(getDisplayURL(tab))
+                                if !isEditing {
+                                    let parts = URLDisplayUtils.displayParts(
+                                        url: tab.url,
+                                        title: tab.title,
+                                        showFull: toolbarManager.showFullURL
+                                    )
+                                    HStack(spacing: 0) {
+                                        Text(parts.host)
                                             .font(.system(size: 14))
                                             .foregroundColor(getUrlFieldColor(tab))
-                                            .lineLimit(1)
-                                            .truncationMode(.middle)
+                                        if let title = parts.title {
+                                            Text(" / \(title)")
+                                                .font(.system(size: 14))
+                                                .foregroundColor(getUrlFieldColor(tab).opacity(0.6))
+                                        }
                                         Spacer()
                                     }
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
                                 }
                             }
                         )
@@ -212,10 +218,10 @@ struct URLBar: View {
                     .frame(height: 30)
                     .padding(.horizontal, 8)
                     .background(
-                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        ConditionallyConcentricRectangle(cornerRadius: 10, style: .continuous)
                             .fill(getUrlFieldColor(tab).opacity(0.08))
                             .overlay(
-                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                ConditionallyConcentricRectangle(cornerRadius: 10, style: .continuous)
                                     .stroke(
                                         isEditing ? getUrlFieldColor(tab).opacity(0.1) : Color.clear,
                                         lineWidth: 1.2
@@ -232,21 +238,13 @@ struct URLBar: View {
                         .allowsHitTesting(false)
                     )
 
-                    ShareLinkButton(
-                        isEnabled: true,
+                    URLBarMenuButton(
                         foregroundColor: buttonForegroundColor,
                         onShare: { sourceView, sourceRect in
                             if let activeTab = tabManager.activeTab {
                                 shareCurrentPage(tab: activeTab, sourceView: sourceView, sourceRect: sourceRect)
                             }
                         }
-                    )
-
-                    URLBarButton(
-                        systemName: "ellipsis",
-                        isEnabled: true,
-                        foregroundColor: buttonForegroundColor,
-                        action: {}
                     )
 
                     if sidebarManager.sidebarPosition == .secondary {
@@ -267,6 +265,11 @@ struct URLBar: View {
                     }
                 }
                 .onChange(of: tab.url) { _, _ in
+                    if !isEditing {
+                        editingURLString = getDisplayURL(tab)
+                    }
+                }
+                .onChange(of: tab.title) { _, _ in
                     if !isEditing {
                         editingURLString = getDisplayURL(tab)
                     }
