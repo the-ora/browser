@@ -275,17 +275,54 @@ class LauncherViewModel: ObservableObject {
     }
 
     private func isAISuitableQuery(_ query: String) -> Bool {
-        let lowercased = query.lowercased()
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        let lowercased = trimmed.lowercased()
+        let words = lowercased.split(separator: " ")
 
-        let aiKeywords = [
-            #"^(who|when|where|what|how|why)\b.*\?$"#,
-            #"^\d{4}"#,
-            "summarize", "rewrite", "explain", "code", "how to", "generate",
-            "idea", "opinion", "feedback", "story", "joke", "email", "draft",
-            "translate", "compare", "alternatives", "improve", "fix", "suggest"
+        // Negative signals: single words and URLs are not AI queries
+        if words.count <= 1 { return false }
+        if isValidURL(trimmed) { return false }
+
+        // Starts with a question word
+        let questionPrefixes = [
+            "who ", "what ", "where ", "when ", "how ", "why ", "which ",
+            "is ", "are ", "can ", "does ", "do ", "should ", "would ",
+            "could ", "will ", "was ", "were ", "has ", "have "
         ]
+        if questionPrefixes.contains(where: { lowercased.hasPrefix($0) }) {
+            return true
+        }
 
-        for keyword in aiKeywords where lowercased.contains(keyword) {
+        // Ends with a question mark
+        if trimmed.hasSuffix("?") {
+            return true
+        }
+
+        // Imperative / command phrases
+        let imperativePhrases = [
+            "write me", "help me", "create a", "give me", "list of",
+            "make a", "tell me", "show me", "find me", "build a",
+            "design a", "plan a", "write a", "make me", "help with"
+        ]
+        if imperativePhrases.contains(where: { lowercased.contains($0) }) {
+            return true
+        }
+
+        // Action keywords
+        let actionKeywords = [
+            "summarize", "rewrite", "explain", "generate", "how to",
+            "translate", "compare", "alternatives", "improve", "suggest",
+            "recommend", "analyze", "convert", "calculate", "define",
+            "describe", "simplify", "debug", "optimize", "refactor",
+            "review", "draft", "code", "idea", "opinion", "story",
+            "joke", "email"
+        ]
+        if actionKeywords.contains(where: { lowercased.contains($0) }) {
+            return true
+        }
+
+        // Natural language heuristic: 4+ words likely conversational
+        if words.count >= 4 {
             return true
         }
 
