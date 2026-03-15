@@ -62,6 +62,7 @@ class AppState: ObservableObject {
     @Published var showFinderIn: UUID?
     @Published var isFloatingTabSwitchVisible: Bool = false
     @Published var isFullscreen: Bool = false
+    @Published var isURLBarEditing: Bool = false
 }
 
 @main

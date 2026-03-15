@@ -111,7 +111,10 @@ struct LauncherView: View {
                     downloadManager: downloadManager,
                     appState: appState,
                     privacyMode: privacyMode,
-                    onSubmit: onSubmit
+                    onSubmit: onSubmit,
+                    onDismiss: { [weak appState] in
+                        appState?.showLauncher = false
+                    }
                 )
                 mouseHasMoved = false
                 mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { event in

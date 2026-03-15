@@ -19,6 +19,8 @@ class LauncherViewModel: ObservableObject {
     private(set) var appState: AppState?
     private(set) var privacyMode: PrivacyMode?
     private(set) var onSubmit: ((String?) -> Void)?
+    private(set) var onDismiss: (() -> Void)?
+    var navigateInCurrentTab: Bool = false
 
     func configure(
         tabManager: TabManager,
@@ -26,7 +28,9 @@ class LauncherViewModel: ObservableObject {
         downloadManager: DownloadManager,
         appState: AppState,
         privacyMode: PrivacyMode,
-        onSubmit: @escaping (String?) -> Void
+        onSubmit: @escaping (String?) -> Void,
+        onDismiss: (() -> Void)? = nil,
+        navigateInCurrentTab: Bool = false
     ) {
         self.tabManager = tabManager
         self.historyManager = historyManager
@@ -34,6 +38,8 @@ class LauncherViewModel: ObservableObject {
         self.appState = appState
         self.privacyMode = privacyMode
         self.onSubmit = onSubmit
+        self.onDismiss = onDismiss
+        self.navigateInCurrentTab = navigateInCurrentTab
     }
 
     // MARK: - Search Logic
@@ -88,7 +94,7 @@ class LauncherViewModel: ObservableObject {
     func executeCommand() {
         if let suggestion = suggestions.first(where: { $0.id == focusedElement }) {
             suggestion.action()
-            appState?.showLauncher = false
+            onDismiss?()
         }
     }
 
@@ -125,12 +131,21 @@ class LauncherViewModel: ObservableObject {
                       let historyManager = self.historyManager,
                       let privacyMode = self.privacyMode
                 else { return }
-                tabManager.openFromEngine(
-                    engineName: engineName,
-                    query: query ?? self.currentText,
-                    historyManager: historyManager,
-                    isPrivate: privacyMode.isPrivate
-                )
+                if self.navigateInCurrentTab, let tab = tabManager.activeTab {
+                    if let url = self.searchEngineService.getSearchURLForEngine(
+                        engineName: engineName,
+                        query: query ?? self.currentText
+                    ) {
+                        tab.loadURL(url.absoluteString)
+                    }
+                } else {
+                    tabManager.openFromEngine(
+                        engineName: engineName,
+                        query: query ?? self.currentText,
+                        historyManager: historyManager,
+                        isPrivate: privacyMode.isPrivate
+                    )
+                }
             }
         )
     }
@@ -179,18 +194,23 @@ class LauncherViewModel: ObservableObject {
             nil
         }
         guard let url = finalURL else { return }
+        let navigateCurrent = self.navigateInCurrentTab
         suggestions.append(
             LauncherSuggestion(
                 type: .suggestedLink,
                 title: text,
                 url: url,
                 action: {
-                    tabManager.openTab(
-                        url: url,
-                        historyManager: historyManager,
-                        downloadManager: downloadManager,
-                        isPrivate: privacyMode.isPrivate
-                    )
+                    if navigateCurrent {
+                        tabManager.activeTab?.loadURL(url.absoluteString)
+                    } else {
+                        tabManager.openTab(
+                            url: url,
+                            historyManager: historyManager,
+                            downloadManager: downloadManager,
+                            isPrivate: privacyMode.isPrivate
+                        )
+                    }
                 }
             )
         )
@@ -244,6 +264,7 @@ class LauncherViewModel: ObservableObject {
 
     private func appendHistorySuggestions(_ histories: [History], itemsCount: inout Int) {
         guard let tabManager, let historyManager, let privacyMode else { return }
+        let navigateCurrent = self.navigateInCurrentTab
         for history in histories {
             if itemsCount >= 5 { break }
             suggestions.append(
@@ -254,11 +275,15 @@ class LauncherViewModel: ObservableObject {
                     faviconURL: history.faviconURL,
                     faviconLocalFile: history.faviconLocalFile,
                     action: {
-                        tabManager.openTab(
-                            url: history.url,
-                            historyManager: historyManager,
-                            isPrivate: privacyMode.isPrivate
-                        )
+                        if navigateCurrent {
+                            tabManager.activeTab?.loadURL(history.url.absoluteString)
+                        } else {
+                            tabManager.openTab(
+                                url: history.url,
+                                historyManager: historyManager,
+                                isPrivate: privacyMode.isPrivate
+                            )
+                        }
                     }
                 )
             )
