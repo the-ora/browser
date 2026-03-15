@@ -100,6 +100,10 @@ struct LauncherView: View {
             .onAppear {
                 isVisible = true
                 isTextFieldFocused = true
+                if !appState.launcherSearchText.isEmpty {
+                    input = appState.launcherSearchText
+                    appState.launcherSearchText = ""
+                }
                 viewModel.searchEngineService.setTheme(theme)
                 viewModel.configure(
                     tabManager: tabManager,

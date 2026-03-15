@@ -195,7 +195,7 @@ struct SidebarView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(
             EdgeInsets(
-                top: 0,
+                top: 4,
                 leading: 0,
                 bottom: 10,
                 trailing: 0

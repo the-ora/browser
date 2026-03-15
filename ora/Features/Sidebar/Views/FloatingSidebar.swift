@@ -22,6 +22,7 @@ struct FloatingSidebar: View {
                 .overlay(clipShape
                     .stroke(theme.invertedSolidWindowBackgroundColor.opacity(0.3), lineWidth: 1)
                 )
+                .padding(.top, 0)
         }
         .padding(6)
     }
