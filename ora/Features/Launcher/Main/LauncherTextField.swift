@@ -9,6 +9,7 @@ struct LauncherTextField: NSViewRepresentable {
     let onMoveUp: () -> Void
     let onMoveDown: () -> Void
     var cursorColor: Color
+    var textColor: Color?
     var placeholder: String
 
     class CustomTextField: NSTextField {
@@ -36,6 +37,9 @@ struct LauncherTextField: NSViewRepresentable {
         textField.focusRingType = .none
         textField.drawsBackground = false
         textField.placeholderString = placeholder
+        if let textColor {
+            textField.textColor = NSColor(textColor)
+        }
         return textField
     }
 
@@ -43,6 +47,9 @@ struct LauncherTextField: NSViewRepresentable {
         nsView.stringValue = text
         nsView.cursorColor = NSColor(cursorColor)
         nsView.placeholderString = placeholder
+        if let textColor {
+            nsView.textColor = NSColor(textColor)
+        }
         if let textView = nsView.currentEditor() as? NSTextView {
             textView.insertionPointColor = nsView.cursorColor
         }
