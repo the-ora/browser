@@ -118,7 +118,6 @@ struct LauncherSuggestionItem: View {
                     Text(" — \(suggestion.url?.absoluteString ?? "")")
                         .font(.system(size: 13))
                         .foregroundStyle(Color(.secondaryLabelColor))
-                        .frame(width: 250, alignment: .leading)
                         .lineLimit(1)
                         .truncationMode(.middle)
                 }
@@ -128,7 +127,7 @@ struct LauncherSuggestionItem: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 10)
-        .frame(width: 798, alignment: .leading)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(backgroundColor)
         .clipShape(ConditionallyConcentricRectangle(cornerRadius: 12, style: .continuous))
         .onTapGesture {
