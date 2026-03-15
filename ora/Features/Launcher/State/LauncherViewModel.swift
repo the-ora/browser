@@ -204,7 +204,7 @@ class LauncherViewModel: ObservableObject {
         suggestions.append(
             LauncherSuggestion(
                 type: .suggestedQuery,
-                title: "\(text) - Search with \(engineName)",
+                title: "\(text) - \(engineName)",
                 action: { [weak self] in self?.onSubmit?(nil) }
             )
         )

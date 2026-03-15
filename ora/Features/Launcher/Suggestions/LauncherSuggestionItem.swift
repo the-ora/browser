@@ -14,7 +14,13 @@ struct LauncherSuggestionItem: View {
     }
 
     private var shouldShowURL: Bool {
-        suggestion.url != nil && !isAIChat && suggestion.type != .suggestedQuery && suggestion.type != .openedTab
+        guard let url = suggestion.url else { return false }
+        if isAIChat || suggestion.type == .suggestedQuery || suggestion.type == .openedTab { return false }
+        let urlString = url.absoluteString
+        if suggestion.title == urlString || urlString.hasSuffix("://\(suggestion.title)") || urlString
+            .hasSuffix("://\(suggestion.title)/")
+        { return false }
+        return true
     }
 
     private var isFocusedOrHovered: Bool {
