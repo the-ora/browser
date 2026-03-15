@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "openai-white-capsule-logo 1.svg",
+      "filename" : "opeai-black-capsule-logo.svg",
       "idiom" : "universal"
     },
     {
@@ -11,7 +11,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "opeai-black-capsule-logo.svg",
+      "filename" : "openai-white-capsule-logo 1.svg",
       "idiom" : "universal"
     }
   ],

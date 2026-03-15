@@ -35,29 +35,14 @@ extension SearchEngine {
     func toLauncherMatch(
         originalAlias: String,
         customEngine: CustomSearchEngine? = nil
-    ) -> LauncherMain.Match {
-        var favicon: NSImage?
-        var faviconColor: Color?
-
-        // Use cached favicon data from custom engine if available
-        if let customEngine {
-            favicon = customEngine.favicon
-            faviconColor = customEngine.faviconBackgroundColor
-        } else {
-            // For built-in engines, use favicon service
-            favicon = FaviconService.shared.getFavicon(for: searchURL)
-            faviconColor = FaviconService.shared.getFaviconColor(for: searchURL)
-        }
-
-        return LauncherMain.Match(
+    ) -> LauncherMatch {
+        return LauncherMatch(
             text: name,
             color: color,
             foregroundColor: foregroundColor ?? .white,
             icon: icon,
             originalAlias: originalAlias,
-            searchURL: searchURL,
-            favicon: favicon,
-            faviconBackgroundColor: faviconColor
+            searchURL: searchURL
         )
     }
 }

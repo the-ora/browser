@@ -3,25 +3,27 @@ import SwiftUI
 
 struct LauncherView: View {
     @EnvironmentObject var appState: AppState
-    @EnvironmentObject var toolbarManager: ToolbarManager
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var historyManager: HistoryManager
     @EnvironmentObject var downloadManager: DownloadManager
     @EnvironmentObject var privacyMode: PrivacyMode
     @Environment(\.theme) private var theme
-    @StateObject private var searchEngineService = SearchEngineService()
+
+    @StateObject private var viewModel = LauncherViewModel()
 
     @State private var input = ""
     @State private var isVisible = false
     @FocusState private var isTextFieldFocused: Bool
-    @State private var match: LauncherMain.Match?
+    @State private var match: LauncherMatch?
+    @State private var mouseHasMoved = false
+    @State private var mouseMonitor: Any?
 
     var clearOverlay: Bool? = false
 
     private func onTabPress() {
         guard !input.isEmpty else { return }
-        if let searchEngine = searchEngineService.findSearchEngine(for: input) {
-            let customEngine = searchEngineService.settings.customSearchEngines
+        if let searchEngine = viewModel.searchEngineService.findSearchEngine(for: input) {
+            let customEngine = viewModel.searchEngineService.settings.customSearchEngines
                 .first { $0.searchURL == searchEngine.searchURL }
             match = searchEngine.toLauncherMatch(
                 originalAlias: input,
@@ -36,11 +38,11 @@ struct LauncherView: View {
         var engineToUse = match
 
         if engineToUse == nil,
-           let defaultEngine = searchEngineService.getDefaultSearchEngine(
+           let defaultEngine = viewModel.searchEngineService.getDefaultSearchEngine(
                for: tabManager.activeContainer?.id
            )
         {
-            let customEngine = searchEngineService.settings.customSearchEngines
+            let customEngine = viewModel.searchEngineService.settings.customSearchEngines
                 .first { $0.searchURL == defaultEngine.searchURL }
             engineToUse = defaultEngine.toLauncherMatch(
                 originalAlias: correctInput,
@@ -49,7 +51,7 @@ struct LauncherView: View {
         }
 
         if let engine = engineToUse,
-           let url = searchEngineService.createSearchURL(for: engine, query: correctInput)
+           let url = viewModel.searchEngineService.createSearchURL(for: engine, query: correctInput)
         {
             tabManager
                 .openTab(
@@ -82,13 +84,14 @@ struct LauncherView: View {
                 match: $match,
                 isFocused: $isTextFieldFocused,
                 onTabPress: onTabPress,
-                onSubmit: onSubmit
+                onSubmit: onSubmit,
+                viewModel: viewModel
             )
             .gradientAnimatingBorder(
-                color: match?.faviconBackgroundColor ?? match?.color ?? .clear,
+                color: match?.color ?? .clear,
                 trigger: match != nil
             )
-            .padding(.horizontal, 20)  // Add horizontal margins around the search bar
+            .padding(.horizontal, 20)
             .offset(y: 250)
             .scaleEffect(isVisible ? 1.0 : 0.9)
             .opacity(isVisible ? 1.0 : 0.0)
@@ -97,13 +100,37 @@ struct LauncherView: View {
             .onAppear {
                 isVisible = true
                 isTextFieldFocused = true
-                searchEngineService.setTheme(theme)
+                viewModel.searchEngineService.setTheme(theme)
+                viewModel.configure(
+                    tabManager: tabManager,
+                    historyManager: historyManager,
+                    downloadManager: downloadManager,
+                    appState: appState,
+                    privacyMode: privacyMode,
+                    onSubmit: onSubmit
+                )
+                mouseHasMoved = false
+                mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { event in
+                    mouseHasMoved = true
+                    if let monitor = mouseMonitor {
+                        NSEvent.removeMonitor(monitor)
+                        mouseMonitor = nil
+                    }
+                    return event
+                }
+            }
+            .onDisappear {
+                if let monitor = mouseMonitor {
+                    NSEvent.removeMonitor(monitor)
+                    mouseMonitor = nil
+                }
             }
             .onChange(of: appState.showLauncher) { _, newValue in
                 isVisible = newValue
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .environment(\.launcherMouseHasMoved, mouseHasMoved)
         .onExitCommand {
             if tabManager.activeTab != nil {
                 isVisible = false

@@ -319,6 +319,14 @@ class Tab: ObservableObject, Identifiable {
         }
     }
 
+    func continueToInsecureSite() {
+        let url = failedURL ?? self.url
+        guard let host = url.host else { return }
+        browserPage?.bypassSSL(for: host)
+        clearNavigationError()
+        browserPage?.load(URLRequest(url: url))
+    }
+
     var canGoBack: Bool {
         browserPage?.canGoBack ?? false
     }

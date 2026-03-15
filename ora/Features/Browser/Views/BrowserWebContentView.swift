@@ -35,7 +35,10 @@ struct BrowserWebContentView: View {
                             ? {
                                 tab.goBack()
                                 tab.clearNavigationError()
-                            } : nil
+                            } : nil,
+                        onContinueAnyway: {
+                            tab.continueToInsecureSite()
+                        }
                     )
                     .id(tab.id)
                 } else if let page = tab.browserPage {

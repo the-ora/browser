@@ -10,6 +10,7 @@ final class BrowserPage: NSObject, WKNavigationDelegate, WKUIDelegate, WKScriptM
     private var originalURL: URL?
     private(set) var lastCommittedURL: URL?
     private(set) var isDownloadNavigation = false
+    private(set) var sslBypassedHosts: Set<String> = []
 
     init(
         profile: BrowserEngineProfile,
@@ -159,6 +160,10 @@ final class BrowserPage: NSObject, WKNavigationDelegate, WKUIDelegate, WKScriptM
         webView.removeFromSuperview()
     }
 
+    func bypassSSL(for host: String) {
+        sslBypassedHosts.insert(host)
+    }
+
     private func emitNavigationEvent(
         phase: BrowserNavigationPhase,
         url: URL?,
@@ -304,6 +309,21 @@ final class BrowserPage: NSObject, WKNavigationDelegate, WKUIDelegate, WKScriptM
         let failingURL = nsError.userInfo[NSURLErrorFailingURLErrorKey] as? URL ?? webView.url
         delegate?.browserPage(self, didFailNavigationWith: error, failingURL: failingURL)
         originalURL = nil
+    }
+
+    func webView(
+        _ webView: WKWebView,
+        didReceive challenge: URLAuthenticationChallenge,
+        completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
+    ) {
+        if challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust,
+           let serverTrust = challenge.protectionSpace.serverTrust,
+           sslBypassedHosts.contains(challenge.protectionSpace.host)
+        {
+            completionHandler(.useCredential, URLCredential(trust: serverTrust))
+        } else {
+            completionHandler(.performDefaultHandling, nil)
+        }
     }
 
     @available(macOS 11.3, *)

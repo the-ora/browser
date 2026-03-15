@@ -23,6 +23,7 @@ struct OraButton: View {
     var keyboardShortcut: String?
     var leadingIcon: String?
     var trailingIcon: String?
+    var labelColorOverride: Color?
     let action: () -> Void
 
     @Environment(\.theme) private var theme
@@ -96,6 +97,7 @@ struct OraButton: View {
 
     private var labelColor: Color {
         guard !isDisabled else { return theme.disabledForeground }
+        if let override = labelColorOverride { return override }
         switch variant {
         case .default, .destructive:
             return .white
