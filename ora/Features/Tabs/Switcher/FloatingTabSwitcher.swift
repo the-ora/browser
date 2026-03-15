@@ -15,6 +15,8 @@ struct FloatingTabSwitcher: View {
     @FocusState private var focusedTab: Tab.ID?
     @State private var tabSnapshots: [Tab: TabSnapshot] = [:]
     @State private var isLoadingSnapshots = false
+    @State private var mouseHasMoved = false
+    @State private var mouseMonitor: Any?
 
     // MARK: - Constants
 
@@ -40,6 +42,10 @@ struct FloatingTabSwitcher: View {
                 let to = recentTabs.count == 1 ? 0 : 1
                 focusedTab = recentTabs[to].id
             }
+            startMouseMonitor()
+        }
+        .onDisappear {
+            stopMouseMonitor()
         }
         .onChange(of: appState.isFloatingTabSwitchVisible) { _, isVisible in
             if isVisible {
@@ -48,6 +54,9 @@ struct FloatingTabSwitcher: View {
                     let to = recentTabs.count == 1 ? 0 : 1
                     focusedTab = recentTabs[to].id
                 }
+                startMouseMonitor()
+            } else {
+                stopMouseMonitor()
             }
         }
         .onChange(of: keyModifierListener.modifierFlags) { _, newFlags in
@@ -128,7 +137,7 @@ struct FloatingTabSwitcher: View {
         .frame(width: Constants.previewWidth, alignment: .leading)
         .padding(.horizontal, 4)
         .onHover { isHovered in
-            if isHovered {
+            if isHovered, mouseHasMoved {
                 focusedTab = tab.id
             }
         }
@@ -325,6 +334,25 @@ struct FloatingTabSwitcher: View {
 
     private func createSnapshotConfiguration(for tab: Tab) -> BrowserSnapshotConfiguration {
         BrowserSnapshotConfiguration(rect: nil, afterScreenUpdates: false)
+    }
+
+    private func startMouseMonitor() {
+        mouseHasMoved = false
+        mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { event in
+            mouseHasMoved = true
+            if let monitor = mouseMonitor {
+                NSEvent.removeMonitor(monitor)
+                mouseMonitor = nil
+            }
+            return event
+        }
+    }
+
+    private func stopMouseMonitor() {
+        if let monitor = mouseMonitor {
+            NSEvent.removeMonitor(monitor)
+            mouseMonitor = nil
+        }
     }
 
     private func closeFloatingTabSwitch() {
