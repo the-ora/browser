@@ -13,19 +13,11 @@ struct ContainerView: View {
 
     @State var isDragging = false
     @State private var draggedItem: UUID?
-    @State private var editingURLString: String = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            if toolbarManager.isToolbarHidden, let tab = tabManager.activeTab {
-                SidebarURLDisplay(
-                    tab: tab,
-                    editingURLString: $editingURLString
-                )
-                .transition(.asymmetric(
-                    insertion: .push(from: .top).combined(with: .opacity),
-                    removal: .push(from: .bottom).combined(with: .opacity)
-                ))
+            if toolbarManager.isToolbarHidden {
+                SidebarURLDisplay()
             }
             if !privacyMode.isPrivate {
                 FavTabsGrid(
