@@ -7,6 +7,7 @@ struct StatusPageView: View {
     let failedURL: URL?
     let onRetry: () -> Void
     let onGoBack: (() -> Void)?
+    var onContinueAnyway: (() -> Void)?
     @Environment(\.theme) var theme
 
     var body: some View {
@@ -58,6 +59,16 @@ struct StatusPageView: View {
                 }
             }
             .padding(.top, 8)
+
+            if errorType == .security, let continueAnyway = onContinueAnyway {
+                OraButton(
+                    label: "Continue Anyway",
+                    variant: .ghost,
+                    size: .sm,
+                    labelColorOverride: theme.mutedForeground,
+                    action: continueAnyway
+                )
+            }
 
             Spacer()
         }
