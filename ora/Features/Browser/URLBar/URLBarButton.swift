@@ -12,7 +12,7 @@ struct URLBarButton: View {
         if #available(macOS 26, *) {
             return 10
         } else {
-            return 6
+            return 10
         }
     }
 
@@ -21,8 +21,8 @@ struct URLBarButton: View {
             Image(systemName: systemName)
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(isEnabled ?
-                    (isHovering ? foregroundColor.opacity(0.8) : foregroundColor.opacity(0.4)) :
-                    foregroundColor.opacity(0.5)
+                    (isHovering ? foregroundColor : foregroundColor.opacity(0.7)) :
+                    foregroundColor.opacity(0.25)
                 )
                 .frame(width: 30, height: 30)
                 .background(
