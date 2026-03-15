@@ -9,7 +9,7 @@ enum OraIconSize {
     var dimension: CGFloat {
         switch self {
         case .xs: 10
-        case .sm: 14
+        case .sm: 12
         case .md: 16
         case .lg: 20
         case .xl: 24

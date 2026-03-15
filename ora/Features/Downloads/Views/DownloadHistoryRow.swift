@@ -63,7 +63,7 @@ struct DownloadHistoryRow: View {
         .padding(.horizontal, 6)
         .padding(.vertical, 6)
         .background(
-            RoundedRectangle(cornerRadius: 6)
+            ConditionallyConcentricRectangle(cornerRadius: 12)
                 .fill(isHovered ? theme.mutedBackground.opacity(0.5) : .clear)
         )
         .contentShape(Rectangle())
