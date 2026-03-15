@@ -76,21 +76,13 @@ struct LauncherSuggestionItem: View {
             : isHovered ? theme.foreground.opacity(0.07) : theme.foreground.opacity(0.1)
     }
 
-    private var aiIcon: String {
-        guard isAIChat && defaultAI?.icon != nil else { return "" }
-        return focusedElement == suggestion.id || isHovered
-            ? defaultAI!.icon
-            : defaultAI!.icon + "-inverted"
-    }
-
     @ViewBuilder
     var icon: some View {
-        if isAIChat, defaultAI?.icon != nil {
-            Image(
-                aiIcon
-            )
-            .resizable()
-            .frame(width: 14, height: 14)
+        if isAIChat, let aiIcon = defaultAI?.icon, !aiIcon.isEmpty {
+            Image(aiIcon)
+                .resizable()
+                .frame(width: 14, height: 14)
+                .foregroundColor(foregroundColor)
         } else if suggestion.faviconURL != nil {
             FavIcon(
                 isWebViewReady: true,

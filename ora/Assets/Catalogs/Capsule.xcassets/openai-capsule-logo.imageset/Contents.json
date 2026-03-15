@@ -1,22 +1,16 @@
 {
   "images" : [
     {
-      "filename" : "openai-white-capsule-logo 1.svg",
-      "idiom" : "universal"
-    },
-    {
-      "appearances" : [
-        {
-          "appearance" : "luminosity",
-          "value" : "dark"
-        }
-      ],
-      "filename" : "opeai-black-capsule-logo.svg",
+      "filename" : "openai-black-capsule-logo.svg",
       "idiom" : "universal"
     }
   ],
   "info" : {
     "author" : "xcode",
     "version" : 1
+  },
+  "properties" : {
+    "preserves-vector-representation" : true,
+    "template-rendering-intent" : "template"
   }
 }

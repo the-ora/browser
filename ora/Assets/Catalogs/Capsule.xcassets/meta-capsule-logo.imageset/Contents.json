@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "perplexity-capsule-logo.svg",
+      "filename" : "meta-capsule-logo.svg",
       "idiom" : "universal"
     },
     {
@@ -11,7 +11,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "perplexity-capsule-logo 1.svg",
+      "filename" : "meta-capsule-logo 1.svg",
       "idiom" : "universal"
     }
   ],
