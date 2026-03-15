@@ -169,15 +169,15 @@ class LauncherViewModel: ObservableObject {
         guard let tabManager, let historyManager, let downloadManager, let privacyMode else {
             return
         }
-        guard let candidateURL = URL(string: text) else { return }
-        let finalURL: URL? =
-            if candidateURL.scheme != nil {
-                candidateURL
-            } else if isValidURL(text) {
-                constructURL(from: text)
-            } else {
-                nil
-            }
+        let finalURL: URL? = if let candidateURL = URL(string: text), candidateURL.scheme != nil,
+                                candidateURL.host != nil
+        {
+            candidateURL
+        } else if isValidURL(text) {
+            constructURL(from: text)
+        } else {
+            nil
+        }
         guard let url = finalURL else { return }
         suggestions.append(
             LauncherSuggestion(

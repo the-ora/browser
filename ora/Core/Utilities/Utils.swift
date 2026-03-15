@@ -15,6 +15,10 @@ func extractDomainOrIP(from text: String) -> String? {
 func isValidURL(_ text: String) -> Bool {
     guard let host = extractDomainOrIP(from: text) else { return false }
 
+    if host == "localhost" {
+        return true
+    }
+
     let ipPattern = #"^(\d{1,3}\.){3}\d{1,3}$"#
     if host.range(of: ipPattern, options: .regularExpression) != nil {
         return true
@@ -31,8 +35,8 @@ func constructURL(from text: String) -> URL? {
     if trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://") {
         return URL(string: trimmed)
     }
-    if isValidURL(trimmed) {
-        return URL(string: "https://\(trimmed)")
-    }
-    return nil
+    guard isValidURL(trimmed) else { return nil }
+    let host = extractDomainOrIP(from: trimmed)
+    let scheme = (host == "localhost") ? "http" : "https"
+    return URL(string: "\(scheme)://\(trimmed)")
 }
