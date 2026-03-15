@@ -130,7 +130,7 @@ struct LauncherSuggestionItem: View {
         .padding(.vertical, 10)
         .frame(width: 798, alignment: .leading)
         .background(backgroundColor)
-        .clipShape(ConditionallyConcentricRectangle(cornerRadius: 10, style: .continuous))
+        .clipShape(ConditionallyConcentricRectangle(cornerRadius: 12, style: .continuous))
         .onTapGesture {
             suggestion.action()
             appState.showLauncher = false
