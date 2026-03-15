@@ -10,7 +10,7 @@ struct HomeView: View {
                 .ignoresSafeArea(.all)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
-                .background(theme.background.opacity(0.65))
+                .background(theme.background.opacity(0.85))
                 .background(
                     BlurEffectView(material: .underWindowBackground, blendingMode: .behindWindow)
                 )
@@ -36,11 +36,11 @@ struct HomeView: View {
                     .resizable()
                     .renderingMode(.template)
                     .frame(width: 50, height: 50)
-                    .foregroundColor(theme.foreground.opacity(0.3))
+                    .foregroundColor(theme.foreground.opacity(0.2))
 
                 Text("Less noise, more browsing.")
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(theme.foreground.opacity(0.3))
+                    .foregroundColor(theme.foreground.opacity(0.2))
             }
             .offset(x: -10, y: 120)
             .zIndex(2)
