@@ -5,7 +5,7 @@ struct OraCommands: Commands {
     @AppStorage("ui.sidebar.hidden") private var isSidebarHidden: Bool = false
     @AppStorage("ui.sidebar.position") private var sidebarPosition: SidebarPosition = .primary
     @AppStorage("ui.toolbar.hidden") private var isToolbarHidden: Bool = false
-    @AppStorage("ui.toolbar.showfullurl") private var showFullURL: Bool = true
+    @AppStorage("ui.toolbar.showfullurl") private var showFullURL: Bool = false
     @Environment(\.openWindow) private var openWindow
 
     var body: some Commands {
