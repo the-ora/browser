@@ -99,12 +99,12 @@ struct FloatingTabSwitcher: View {
                 }
             }
         }
-        .padding(.horizontal, 28)
-        .padding(.vertical, 20)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 18)
         .background(BlurEffectView(material: .popover, blendingMode: .withinWindow))
         .background(theme.background.opacity(0.3))
         .cornerRadius(Constants.containerCornerRadius)
-        .shadow(color: .blue.opacity(0.07), radius: 16, x: 0, y: 12)
+        .shadow(color: theme.primary.opacity(0.07), radius: 16, x: 0, y: 12)
         .background(keyboardHandler)
         .overlay(containerBorder)
     }

@@ -71,6 +71,28 @@ struct BrowserPageHostViewTests {
         #expect(secondHost.subviews.first === contentView)
         #expect(secondHost.hostedContentView === contentView)
         #expect(contentView.superview === secondHost)
+        #expect(contentView.removeFromSuperviewCalls == 1)
+    }
+
+    @Test func switchingToAStaleSubviewAlreadyAttachedToTheSameHostDoesNotReparentIt() {
+        let host = makeHost()
+        let firstContentView = TrackingContentView()
+        let staleContentView = TrackingContentView()
+
+        host.host(contentView: firstContentView)
+        host.addSubview(staleContentView)
+
+        let staleSuperviewTransitions = staleContentView.superviewTransitions
+
+        host.host(contentView: staleContentView)
+
+        #expect(host.subviews.count == 1)
+        #expect(host.subviews.first === staleContentView)
+        #expect(host.hostedContentView === staleContentView)
+        #expect(firstContentView.superview == nil)
+        #expect(staleContentView.superview === host)
+        #expect(staleContentView.superviewTransitions == staleSuperviewTransitions)
+        #expect(staleContentView.removeFromSuperviewCalls == 0)
     }
 
     private func makeHost() -> BrowserPageHostView {
@@ -80,6 +102,12 @@ struct BrowserPageHostViewTests {
 
 private final class TrackingContentView: NSView {
     var superviewTransitions = 0
+    var removeFromSuperviewCalls = 0
+
+    override func removeFromSuperview() {
+        removeFromSuperviewCalls += 1
+        super.removeFromSuperview()
+    }
 
     override func viewWillMove(toSuperview newSuperview: NSView?) {
         superviewTransitions += 1

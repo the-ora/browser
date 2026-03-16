@@ -25,23 +25,29 @@ final class BrowserPageHostView: NSView {
 
         let shouldRestoreFirstResponder = shouldTransferFirstResponder(from: previousContentView)
 
-        previousContentView?.removeFromSuperview()
-        hostedContentView = nil
+        if isSameContentView {
+            hostedContentView = nil
+        } else {
+            detachHostedContentView()
+        }
 
         guard let newContentView else {
-            needsLayout = true
-            layoutSubtreeIfNeeded()
-            displayIfNeeded()
+            refreshHostingLayout()
             return
         }
 
         configure(contentView: newContentView)
 
+        if let previousHost = newContentView.superview as? BrowserPageHostView,
+           previousHost !== self
+        {
+            previousHost.releaseHostedContentView(newContentView)
+        }
+
         if newContentView.superview !== self {
-            if let previousHost = newContentView.superview as? BrowserPageHostView {
-                previousHost.hostedContentView = nil
+            if newContentView.superview != nil {
+                newContentView.removeFromSuperview()
             }
-            newContentView.removeFromSuperview()
             addSubview(newContentView)
         }
 
@@ -70,6 +76,33 @@ final class BrowserPageHostView: NSView {
         contentView.autoresizingMask = [.width, .height]
         contentView.layer?.isOpaque = true
         contentView.layer?.drawsAsynchronously = true
+    }
+
+    private func detachHostedContentView() {
+        guard let hostedContentView else {
+            return
+        }
+
+        if hostedContentView.superview === self {
+            hostedContentView.removeFromSuperview()
+        }
+
+        self.hostedContentView = nil
+    }
+
+    private func releaseHostedContentView(_ contentView: NSView) {
+        guard hostedContentView === contentView else {
+            return
+        }
+
+        detachHostedContentView()
+        refreshHostingLayout()
+    }
+
+    private func refreshHostingLayout() {
+        needsLayout = true
+        layoutSubtreeIfNeeded()
+        displayIfNeeded()
     }
 
     private func shouldTransferFirstResponder(from previousContentView: NSView?) -> Bool {
