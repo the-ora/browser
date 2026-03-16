@@ -82,6 +82,12 @@ struct URLBar: View {
 
     private func startEditing() {
         guard !isEditing else { return }
+        withAnimation(.easeOut(duration: 0.25)) {
+            appState.isURLBarEditing = true
+        }
+    }
+
+    private func setupInlineLauncher() {
         if let tab = tabManager.activeTab {
             launcherInput = tab.url.absoluteString
         }
@@ -97,10 +103,6 @@ struct URLBar: View {
             navigateInCurrentTab: true
         )
 
-        withAnimation(.easeOut(duration: 0.25)) {
-            appState.isURLBarEditing = true
-        }
-
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
             isLauncherFocused = true
         }
@@ -109,27 +111,31 @@ struct URLBar: View {
         }
 
         mouseHasMoved = false
-        mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { event in
-            mouseHasMoved = true
-            if let monitor = mouseMonitor {
-                NSEvent.removeMonitor(monitor)
-                mouseMonitor = nil
+        if mouseMonitor == nil {
+            mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { event in
+                mouseHasMoved = true
+                if let monitor = mouseMonitor {
+                    NSEvent.removeMonitor(monitor)
+                    mouseMonitor = nil
+                }
+                return event
             }
-            return event
+        }
+    }
+
+    private func cleanupInlineLauncher() {
+        isLauncherFocused = false
+        launcherInput = ""
+        launcherViewModel.suggestions = []
+        if let monitor = mouseMonitor {
+            NSEvent.removeMonitor(monitor)
+            mouseMonitor = nil
         }
     }
 
     private func dismissEditing() {
         withAnimation(.easeOut(duration: 0.2)) {
             appState.isURLBarEditing = false
-        }
-        isLauncherFocused = false
-        launcherInput = ""
-        launcherViewModel.suggestions = []
-
-        if let monitor = mouseMonitor {
-            NSEvent.removeMonitor(monitor)
-            mouseMonitor = nil
         }
     }
 
@@ -273,15 +279,10 @@ struct URLBar: View {
                 }
             }
             .onChange(of: appState.isURLBarEditing) { _, newValue in
-                // Clean up internal state when editing ends (e.g., from external dismiss)
-                if !newValue {
-                    isLauncherFocused = false
-                    launcherInput = ""
-                    launcherViewModel.suggestions = []
-                    if let monitor = mouseMonitor {
-                        NSEvent.removeMonitor(monitor)
-                        mouseMonitor = nil
-                    }
+                if newValue {
+                    setupInlineLauncher()
+                } else {
+                    cleanupInlineLauncher()
                 }
             }
             .onChange(of: appState.showLauncher) { _, newValue in
