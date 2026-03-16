@@ -7,7 +7,6 @@ struct CopiedURLOverlay: View {
 
     var body: some View {
         HStack {
-            // Image(systemName: "link")
             Text("Copied Current URL")
         }
         .font(.system(size: 14))

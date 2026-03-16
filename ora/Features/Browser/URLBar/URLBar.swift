@@ -51,7 +51,6 @@ struct URLBar: View {
             showCopiedAnimation: $showCopiedAnimation,
             startWheelAnimation: $startWheelAnimation
         )
-        toastManager.show("Link copied", icon: .ora(.copy))
     }
 
     var buttonForegroundColor: Color {
@@ -270,7 +269,10 @@ struct URLBar: View {
             }
             .onReceive(NotificationCenter.default.publisher(for: .copyAddressURL)) { _ in
                 if let activeTab = tabManager.activeTab {
-                    triggerCopy(activeTab.url.absoluteString)
+                    ClipboardUtils.copyWithToast(
+                        activeTab.url.absoluteString,
+                        toastManager: toastManager
+                    )
                 }
             }
         }

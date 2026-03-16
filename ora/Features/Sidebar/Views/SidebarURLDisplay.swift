@@ -4,6 +4,7 @@ import SwiftUI
 struct SidebarURLDisplay: View {
     @Environment(\.theme) private var theme
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var sidebarManager: SidebarManager
     @EnvironmentObject var tabManager: TabManager
     @EnvironmentObject var toolbarManager: ToolbarManager
     @EnvironmentObject var toastManager: ToastManager
@@ -58,7 +59,7 @@ struct SidebarURLDisplay: View {
                         .animation(.easeOut(duration: 0.3), value: startWheelAnimation)
 
                         CopiedURLOverlay(
-                            foregroundColor: theme.foreground,
+                            foregroundColor: theme.mutedForeground,
                             showCopiedAnimation: $showCopiedAnimation,
                             startWheelAnimation: $startWheelAnimation
                         )
@@ -111,10 +112,15 @@ struct SidebarURLDisplay: View {
                 .stroke(theme.invertedSolidWindowBackgroundColor.opacity(0.05), lineWidth: 1)
         )
         .animation(.easeOut(duration: 0.15), value: isHovering)
-    }
-
-    private func displayURL(for tab: Tab) -> String {
-        URLDisplayUtils.displayString(url: tab.url, title: tab.title, showFull: toolbarManager.showFullURL)
+        .onReceive(NotificationCenter.default.publisher(for: .copyAddressURL)) { _ in
+            guard toolbarManager.isToolbarHidden, sidebarManager.sidebarPosition == .primary else { return }
+            if let activeTab = tabManager.activeTab {
+                ClipboardUtils.copyWithToast(
+                    activeTab.url.absoluteString,
+                    toastManager: toastManager
+                )
+            }
+        }
     }
 
     private func displayParts(for tab: Tab) -> URLDisplayParts {
