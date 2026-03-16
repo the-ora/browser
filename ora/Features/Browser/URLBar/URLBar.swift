@@ -82,6 +82,10 @@ struct URLBar: View {
 
     private func startEditing() {
         guard !isEditing else { return }
+        // Pre-fill input before animation so the text field isn't empty on appear
+        if let tab = tabManager.activeTab {
+            launcherInput = tab.url.absoluteString
+        }
         withAnimation(.easeOut(duration: 0.25)) {
             appState.isURLBarEditing = true
         }
