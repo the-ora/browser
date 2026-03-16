@@ -27,6 +27,7 @@ struct URLBar: View {
     @FocusState private var isLauncherFocused: Bool
     @State private var mouseHasMoved = false
     @State private var mouseMonitor: Any?
+    @State private var suppressInitialSearch = false
 
     let onSidebarToggle: () -> Void
 
@@ -92,6 +93,7 @@ struct URLBar: View {
     }
 
     private func setupInlineLauncher() {
+        suppressInitialSearch = true
         if let tab = tabManager.activeTab {
             launcherInput = tab.url.absoluteString
         }
@@ -110,8 +112,8 @@ struct URLBar: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
             isLauncherFocused = true
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            NSApp.sendAction(#selector(NSText.selectAll(_:)), to: nil, from: nil)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            suppressInitialSearch = false
         }
 
         mouseHasMoved = false
@@ -414,6 +416,7 @@ struct URLBar: View {
             .focused($isLauncherFocused)
             .onChange(of: launcherInput) { _, newValue in
                 launcherViewModel.currentText = newValue
+                guard !suppressInitialSearch else { return }
                 launcherViewModel.searchHandler(newValue)
             }
             .onKeyPress(.escape) {
