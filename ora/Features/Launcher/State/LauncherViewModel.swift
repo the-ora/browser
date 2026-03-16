@@ -181,7 +181,7 @@ class LauncherViewModel: ObservableObject {
     }
 
     private func appendOpenURLSuggestionIfNeeded(_ text: String) {
-        guard let tabManager, let historyManager, let downloadManager, let privacyMode else {
+        guard let tabManager, let historyManager, let privacyMode else {
             return
         }
         let finalURL: URL? = if let candidateURL = URL(string: text), candidateURL.scheme != nil,
@@ -207,7 +207,6 @@ class LauncherViewModel: ObservableObject {
                         tabManager.openTab(
                             url: url,
                             historyManager: historyManager,
-                            downloadManager: downloadManager,
                             isPrivate: privacyMode.isPrivate
                         )
                     }

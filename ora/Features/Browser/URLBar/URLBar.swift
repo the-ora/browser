@@ -14,12 +14,10 @@ struct URLBar: View {
     @EnvironmentObject var privacyMode: PrivacyMode
 
     @Environment(\.theme) private var theme
-    @Environment(\.colorScheme) var colorScheme
 
     // Display mode state
     @State private var showCopiedAnimation = false
     @State private var startWheelAnimation = false
-    @State private var editingURLString: String = ""
 
     // Inline launcher state
     @StateObject private var launcherViewModel = LauncherViewModel()
@@ -47,10 +45,6 @@ struct URLBar: View {
         }
     }
 
-    private func getUrlFieldColor(_ tab: Tab) -> Color {
-        return tabManager.activeTab.map { getForegroundColor($0).opacity(0.5) } ?? .gray
-    }
-
     private func triggerCopy(_ text: String) {
         ClipboardUtils.triggerCopy(
             text,
@@ -62,10 +56,6 @@ struct URLBar: View {
 
     var buttonForegroundColor: Color {
         return tabManager.activeTab.map { getForegroundColor($0).opacity(0.5) } ?? .gray
-    }
-
-    private func getDisplayURL(_ tab: Tab) -> String {
-        URLDisplayUtils.displayString(url: tab.url, title: tab.title, showFull: toolbarManager.showFullURL)
     }
 
     private func shareCurrentPage(tab: Tab, sourceView: NSView, sourceRect: NSRect) {
@@ -264,25 +254,8 @@ struct URLBar: View {
                     .opacity(0)
                     .allowsHitTesting(false)
             )
-            .onAppear {
-                editingURLString = getDisplayURL(tab)
-            }
-            .onChange(of: tab.url) { _, _ in
-                if !isEditing { editingURLString = getDisplayURL(tab) }
-            }
-            .onChange(of: tab.title) { _, _ in
-                if !isEditing { editingURLString = getDisplayURL(tab) }
-            }
-            .onChange(of: toolbarManager.showFullURL) { _, _ in
-                if !isEditing, let tab = tabManager.activeTab {
-                    editingURLString = getDisplayURL(tab)
-                }
-            }
             .onChange(of: tabManager.activeTab?.id) { _, _ in
                 if isEditing { dismissEditing() }
-                if let tab = tabManager.activeTab {
-                    editingURLString = getDisplayURL(tab)
-                }
             }
             .onChange(of: appState.isURLBarEditing) { _, newValue in
                 if newValue {
@@ -322,13 +295,8 @@ struct URLBar: View {
             .frame(width: 16, height: 16)
 
             ZStack(alignment: .leading) {
-                // Hidden text field (maintains keyboard shortcut compatibility)
-                TextField("", text: $editingURLString)
-                    .textFieldStyle(PlainTextFieldStyle())
-                    .opacity(0)
-
                 CopiedURLOverlay(
-                    foregroundColor: getUrlFieldColor(tab),
+                    foregroundColor: buttonForegroundColor,
                     showCopiedAnimation: $showCopiedAnimation,
                     startWheelAnimation: $startWheelAnimation
                 )
@@ -342,11 +310,11 @@ struct URLBar: View {
                 HStack(spacing: 0) {
                     Text(parts.host)
                         .font(.system(size: 14))
-                        .foregroundColor(getUrlFieldColor(tab))
+                        .foregroundColor(buttonForegroundColor)
                     if let title = parts.title {
                         Text(" / \(title)")
                             .font(.system(size: 14))
-                            .foregroundColor(getUrlFieldColor(tab).opacity(0.6))
+                            .foregroundColor(buttonForegroundColor.opacity(0.6))
                     }
                     Spacer()
                 }
@@ -358,7 +326,7 @@ struct URLBar: View {
                 .animation(.easeOut(duration: 0.3), value: startWheelAnimation)
             }
             .font(.system(size: 14))
-            .foregroundColor(getUrlFieldColor(tab))
+            .foregroundColor(buttonForegroundColor)
             .frame(maxWidth: .infinity, alignment: .leading)
 
             Button {
@@ -368,7 +336,7 @@ struct URLBar: View {
             } label: {
                 Image(systemName: "link")
                     .font(.system(size: 12, weight: .regular))
-                    .foregroundColor(getUrlFieldColor(tab))
+                    .foregroundColor(buttonForegroundColor)
                     .frame(width: 16, height: 16)
             }
             .buttonStyle(.plain)
@@ -379,7 +347,7 @@ struct URLBar: View {
         .padding(.horizontal, 8)
         .background(
             ConditionallyConcentricRectangle(cornerRadius: 10, style: .continuous)
-                .fill(getUrlFieldColor(tab).opacity(0.08))
+                .fill(buttonForegroundColor.opacity(0.08))
         )
         .contentShape(Rectangle())
         .onTapGesture { startEditing() }
@@ -429,11 +397,11 @@ struct URLBar: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             ConditionallyConcentricRectangle(cornerRadius: 10, style: .continuous)
-                .fill(getUrlFieldColor(tab).opacity(0.08))
+                .fill(buttonForegroundColor.opacity(0.08))
                 .overlay(
                     ConditionallyConcentricRectangle(cornerRadius: 10, style: .continuous)
                         .stroke(
-                            getUrlFieldColor(tab).opacity(0.1),
+                            buttonForegroundColor.opacity(0.1),
                             lineWidth: 1.2
                         )
                 )

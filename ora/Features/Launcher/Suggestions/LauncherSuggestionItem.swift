@@ -133,6 +133,7 @@ struct LauncherSuggestionItem: View {
         .onTapGesture {
             suggestion.action()
             appState.showLauncher = false
+            appState.isURLBarEditing = false
         }
         .onHover { hover in
             if hover, mouseHasMoved {
