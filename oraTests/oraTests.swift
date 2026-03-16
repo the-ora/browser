@@ -5,7 +5,8 @@
 //  Created by keni on 6/21/25.
 //
 
-@testable import ora
+import Foundation
+@testable import Ora
 import Testing
 
 struct OraTests {

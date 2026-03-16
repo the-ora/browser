@@ -76,20 +76,14 @@ struct BrowserSplitView: View {
     }
 
     private func contentView() -> some View {
-        ZStack {
-            if tabManager.activeTab == nil {
+        Group {
+            if let activeTab = tabManager.activeTab {
+                BrowserContentContainer {
+                    BrowserWebContentView(tab: activeTab)
+                }
+            } else {
                 BrowserContentContainer {
                     HomeView()
-                }
-            }
-            let activeId = tabManager.activeTab?.id
-            ForEach(tabManager.tabsToRender) { tab in
-                if tab.isWebViewReady {
-                    BrowserContentContainer {
-                        BrowserWebContentView(tab: tab)
-                    }
-                    .opacity(tab.id == activeId ? 1 : 0)
-                    .allowsHitTesting(tab.id == activeId)
                 }
             }
         }

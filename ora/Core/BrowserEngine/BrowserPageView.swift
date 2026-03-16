@@ -1,6 +1,88 @@
 import AppKit
 import SwiftUI
 
+final class BrowserPageHostView: NSView {
+    private(set) weak var hostedContentView: NSView?
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        wantsLayer = true
+        autoresizesSubviews = true
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    func host(contentView newContentView: NSView?) {
+        let previousContentView = hostedContentView
+        let isSameContentView = previousContentView === newContentView
+
+        if isSameContentView, newContentView?.superview === self {
+            return
+        }
+
+        let shouldRestoreFirstResponder = shouldTransferFirstResponder(from: previousContentView)
+
+        previousContentView?.removeFromSuperview()
+        hostedContentView = nil
+
+        guard let newContentView else {
+            needsLayout = true
+            layoutSubtreeIfNeeded()
+            displayIfNeeded()
+            return
+        }
+
+        configure(contentView: newContentView)
+
+        if newContentView.superview !== self {
+            if let previousHost = newContentView.superview as? BrowserPageHostView {
+                previousHost.hostedContentView = nil
+            }
+            newContentView.removeFromSuperview()
+            addSubview(newContentView)
+        }
+
+        newContentView.frame = bounds
+        hostedContentView = newContentView
+
+        needsLayout = true
+        layoutSubtreeIfNeeded()
+        newContentView.needsLayout = true
+        newContentView.layoutSubtreeIfNeeded()
+        newContentView.needsDisplay = true
+        displayIfNeeded()
+
+        if shouldRestoreFirstResponder {
+            window?.makeFirstResponder(newContentView)
+        }
+    }
+
+    override func layout() {
+        super.layout()
+        hostedContentView?.frame = bounds
+    }
+
+    private func configure(contentView: NSView) {
+        contentView.wantsLayer = true
+        contentView.autoresizingMask = [.width, .height]
+        contentView.layer?.isOpaque = true
+        contentView.layer?.drawsAsynchronously = true
+    }
+
+    private func shouldTransferFirstResponder(from previousContentView: NSView?) -> Bool {
+        guard let previousContentView,
+              let firstResponder = window?.firstResponder as? NSView
+        else {
+            return false
+        }
+
+        return firstResponder === previousContentView || firstResponder.isDescendant(of: previousContentView)
+    }
+}
+
 struct BrowserPageView: NSViewRepresentable {
     let page: BrowserPage
     @EnvironmentObject var tabManager: TabManager
@@ -9,49 +91,44 @@ struct BrowserPageView: NSViewRepresentable {
 
     func makeCoordinator() -> Coordinator {
         Coordinator(
-            page: page,
             tabManager: tabManager,
             historyManager: historyManager,
             privacyMode: privacyMode
         )
     }
 
-    func makeNSView(context: Context) -> NSView {
-        let wrapperView = NSView()
-        wrapperView.wantsLayer = true
-        wrapperView.autoresizesSubviews = true
-
+    func makeNSView(context: Context) -> BrowserPageHostView {
+        let hostView = BrowserPageHostView(frame: .zero)
         let contentView = page.contentView
-        contentView.autoresizingMask = [.width, .height]
-        contentView.layer?.isOpaque = true
-        contentView.layer?.drawsAsynchronously = true
-        context.coordinator.setupMouseEventMonitoring(for: contentView)
-        wrapperView.addSubview(contentView)
-        contentView.frame = wrapperView.bounds
-
-        return wrapperView
+        context.coordinator.update(page: page, contentView: contentView)
+        hostView.host(contentView: contentView)
+        return hostView
     }
 
-    func updateNSView(_ nsView: NSView, context: Context) {}
+    func updateNSView(_ nsView: BrowserPageHostView, context: Context) {
+        let contentView = page.contentView
+        context.coordinator.update(page: page, contentView: contentView)
+        nsView.host(contentView: contentView)
+    }
 
     final class Coordinator: NSObject {
-        private let page: BrowserPage
         weak var tabManager: TabManager?
         weak var historyManager: HistoryManager?
         weak var privacyMode: PrivacyMode?
+        private weak var page: BrowserPage?
         private var mouseEventMonitor: Any?
         private weak var contentView: NSView?
 
         init(
-            page: BrowserPage,
             tabManager: TabManager?,
             historyManager: HistoryManager?,
             privacyMode: PrivacyMode
         ) {
-            self.page = page
             self.tabManager = tabManager
             self.historyManager = historyManager
             self.privacyMode = privacyMode
+            super.init()
+            startMouseEventMonitoring()
         }
 
         deinit {
@@ -60,11 +137,15 @@ struct BrowserPageView: NSViewRepresentable {
             }
         }
 
-        func setupMouseEventMonitoring(for contentView: NSView) {
+        func update(page: BrowserPage, contentView: NSView) {
+            self.page = page
             self.contentView = contentView
+        }
 
+        private func startMouseEventMonitoring() {
             mouseEventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.otherMouseDown]) { [weak self] event in
                 guard let self,
+                      let page = self.page,
                       let contentView = self.contentView,
                       self.isEventInContentView(event, contentView: contentView)
                 else {
@@ -73,19 +154,19 @@ struct BrowserPageView: NSViewRepresentable {
 
                 switch event.buttonNumber {
                 case 2:
-                    self.handleMiddleClick(at: event.locationInWindow, contentView: contentView)
+                    self.handleMiddleClick(at: event.locationInWindow, contentView: contentView, page: page)
                     return nil
                 case 3:
-                    if self.page.canGoBack {
+                    if page.canGoBack {
                         DispatchQueue.main.async {
-                            self.page.goBack()
+                            page.goBack()
                         }
                     }
                     return nil
                 case 4:
-                    if self.page.canGoForward {
+                    if page.canGoForward {
                         DispatchQueue.main.async {
-                            self.page.goForward()
+                            page.goForward()
                         }
                     }
                     return nil
@@ -95,7 +176,7 @@ struct BrowserPageView: NSViewRepresentable {
             }
         }
 
-        private func handleMiddleClick(at location: NSPoint, contentView: NSView) {
+        private func handleMiddleClick(at location: NSPoint, contentView: NSView, page: BrowserPage) {
             let locationInContentView = contentView.convert(location, from: nil)
             guard locationInContentView.x.isFinite,
                   locationInContentView.y.isFinite,
@@ -115,8 +196,9 @@ struct BrowserPageView: NSViewRepresentable {
             })();
             """
 
-            page.evaluateJavaScript(script) { [weak self] result, error in
+            page.evaluateJavaScript(script) { [weak self, weak page] result, error in
                 guard error == nil,
+                      page != nil,
                       let urlString = result as? String,
                       let url = URL(string: urlString),
                       let tabManager = self?.tabManager,

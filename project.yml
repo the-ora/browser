@@ -132,6 +132,19 @@ targets:
           CODE_SIGN_ENTITLEMENTS: ora/Info/ora.entitlements
           ENABLE_HARDENED_RUNTIME: YES
 
+  oraTests:
+    type: bundle.unit-test
+    platform: "macOS"
+    deploymentTarget: "15.0"
+    sources:
+      - path: oraTests
+    dependencies:
+      - target: ora
+    settings:
+      base:
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Ora.app/Contents/MacOS/Ora"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+
 schemes:
   ora:
     shared: true
@@ -142,6 +155,8 @@ schemes:
       config: Debug
     test:
       config: Debug
+      targets:
+        - oraTests
     profile:
       config: Release
     analyze:
