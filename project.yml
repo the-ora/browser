@@ -12,6 +12,9 @@ packages:
   FaviconFinder:
     url: https://github.com/will-lumley/FavIconFinder
     exactVersion: 5.1.5
+  SafariConverterLib:
+    url: https://github.com/AdguardTeam/SafariConverterLib
+    exactVersion: 4.2.2
 
 targets:
   ora:
@@ -30,6 +33,8 @@ targets:
       - package: Sparkle
       - package: Inject
       - package: FaviconFinder
+      - package: SafariConverterLib
+        product: ContentBlockerConverter
 
     preBuildScripts:
       - name: "Copy Icon Bundle"

@@ -147,6 +147,7 @@ class SettingsStore: ObservableObject {
     private let fingerprintingKey = "settings.tracking.blockFingerprinting"
     private let adBlockingKey = "settings.tracking.adBlocking"
     private let cookiesPolicyKey = "settings.cookies.policy"
+    private let adBlockFilterListsKey = "settings.adBlock.filterLists"
     private let sitePermissionsKey = "settings.permissions.sitePermissions"
     private let customSearchEnginesKey = "settings.customSearchEngines"
     private let globalDefaultSearchEngineKey = "settings.globalDefaultSearchEngine"
@@ -176,6 +177,10 @@ class SettingsStore: ObservableObject {
         "settings.container.\(containerId.uuidString).autoClearTabsAfter"
     }
 
+    private func keyForPrivacySettings(for containerId: UUID) -> String {
+        "settings.container.\(containerId.uuidString).privacy"
+    }
+
     @Published var autoUpdateEnabled: Bool {
         didSet { defaults.set(autoUpdateEnabled, forKey: autoUpdateKey) }
     }
@@ -198,6 +203,10 @@ class SettingsStore: ObservableObject {
 
     @Published var sitePermissions: [String: SitePermissionSettings] {
         didSet { saveCodable(sitePermissions, forKey: sitePermissionsKey) }
+    }
+
+    @Published private(set) var adBlockFilterLists: [FilterListRecord] {
+        didSet { saveCodable(adBlockFilterLists, forKey: adBlockFilterListsKey) }
     }
 
     @Published var customSearchEngines: [CustomSearchEngine] {
@@ -258,7 +267,7 @@ class SettingsStore: ObservableObject {
     init() {
         autoUpdateEnabled = defaults.bool(forKey: autoUpdateKey)
         blockThirdPartyTrackers = defaults.bool(forKey: trackingThirdPartyKey)
-        blockFingerprinting = defaults.bool(forKey: fingerprintingKey)
+        blockFingerprinting = defaults.object(forKey: fingerprintingKey) as? Bool ?? true
         adBlocking = defaults.bool(forKey: adBlockingKey)
         if let raw = defaults.string(forKey: cookiesPolicyKey),
            let policy = CookiesPolicy(rawValue: raw)
@@ -270,6 +279,10 @@ class SettingsStore: ObservableObject {
 
         sitePermissions =
             Self.loadCodable([String: SitePermissionSettings].self, key: sitePermissionsKey) ?? [:]
+
+        adBlockFilterLists = FilterListCatalogService.shared.normalizedRecords(
+            from: Self.loadCodable([FilterListRecord].self, key: adBlockFilterListsKey) ?? []
+        )
 
         customSearchEngines =
             Self.loadCodable([CustomSearchEngine].self, key: customSearchEnginesKey) ?? []
@@ -358,10 +371,29 @@ class SettingsStore: ObservableObject {
         objectWillChange.send()
     }
 
+    func privacySettings(for containerId: UUID) -> SpacePrivacySettings {
+        Self.loadCodable(SpacePrivacySettings.self, key: keyForPrivacySettings(for: containerId))
+            ?? legacyPrivacySettings
+    }
+
+    func setPrivacySettings(_ value: SpacePrivacySettings, for containerId: UUID) {
+        saveCodable(value, forKey: keyForPrivacySettings(for: containerId))
+        objectWillChange.send()
+    }
+
+    func notifySpacePrivacySettingsChanged(for containerId: UUID) {
+        NotificationCenter.default.post(
+            name: .spacePrivacySettingsChanged,
+            object: nil,
+            userInfo: ["containerId": containerId]
+        )
+    }
+
     func removeContainerSettings(for containerId: UUID) {
         defaults.removeObject(forKey: keyForDefaultSearch(for: containerId))
         defaults.removeObject(forKey: keyForDefaultAI(for: containerId))
         defaults.removeObject(forKey: keyForAutoClear(for: containerId))
+        defaults.removeObject(forKey: keyForPrivacySettings(for: containerId))
         objectWillChange.send()
     }
 
@@ -385,6 +417,32 @@ class SettingsStore: ObservableObject {
         var engines = customSearchEngines
         engines.append(engine)
         customSearchEngines = engines
+    }
+
+    // MARK: - Ad block filter catalog
+
+    func adBlockFilterList(id: String) -> FilterListRecord? {
+        adBlockFilterLists.first { $0.id == id }
+    }
+
+    func setAdBlockFilterLists(_ records: [FilterListRecord]) {
+        adBlockFilterLists = FilterListCatalogService.shared.normalizedRecords(from: records)
+    }
+
+    func upsertAdBlockFilterList(_ record: FilterListRecord) {
+        var records = adBlockFilterLists
+        if let index = records.firstIndex(where: { $0.id == record.id }) {
+            records[index] = record
+        } else {
+            records.append(record)
+        }
+        adBlockFilterLists = FilterListCatalogService.shared.normalizedRecords(from: records)
+    }
+
+    func removeAdBlockFilterList(id: String) {
+        adBlockFilterLists = FilterListCatalogService.shared.normalizedRecords(
+            from: adBlockFilterLists.filter { $0.id != id }
+        )
     }
 
     func removeCustomSearchEngine(withId id: String) {
@@ -458,5 +516,14 @@ class SettingsStore: ObservableObject {
         return supported.min { lhs, rhs in
             abs(lhs - value) < abs(rhs - value)
         } ?? defaultSeconds
+    }
+
+    private var legacyPrivacySettings: SpacePrivacySettings {
+        SpacePrivacySettings(
+            blockThirdPartyTrackers: blockThirdPartyTrackers,
+            blockFingerprinting: blockFingerprinting,
+            adBlocking: adBlocking,
+            cookiesPolicy: cookiesPolicy
+        )
     }
 }
