@@ -11,6 +11,9 @@ final class BrowserPage: NSObject, WKNavigationDelegate, WKUIDelegate, WKScriptM
     private(set) var lastCommittedURL: URL?
     private(set) var isDownloadNavigation = false
     private(set) var sslBypassedHosts: Set<String> = []
+    private var isReadyForNavigation = false
+    private var pendingLoadRequest: URLRequest?
+    private var pendingReload = false
 
     init(
         profile: BrowserEngineProfile,
@@ -74,6 +77,14 @@ final class BrowserPage: NSObject, WKNavigationDelegate, WKUIDelegate, WKScriptM
             layer.isOpaque = true
             layer.drawsAsynchronously = true
         }
+
+        BrowserPrivacyService.shared.prepareConfiguration(
+            webConfiguration,
+            spaceID: profile.identifier
+        ) { [weak self] in
+            self?.isReadyForNavigation = true
+            self?.flushPendingNavigationIfNeeded()
+        }
     }
 
     var contentView: NSView {
@@ -109,10 +120,22 @@ final class BrowserPage: NSObject, WKNavigationDelegate, WKUIDelegate, WKScriptM
     }
 
     func load(_ request: URLRequest) {
+        guard isReadyForNavigation else {
+            pendingLoadRequest = request
+            pendingReload = false
+            return
+        }
+
         webView.load(request)
     }
 
     func reload() {
+        guard isReadyForNavigation else {
+            pendingReload = true
+            pendingLoadRequest = nil
+            return
+        }
+
         webView.reload()
     }
 
@@ -162,6 +185,19 @@ final class BrowserPage: NSObject, WKNavigationDelegate, WKUIDelegate, WKScriptM
 
     func bypassSSL(for host: String) {
         sslBypassedHosts.insert(host)
+    }
+
+    private func flushPendingNavigationIfNeeded() {
+        if let pendingLoadRequest {
+            self.pendingLoadRequest = nil
+            webView.load(pendingLoadRequest)
+            return
+        }
+
+        if pendingReload {
+            pendingReload = false
+            webView.reload()
+        }
     }
 
     private func emitNavigationEvent(

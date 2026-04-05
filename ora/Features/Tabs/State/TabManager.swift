@@ -620,6 +620,17 @@ class TabManager: ObservableObject {
         self.reorderTabs(from: tab, toTab: newTab)
     }
 
+    func refreshPrivacySettings(for containerId: UUID) {
+        guard let container = fetchContainer(id: containerId) else { return }
+
+        let loadedTabs = container.tabs.filter(\.isWebViewReady)
+        guard !loadedTabs.isEmpty else { return }
+
+        for tab in loadedTabs {
+            tab.refreshBrowserPageForPrivacySettings()
+        }
+    }
+
     private func trackRecentlyClosedTab(_ tab: Tab) {
         recentlyClosedTabs.append(ClosedTabSnapshot(tab: tab))
         if recentlyClosedTabs.count > maxRecentlyClosedTabs {

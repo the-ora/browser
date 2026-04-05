@@ -212,9 +212,14 @@ class Tab: ObservableObject, Identifiable {
 
         let engine = BrowserEngine.shared
         let profile = engine.makeProfile(identifier: container.id, isPrivate: isPrivate)
+        let privacySettings = SettingsStore.shared.privacySettings(for: container.id)
+        let userScripts = OraBrowserScripts.userScripts() + BrowserPrivacyService.privacyScripts(for: privacySettings)
         let page = engine.makePage(
             profile: profile,
-            configuration: BrowserPageConfiguration.oraDefault(userScripts: OraBrowserScripts.userScripts()),
+            configuration: BrowserPageConfiguration.oraDefault(
+                userScripts: userScripts,
+                privacySettings: privacySettings
+            ),
             delegate: nil
         )
         browserPage = page
@@ -345,6 +350,24 @@ class Tab: ObservableObject, Identifiable {
 
     func reload() {
         browserPage?.reload()
+    }
+
+    func refreshBrowserPageForPrivacySettings() {
+        guard isWebViewReady,
+              let historyManager,
+              let downloadManager,
+              let tabManager
+        else {
+            return
+        }
+
+        destroyWebView()
+        restoreTransientState(
+            historyManager: historyManager,
+            downloadManager: downloadManager,
+            tabManager: tabManager,
+            isPrivate: isPrivate
+        )
     }
 
     func evaluateJavaScript(_ script: String, completion: ((Any?, Error?) -> Void)? = nil) {

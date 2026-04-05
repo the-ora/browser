@@ -11,8 +11,12 @@ struct BrowserPageConfiguration {
     let mediaPlaybackRequiresUserAction: Bool
     let scriptMessageNames: [String]
     let userScripts: [BrowserUserScript]
+    let privacySettings: SpacePrivacySettings
 
-    static func oraDefault(userScripts: [BrowserUserScript]) -> BrowserPageConfiguration {
+    static func oraDefault(
+        userScripts: [BrowserUserScript],
+        privacySettings: SpacePrivacySettings
+    ) -> BrowserPageConfiguration {
         BrowserPageConfiguration(
             userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0.1 Safari/605.1.15",
             allowsPictureInPicture: true,
@@ -23,7 +27,8 @@ struct BrowserPageConfiguration {
             allowsBackForwardNavigationGestures: true,
             mediaPlaybackRequiresUserAction: false,
             scriptMessageNames: ["listener", "linkHover", "mediaEvent", "passwordManager"],
-            userScripts: userScripts
+            userScripts: userScripts,
+            privacySettings: privacySettings
         )
     }
 }

@@ -38,13 +38,22 @@ enum SettingsTab: String, Hashable, CaseIterable {
         case .spaces:
             return "Space-specific defaults and per-space data controls."
         case .privacySecurity:
-            return "Tracking prevention, cookies, and privacy protections."
+            return "Per-space tracking prevention, cookies, and privacy protections."
         case .passwords:
             return "Password manager integration, vault access, and autofill behavior."
         case .shortcuts:
             return "Keyboard shortcuts and command mappings."
         case .searchEngines:
             return "Default search providers, AI engines, and custom shortcuts."
+        }
+    }
+
+    var isEnabled: Bool {
+        switch self {
+        case .privacySecurity:
+            return false
+        default:
+            return true
         }
     }
 }
@@ -63,19 +72,22 @@ struct SettingsContentView: View {
 
     private var selection: Binding<SettingsTab> {
         Binding(
-            get: { SettingsTab(rawValue: selectionRawValue) ?? .general },
+            get: { normalizedTabSelection(from: selectionRawValue) },
             set: { selectionRawValue = $0.rawValue }
         )
     }
 
     private var selectedTab: SettingsTab {
-        SettingsTab(rawValue: selectionRawValue) ?? .general
+        normalizedTabSelection(from: selectionRawValue)
     }
 
     var body: some View {
         NavigationSplitView {
             List(SettingsTab.allCases, id: \.self, selection: selection) { tab in
                 Label(tab.title, systemImage: tab.symbol)
+                    .foregroundStyle(tab.isEnabled ? .primary : .secondary)
+                    .tag(tab)
+                    .disabled(!tab.isEnabled)
             }
             .navigationSplitViewColumnWidth(200)
             .padding(.top, 8)
@@ -103,5 +115,10 @@ struct SettingsContentView: View {
         case .searchEngines:
             SearchEngineSettingsView()
         }
+    }
+
+    private func normalizedTabSelection(from rawValue: String) -> SettingsTab {
+        let tab = SettingsTab(rawValue: rawValue) ?? .general
+        return tab.isEnabled ? tab : .spaces
     }
 }

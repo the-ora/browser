@@ -109,6 +109,13 @@ struct OraRoot: View {
             .enableInjection()
             .onAppear {
                 downloadManager.toastManager = toastManager
+                Task {
+                    let containerIDs = await MainActor.run {
+                        (try? tabContext.fetch(FetchDescriptor<TabContainer>()))?.map(\.id) ?? []
+                    }
+                    await AdBlockService.shared.start(containerIDs: containerIDs)
+                }
+
                 // Dialog keyboard shortcuts (highest priority — checked first)
                 keyModifierListener.registerKeyDownHandler { event in
                     // Escape: dismiss top dialog
@@ -270,6 +277,14 @@ struct OraRoot: View {
                         )
                     }
                 }
+
+                NotificationCenter.default
+                    .addObserver(forName: .spacePrivacySettingsChanged, object: nil, queue: .main) { note in
+                        Task { @MainActor in
+                            guard let containerId = note.userInfo?["containerId"] as? UUID else { return }
+                            tabManager.refreshPrivacySettings(for: containerId)
+                        }
+                    }
 
                 // Clear cache and reload
                 NotificationCenter.default

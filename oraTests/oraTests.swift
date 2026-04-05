@@ -137,4 +137,196 @@ struct OraTests {
         #expect(emailSuggestions.savedPasswordEntries.isEmpty)
         #expect(emailSuggestions.emailSuggestions == [emailSuggestion])
     }
+
+    @Test func storesPrivacySettingsPerSpaceIndependently() {
+        let store = SettingsStore.shared
+        let firstContainerID = UUID()
+        let secondContainerID = UUID()
+        let baselineSecondSettings = store.privacySettings(for: secondContainerID)
+
+        defer {
+            store.removeContainerSettings(for: firstContainerID)
+            store.removeContainerSettings(for: secondContainerID)
+        }
+
+        let updatedSettings = SpacePrivacySettings(
+            blockThirdPartyTrackers: true,
+            blockFingerprinting: true,
+            adBlocking: true,
+            adBlock: SpaceAdBlockSettings(
+                enabled: true,
+                enabledBuiltinListIDs: [
+                    FilterListCatalogService.adGuardBaseID,
+                    FilterListCatalogService.adGuardAnnoyancesID
+                ],
+                enabledCustomListIDs: ["custom-test-list"],
+                updateMode: .aggressiveAuto
+            ),
+            cookiesPolicy: .blockThirdParty
+        )
+
+        store.setPrivacySettings(updatedSettings, for: firstContainerID)
+
+        #expect(store.privacySettings(for: firstContainerID) == updatedSettings)
+        #expect(store.privacySettings(for: secondContainerID) == baselineSecondSettings)
+    }
+
+    @Test func removingContainerSettingsResetsSpacePrivacyOverrides() {
+        let store = SettingsStore.shared
+        let containerID = UUID()
+        let baselineSettings = store.privacySettings(for: containerID)
+
+        defer {
+            store.removeContainerSettings(for: containerID)
+        }
+
+        var updatedSettings = baselineSettings
+        updatedSettings.cookiesPolicy = baselineSettings.cookiesPolicy == .blockAll ? .allowAll : .blockAll
+        updatedSettings.adBlocking.toggle()
+
+        store.setPrivacySettings(updatedSettings, for: containerID)
+        #expect(store.privacySettings(for: containerID) == updatedSettings)
+
+        store.removeContainerSettings(for: containerID)
+        #expect(store.privacySettings(for: containerID) == baselineSettings)
+    }
+
+    @Test func seedsBuiltInAdBlockLists() {
+        let builtinIDs = Set(SettingsStore.shared.adBlockFilterLists.filter(\.isBuiltin).map(\.id))
+
+        #expect(builtinIDs.contains(FilterListCatalogService.adGuardBaseID))
+        #expect(builtinIDs.contains(FilterListCatalogService.adGuardMobileAdsID))
+        #expect(builtinIDs.contains(FilterListCatalogService.adGuardTrackingProtectionID))
+        #expect(builtinIDs.contains(FilterListCatalogService.adGuardURLTrackingID))
+        #expect(builtinIDs.contains(FilterListCatalogService.adGuardAnnoyancesID))
+    }
+
+    @Test func validatesCustomAdBlockURLs() {
+        let service = FilterListUpdateService()
+
+        #expect(service.isValidCustomListURL("https://example.com/filter.txt"))
+        #expect(service.isValidCustomListURL("http://example.com/filter.txt"))
+        #expect(service.isValidCustomListURL("ftp://example.com/filter.txt") == false)
+        #expect(service.isValidCustomListURL("file:///tmp/filter.txt") == false)
+    }
+
+    @Test func persistsAdBlockUpdateModePerSpace() {
+        let store = SettingsStore.shared
+        let containerID = UUID()
+
+        defer {
+            store.removeContainerSettings(for: containerID)
+        }
+
+        var updatedSettings = store.privacySettings(for: containerID)
+        updatedSettings.adBlock.updateMode = .aggressiveAuto
+        store.setPrivacySettings(updatedSettings, for: containerID)
+
+        #expect(store.privacySettings(for: containerID).adBlock.updateMode == .aggressiveAuto)
+    }
+
+    @Test func spacePrivacySettingsDefaultToFingerprintingOnAndCookiesAllowed() {
+        let defaults = SpacePrivacySettings()
+
+        #expect(defaults.blockFingerprinting)
+        #expect(defaults.cookiesPolicy == .allowAll)
+    }
+
+    @Test func fingerprintingEnabledSpacesGenerateProtectionScripts() {
+        let disabledScripts = BrowserPrivacyService.privacyScripts(
+            for: SpacePrivacySettings(blockFingerprinting: false)
+        )
+        let enabledScripts = BrowserPrivacyService.privacyScripts(
+            for: SpacePrivacySettings(blockFingerprinting: true)
+        )
+
+        #expect(disabledScripts.isEmpty)
+        #expect(enabledScripts.count == 1)
+        #expect(enabledScripts.first?.source.isEmpty == false)
+    }
+
+    @Test func fingerprintingScriptDoesNotDependOnCookiePolicy() {
+        let allowAllScript = BrowserPrivacyService.privacyScripts(
+            for: SpacePrivacySettings(blockFingerprinting: true, cookiesPolicy: .allowAll)
+        ).first?.source
+        let blockAllScript = BrowserPrivacyService.privacyScripts(
+            for: SpacePrivacySettings(blockFingerprinting: true, cookiesPolicy: .blockAll)
+        ).first?.source
+
+        #expect(allowAllScript == blockAllScript)
+    }
+
+    @Test func balancedFingerprintingProfileIsInternallyCoherent() {
+        let profile = FingerprintingProtectionProfile.balanced
+
+        #expect(profile.language == profile.languages.first)
+        #expect(profile.availWidth <= profile.screenWidth)
+        #expect(profile.availHeight <= profile.screenHeight)
+        #expect(profile.devicePixelRatio > 0)
+        #expect(profile.platform == "MacIntel")
+        #expect(profile.vendor == "Apple Computer, Inc.")
+        #expect(profile.mediaDeviceKinds == ["audioinput", "audiooutput", "videoinput"])
+    }
+
+    @Test func fingerprintingScriptIncludesBalancedSurfaceNormalization() {
+        let script = BrowserPrivacyService.fingerprintingProtectionScriptSource()
+
+        #expect(script.contains("hardwareConcurrency"))
+        #expect(script.contains("devicePixelRatio"))
+        #expect(script.contains("enumerateDevices"))
+        #expect(script.contains("toDataURL"))
+        #expect(script.contains("OfflineAudioContext"))
+        #expect(script.contains("WebGLRenderingContext"))
+    }
+
+    @Test func tracksUnsupportedRulesInCoverageSummary() throws {
+        let compiler = ContentBlockerCompileService()
+        let record = FilterListRecord(
+            id: "test-filter",
+            name: "Test Filter",
+            summary: "Fixture list",
+            sourceKind: .custom,
+            sourceURL: "https://example.com/filter.txt",
+            isRecommended: false,
+            enabledByDefault: false
+        )
+
+        let rawText = """
+        ||ads.example^
+        example.com#%#console.log('advanced')
+        """
+
+        let artifacts = try compiler.compile(record: record, rawText: rawText)
+
+        #expect(artifacts.coverage.totalRuleCount >= 2)
+        #expect(artifacts.coverage.skippedRuleCount >= 1)
+        #expect(artifacts.coverage.shardCount >= 1)
+        #expect(artifacts.jsonShards.isEmpty == false)
+    }
+
+    @Test func failedAdBlockRefreshPreservesLastKnownGoodRevision() {
+        let record = FilterListRecord(
+            id: "test-filter",
+            name: "Test Filter",
+            summary: "Fixture list",
+            sourceKind: .custom,
+            sourceURL: "https://example.com/filter.txt",
+            isRecommended: false,
+            enabledByDefault: false,
+            status: .ready,
+            activeRevision: "last-good-revision",
+            coverage: FilterListCoverage(
+                totalRuleCount: 10,
+                convertedRuleCount: 8,
+                skippedRuleCount: 2,
+                safariRuleCount: 8,
+                shardCount: 1
+            )
+        )
+
+        let failed = AdBlockService.failedRecord(record, error: AdBlockServiceError.emptyFilterList("Test Filter"))
+
+        #expect(failed.activeRevision == "last-good-revision")
+        #expect(failed.status == .failed)
+    }
 }
