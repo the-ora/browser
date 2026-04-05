@@ -580,9 +580,9 @@ final class BrowserPrivacyService {
         }
     }
 
-    private static func regexForDomain(_ domain: String) -> String {
+    static func regexForDomain(_ domain: String) -> String {
         let escapedDomain = NSRegularExpression.escapedPattern(for: domain)
-        return "^https?://([^/]+\\\\.)?\(escapedDomain)(?:[/:]|$)"
+        return "^https?://([^/]+\\.)?\(escapedDomain)(?:[/:]|$)"
     }
 
     private static func encodeRules(_ rules: [[String: Any]]) -> String {

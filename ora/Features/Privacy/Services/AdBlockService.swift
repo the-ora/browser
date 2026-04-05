@@ -256,7 +256,7 @@ actor AdBlockService {
         allowNetworkFetch: Bool
     ) async throws -> FilterListFetchResult {
         guard allowNetworkFetch || artifactStore.rawListText(for: record.id) != nil else {
-            return try await updateService.fetchLatest(for: record)
+            throw AdBlockServiceError.missingCachedList(record.name)
         }
 
         if allowNetworkFetch {
@@ -330,6 +330,7 @@ actor AdBlockService {
 
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(nextWakeInterval))
+                guard !Task.isCancelled else { break }
                 await self.refreshScheduledSpaces()
             }
         }

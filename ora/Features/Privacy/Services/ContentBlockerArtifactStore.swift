@@ -128,15 +128,17 @@ final class ContentBlockerArtifactStore {
         guard identifier.hasPrefix(prefix) else { return nil }
 
         let components = identifier.replacingOccurrences(of: prefix, with: "").split(separator: ".")
-        guard components.count == 3,
-              let shardIndex = Int(components[2])
+        guard components.count >= 3,
+              let revision = components.dropLast().last,
+              let shardComponent = components.last,
+              let shardIndex = Int(shardComponent)
         else {
             return nil
         }
 
         return (
-            listID: String(components[0]),
-            revision: String(components[1]),
+            listID: components.dropLast(2).joined(separator: "."),
+            revision: String(revision),
             shardIndex: shardIndex
         )
     }

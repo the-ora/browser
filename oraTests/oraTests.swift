@@ -9,6 +9,51 @@ import Foundation
 @testable import Ora
 import Testing
 
+private final class RequestCountingURLProtocol: URLProtocol, @unchecked Sendable {
+    private static let lock = NSLock()
+    private static var handledRequestCount = 0
+
+    static func reset() {
+        lock.lock()
+        handledRequestCount = 0
+        lock.unlock()
+    }
+
+    static var requestCount: Int {
+        lock.lock()
+        let count = handledRequestCount
+        lock.unlock()
+        return count
+    }
+
+    override class func canInit(with request: URLRequest) -> Bool {
+        true
+    }
+
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+        request
+    }
+
+    override func startLoading() {
+        Self.lock.lock()
+        Self.handledRequestCount += 1
+        Self.lock.unlock()
+
+        let response = HTTPURLResponse(
+            url: request.url ?? URL(string: "https://example.com/filter.txt")!,
+            statusCode: 200,
+            httpVersion: nil,
+            headerFields: nil
+        )!
+
+        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+        client?.urlProtocol(self, didLoad: Data("||ads.example^".utf8))
+        client?.urlProtocolDidFinishLoading(self)
+    }
+
+    override func stopLoading() {}
+}
+
 struct OraTests {
     @Test func normalizesHostsForPasswordMatching() {
         #expect(PasswordManagerService.normalizeHost("WWW.Example.COM.") == "www.example.com")
@@ -279,6 +324,22 @@ struct OraTests {
         #expect(script.contains("WebGLRenderingContext"))
     }
 
+    @Test func trackerRegexMatchesRootAndSubdomains() throws {
+        let pattern = BrowserPrivacyService.regexForDomain("hotjar.com")
+        let regex = try NSRegularExpression(pattern: pattern)
+        let rootURL = "https://hotjar.com/script.js"
+        let subdomainURL = "https://static.hotjar.com/c/hotjar.js"
+        let otherURL = "https://not-hotjar-example.com/script.js"
+
+        let rootRange = NSRange(rootURL.startIndex ..< rootURL.endIndex, in: rootURL)
+        let subdomainRange = NSRange(subdomainURL.startIndex ..< subdomainURL.endIndex, in: subdomainURL)
+        let otherRange = NSRange(otherURL.startIndex ..< otherURL.endIndex, in: otherURL)
+
+        #expect(regex.firstMatch(in: rootURL, range: rootRange) != nil)
+        #expect(regex.firstMatch(in: subdomainURL, range: subdomainRange) != nil)
+        #expect(regex.firstMatch(in: otherURL, range: otherRange) == nil)
+    }
+
     @Test func tracksUnsupportedRulesInCoverageSummary() throws {
         let compiler = ContentBlockerCompileService()
         let record = FilterListRecord(
@@ -302,6 +363,35 @@ struct OraTests {
         #expect(artifacts.coverage.skippedRuleCount >= 1)
         #expect(artifacts.coverage.shardCount >= 1)
         #expect(artifacts.jsonShards.isEmpty == false)
+    }
+
+    @Test func artifactIdentifiersSupportDottedListIDs() throws {
+        let temporaryArtifactsURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let store = ContentBlockerArtifactStore(baseURL: temporaryArtifactsURL)
+        let coverage = FilterListCoverage(
+            totalRuleCount: 1,
+            convertedRuleCount: 1,
+            skippedRuleCount: 0,
+            safariRuleCount: 1,
+            shardCount: 1
+        )
+
+        defer {
+            try? FileManager.default.removeItem(at: temporaryArtifactsURL)
+        }
+
+        try store.storeCompiledArtifacts(
+            jsonShards: ["[{\"trigger\":{\"url-filter\":\".*\"},\"action\":{\"type\":\"block\"}}]"],
+            coverage: coverage,
+            for: "custom.list",
+            revision: "revision123"
+        )
+
+        let identifiers = store.ruleListIdentifiers(for: "custom.list", revision: "revision123")
+
+        #expect(identifiers.count == 1)
+        #expect(store.encodedRuleList(for: identifiers[0])?.contains("\"type\":\"block\"") == true)
     }
 
     @Test func failedAdBlockRefreshPreservesLastKnownGoodRevision() {
@@ -328,5 +418,59 @@ struct OraTests {
 
         #expect(failed.activeRevision == "last-good-revision")
         #expect(failed.status == .failed)
+    }
+
+    @Test func settingsRefreshStaysOfflineWithoutCachedRawList() async {
+        let store = SettingsStore.shared
+        let baselineLists = store.adBlockFilterLists
+        let containerID = UUID()
+        let temporaryArtifactsURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+
+        let record = FilterListRecord(
+            id: "offline-only-filter",
+            name: "Offline Only Filter",
+            summary: "Offline refresh regression fixture",
+            sourceKind: .custom,
+            sourceURL: "https://example.com/filter.txt",
+            isRecommended: false,
+            enabledByDefault: false,
+            status: .ready,
+            activeRevision: "existing-revision"
+        )
+
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [RequestCountingURLProtocol.self]
+        let session = URLSession(configuration: configuration)
+        let service = AdBlockService(
+            updateService: FilterListUpdateService(session: session),
+            artifactStore: ContentBlockerArtifactStore(baseURL: temporaryArtifactsURL)
+        )
+
+        var settings = store.privacySettings(for: containerID)
+        settings.adBlock.enabled = true
+        settings.adBlock.updateMode = .manualOnly
+        settings.adBlock.enabledBuiltinListIDs = []
+        settings.adBlock.enabledCustomListIDs = [record.id]
+
+        RequestCountingURLProtocol.reset()
+        store.upsertAdBlockFilterList(record)
+        store.setPrivacySettings(settings, for: containerID)
+
+        defer {
+            store.setAdBlockFilterLists(baselineLists)
+            store.removeContainerSettings(for: containerID)
+            try? FileManager.default.removeItem(at: temporaryArtifactsURL)
+        }
+
+        let didChange = await service.refreshSpace(containerId: containerID, reason: .settingsChanged)
+        let refreshedRecord = store.adBlockFilterList(id: record.id)
+
+        #expect(didChange == false)
+        #expect(RequestCountingURLProtocol.requestCount == 0)
+        #expect(refreshedRecord?.status == .failed)
+        #expect(refreshedRecord?.lastErrorMessage == AdBlockServiceError.missingCachedList(record.name)
+            .errorDescription)
+        #expect(refreshedRecord?.activeRevision == record.activeRevision)
     }
 }
