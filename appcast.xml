@@ -5,6 +5,30 @@
         <description>Most recent changes with links to updates.</description>
         <language>en</language>
         <item>
+            <title>0.2.14</title>
+            <pubDate>Tue, 07 Apr 2026 11:35:44 +0300</pubDate>
+            <link>https://github.com/the-ora/browser</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/the-ora/browser/releases/tag/v0.2.14</sparkle:fullReleaseNotesLink>
+            <sparkle:version>105</sparkle:version>
+            <sparkle:shortVersionString>0.2.14</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<h2>Ora 0.2.14</h2>
+<h3>Highlights</h3>
+<ul>
+<li>Space-scoped privacy protections to keep spaces separate. <em>(by <a href="https://github.com/yonaries">@yonaries</a> in <a href="https://github.com/the-ora/browser/pull/243">#243</a>)</em></li>
+<li>New lightweight toast notifications for unobtrusive feedback. <em>(by <a href="https://github.com/yonaries">@yonaries</a> in <a href="https://github.com/the-ora/browser/pull/233">#233</a>)</em></li>
+</ul>
+<h3>Improvements</h3>
+<ul>
+<li>Downloads history in the spatial sidebar for quick review. <em>(by <a href="https://github.com/yonaries">@yonaries</a> in <a href="https://github.com/the-ora/browser/pull/239">#239</a>)</em></li>
+<li>Cleaner launcher UI and smarter AI suggestions; clearer address bar feedback. <em>(by <a href="https://github.com/yonaries">@yonaries</a> in <a href="https://github.com/the-ora/browser/pull/240">#240</a>, <a href="https://github.com/the-ora/browser/pull/242">#242</a>)</em></li>
+<li>Interaction and stability fixes: the floating sidebar no longer passes clicks through; improved stability when opening or switching pages. <em>(by <a href="https://github.com/yonaries">@yonaries</a> in <a href="https://github.com/the-ora/browser/pull/236">#236</a>, <a href="https://github.com/the-ora/browser/pull/241">#241</a>)</em></li>
+</ul>
+<p><a href="https://github.com/the-ora/browser/compare/v0.2.13...v0.2.14"><strong>Full Changelog</strong></a></p>
+]]></description>
+            <enclosure url="https://github.com/the-ora/browser/releases/download/v0.2.14/Ora-Browser-0.2.14.dmg" length="9668821" type="application/octet-stream" sparkle:edSignature="KboPe/wGhiSEq7utTskh4BO9JPH6GouDA2hsfNk0Mb6yCy7yzHeJZAi4AR68Or24bBQwwHuu61RHYhG6ZTiTBg=="/>
+        </item>
+        <item>
             <title>0.2.13</title>
             <pubDate>Fri, 13 Mar 2026 22:28:08 +0300</pubDate>
             <link>https://github.com/the-ora/browser</link>
