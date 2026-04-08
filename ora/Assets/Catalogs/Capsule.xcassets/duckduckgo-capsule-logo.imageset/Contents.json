@@ -3,6 +3,16 @@
     {
       "filename" : "duckduckgo-capsule-logo.svg",
       "idiom" : "universal"
+    },
+    {
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
+      "filename" : "duckduckgo-capsule-logo 1.svg",
+      "idiom" : "universal"
     }
   ],
   "info" : {

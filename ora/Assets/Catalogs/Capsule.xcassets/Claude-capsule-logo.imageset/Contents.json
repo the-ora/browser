@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "google-capsule-logo.svg",
+      "filename" : "claude-capsule-logo.svg",
       "idiom" : "universal"
     },
     {
@@ -11,7 +11,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "google-capsule-logo 1.svg",
+      "filename" : "claude-capsule-logo 1.svg",
       "idiom" : "universal"
     }
   ],

@@ -4,8 +4,6 @@
 <dict>
 	<key>com.apple.developer.web-browser</key>
 	<true/>
-	<key>com.apple.developer.web-browser.public-key-credential</key>
-	<true/>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
 	<key>com.apple.security.assets.movies.read-only</key>
@@ -23,8 +21,6 @@
 	<key>com.apple.security.files.downloads.read-write</key>
 	<true/>
 	<key>com.apple.security.files.user-selected.read-write</key>
-	<true/>
-	<key>com.apple.security.network.client</key>
 	<true/>
 	<key>com.apple.security.print</key>
 	<true/>

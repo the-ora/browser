@@ -36,15 +36,18 @@ struct LauncherSuggestionItem: View {
 
     private var backgroundColor: Color {
         if focusedElement != suggestion.id || isHovered { return .clear }
-        return isAIChat ? theme.background : theme.foreground.opacity(0.1)
+        return isAIChat
+            ? defaultAI?.color ?? .clear
+            : isHovered ? theme.foreground.opacity(0.07) : theme.foreground.opacity(0.1)
     }
 
     @ViewBuilder
     var icon: some View {
-        if isAIChat, let suggestionIcon = suggestion.icon, !suggestionIcon.isEmpty {
-            Image(suggestionIcon)
+        if isAIChat, let aiIcon = defaultAI?.icon, !aiIcon.isEmpty {
+            Image(aiIcon)
                 .resizable()
                 .frame(width: 14, height: 14)
+                .foregroundColor(foregroundColor)
         } else if suggestion.faviconURL != nil {
             FavIcon(
                 isWebViewReady: true,

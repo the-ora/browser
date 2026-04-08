@@ -18,6 +18,8 @@ enum SearchEngineID: String, CaseIterable {
     case copilot = "Copilot"
     case githubCopilot = "GitHub Copilot"
     case metaAI = "Meta AI"
+    case brave = "Brave"
+    case ecosia = "Ecosia"
 }
 
 struct SuggestResponse: Decodable {
@@ -64,7 +66,7 @@ class SearchEngineService: ObservableObject {
             SearchEngine(
                 name: "YouTube",
                 color: Color(hex: "#FC0D1B"),
-                icon: "",
+                icon: "youtube-capsule-logo",
                 aliases: ["youtube", "you", "youtu", "yo", "yt"],
                 searchURL: "https://www.youtube.com/results?search_query={query}",
                 isAIChat: false
@@ -165,7 +167,7 @@ class SearchEngineService: ObservableObject {
             SearchEngine(
                 name: "Gemini",
                 color: Color(hex: "#4285F4"),
-                icon: "gemini-color-capsule-logo",
+                icon: "gemini-capsule-logo",
                 aliases: ["gemini", "gem", "bard", "google ai", "gai"],
                 searchURL: "https://gemini.google.com/app?q={query}",
                 isAIChat: true
@@ -173,7 +175,7 @@ class SearchEngineService: ObservableObject {
             SearchEngine(
                 name: "Copilot",
                 color: Color(hex: "#0078D4"),
-                icon: "copilot-color-capsule-logo",
+                icon: "copilot-capsule-logo",
                 aliases: ["copilot", "microsoft copilot", "bing chat", "bing", "ms copilot"],
                 searchURL: "https://copilot.microsoft.com/?q={query}",
                 isAIChat: true
@@ -181,7 +183,7 @@ class SearchEngineService: ObservableObject {
             SearchEngine(
                 name: "GitHub Copilot",
                 color: Color(hex: "#24292F"),
-                icon: "copilot-color-capsule-logo",
+                icon: "githubcopilot-capsule-logo",
                 aliases: ["github copilot", "gh copilot", "github ai", "ghc"],
                 searchURL: "https://github.com/copilot?q={query}",
                 isAIChat: true,
@@ -190,10 +192,26 @@ class SearchEngineService: ObservableObject {
             SearchEngine(
                 name: "Meta AI",
                 color: Color(hex: "#0866FF"),
-                icon: "",
+                icon: "meta-capsule-logo",
                 aliases: ["meta ai", "meta", "llama", "facebook ai", "mai"],
                 searchURL: "https://www.meta.ai/?q={query}",
                 isAIChat: true
+            ),
+            SearchEngine(
+                name: "Brave",
+                color: Color(hex: "#FB542B"),
+                icon: "brave-capsule-logo",
+                aliases: ["brave", "br", "brv"],
+                searchURL: "https://search.brave.com/search?q={query}",
+                isAIChat: false
+            ),
+            SearchEngine(
+                name: "Ecosia",
+                color: Color(hex: "#008009"),
+                icon: "ecosia-capsule-logo",
+                aliases: ["ecosia", "eco", "ec"],
+                searchURL: "https://www.ecosia.org/search?q={query}",
+                isAIChat: false
             )
         ]
     }

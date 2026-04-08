@@ -3,6 +3,16 @@
     {
       "filename" : "bing-capsule-logo.svg",
       "idiom" : "universal"
+    },
+    {
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
+      "filename" : "bing-capsule-logo 1.svg",
+      "idiom" : "universal"
     }
   ],
   "info" : {
