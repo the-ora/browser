@@ -88,6 +88,7 @@ struct BrowserWebContentView: View {
                             LinkPreview(text: hovered)
                         }
                     }
+                    .animation(.easeOut(duration: 0.12), value: tab.hoveredLinkURL)
             } else {
                 ZStack {
                     Rectangle().fill(theme.background)
