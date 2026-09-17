@@ -77,6 +77,10 @@
 	<string>public.app-category.web-browser</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>15.0</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Allows websites to use the camera, for example during video calls.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Allows websites to use the microphone, for example during calls or dictation.</string>
 	<key>NSUserActivityTypes</key>
 	<array>
 		<string>NSUserActivityTypeBrowsingWeb</string>

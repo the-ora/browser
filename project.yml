@@ -59,6 +59,8 @@ targets:
     info:
       path: ora/Info/Info.plist
       properties:
+        NSCameraUsageDescription: "Allows websites to use the camera, for example during video calls."
+        NSMicrophoneUsageDescription: "Allows websites to use the microphone, for example during calls or dictation."
         SUFeedURL: "https://the-ora.github.io/browser/appcast.xml"
         SUPublicEDKey: "Ozj+rezzbJAD76RfajtfQ7rFojJbpFSCl/0DcFSBCTI="
         SUEnableAutomaticChecks: YES
