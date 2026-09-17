@@ -16,14 +16,15 @@ struct PinnedTabsList: View {
     @Environment(\.theme) var theme
 
     var body: some View {
-        VStack(spacing: 8) {
-            Text("Pinned")
-                .font(.callout)
-                .foregroundColor(theme.mutedForeground)
-                .padding(.top, 8)
-                .frame(maxWidth: .infinity, alignment: .leading)
+        VStack(spacing: 4) {
+            if !tabs.isEmpty || draggedItem != nil {
+                Text("Pinned")
+                    .font(.callout)
+                    .foregroundColor(theme.mutedForeground)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
             if tabs.isEmpty {
-                EmptyPinnedTabs()
+                if draggedItem != nil { EmptyPinnedTabs() }
             } else {
                 ForEach(tabs) { tab in
                     TabItem(

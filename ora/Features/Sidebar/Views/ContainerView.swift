@@ -52,8 +52,8 @@ struct ContainerView: View {
             }
 
             ScrollView(.vertical, showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 16) {
-                    if !privacyMode.isPrivate {
+                VStack(alignment: .leading, spacing: 8) {
+                    if !privacyMode.isPrivate, !pinnedTabs.isEmpty || draggedItem != nil {
                         PinnedTabsList(
                             tabs: pinnedTabs,
                             draggedItem: $draggedItem,
@@ -66,7 +66,7 @@ struct ContainerView: View {
                             onMoveToContainer: moveTab,
                             containers: containers
                         )
-                        Divider()
+                        if !pinnedTabs.isEmpty { Divider() }
                     }
                     NormalTabsList(
                         tabs: normalTabs,
