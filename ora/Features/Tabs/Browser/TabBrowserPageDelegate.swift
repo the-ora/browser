@@ -8,10 +8,24 @@ final class TabBrowserPageDelegate: BrowserPageDelegate {
 
     private var progressResetWorkItem: DispatchWorkItem?
 
+    /// Schemes WebKit cannot load itself and that must be handed to the system,
+    /// e.g. discord://, zoommtg://, mailto:, tel:.
+    private static let webSchemes: Set<String> = ["http", "https", "about", "data", "blob", "file", "javascript"]
+
     func browserPage(
         _ page: BrowserPage,
         decidePolicyFor navigationAction: BrowserNavigationAction
     ) -> BrowserNavigationActionDisposition {
+        if let url = navigationAction.request.url,
+           let scheme = url.scheme?.lowercased(),
+           !Self.webSchemes.contains(scheme)
+        {
+            // WebKit silently drops unknown schemes, so the link looks dead.
+            // Hand it to the system, which opens the registered app.
+            NSWorkspace.shared.open(url)
+            return .cancel
+        }
+
         guard navigationAction.modifierFlags.contains(.command),
               let url = navigationAction.request.url,
               let tab,
