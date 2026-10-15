@@ -4,9 +4,7 @@ import Foundation
 // swiftlint:disable type_body_length function_body_length
 struct FingerprintingProtectionProfile: Equatable {
     let hardwareConcurrency: Int
-    let deviceMemory: Int
     let maxTouchPoints: Int
-    let webdriver: Bool
     let platform: String
     let vendor: String
     let language: String
@@ -30,9 +28,7 @@ struct FingerprintingProtectionProfile: Equatable {
 
     static let balanced = FingerprintingProtectionProfile(
         hardwareConcurrency: 8,
-        deviceMemory: 8,
         maxTouchPoints: 0,
-        webdriver: false,
         platform: "MacIntel",
         vendor: "Apple Computer, Inc.",
         language: "en-US",
@@ -63,7 +59,6 @@ struct FingerprintingProtectionProfile: Equatable {
             "availWidth": availWidth,
             "canvasShift": canvasShift,
             "colorDepth": colorDepth,
-            "deviceMemory": deviceMemory,
             "devicePixelRatio": devicePixelRatio,
             "hardwareConcurrency": hardwareConcurrency,
             "language": language,
@@ -75,7 +70,6 @@ struct FingerprintingProtectionProfile: Equatable {
             "screenHeight": screenHeight,
             "screenWidth": screenWidth,
             "vendor": vendor,
-            "webdriver": webdriver,
             "webGLRenderer": webGLRenderer,
             "webGLRendererName": webGLRendererName,
             "webGLShadingLanguageVersion": webGLShadingLanguageVersion,
@@ -242,9 +236,7 @@ struct FingerprintingProtectionProfile: Equatable {
             }
 
             defineValue(Navigator.prototype, 'hardwareConcurrency', profile.hardwareConcurrency);
-            defineValue(Navigator.prototype, 'deviceMemory', profile.deviceMemory);
             defineValue(Navigator.prototype, 'maxTouchPoints', profile.maxTouchPoints);
-            defineValue(Navigator.prototype, 'webdriver', profile.webdriver);
             defineValue(Navigator.prototype, 'platform', profile.platform);
             defineValue(Navigator.prototype, 'vendor', profile.vendor);
             defineValue(Navigator.prototype, 'language', profile.language);
