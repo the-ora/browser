@@ -222,7 +222,7 @@ class TabManager: ObservableObject {
         // Set the most recently accessed tab in the container
         if let lastAccessedTab = container.tabs
             .sorted(by: { $0.lastAccessedAt ?? Date() > $1.lastAccessedAt ?? Date() }).first,
-            lastAccessedTab.isWebViewReady
+           lastAccessedTab.isWebViewReady
         {
             activeTab?.maybeIsActive = false
             activeTab = lastAccessedTab
@@ -299,55 +299,48 @@ class TabManager: ObservableObject {
         isPrivate: Bool,
         loadSilently: Bool = false
     ) -> Tab? {
-        if let container = activeContainer {
-            if let host = url.host {
-                let faviconURL = FaviconService.shared.faviconURL(for: host)
+        if let container = activeContainer, let host = url.host {
+            let faviconURL = FaviconService.shared.faviconURL(for: host)
 
-                let cleanHost = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
+            let cleanHost = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
 
-                let newTab = Tab(
-                    url: url,
-                    title: cleanHost,
-                    favicon: faviconURL,
-                    container: container,
-                    type: .normal,
-                    isPlayingMedia: false,
-                    order: container.tabs.count + 1,
+            let newTab = Tab(
+                url: url,
+                title: cleanHost,
+                favicon: faviconURL,
+                container: container,
+                type: .normal,
+                isPlayingMedia: false,
+                order: container.tabs.count + 1,
+                historyManager: historyManager,
+                downloadManager: downloadManager,
+                tabManager: self,
+                isPrivate: isPrivate
+            )
+            modelContext.insert(newTab)
+            container.tabs.append(newTab)
+
+            if focusAfterOpening {
+                activateTab(newTab)
+            }
+            if focusAfterOpening || loadSilently {
+                // Initialize the WebView for the new active tab
+                newTab.restoreTransientState(
                     historyManager: historyManager,
-                    downloadManager: downloadManager,
+                    downloadManager: downloadManager ?? DownloadManager(
+                        modelContainer: modelContainer,
+                        modelContext: modelContext
+                    ),
                     tabManager: self,
                     isPrivate: isPrivate
                 )
-                modelContext.insert(newTab)
-                container.tabs.append(newTab)
-
-                if focusAfterOpening {
-                    activateTab(newTab)
-                }
-                if focusAfterOpening || loadSilently {
-                    // Initialize the WebView for the new active tab
-                    newTab.restoreTransientState(
-                        historyManager: historyManager,
-                        downloadManager: downloadManager ?? DownloadManager(
-                            modelContainer: modelContainer,
-                            modelContext: modelContext
-                        ),
-                        tabManager: self,
-                        isPrivate: isPrivate
-                    )
-                }
-
-                container.lastAccessedAt = Date()
-                try? modelContext.save()
-                return newTab
             }
+
+            container.lastAccessedAt = Date()
+            try? modelContext.save()
+            return newTab
         }
         return nil
-    }
-
-    func reorderTabs(from: Tab, toTab: Tab) {
-        from.container.reorderTabs(from: from, to: toTab)
-        try? modelContext.save()
     }
 
     func switchSections(from: Tab, toTab: Tab) {
@@ -608,8 +601,7 @@ class TabManager: ObservableObject {
 
     func duplicateTab(_ tab: Tab) {
         // Create a new tab using the existing openTab method
-        guard let historyManager = tab.historyManager else { return }
-        guard let newTab = openTab(
+        guard let historyManager = tab.historyManager, let newTab = openTab(
             url: tab.url,
             historyManager: historyManager,
             downloadManager: tab.downloadManager,
@@ -617,7 +609,10 @@ class TabManager: ObservableObject {
             isPrivate: tab.isPrivate,
             loadSilently: true
         ) else { return }
-        self.reorderTabs(from: tab, toTab: newTab)
+        // Right after the original, in the same section (a new tab's order
+        // says nothing about its place: it may be below the original's).
+        tab.container.placeTab(newTab, after: tab)
+        try? modelContext.save()
     }
 
     func refreshPrivacySettings(for containerId: UUID) {

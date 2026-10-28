@@ -15,50 +15,16 @@ struct TabDropDelegate: DropDelegate {
     let targetSection: TabSection
 
     func dropEntered(info: DropInfo) {
-        guard let provider = info.itemProviders(for: [.text]).first else { return }
+        // The dragged tab is known right away: reading it back from the drag
+        // item was asynchronous, so the list lagged and fast moves could be
+        // applied out of order.
+        guard let draggedID = draggedItem, draggedID != item.id,
+              let moved = item.container.tabs.first(where: { $0.id == draggedID })
+        else { return }
+
         performHapticFeedback(pattern: .alignment)
-        provider.loadObject(ofClass: NSString.self) { object, _ in
-            if let string = object as? String,
-               let uuid = UUID(uuidString: string)
-            {
-                DispatchQueue.main.async {
-                    // First try to find the tab in the target container
-                    var from = self.item.container.tabs.first(where: { $0.id == uuid })
-
-                    // If not found, try to find it in all containers of the same type
-                    if from == nil {
-                        // Look through all tabs in all containers to find the dragged tab
-                        for container in self.item.container.tabs.compactMap(\.container).unique() {
-                            if let foundTab = container.tabs.first(where: { $0.id == uuid }) {
-                                from = foundTab
-                                break
-                            }
-                        }
-                    }
-
-                    guard let from else { return }
-
-                    if isInSameSection(
-                        from: from,
-                        to: self.item
-                    ) {
-                        withAnimation(
-                            .spring(
-                                response: 0.3,
-                                dampingFraction: 0.8
-                            )
-                        ) {
-                            self.item.container
-                                .reorderTabs(
-                                    from: from,
-                                    to: self.item
-                                )
-                        }
-                    } else {
-                        moveTabBetweenSections(from: from, to: self.item)
-                    }
-                }
-            }
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            item.container.moveTab(moved, onto: item)
         }
     }
 
@@ -68,6 +34,7 @@ struct TabDropDelegate: DropDelegate {
 
     func performDrop(info: DropInfo) -> Bool {
         draggedItem = nil
+        try? item.container.modelContext?.save()
         return true
     }
 }

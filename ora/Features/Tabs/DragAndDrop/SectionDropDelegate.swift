@@ -7,47 +7,20 @@ struct SectionDropDelegate: DropDelegate {
     let targetSection: TabSection
     let tabManager: TabManager
 
+    /// Drop on an empty section (no tab to drop onto): the tab joins it.
     func dropEntered(info: DropInfo) {
-        guard let provider = info.itemProviders(for: [.text]).first else { return }
+        guard items.isEmpty,
+              let draggedID = draggedItem,
+              let container = tabManager.activeContainer,
+              let moved = container.tabs.first(where: { $0.id == draggedID })
+        else { return }
+
         performHapticFeedback(pattern: .alignment)
-
-        provider.loadObject(ofClass: NSString.self) { object, _ in
-            guard
-                let string = object as? String,
-                let uuid = UUID(uuidString: string)
-            else { return }
-
-            DispatchQueue.main.async {
-                guard let container = self.items.first?.container ?? self.tabManager.activeContainer,
-                      let from = container.tabs.first(where: { $0.id == uuid })
-                else { return }
-
-                if self.items.isEmpty {
-                    // Section is empty, just change type and order
-                    let newType = tabType(for: self.targetSection)
-                    from.type = newType
-                    // Update savedURL when moving into pinned/fav; clear when moving to normal
-                    switch newType {
-                    case .pinned, .fav:
-                        from.savedURL = from.url
-                    case .normal:
-                        from.savedURL = nil
-                    }
-                    let maxOrder = container.tabs.max(by: { $0.order < $1.order })?.order ?? 0
-                    from.order = maxOrder + 1
-                    try? self.tabManager.modelContext.save()
-                }
-                // else if let to = self.items.last {
-                // if isInSameSection(from: from, to: to) {
-                // withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                //   container.reorderTabs(from: from, to: to)
-                // }
-                // } else {
-                // moveTabBetweenSections(from: from, to: to)
-                // }
-                // }
-            }
-        }
+        let newType = tabType(for: targetSection)
+        moved.type = newType
+        // Pinned and favorite tabs come back to their saved URL.
+        moved.savedURL = newType == .normal ? nil : moved.url
+        moved.order = 1
     }
 
     func dropUpdated(info: DropInfo) -> DropProposal? {
@@ -56,6 +29,7 @@ struct SectionDropDelegate: DropDelegate {
 
     func performDrop(info: DropInfo) -> Bool {
         draggedItem = nil
+        try? tabManager.modelContext.save()
         return true
     }
 }
