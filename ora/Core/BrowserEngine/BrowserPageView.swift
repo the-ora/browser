@@ -4,6 +4,9 @@ import SwiftUI
 final class BrowserPageHostView: NSView {
     private(set) weak var hostedContentView: NSView?
 
+    /// Called when Escape reaches the host without being handled by the page.
+    var cancelOperationHandler: (() -> Void)?
+
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         wantsLayer = true
@@ -71,6 +74,14 @@ final class BrowserPageHostView: NSView {
         hostedContentView?.frame = bounds
     }
 
+    /// Escape that the page does not handle travels up the responder chain as
+    /// `cancelOperation(_:)`. Left alone it reaches the window, which exits full
+    /// screen (the-ora/browser#179), so it stops here. Pages still receive the
+    /// key first (closing their own dialogs, leaving video full screen...).
+    override func cancelOperation(_ sender: Any?) {
+        cancelOperationHandler?()
+    }
+
     private func configure(contentView: NSView) {
         contentView.wantsLayer = true
         contentView.autoresizingMask = [.width, .height]
@@ -135,6 +146,7 @@ struct BrowserPageView: NSViewRepresentable {
         let contentView = page.contentView
         context.coordinator.update(page: page, contentView: contentView)
         hostView.host(contentView: contentView)
+        hostView.cancelOperationHandler = Self.cancelOperationHandler(for: page)
         return hostView
     }
 
@@ -142,6 +154,16 @@ struct BrowserPageView: NSViewRepresentable {
         let contentView = page.contentView
         context.coordinator.update(page: page, contentView: contentView)
         nsView.host(contentView: contentView)
+        nsView.cancelOperationHandler = Self.cancelOperationHandler(for: page)
+    }
+
+    /// Like Safari, Escape stops a page that is still loading, and leaves a
+    /// loaded page alone.
+    static func cancelOperationHandler(for page: some LoadingStoppable) -> () -> Void {
+        { [weak page] in
+            guard let page, page.isLoading else { return }
+            page.stopLoading()
+        }
     }
 
     final class Coordinator: NSObject {
@@ -259,3 +281,12 @@ struct BrowserPageView: NSViewRepresentable {
         }
     }
 }
+
+/// A page that Escape can stop while it loads (see
+/// `BrowserPageView.cancelOperationHandler(for:)`).
+protocol LoadingStoppable: AnyObject {
+    var isLoading: Bool { get }
+    func stopLoading()
+}
+
+extension BrowserPage: LoadingStoppable {}
