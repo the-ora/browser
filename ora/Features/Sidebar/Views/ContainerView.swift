@@ -51,11 +51,28 @@ struct ContainerView: View {
                 .padding(.horizontal)
             }
 
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 16) {
-                    if !privacyMode.isPrivate {
-                        PinnedTabsList(
-                            tabs: pinnedTabs,
+            // The tab list fills the sidebar, so its empty space under the
+            // tabs also zooms the window on a double click.
+            GeometryReader { scrollArea in
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 16) {
+                        if !privacyMode.isPrivate {
+                            PinnedTabsList(
+                                tabs: pinnedTabs,
+                                draggedItem: $draggedItem,
+                                onDrag: dragTab,
+                                onSelect: selectTab,
+                                onPinToggle: togglePin,
+                                onFavoriteToggle: toggleFavorite,
+                                onClose: removeTab,
+                                onDuplicate: duplicateTab,
+                                onMoveToContainer: moveTab,
+                                containers: containers
+                            )
+                            Divider()
+                        }
+                        NormalTabsList(
+                            tabs: normalTabs,
                             draggedItem: $draggedItem,
                             onDrag: dragTab,
                             onSelect: selectTab,
@@ -64,22 +81,11 @@ struct ContainerView: View {
                             onClose: removeTab,
                             onDuplicate: duplicateTab,
                             onMoveToContainer: moveTab,
-                            containers: containers
+                            onAddNewTab: addNewTab
                         )
-                        Divider()
                     }
-                    NormalTabsList(
-                        tabs: normalTabs,
-                        draggedItem: $draggedItem,
-                        onDrag: dragTab,
-                        onSelect: selectTab,
-                        onPinToggle: togglePin,
-                        onFavoriteToggle: toggleFavorite,
-                        onClose: removeTab,
-                        onDuplicate: duplicateTab,
-                        onMoveToContainer: moveTab,
-                        onAddNewTab: addNewTab
-                    )
+                    .frame(minHeight: scrollArea.size.height, alignment: .top)
+                    .modifier(DoubleClickToZoomWindow())
                 }
             }
         }
@@ -163,15 +169,13 @@ private struct OraWindowDragGesture: ViewModifier {
     @Binding var isDragging: Bool
 
     func body(content: Content) -> some View {
-        Group {
-            if isDragging {
-                content
+        if isDragging {
+            content
+        } else {
+            if #available(macOS 15.0, *) {
+                content.gesture(WindowDragGesture())
             } else {
-                if #available(macOS 15.0, *) {
-                    content.gesture(WindowDragGesture())
-                } else {
-                    content.gesture(BackportWindowDragGesture(isDragging: $isDragging))
-                }
+                content.gesture(BackportWindowDragGesture(isDragging: $isDragging))
             }
         }
     }
@@ -195,10 +199,7 @@ private struct BackportWindowDragGesture: Gesture {
             .onChanged { _ in
                 // Makes intent cleaner, if we're dragging, then just return
                 // Maybe some other case needs to be watched for here
-                guard !isDragging else {
-                    return
-                }
-                guard let win = NSApp.keyWindow, let event = NSApp.currentEvent else {
+                guard !isDragging, let win = NSApp.keyWindow, let event = NSApp.currentEvent else {
                     return
                 }
 

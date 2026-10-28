@@ -203,9 +203,7 @@ struct SidebarView: View {
                 trailing: 0
             )
         )
-        .onTapGesture(count: 2) {
-            toggleMaximizeWindow()
-        }
+        .modifier(DoubleClickToZoomWindow())
     }
 
     private func onContainerSelected(container: TabContainer) {
@@ -213,8 +211,24 @@ struct SidebarView: View {
             tabManager.activateContainer(container)
         }
     }
+}
 
-    private func toggleMaximizeWindow() {
-        window?.toggleMaximized()
+/// Double click on the sidebar's empty space zooms the window. The gesture
+/// sits behind the content: around it, every click in the sidebar (selecting
+/// a tab, a space...) waited for a possible second click, about half a second,
+/// before being handled.
+struct DoubleClickToZoomWindow: ViewModifier {
+    @Environment(\.window) private var window: NSWindow?
+
+    func body(content: Content) -> some View {
+        content.background {
+            Color.clear
+                .contentShape(Rectangle())
+                .onTapGesture(count: 2) {
+                    // The clicked window: the spaces' pages are hosted apart
+                    // (`NSPageView`) and may not get the `window` environment.
+                    (NSApp.currentEvent?.window ?? window)?.toggleMaximized()
+                }
+        }
     }
 }
